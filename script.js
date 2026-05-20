@@ -4,9 +4,12 @@
   const TOTAL_PER_DIFFICULTY = 20;
   const QUESTIONS_PER_STAGE = 4;
   const TOTAL_QUESTIONS = 60;
-  const DIFFICULTY_TIME = 120;
-  const FEEDBACK_TIME = 1300;
+  const DIFFICULTY_TIME = 180;
+  const FEEDBACK_TIME = 2400;
+  const RETRY_FEEDBACK_TIME = 2200;
+  const MAX_WRONG_RETRIES = 2;
   const STORAGE_KEY = "ssok_count_finder_last_result";
+  const RACE_POINTS = [13, 50, 87, 97];
 
   const FRUITS = [
     { id: "apple", name: "사과", emoji: "🍎" },
@@ -20,19 +23,22 @@
     {
       key: "easy",
       label: "쉬움",
+      runner: "👶",
       revealMs: 3000,
       totalRangeByStage: [[2, 3], [3, 4], [4, 5], [5, 6], [6, 8]]
     },
     {
       key: "normal",
       label: "보통",
-      revealMs: 4000,
+      runner: "🧑‍🎓",
+      revealMs: 3000,
       totalRangeByStage: [[4, 5], [5, 7], [7, 9], [9, 11], [11, 13]]
     },
     {
       key: "hard",
       label: "어려움",
-      revealMs: 5000,
+      runner: "🧑",
+      revealMs: 3000,
       totalRangeByStage: [[5, 6], [7, 9], [9, 11], [11, 14], [14, 18]]
     }
   ];
@@ -52,7 +58,7 @@
     timerBox: document.getElementById("timer-box"),
     difficultyLabel: document.getElementById("difficulty-label"),
     stageLabel: document.getElementById("stage-label"),
-    questionCount: document.getElementById("question-count"),
+    raceWrap: document.querySelector(".race-wrap"),
     raceMarker: document.getElementById("race-marker"),
     raceSteps: Array.from(document.querySelectorAll(".race-step")),
     resultCorrect: document.getElementById("result-correct"),
@@ -60,6 +66,7 @@
     resultRate: document.getElementById("result-rate"),
     resultDifficulty: document.getElementById("result-difficulty"),
     resultStage: document.getElementById("result-stage"),
+    resultHomeButton: document.getElementById("result-home-button"),
     resultCompare: document.getElementById("result-compare")
   };
 
@@ -69,6 +76,7 @@
     correctCount: 0,
     timeLeft: DIFFICULTY_TIME,
     currentQuestion: null,
+    wrongAttempts: 0,
     phase: "start",
     isPaused: false,
     timerId: null,
@@ -94,6 +102,7 @@
     state.correctCount = 0;
     state.timeLeft = DIFFICULTY_TIME;
     state.currentQuestion = null;
+    state.wrongAttempts = 0;
     state.phase = "start";
     state.isPaused = false;
     state.phaseRemaining = 0;
@@ -129,6 +138,7 @@
     }
 
     state.currentQuestion = createQuestion();
+    state.wrongAttempts = 0;
     state.phase = "memory";
     updateReachedPoint();
     updateTopUi();
@@ -154,8 +164,22 @@
     const isCorrect = Number(choice) === state.currentQuestion.answer;
     if (isCorrect) {
       state.correctCount += 1;
+      completeQuestion(true);
+      return;
     }
 
+    state.wrongAttempts += 1;
+    if (state.wrongAttempts <= MAX_WRONG_RETRIES) {
+      state.phase = "feedback";
+      renderRetryFeedbackView(MAX_WRONG_RETRIES - state.wrongAttempts);
+      startPhaseTimer(RETRY_FEEDBACK_TIME, showQuestionView);
+      return;
+    }
+
+    completeQuestion(false);
+  }
+
+  function completeQuestion(isCorrect) {
     state.phase = "feedback";
     state.questionInDifficulty += 1;
     renderFeedbackView(isCorrect, state.currentQuestion);
@@ -164,11 +188,7 @@
 
   function handleTimeExpired() {
     clearAllTimers();
-    if (state.difficultyIndex >= DIFFICULTIES.length - 1) {
-      showResult();
-      return;
-    }
-    startDifficulty(state.difficultyIndex + 1);
+    showResult();
   }
 
   function createQuestion() {
@@ -287,12 +307,16 @@
 
     const helper = document.createElement("p");
     helper.className = "helper-text";
-    helper.textContent = "기억나는 개수를 눌러주세요";
+    helper.textContent = state.wrongAttempts > 0 ? "다시 한 번 차분히 골라보세요" : "기억나는 개수를 눌러주세요";
 
     const answerGrid = document.createElement("div");
     answerGrid.className = "answer-grid";
 
-    createAnswerOptions(question.answer, question.totalCount).forEach((option) => {
+    if (!question.options) {
+      question.options = createAnswerOptions(question.answer, question.totalCount);
+    }
+
+    question.options.forEach((option) => {
       const button = document.createElement("button");
       button.className = "game-button number-button";
       button.type = "button";
@@ -303,6 +327,28 @@
 
     card.append(questionText, target, helper, answerGrid);
     view.appendChild(card);
+    els.playArea.appendChild(view);
+  }
+
+  function renderRetryFeedbackView(remainingRetries) {
+    els.playArea.innerHTML = "";
+
+    const view = document.createElement("section");
+    view.className = "feedback-view retry-feedback";
+
+    const symbol = document.createElement("div");
+    symbol.className = "feedback-symbol is-thinking";
+    symbol.textContent = "?";
+
+    const title = document.createElement("p");
+    title.className = "feedback-title";
+    title.textContent = "다시 한 번 생각해보세요!";
+
+    const message = document.createElement("p");
+    message.className = "feedback-message";
+    message.textContent = remainingRetries > 0 ? "조금 더 기억해보고 다시 골라보세요." : "마지막으로 한 번 더 골라볼까요?";
+
+    view.append(symbol, title, message);
     els.playArea.appendChild(view);
   }
 
@@ -438,7 +484,12 @@
     }
   }
 
-  function returnHome() {
+  function quitGame() {
+    state.isPaused = false;
+    showResult();
+  }
+
+  function goHome() {
     resetState();
     showOnly("start");
   }
@@ -446,17 +497,19 @@
   function showResult() {
     clearAllTimers();
     state.phase = "result";
-    const rate = Math.round((state.correctCount / TOTAL_QUESTIONS) * 100);
+    els.pauseModal.classList.add("is-hidden");
+    const totalAnswered = getAnsweredCount();
+    const rate = totalAnswered > 0 ? Math.round((state.correctCount / totalAnswered) * 100) : 0;
     const previous = readPreviousRecord();
 
     els.resultCorrect.textContent = `${state.correctCount}개`;
-    els.resultTotal.textContent = `${TOTAL_QUESTIONS}문제`;
+    els.resultTotal.textContent = `${totalAnswered}문제`;
     els.resultRate.textContent = `${rate}%`;
     els.resultDifficulty.textContent = DIFFICULTIES[state.reachedDifficultyIndex].label;
     els.resultStage.textContent = `${state.reachedStage}단계`;
     els.resultCompare.textContent = createCompareText(previous, rate);
 
-    saveRecord(rate);
+    saveRecord(rate, totalAnswered);
     showOnly("result");
   }
 
@@ -485,11 +538,11 @@
     }
   }
 
-  function saveRecord(rate) {
+  function saveRecord(rate, totalAnswered) {
     const record = {
       rate,
       correct: state.correctCount,
-      total: TOTAL_QUESTIONS,
+      total: totalAnswered,
       playedAt: new Date().toISOString()
     };
     localStorage.setItem(STORAGE_KEY, JSON.stringify(record));
@@ -504,19 +557,23 @@
   function updateTopUi() {
     const difficulty = currentDifficulty();
     const stage = currentStage();
-    const globalQuestion = state.difficultyIndex * TOTAL_PER_DIFFICULTY + state.questionInDifficulty + 1;
 
     els.difficultyLabel.textContent = difficulty.label;
     els.stageLabel.textContent = `${stage}단계`;
-    els.questionCount.textContent = `${Math.min(globalQuestion, TOTAL_QUESTIONS)} / ${TOTAL_QUESTIONS}`;
     updateRaceUi();
     updateTimerUi();
   }
 
   function updateRaceUi() {
-    const ratio = state.difficultyIndex / (DIFFICULTIES.length - 1);
-    const markerLeft = 10 + ratio * 80;
-    els.raceMarker.style.setProperty("--marker-left", `${markerLeft}%`);
+    const stageProgress = (currentStage() - 1) / ((TOTAL_PER_DIFFICULTY / QUESTIONS_PER_STAGE) - 1);
+    const start = RACE_POINTS[state.difficultyIndex];
+    const end = RACE_POINTS[state.difficultyIndex + 1] || start;
+    const markerLeft = start + (end - start) * stageProgress;
+    const fillRatio = (markerLeft - RACE_POINTS[0]) / (RACE_POINTS[RACE_POINTS.length - 1] - RACE_POINTS[0]);
+
+    els.raceWrap.style.setProperty("--marker-left", `${markerLeft}%`);
+    els.raceWrap.style.setProperty("--race-fill", `${Math.max(0, Math.min(1, fillRatio)) * 100}%`);
+    els.raceMarker.textContent = currentDifficulty().runner;
 
     els.raceSteps.forEach((step, index) => {
       step.classList.toggle("is-active", index === state.difficultyIndex);
@@ -530,10 +587,19 @@
   }
 
   function updateReachedPoint() {
-    state.reachedDifficultyIndex = Math.max(state.reachedDifficultyIndex, state.difficultyIndex);
-    if (state.reachedDifficultyIndex === state.difficultyIndex) {
+    if (state.difficultyIndex > state.reachedDifficultyIndex) {
+      state.reachedDifficultyIndex = state.difficultyIndex;
+      state.reachedStage = currentStage();
+      return;
+    }
+
+    if (state.difficultyIndex === state.reachedDifficultyIndex) {
       state.reachedStage = Math.max(state.reachedStage, currentStage());
     }
+  }
+
+  function getAnsweredCount() {
+    return Math.min(TOTAL_QUESTIONS, state.difficultyIndex * TOTAL_PER_DIFFICULTY + state.questionInDifficulty);
   }
 
   function currentDifficulty() {
@@ -570,9 +636,10 @@
   function bindEvents() {
     els.startButton.addEventListener("click", startGame);
     els.restartButton.addEventListener("click", startGame);
+    els.resultHomeButton.addEventListener("click", goHome);
     els.pauseButton.addEventListener("click", pauseGame);
     els.resumeButton.addEventListener("click", resumeGame);
-    els.homeButton.addEventListener("click", returnHome);
+    els.homeButton.addEventListener("click", quitGame);
 
     document.addEventListener("keydown", (event) => {
       if (event.key === "Escape" && !els.gameScreen.classList.contains("is-hidden")) {

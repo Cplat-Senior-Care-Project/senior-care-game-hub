@@ -21,7 +21,7 @@
       <header class="game-header">
         <div class="race-wrap" aria-label="난이도 진행 상태">
           <div class="race-line" aria-hidden="true"></div>
-          <div id="race-marker" class="race-marker" aria-hidden="true">●</div>
+          <div id="race-marker" class="race-marker" aria-hidden="true">👶</div>
           <div class="race-step" data-race-key="easy">
             <span>쉬움</span>
           </div>
@@ -36,7 +36,7 @@
         <div class="info-bar">
           <div id="timer-box" class="info-pill timer-pill">
             <span class="info-label">남은 시간</span>
-            <strong id="time-left">02:00</strong>
+            <strong id="time-left">03:00</strong>
           </div>
           <div class="info-pill">
             <span class="info-label">난이도</span>
@@ -45,10 +45,6 @@
           <div class="info-pill">
             <span class="info-label">단계</span>
             <strong id="stage-label">1단계</strong>
-          </div>
-          <div class="info-pill">
-            <span class="info-label">문제</span>
-            <strong id="question-count">1 / 60</strong>
           </div>
           <button id="pause-button" class="game-button icon-button" type="button" aria-label="일시정지">일시정지</button>
         </div>
@@ -84,7 +80,10 @@
           </div>
         </div>
         <p id="result-compare" class="compare-text">첫 기록입니다!</p>
-        <button id="restart-button" class="game-button primary-button" type="button">처음부터 다시</button>
+        <div class="result-actions">
+          <button id="restart-button" class="game-button primary-button" type="button">처음부터 다시</button>
+          <button id="result-home-button" class="game-button secondary-button" type="button">홈으로</button>
+        </div>
       </div>
     </section>
 
@@ -94,7 +93,7 @@
         <p>타이머가 멈췄습니다. 준비되면 이어서 해볼까요?</p>
         <div class="modal-actions">
           <button id="resume-button" class="game-button primary-button" type="button">계속하기</button>
-          <button id="home-button" class="game-button secondary-button" type="button">처음으로</button>
+          <button id="home-button" class="game-button secondary-button" type="button">그만하기</button>
         </div>
       </div>
     </div>
