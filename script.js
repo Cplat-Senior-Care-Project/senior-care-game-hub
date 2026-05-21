@@ -272,19 +272,38 @@
     const view = document.createElement("section");
     view.className = "memory-view";
 
+    const notice = document.createElement("div");
+    notice.className = "memory-card";
+
+    const leafLeft = document.createElement("span");
+    leafLeft.className = "memory-leaf memory-leaf-left";
+    leafLeft.setAttribute("aria-hidden", "true");
+    leafLeft.textContent = "⌒";
+
+    const leafRight = document.createElement("span");
+    leafRight.className = "memory-leaf memory-leaf-right";
+    leafRight.setAttribute("aria-hidden", "true");
+    leafRight.textContent = "⌒";
+
     const title = document.createElement("p");
     title.className = "guide-text";
     title.textContent = "잘 보고 기억해주세요";
+
+    const divider = document.createElement("span");
+    divider.className = "memory-divider";
+    divider.setAttribute("aria-hidden", "true");
 
     const helper = document.createElement("p");
     helper.className = "helper-text";
     helper.textContent = `${currentDifficulty().label} ${currentStage()}단계 · 과일이 잠시 후 사라집니다`;
 
+    notice.append(leafLeft, title, divider, helper, leafRight);
+
     const grid = document.createElement("div");
     grid.className = "fruit-grid";
     question.cards.forEach((fruit) => grid.appendChild(createFruitCard(fruit)));
 
-    view.append(title, helper, grid);
+    view.append(notice, grid);
     els.playArea.appendChild(view);
   }
 
@@ -558,8 +577,10 @@
     const difficulty = currentDifficulty();
     const stage = currentStage();
 
-    els.difficultyLabel.textContent = difficulty.label;
-    els.stageLabel.textContent = `${stage}단계`;
+    els.difficultyLabel.textContent = `${difficulty.label} ${stage}단계`;
+    if (els.stageLabel) {
+      els.stageLabel.textContent = `${stage}단계`;
+    }
     updateRaceUi();
     updateTimerUi();
   }

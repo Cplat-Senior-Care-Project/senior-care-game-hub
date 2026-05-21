@@ -8,12 +8,25 @@
 </head>
 <body>
   <div id="app" class="app">
+    <img class="app-decor app-leaf app-leaf-left" src="image/assets/left-leaf.png" alt="" aria-hidden="true">
+    <img class="app-decor app-leaf app-leaf-right" src="image/assets/right-leaf.png" alt="" aria-hidden="true">
+    <img class="app-decor app-fruits app-fruits-left" src="image/assets/left-fruits.png" alt="" aria-hidden="true">
+    <img class="app-decor app-fruits app-fruits-right" src="image/assets/right-fruits.png" alt="" aria-hidden="true">
+
     <section id="start-screen" class="screen start-screen" aria-labelledby="start-title">
       <div class="brand-block">
         <p class="eyebrow">기억을 천천히 깨우는 과일 게임</p>
-        <h1 id="start-title">쏙쏙 개수 찾기</h1>
+        <h1 id="start-title" class="start-title">
+          <span class="title-word title-ssok">쏙쏙</span>
+          <span class="title-word title-rest">개수 찾기</span>
+        </h1>
+        <div class="title-divider" aria-hidden="true">
+          <span></span>
+        </div>
         <p class="subtitle">방금 본 물건은 몇 개였을까요?</p>
-        <button id="start-button" class="game-button primary-button" type="button">시작하기</button>
+        <button id="start-button" class="game-button primary-button" type="button">
+          <span>시작하기</span>
+        </button>
       </div>
     </section>
 
@@ -23,30 +36,45 @@
           <div class="race-line" aria-hidden="true"></div>
           <div id="race-marker" class="race-marker" aria-hidden="true">👶</div>
           <div class="race-step" data-race-key="easy">
-            <span>쉬움</span>
+            <span>
+              <span class="race-check" aria-hidden="true">✓</span>
+              <span class="race-name">쉬움</span>
+            </span>
           </div>
           <div class="race-step" data-race-key="normal">
-            <span>보통</span>
+            <span>
+              <span class="race-check" aria-hidden="true">✓</span>
+              <span class="race-name">보통</span>
+            </span>
           </div>
           <div class="race-step" data-race-key="hard">
-            <span>어려움</span>
+            <span>
+              <span class="race-check" aria-hidden="true">✓</span>
+              <span class="race-name">어려움</span>
+            </span>
           </div>
         </div>
 
         <div class="info-bar">
           <div id="timer-box" class="info-pill timer-pill">
-            <span class="info-label">남은 시간</span>
-            <strong id="time-left">03:00</strong>
+            <span class="info-icon clock-icon" aria-hidden="true"></span>
+            <span class="info-copy">
+              <span class="info-label">남은 시간</span>
+              <strong id="time-left">03:00</strong>
+            </span>
           </div>
           <div class="info-pill">
-            <span class="info-label">난이도</span>
-            <strong id="difficulty-label">쉬움</strong>
+            <span class="info-icon level-icon" aria-hidden="true"><i></i><i></i><i></i></span>
+            <span class="info-copy">
+              <span class="info-label">난이도</span>
+              <strong id="difficulty-label">쉬움 1단계</strong>
+              <strong id="stage-label" class="sr-only">1단계</strong>
+            </span>
           </div>
-          <div class="info-pill">
-            <span class="info-label">단계</span>
-            <strong id="stage-label">1단계</strong>
-          </div>
-          <button id="pause-button" class="game-button icon-button" type="button" aria-label="일시정지">일시정지</button>
+          <button id="pause-button" class="game-button icon-button" type="button" aria-label="일시정지">
+            <span class="pause-symbol" aria-hidden="true">Ⅱ</span>
+            <span>일시정지</span>
+          </button>
         </div>
       </header>
 
