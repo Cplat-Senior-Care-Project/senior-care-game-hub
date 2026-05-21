@@ -8,10 +8,7 @@
 </head>
 <body>
   <div id="app" class="app">
-    <img class="app-decor app-leaf app-leaf-left" src="image/assets/left-leaf.png" alt="" aria-hidden="true">
-    <img class="app-decor app-leaf app-leaf-right" src="image/assets/right-leaf.png" alt="" aria-hidden="true">
-    <img class="app-decor app-fruits app-fruits-left" src="image/assets/left-fruits.png" alt="" aria-hidden="true">
-    <img class="app-decor app-fruits app-fruits-right" src="image/assets/right-fruits.png" alt="" aria-hidden="true">
+    <img class="app-meadow" src="image/assets/plain.png" alt="" aria-hidden="true">
 
     <section id="start-screen" class="screen start-screen" aria-labelledby="start-title">
       <div class="brand-block">
@@ -24,9 +21,38 @@
           <span></span>
         </div>
         <p class="subtitle">방금 본 물건은 몇 개였을까요?</p>
-        <button id="start-button" class="game-button primary-button" type="button">
-          <span>시작하기</span>
-        </button>
+        <div class="start-actions">
+          <button id="settings-button" class="game-button start-side-button" type="button">설정</button>
+          <button id="start-button" class="game-button primary-button" type="button">
+            <span>시작하기</span>
+          </button>
+          <button id="tutorial-button" class="game-button start-side-button" type="button">게임설명</button>
+        </div>
+      </div>
+    </section>
+
+    <section id="difficulty-screen" class="screen difficulty-screen is-hidden" aria-labelledby="difficulty-title">
+      <div class="difficulty-content">
+        <p class="eyebrow">난이도를 골라주세요</p>
+        <h2 id="difficulty-title">어떤 문제로 시작할까요?</h2>
+        <div class="difficulty-options" role="group" aria-label="난이도 선택">
+          <button class="game-button difficulty-option" type="button" data-difficulty-index="0">
+            <span class="difficulty-option-icon" aria-hidden="true">🙂</span>
+            <strong>쉬움</strong>
+            <span>과일 1종류부터 천천히</span>
+          </button>
+          <button class="game-button difficulty-option" type="button" data-difficulty-index="1">
+            <span class="difficulty-option-icon" aria-hidden="true">😊</span>
+            <strong>보통</strong>
+            <span>여러 과일을 함께 기억</span>
+          </button>
+          <button class="game-button difficulty-option" type="button" data-difficulty-index="2">
+            <span class="difficulty-option-icon" aria-hidden="true">🤩</span>
+            <strong>어려움</strong>
+            <span>더 많이, 섞어서 기억</span>
+          </button>
+        </div>
+        <button id="difficulty-back-button" class="game-button secondary-button difficulty-back-button" type="button">뒤로가기</button>
       </div>
     </section>
 
@@ -34,7 +60,7 @@
       <header class="game-header">
         <div class="race-wrap" aria-label="난이도 진행 상태">
           <div class="race-line" aria-hidden="true"></div>
-          <div id="race-marker" class="race-marker" aria-hidden="true">👶</div>
+          <div id="race-marker" class="race-marker" aria-hidden="true">🙂</div>
           <div class="race-step" data-race-key="easy">
             <span>
               <span class="race-check" aria-hidden="true">✓</span>
@@ -57,22 +83,22 @@
 
         <div class="info-bar">
           <div id="timer-box" class="info-pill timer-pill">
-            <span class="info-icon clock-icon" aria-hidden="true"></span>
+            <span class="info-icon timer-icon" aria-hidden="true"></span>
             <span class="info-copy">
               <span class="info-label">남은 시간</span>
-              <strong id="time-left">03:00</strong>
+              <strong id="time-left">02:00</strong>
             </span>
           </div>
           <div class="info-pill">
             <span class="info-icon level-icon" aria-hidden="true"><i></i><i></i><i></i></span>
             <span class="info-copy">
               <span class="info-label">난이도</span>
-              <strong id="difficulty-label">쉬움 1단계</strong>
-              <strong id="stage-label" class="sr-only">1단계</strong>
+              <strong id="difficulty-label">쉬움</strong>
+              <strong id="stage-label" class="sr-only">쉬움</strong>
             </span>
           </div>
           <button id="pause-button" class="game-button icon-button" type="button" aria-label="일시정지">
-            <span class="pause-symbol" aria-hidden="true">Ⅱ</span>
+            <span class="pause-symbol" aria-hidden="true"></span>
             <span>일시정지</span>
           </button>
         </div>
@@ -83,31 +109,10 @@
 
     <section id="result-screen" class="screen result-screen is-hidden" aria-labelledby="result-title">
       <div class="result-content">
-        <p class="eyebrow">오늘의 결과</p>
+        <div id="result-emoji" class="result-emoji" aria-hidden="true">😊</div>
+        <p class="eyebrow">오늘도 잘하셨어요</p>
         <h2 id="result-title">수고하셨어요</h2>
-        <div class="result-grid">
-          <div class="result-item">
-            <span>총 맞힌 개수</span>
-            <strong id="result-correct">0개</strong>
-          </div>
-          <div class="result-item">
-            <span>총 문제 수</span>
-            <strong id="result-total">60문제</strong>
-          </div>
-          <div class="result-item">
-            <span>정답률</span>
-            <strong id="result-rate">0%</strong>
-          </div>
-          <div class="result-item">
-            <span>도달 난이도</span>
-            <strong id="result-difficulty">쉬움</strong>
-          </div>
-          <div class="result-item">
-            <span>도달 단계</span>
-            <strong id="result-stage">1단계</strong>
-          </div>
-        </div>
-        <p id="result-compare" class="compare-text">첫 기록입니다!</p>
+        <p id="result-message" class="result-message">천천히 집중해주신 것만으로도 참 좋습니다.</p>
         <div class="result-actions">
           <button id="restart-button" class="game-button primary-button" type="button">처음부터 다시</button>
           <button id="result-home-button" class="game-button secondary-button" type="button">홈으로</button>
@@ -122,6 +127,51 @@
         <div class="modal-actions">
           <button id="resume-button" class="game-button primary-button" type="button">계속하기</button>
           <button id="home-button" class="game-button secondary-button" type="button">그만하기</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="settings-modal" class="modal-layer is-hidden" role="dialog" aria-modal="true" aria-labelledby="settings-title">
+      <div class="modal-card settings-card">
+        <h2 id="settings-title">설정</h2>
+        <div class="settings-options">
+          <label class="setting-row">
+            <input id="large-text-toggle" type="checkbox">
+            <span>
+              <strong>큰 글씨</strong>
+              <small>글자를 조금 더 크게 보여드려요.</small>
+            </span>
+          </label>
+          <label class="setting-row">
+            <input id="calm-motion-toggle" type="checkbox">
+            <span>
+              <strong>움직임 줄이기</strong>
+              <small>화면 움직임을 더 차분하게 줄여요.</small>
+            </span>
+          </label>
+          <label class="setting-row">
+            <input id="sound-toggle" type="checkbox" checked>
+            <span>
+              <strong>소리</strong>
+              <small>효과음 사용 여부를 설정해요.</small>
+            </span>
+          </label>
+        </div>
+        <div class="modal-actions">
+          <button id="settings-close-button" class="game-button primary-button" type="button">확인</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="tutorial-modal" class="modal-layer is-hidden" role="dialog" aria-modal="true" aria-labelledby="tutorial-title">
+      <div class="modal-card tutorial-card">
+        <p id="tutorial-step" class="tutorial-step">1 / 5</p>
+        <div id="tutorial-preview" class="tutorial-preview" aria-hidden="true"></div>
+        <h2 id="tutorial-title">게임설명</h2>
+        <p id="tutorial-message">게임 설명을 확인해보세요.</p>
+        <div class="modal-actions tutorial-actions">
+          <button id="tutorial-close-button" class="game-button secondary-button" type="button">닫기</button>
+          <button id="tutorial-next-button" class="game-button primary-button" type="button">다음</button>
         </div>
       </div>
     </div>

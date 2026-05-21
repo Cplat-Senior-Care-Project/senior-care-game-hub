@@ -1,15 +1,14 @@
 (function () {
   "use strict";
 
-  const TOTAL_PER_DIFFICULTY = 20;
-  const QUESTIONS_PER_STAGE = 4;
-  const TOTAL_QUESTIONS = 60;
-  const DIFFICULTY_TIME = 180;
+  const TOTAL_PER_DIFFICULTY = 10;
+  const TOTAL_QUESTIONS = TOTAL_PER_DIFFICULTY;
+  const DIFFICULTY_TIME = 120;
   const FEEDBACK_TIME = 2400;
   const RETRY_FEEDBACK_TIME = 2200;
   const MAX_WRONG_RETRIES = 2;
   const STORAGE_KEY = "ssok_count_finder_last_result";
-  const RACE_POINTS = [13, 50, 87, 97];
+  const RACE_POINTS = [16, 50, 84, 94];
 
   const FRUITS = [
     { id: "apple", name: "사과", emoji: "🍎" },
@@ -23,36 +22,94 @@
     {
       key: "easy",
       label: "쉬움",
-      runner: "👶",
+      runner: "🙂",
       revealMs: 3000,
-      totalRangeByStage: [[2, 3], [3, 4], [4, 5], [5, 6], [6, 8]]
+      startRange: [2, 3],
+      endRange: [6, 8],
+      minTypes: 1,
+      maxTypes: 1,
+      shuffleCards: false
     },
     {
       key: "normal",
       label: "보통",
-      runner: "🧑‍🎓",
+      runner: "😊",
       revealMs: 3000,
-      totalRangeByStage: [[4, 5], [5, 7], [7, 9], [9, 11], [11, 13]]
+      startRange: [4, 5],
+      endRange: [11, 13],
+      minTypes: 2,
+      maxTypes: 4,
+      shuffleCards: false
     },
     {
       key: "hard",
       label: "어려움",
-      runner: "🧑",
+      runner: "🤩",
       revealMs: 3000,
-      totalRangeByStage: [[5, 6], [7, 9], [9, 11], [11, 14], [14, 18]]
+      startRange: [5, 6],
+      endRange: [14, 18],
+      minTypes: 2,
+      maxTypes: 5,
+      shuffleCards: true
+    }
+  ];
+
+  const TUTORIAL_STEPS = [
+    {
+      type: "effects",
+      title: "인지 활동을 도와드려요",
+      message: "방금 본 과일을 기억하고,\n같은 과일이 몇 개인지 찾아보며\n기억력과 주의력을 천천히 연습합니다."
+    },
+    {
+      type: "memory",
+      title: "과일을 잠깐 보여드려요",
+      message: "화면에 나온 과일을 편안하게 바라보고 기억해주세요."
+    },
+    {
+      type: "question",
+      title: "개수를 떠올려요",
+      message: "과일이 사라지면 어떤 과일이 몇 개였는지 물어봅니다."
+    },
+    {
+      type: "retry",
+      title: "다시 생각할 수 있어요",
+      message: "틀려도 바로 넘어가지 않고 다시 한 번 차분히 생각할 기회를 드려요."
+    },
+    {
+      type: "result",
+      title: "끝나면 따뜻하게 마무리해요",
+      message: "점수보다 참여가 더 중요합니다. 마지막에는 다정한 응원 문구가 나옵니다."
     }
   ];
 
   const els = {
+    app: document.querySelector(".app"),
     startScreen: document.getElementById("start-screen"),
+    difficultyScreen: document.getElementById("difficulty-screen"),
     gameScreen: document.getElementById("game-screen"),
     resultScreen: document.getElementById("result-screen"),
     startButton: document.getElementById("start-button"),
+    settingsButton: document.getElementById("settings-button"),
+    tutorialButton: document.getElementById("tutorial-button"),
+    difficultyButtons: Array.from(document.querySelectorAll(".difficulty-option")),
+    difficultyBackButton: document.getElementById("difficulty-back-button"),
     restartButton: document.getElementById("restart-button"),
     pauseButton: document.getElementById("pause-button"),
     resumeButton: document.getElementById("resume-button"),
     homeButton: document.getElementById("home-button"),
     pauseModal: document.getElementById("pause-modal"),
+    settingsModal: document.getElementById("settings-modal"),
+    settingsCloseButton: document.getElementById("settings-close-button"),
+    largeTextToggle: document.getElementById("large-text-toggle"),
+    calmMotionToggle: document.getElementById("calm-motion-toggle"),
+    soundToggle: document.getElementById("sound-toggle"),
+    tutorialModal: document.getElementById("tutorial-modal"),
+    tutorialPreview: document.getElementById("tutorial-preview"),
+    tutorialStep: document.getElementById("tutorial-step"),
+    tutorialTitle: document.getElementById("tutorial-title"),
+    tutorialMessage: document.getElementById("tutorial-message"),
+    tutorialCloseButton: document.getElementById("tutorial-close-button"),
+    tutorialNextButton: document.getElementById("tutorial-next-button"),
     playArea: document.getElementById("play-area"),
     timeLeft: document.getElementById("time-left"),
     timerBox: document.getElementById("timer-box"),
@@ -61,6 +118,9 @@
     raceWrap: document.querySelector(".race-wrap"),
     raceMarker: document.getElementById("race-marker"),
     raceSteps: Array.from(document.querySelectorAll(".race-step")),
+    resultEmoji: document.getElementById("result-emoji"),
+    resultTitle: document.getElementById("result-title"),
+    resultMessage: document.getElementById("result-message"),
     resultCorrect: document.getElementById("result-correct"),
     resultTotal: document.getElementById("result-total"),
     resultRate: document.getElementById("result-rate"),
@@ -86,13 +146,22 @@
     phaseRemaining: 0,
     phaseCallback: null,
     reachedDifficultyIndex: 0,
-    reachedStage: 1
+    reachedQuestion: 0,
+    tutorialIndex: 0,
+    soundContext: null
   };
 
-  function startGame() {
+  function showDifficultySelect() {
+    resetState();
+    state.phase = "difficulty";
+    showOnly("difficulty");
+  }
+
+  function startGame(index) {
+    const difficultyIndex = Number.isInteger(index) && index >= 0 && index < DIFFICULTIES.length ? index : 0;
     resetState();
     showOnly("game");
-    startDifficulty(0);
+    startDifficulty(difficultyIndex);
   }
 
   function resetState() {
@@ -108,22 +177,19 @@
     state.phaseRemaining = 0;
     state.phaseCallback = null;
     state.reachedDifficultyIndex = 0;
-    state.reachedStage = 1;
+    state.reachedQuestion = 0;
     els.pauseModal.classList.add("is-hidden");
+    els.pauseButton.classList.remove("is-paused");
   }
 
   function startDifficulty(index) {
-    if (index >= DIFFICULTIES.length) {
-      showResult();
-      return;
-    }
-
     clearAllTimers();
     state.difficultyIndex = index;
     state.questionInDifficulty = 0;
     state.timeLeft = DIFFICULTY_TIME;
     state.phase = "ready";
     state.isPaused = false;
+    state.reachedDifficultyIndex = index;
     updateTopUi();
     startDifficultyTimer();
     showNextQuestion();
@@ -133,7 +199,7 @@
     clearPhaseTimer();
 
     if (state.questionInDifficulty >= TOTAL_PER_DIFFICULTY) {
-      startDifficulty(state.difficultyIndex + 1);
+      showResult();
       return;
     }
 
@@ -164,18 +230,21 @@
     const isCorrect = Number(choice) === state.currentQuestion.answer;
     if (isCorrect) {
       state.correctCount += 1;
+      playSound("correct");
       completeQuestion(true);
       return;
     }
 
     state.wrongAttempts += 1;
     if (state.wrongAttempts <= MAX_WRONG_RETRIES) {
+      playSound("retry");
       state.phase = "feedback";
       renderRetryFeedbackView(MAX_WRONG_RETRIES - state.wrongAttempts);
       startPhaseTimer(RETRY_FEEDBACK_TIME, showQuestionView);
       return;
     }
 
+    playSound("wrong");
     completeQuestion(false);
   }
 
@@ -193,22 +262,18 @@
 
   function createQuestion() {
     const difficulty = currentDifficulty();
-    const stage = currentStage();
+    const progress = difficultyProgress();
 
     if (difficulty.key === "easy") {
-      return createEasyQuestion(stage);
+      return createEasyQuestion(progress);
     }
 
-    if (difficulty.key === "normal") {
-      return createMixedQuestion(stage, false);
-    }
-
-    return createMixedQuestion(stage, true);
+    return createMixedQuestion(progress);
   }
 
-  function createEasyQuestion(stage) {
+  function createEasyQuestion(progress) {
     const fruit = pickOne(FRUITS);
-    const count = randomInRange(...currentDifficulty().totalRangeByStage[stage - 1]);
+    const count = randomInRange(...getCountRange(currentDifficulty(), progress));
     const cards = Array.from({ length: count }, () => fruit);
 
     return {
@@ -219,10 +284,10 @@
     };
   }
 
-  function createMixedQuestion(stage, shouldShuffle) {
+  function createMixedQuestion(progress) {
     const difficulty = currentDifficulty();
-    const totalCount = randomInRange(...difficulty.totalRangeByStage[stage - 1]);
-    const typeCount = getTypeCount(stage, shouldShuffle);
+    const totalCount = randomInRange(...getCountRange(difficulty, progress));
+    const typeCount = getTypeCount(difficulty, progress);
     const selectedFruits = shuffle([...FRUITS]).slice(0, typeCount);
     const counts = splitCount(totalCount, typeCount);
 
@@ -231,7 +296,7 @@
       cards = cards.concat(Array.from({ length: counts[index] }, () => fruit));
     });
 
-    if (shouldShuffle) {
+    if (difficulty.shuffleCards) {
       cards = shuffle(cards);
     }
 
@@ -246,11 +311,15 @@
     };
   }
 
-  function getTypeCount(stage, shouldShuffle) {
-    if (shouldShuffle) {
-      return Math.min(5, Math.max(2, Math.ceil(stage * 0.75) + 1));
-    }
-    return Math.min(4, Math.max(2, Math.floor((stage + 1) / 2) + 1));
+  function getCountRange(difficulty, progress) {
+    return difficulty.startRange.map((start, index) => {
+      const end = difficulty.endRange[index];
+      return Math.round(start + (end - start) * progress);
+    });
+  }
+
+  function getTypeCount(difficulty, progress) {
+    return Math.round(difficulty.minTypes + (difficulty.maxTypes - difficulty.minTypes) * progress);
   }
 
   function splitCount(total, parts) {
@@ -275,32 +344,15 @@
     const notice = document.createElement("div");
     notice.className = "memory-card";
 
-    const leafLeft = document.createElement("span");
-    leafLeft.className = "memory-leaf memory-leaf-left";
-    leafLeft.setAttribute("aria-hidden", "true");
-    leafLeft.textContent = "⌒";
-
-    const leafRight = document.createElement("span");
-    leafRight.className = "memory-leaf memory-leaf-right";
-    leafRight.setAttribute("aria-hidden", "true");
-    leafRight.textContent = "⌒";
-
     const title = document.createElement("p");
     title.className = "guide-text";
     title.textContent = "잘 보고 기억해주세요";
 
-    const divider = document.createElement("span");
-    divider.className = "memory-divider";
-    divider.setAttribute("aria-hidden", "true");
-
-    const helper = document.createElement("p");
-    helper.className = "helper-text";
-    helper.textContent = `${currentDifficulty().label} ${currentStage()}단계 · 과일이 잠시 후 사라집니다`;
-
-    notice.append(leafLeft, title, divider, helper, leafRight);
+    notice.appendChild(title);
 
     const grid = document.createElement("div");
     grid.className = "fruit-grid";
+    grid.classList.add(getFruitGridClass(question.cards.length));
     question.cards.forEach((fruit) => grid.appendChild(createFruitCard(fruit)));
 
     view.append(notice, grid);
@@ -412,9 +464,29 @@
     return card;
   }
 
+  function getFruitGridClass(count) {
+    if (count <= 4) {
+      return "is-sparse";
+    }
+
+    if (count <= 8) {
+      return "is-medium";
+    }
+
+    if (count <= 11) {
+      return "is-balanced";
+    }
+
+    if (count <= 15) {
+      return "is-many";
+    }
+
+    return "is-dense";
+  }
+
   function createAnswerOptions(answer, totalCount) {
     const maxOption = Math.max(4, totalCount);
-    const optionCount = Math.min(6, maxOption);
+    const optionCount = 4;
     const values = new Set([answer]);
     const closeNumbers = [answer - 2, answer - 1, answer + 1, answer + 2, answer + 3, answer - 3];
 
@@ -472,11 +544,12 @@
   }
 
   function pauseGame() {
-    if (state.phase === "start" || state.phase === "result" || state.isPaused) {
+    if (state.phase === "start" || state.phase === "difficulty" || state.phase === "result" || state.isPaused) {
       return;
     }
 
     state.isPaused = true;
+    els.pauseButton.classList.add("is-paused");
     clearInterval(state.timerId);
     state.timerId = null;
 
@@ -495,6 +568,7 @@
     }
 
     state.isPaused = false;
+    els.pauseButton.classList.remove("is-paused");
     els.pauseModal.classList.add("is-hidden");
     startDifficultyTimer();
 
@@ -505,6 +579,7 @@
 
   function quitGame() {
     state.isPaused = false;
+    els.pauseButton.classList.remove("is-paused");
     showResult();
   }
 
@@ -513,23 +588,204 @@
     showOnly("start");
   }
 
+  function openSettings() {
+    els.settingsModal.classList.remove("is-hidden");
+    els.settingsCloseButton.focus();
+  }
+
+  function closeSettings() {
+    els.settingsModal.classList.add("is-hidden");
+  }
+
+  function updateSettingClasses() {
+    els.app.classList.toggle("is-large-text", els.largeTextToggle.checked);
+    els.app.classList.toggle("is-calm-motion", els.calmMotionToggle.checked);
+    els.app.classList.toggle("is-sound-off", !els.soundToggle.checked);
+  }
+
+  function playSound(type) {
+    if (!els.soundToggle || !els.soundToggle.checked) {
+      return;
+    }
+
+    const AudioContext = window.AudioContext || window.webkitAudioContext;
+    if (!AudioContext) {
+      return;
+    }
+
+    if (!state.soundContext) {
+      state.soundContext = new AudioContext();
+    }
+
+    const context = state.soundContext;
+    if (context.state === "suspended") {
+      context.resume();
+    }
+
+    const patterns = {
+      correct: [523.25, 659.25],
+      retry: [392],
+      wrong: [261.63]
+    };
+    const notes = patterns[type] || patterns.retry;
+    const start = context.currentTime;
+
+    notes.forEach((frequency, index) => {
+      const oscillator = context.createOscillator();
+      const gain = context.createGain();
+      const noteStart = start + index * 0.11;
+      oscillator.type = "sine";
+      oscillator.frequency.setValueAtTime(frequency, noteStart);
+      gain.gain.setValueAtTime(0.0001, noteStart);
+      gain.gain.exponentialRampToValueAtTime(0.045, noteStart + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.0001, noteStart + 0.16);
+      oscillator.connect(gain).connect(context.destination);
+      oscillator.start(noteStart);
+      oscillator.stop(noteStart + 0.18);
+    });
+  }
+
+  function openTutorial() {
+    state.tutorialIndex = 0;
+    renderTutorialStep();
+    els.tutorialModal.classList.remove("is-hidden");
+    els.tutorialNextButton.focus();
+  }
+
+  function closeTutorial() {
+    els.tutorialModal.classList.add("is-hidden");
+  }
+
+  function showNextTutorialStep() {
+    if (state.tutorialIndex >= TUTORIAL_STEPS.length - 1) {
+      closeTutorial();
+      return;
+    }
+
+    state.tutorialIndex += 1;
+    renderTutorialStep();
+  }
+
+  function renderTutorialStep() {
+    const step = TUTORIAL_STEPS[state.tutorialIndex];
+    els.tutorialStep.textContent = `${state.tutorialIndex + 1} / ${TUTORIAL_STEPS.length}`;
+    els.tutorialTitle.textContent = step.title;
+    els.tutorialMessage.textContent = step.message;
+    els.tutorialNextButton.textContent = state.tutorialIndex === TUTORIAL_STEPS.length - 1 ? "닫기" : "다음";
+    els.tutorialPreview.innerHTML = "";
+    els.tutorialPreview.appendChild(createTutorialPreview(step.type));
+  }
+
+  function createTutorialPreview(type) {
+    const preview = document.createElement("div");
+    preview.className = `tutorial-mini tutorial-mini-${type}`;
+
+    if (type === "effects") {
+      preview.append(
+        createTutorialEffect("🧠", "기억력"),
+        createTutorialEffect("👀", "주의력")
+      );
+      return preview;
+    }
+
+    if (type === "memory") {
+      ["🍎", "🍌", "🍇"].forEach((emoji) => {
+        const card = document.createElement("span");
+        card.className = "tutorial-fruit-card";
+        card.textContent = emoji;
+        preview.appendChild(card);
+      });
+      return preview;
+    }
+
+    if (type === "question") {
+      const target = document.createElement("div");
+      target.className = "tutorial-target";
+      target.textContent = "🍇 포도";
+      const answers = document.createElement("div");
+      answers.className = "tutorial-number-row";
+      [1, 2, 3, 4].forEach((number) => {
+        const item = document.createElement("span");
+        item.textContent = number;
+        answers.appendChild(item);
+      });
+      preview.append(target, answers);
+      return preview;
+    }
+
+    if (type === "retry") {
+      const symbol = document.createElement("div");
+      symbol.className = "tutorial-symbol";
+      symbol.textContent = "?";
+      const copy = document.createElement("strong");
+      copy.textContent = "다시 한 번 생각해볼까요?";
+      preview.append(symbol, copy);
+      return preview;
+    }
+
+    const emoji = document.createElement("div");
+    emoji.className = "tutorial-result-emoji";
+    emoji.textContent = "😊";
+    const copy = document.createElement("strong");
+    copy.textContent = "참 잘하셨어요";
+    preview.append(emoji, copy);
+    return preview;
+  }
+
+  function createTutorialEffect(emoji, title) {
+    const item = document.createElement("div");
+    item.className = "tutorial-effect";
+    item.innerHTML = `<span>${emoji}</span><strong>${title}</strong>`;
+    return item;
+  }
+
   function showResult() {
     clearAllTimers();
     state.phase = "result";
     els.pauseModal.classList.add("is-hidden");
+    els.pauseButton.classList.remove("is-paused");
     const totalAnswered = getAnsweredCount();
     const rate = totalAnswered > 0 ? Math.round((state.correctCount / totalAnswered) * 100) : 0;
-    const previous = readPreviousRecord();
+    const resultMessage = createResultMessage(totalAnswered, rate);
 
-    els.resultCorrect.textContent = `${state.correctCount}개`;
-    els.resultTotal.textContent = `${totalAnswered}문제`;
-    els.resultRate.textContent = `${rate}%`;
-    els.resultDifficulty.textContent = DIFFICULTIES[state.reachedDifficultyIndex].label;
-    els.resultStage.textContent = `${state.reachedStage}단계`;
-    els.resultCompare.textContent = createCompareText(previous, rate);
+    els.resultEmoji.textContent = resultMessage.emoji;
+    els.resultTitle.textContent = resultMessage.title;
+    els.resultMessage.textContent = resultMessage.message;
 
     saveRecord(rate, totalAnswered);
     showOnly("result");
+  }
+
+  function createResultMessage(totalAnswered, rate) {
+    if (totalAnswered === 0) {
+      return {
+        emoji: "🙂",
+        title: "괜찮아요",
+        message: "잠시 쉬어가셔도 좋습니다. 준비되시면 천천히 다시 시작해볼까요?"
+      };
+    }
+
+    if (rate >= 80) {
+      return {
+        emoji: "😊",
+        title: "참 잘하셨어요",
+        message: "차분히 기억해내신 모습이 정말 좋았습니다. 오늘도 머리를 잘 깨워주셨어요."
+      };
+    }
+
+    if (rate >= 50) {
+      return {
+        emoji: "🙂",
+        title: "수고하셨어요",
+        message: "끝까지 집중해주셔서 좋았습니다. 천천히 하셔도 충분히 잘하고 계세요."
+      };
+    }
+
+    return {
+      emoji: "😄",
+      title: "오늘도 고생하셨어요",
+      message: "맞고 틀리는 것보다 함께 기억해본 시간이 더 중요합니다. 편안하게 다시 해보셔도 좋아요."
+    };
   }
 
   function createCompareText(previous, currentRate) {
@@ -569,27 +825,33 @@
 
   function showOnly(screen) {
     els.startScreen.classList.toggle("is-hidden", screen !== "start");
+    els.difficultyScreen.classList.toggle("is-hidden", screen !== "difficulty");
     els.gameScreen.classList.toggle("is-hidden", screen !== "game");
     els.resultScreen.classList.toggle("is-hidden", screen !== "result");
+    if (els.app) {
+      els.app.dataset.screen = screen;
+      els.app.scrollTop = 0;
+      els.app.scrollLeft = 0;
+    }
+    window.scrollTo(0, 0);
   }
 
   function updateTopUi() {
     const difficulty = currentDifficulty();
-    const stage = currentStage();
 
-    els.difficultyLabel.textContent = `${difficulty.label} ${stage}단계`;
+    els.difficultyLabel.textContent = difficulty.label;
     if (els.stageLabel) {
-      els.stageLabel.textContent = `${stage}단계`;
+      els.stageLabel.textContent = difficulty.label;
     }
     updateRaceUi();
     updateTimerUi();
   }
 
   function updateRaceUi() {
-    const stageProgress = (currentStage() - 1) / ((TOTAL_PER_DIFFICULTY / QUESTIONS_PER_STAGE) - 1);
+    const progress = difficultyProgress();
     const start = RACE_POINTS[state.difficultyIndex];
     const end = RACE_POINTS[state.difficultyIndex + 1] || start;
-    const markerLeft = start + (end - start) * stageProgress;
+    const markerLeft = start + (end - start) * progress;
     const fillRatio = (markerLeft - RACE_POINTS[0]) / (RACE_POINTS[RACE_POINTS.length - 1] - RACE_POINTS[0]);
 
     els.raceWrap.style.setProperty("--marker-left", `${markerLeft}%`);
@@ -608,27 +870,32 @@
   }
 
   function updateReachedPoint() {
+    const answeredCount = getAnsweredCount();
     if (state.difficultyIndex > state.reachedDifficultyIndex) {
       state.reachedDifficultyIndex = state.difficultyIndex;
-      state.reachedStage = currentStage();
+      state.reachedQuestion = answeredCount;
       return;
     }
 
     if (state.difficultyIndex === state.reachedDifficultyIndex) {
-      state.reachedStage = Math.max(state.reachedStage, currentStage());
+      state.reachedQuestion = Math.max(state.reachedQuestion, answeredCount);
     }
   }
 
   function getAnsweredCount() {
-    return Math.min(TOTAL_QUESTIONS, state.difficultyIndex * TOTAL_PER_DIFFICULTY + state.questionInDifficulty);
+    return Math.min(TOTAL_QUESTIONS, state.questionInDifficulty);
   }
 
   function currentDifficulty() {
     return DIFFICULTIES[state.difficultyIndex];
   }
 
-  function currentStage() {
-    return Math.min(5, Math.floor(state.questionInDifficulty / QUESTIONS_PER_STAGE) + 1);
+  function difficultyProgress() {
+    if (TOTAL_PER_DIFFICULTY <= 1) {
+      return 1;
+    }
+
+    return Math.min(1, state.questionInDifficulty / (TOTAL_PER_DIFFICULTY - 1));
   }
 
   function formatTime(seconds) {
@@ -655,14 +922,38 @@
   }
 
   function bindEvents() {
-    els.startButton.addEventListener("click", startGame);
-    els.restartButton.addEventListener("click", startGame);
+    els.startButton.addEventListener("click", showDifficultySelect);
+    els.settingsButton.addEventListener("click", openSettings);
+    els.tutorialButton.addEventListener("click", openTutorial);
+    els.restartButton.addEventListener("click", showDifficultySelect);
+    els.difficultyButtons.forEach((button) => {
+      button.addEventListener("click", () => {
+        startGame(Number(button.dataset.difficultyIndex));
+      });
+    });
+    els.difficultyBackButton.addEventListener("click", goHome);
     els.resultHomeButton.addEventListener("click", goHome);
     els.pauseButton.addEventListener("click", pauseGame);
     els.resumeButton.addEventListener("click", resumeGame);
     els.homeButton.addEventListener("click", quitGame);
+    els.settingsCloseButton.addEventListener("click", closeSettings);
+    els.largeTextToggle.addEventListener("change", updateSettingClasses);
+    els.calmMotionToggle.addEventListener("change", updateSettingClasses);
+    els.soundToggle.addEventListener("change", updateSettingClasses);
+    els.tutorialCloseButton.addEventListener("click", closeTutorial);
+    els.tutorialNextButton.addEventListener("click", showNextTutorialStep);
 
     document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape" && !els.settingsModal.classList.contains("is-hidden")) {
+        closeSettings();
+        return;
+      }
+
+      if (event.key === "Escape" && !els.tutorialModal.classList.contains("is-hidden")) {
+        closeTutorial();
+        return;
+      }
+
       if (event.key === "Escape" && !els.gameScreen.classList.contains("is-hidden")) {
         if (state.isPaused) {
           resumeGame();
@@ -674,5 +965,8 @@
   }
 
   bindEvents();
+  if (els.app) {
+    els.app.dataset.screen = state.phase;
+  }
   updateTimerUi();
 })();
