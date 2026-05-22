@@ -109,6 +109,95 @@ button {
   user-select: none;
 }
 
+.meadow-dog {
+  --dog-size: clamp(54px, 6.8vw, 92px);
+  --dog-cycle: 34s;
+  --dog-width-ratio: 1.17;
+  position: absolute;
+  display: none;
+  left: 0;
+  bottom: calc(clamp(18px, 4.8vh, 54px) + var(--safe-bottom));
+  z-index: 1;
+  width: calc(var(--dog-size) * var(--dog-width-ratio));
+  height: var(--dog-size);
+  font-size: var(--dog-size);
+  pointer-events: none;
+  user-select: none;
+  animation: dog-meadow-run var(--dog-cycle) ease-in-out infinite;
+}
+
+.app[data-screen="start"] .meadow-dog {
+  display: block;
+}
+
+.dog-facing,
+.dog-sprite {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.dog-facing {
+  position: relative;
+  transform-origin: 50% 74%;
+  animation: dog-turn-around var(--dog-cycle) linear infinite;
+}
+
+.dog-facing::before {
+  content: "";
+  position: absolute;
+  left: -9%;
+  top: 74%;
+  width: 0.42em;
+  height: 0.3em;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 50% 43%, #efc86b 0 0.042em, transparent 0.047em),
+    radial-gradient(circle at 50% 19%, #fff9e8 0 0.065em, transparent 0.07em),
+    radial-gradient(circle at 72% 42%, #fff9e8 0 0.062em, transparent 0.067em),
+    radial-gradient(circle at 50% 66%, #fff9e8 0 0.062em, transparent 0.067em),
+    radial-gradient(circle at 28% 42%, #fff9e8 0 0.062em, transparent 0.067em),
+    linear-gradient(90deg, transparent 45%, #7f9b55 46% 54%, transparent 55%),
+    radial-gradient(ellipse at 28% 92%, #7f9b55 0 0.105em, transparent 0.112em),
+    radial-gradient(ellipse at 72% 92%, #91aa62 0 0.105em, transparent 0.112em);
+  background-repeat: no-repeat;
+  opacity: 0;
+  transform: translateY(0.06em) scale(0.75);
+  transform-origin: 50% 90%;
+  animation: dog-sniff-flower var(--dog-cycle) ease-in-out infinite;
+}
+
+.dog-facing::after {
+  content: "";
+  position: absolute;
+  left: 2%;
+  top: 56%;
+  width: 0.16em;
+  height: 0.16em;
+  border-radius: 50%;
+  background: rgba(104, 126, 61, 0.44);
+  box-shadow:
+    -0.28em -0.1em 0 rgba(104, 126, 61, 0.3),
+    -0.5em 0.1em 0 rgba(104, 126, 61, 0.22);
+  opacity: 0;
+  transform: translateX(-0.1em);
+  animation: dog-sniff-puffs var(--dog-cycle) ease-in-out infinite;
+}
+
+.dog-sprite {
+  overflow: hidden;
+  background-image: url("image/assets/dog-storybook-sprite.png");
+  background-repeat: no-repeat;
+  background-position: 0 0;
+  background-size: 1000% 100%;
+  contain: paint;
+  filter: drop-shadow(0 5px 5px rgba(80, 64, 32, 0.16));
+  transform-origin: 50% 82%;
+  animation:
+    dog-run-cycle var(--dog-cycle) steps(1, end) infinite,
+    dog-body-action var(--dog-cycle) ease-in-out infinite;
+}
+
 .app-leaf {
   width: var(--app-leaf-size);
   opacity: 0.95;
@@ -146,6 +235,13 @@ button {
 .app[data-screen="game"] .app-fruits {
   transform: translateY(clamp(88px, 18vh, 220px));
   opacity: 0.46;
+}
+
+.app[data-screen="game"] .meadow-dog {
+  display: none;
+  --dog-size: clamp(38px, 4.8vw, 64px);
+  bottom: calc(clamp(6px, 1.6vh, 18px) + var(--safe-bottom));
+  opacity: 0.48;
 }
 
 .screen {
@@ -353,6 +449,7 @@ h1 {
 .start-screen h1 .title-word {
   position: relative;
   display: inline-block;
+  z-index: 2;
   transform: translateY(0.02em);
 }
 
@@ -388,13 +485,27 @@ h1 {
 }
 
 .start-screen h1 .title-ssok {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.025em;
   color: #8da14f;
 
   /* 쏙쏙만 더 크게 */
   font-size: 1.16em;
-  letter-spacing: -0.06em;
+  letter-spacing: 0;
   transform: rotate(-4deg) translateY(0.01em);
   transform-origin: 50% 75%;
+}
+
+.ssok-letter {
+  display: inline-block;
+  will-change: transform;
+  transform: translateY(0) scale(1);
+  animation: ssok-bounce 4.8s cubic-bezier(0.22, 0.9, 0.28, 1) infinite;
+}
+
+.ssok-letter-2 {
+  animation-delay: 0.24s;
 }
 
 .start-screen h1 .title-rest {
@@ -415,6 +526,24 @@ h1 {
   paint-order: stroke fill;
   text-shadow: 0 4px 8px rgba(177, 121, 49, 0.16);
   pointer-events: none;
+}
+
+@keyframes ssok-bounce {
+  0%,
+  7%,
+  24%,
+  100% {
+    transform: translateY(0) scale(1);
+  }
+  11% {
+    transform: translateY(-0.22em) scale(1.04);
+  }
+  16% {
+    transform: translateY(0.035em) scale(0.98);
+  }
+  20% {
+    transform: translateY(0) scale(1);
+  }
 }
 
 .title-divider {
@@ -580,6 +709,10 @@ h2 {
 }
 
 .start-side-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(5px, 0.8vw, 10px);
   min-width: clamp(94px, 12vw, 150px);
   min-height: clamp(44px, 6.4vh, 60px);
   border-radius: clamp(18px, 2.6vw, 28px);
@@ -588,6 +721,17 @@ h2 {
   background: linear-gradient(180deg, #fffaf0, #ead9bd);
   box-shadow: 0 10px 22px rgba(82, 58, 33, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.95);
   font-size: clamp(16px, min(2.4vw, 3.5vh), 23px);
+}
+
+.settings-gear {
+  display: inline-grid;
+  place-items: center;
+  width: 1.15em;
+  height: 1.15em;
+  font-family: "Apple Color Emoji", "Segoe UI Symbol", "Segoe UI Emoji", sans-serif;
+  font-size: 1.05em;
+  line-height: 1;
+  transform: translateY(-0.02em);
 }
 
 .difficulty-content {
@@ -912,8 +1056,8 @@ h2 {
 
 .timer-icon {
   background-color: #7aa33e;
-  -webkit-mask: url("data:image/svg+xml,%3Csvg viewBox='0 0 24 24' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M12 21C16.9706 21 21 16.9706 21 12C21 7.02944 16.9706 3 12 3C7.02944 3 3 7.02944 3 12C3 16.9706 7.02944 21 12 21Z' stroke='%23000000' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M12 6V12' stroke='%23000000' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M16.24 16.24L12 12' stroke='%23000000' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center / contain no-repeat;
-  mask: url("data:image/svg+xml,%3Csvg viewBox='0 0 24 24' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M12 21C16.9706 21 21 16.9706 21 12C21 7.02944 16.9706 3 12 3C7.02944 3 3 7.02944 3 12C3 16.9706 7.02944 21 12 21Z' stroke='%23000000' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M12 6V12' stroke='%23000000' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M16.24 16.24L12 12' stroke='%23000000' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center / contain no-repeat;
+  -webkit-mask: url("data:image/svg+xml,%3Csvg viewBox='0 0 24 24' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M12 21C16.9706 21 21 16.9706 21 12C21 7.02944 16.9706 3 12 3C7.02944 3 3 7.02944 3 12C3 16.9706 7.02944 21 12 21Z' stroke='%23000000' stroke-width='2.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M12 6V12' stroke='%23000000' stroke-width='2.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M16.24 16.24L12 12' stroke='%23000000' stroke-width='2.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center / contain no-repeat;
+  mask: url("data:image/svg+xml,%3Csvg viewBox='0 0 24 24' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M12 21C16.9706 21 21 16.9706 21 12C21 7.02944 16.9706 3 12 3C7.02944 3 3 7.02944 3 12C3 16.9706 7.02944 21 12 21Z' stroke='%23000000' stroke-width='2.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M12 6V12' stroke='%23000000' stroke-width='2.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M16.24 16.24L12 12' stroke='%23000000' stroke-width='2.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center / contain no-repeat;
 }
 
 .level-icon {
@@ -1356,6 +1500,10 @@ h2 {
   gap: clamp(10px, 2vw, 18px);
 }
 
+#pause-modal .modal-actions .game-button {
+  border-radius: 999px;
+}
+
 .settings-card,
 .tutorial-card {
   width: min(720px, 100%);
@@ -1585,6 +1733,168 @@ h2 {
   }
   50% {
     transform: translate(-50%, -50%) translateY(-4px);
+  }
+}
+
+@keyframes dog-meadow-run {
+  0% {
+    transform: translateX(-125%);
+  }
+  18%,
+  32% {
+    transform: translateX(50vw) translateX(-50%);
+  }
+  50% {
+    transform: translateX(100vw);
+  }
+  68%,
+  82% {
+    transform: translateX(50vw) translateX(-50%);
+  }
+  100% {
+    transform: translateX(-125%);
+  }
+}
+
+@keyframes dog-turn-around {
+  0%,
+  49% {
+    transform: scaleX(-1);
+  }
+  50%,
+  99% {
+    transform: scaleX(1);
+  }
+  100% {
+    transform: scaleX(-1);
+  }
+}
+
+@keyframes dog-run-cycle {
+  0%,
+  50%,
+  100% {
+    background-position-x: 0;
+  }
+  3%,
+  35%,
+  53%,
+  85% {
+    background-position-x: 11.1111%;
+  }
+  6%,
+  38%,
+  56%,
+  88% {
+    background-position-x: 22.2222%;
+  }
+  9%,
+  41%,
+  59%,
+  91% {
+    background-position-x: 33.3333%;
+  }
+  12%,
+  44%,
+  62%,
+  94% {
+    background-position-x: 44.4444%;
+  }
+  15%,
+  47%,
+  65%,
+  97% {
+    background-position-x: 55.5556%;
+  }
+  18%,
+  32%,
+  68%,
+  82% {
+    background-position-x: 66.6667%;
+  }
+  22%,
+  28%,
+  72%,
+  78% {
+    background-position-x: 88.8889%;
+  }
+  25%,
+  31%,
+  75%,
+  81% {
+    background-position-x: 100%;
+  }
+}
+
+@keyframes dog-body-action {
+  0%,
+  18%,
+  32%,
+  50%,
+  68%,
+  82%,
+  100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  6%,
+  12%,
+  38%,
+  44%,
+  60%,
+  64%,
+  90%,
+  96% {
+    transform: translateY(-5%) rotate(1deg);
+  }
+  22%,
+  72% {
+    transform: translateY(7%) rotate(-7deg) scaleY(0.96);
+  }
+  26%,
+  76% {
+    transform: translateY(6%) rotate(-5deg) scaleY(0.97);
+  }
+  30%,
+  80% {
+    transform: translateY(5%) rotate(-4deg) scaleY(0.98);
+  }
+}
+
+@keyframes dog-sniff-flower {
+  0%,
+  17%,
+  33%,
+  67%,
+  83%,
+  100% {
+    opacity: 0;
+    transform: translateY(0.06em) scale(0.75);
+  }
+  22%,
+  30%,
+  72%,
+  80% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes dog-sniff-puffs {
+  0%,
+  17%,
+  33%,
+  67%,
+  83%,
+  100% {
+    opacity: 0;
+    transform: translateX(-0.1em) scale(0.9);
+  }
+  23%,
+  29%,
+  73%,
+  79% {
+    opacity: 1;
+    transform: translateX(-0.45em) translateY(-0.1em) scale(1);
   }
 }
 
@@ -2096,7 +2406,7 @@ h2 {
   .start-screen h1 .title-ssok {
     /* 쏙쏙만 더 크게 */
     font-size: 1.16em;
-    letter-spacing: -0.07em;
+    letter-spacing: 0;
     transform: rotate(-4deg) translateY(0.01em);
   }
   .start-screen h1 .title-rest {
@@ -3615,4 +3925,25 @@ h2 {
     align-content: center;
     padding-bottom: clamp(56px, 8vh, 110px);
   }
+}
+
+@media (orientation: portrait) {
+  .meadow-dog {
+    --dog-size: clamp(72px, 22vw, 110px);
+    bottom: calc(clamp(16px, 3.2vh, 36px) + var(--safe-bottom));
+  }
+}
+
+@media (max-height: 430px) and (orientation: landscape) {
+  .meadow-dog {
+    --dog-size: clamp(38px, 5.4vw, 58px);
+    bottom: calc(clamp(7px, 1.7vh, 16px) + var(--safe-bottom));
+  }
+}
+
+.app[data-screen="game"] .meadow-dog {
+  display: none;
+  --dog-size: clamp(38px, 4.8vw, 64px);
+  bottom: calc(clamp(6px, 1.6vh, 18px) + var(--safe-bottom));
+  opacity: 0.48;
 }
