@@ -4,29 +4,15 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>쏙쏙 개수 찾기</title>
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style.css?v=tutorial-actions-position-20260525">
 </head>
 <body>
+  <div class="game-background" aria-hidden="true"></div>
   <div id="app" class="app">
-    <img class="app-meadow" src="image/assets/plain.png" alt="" aria-hidden="true">
-    <div class="meadow-dog" aria-hidden="true">
-      <span class="dog-facing">
-        <span class="dog-sprite"></span>
-      </span>
-    </div>
-
     <section id="start-screen" class="screen start-screen" aria-labelledby="start-title">
       <div class="brand-block">
-        <p class="eyebrow">기억을 천천히 깨우는 과일 게임</p>
-        <h1 id="start-title" class="start-title">
-          <span class="title-word title-ssok">
-            <span class="ssok-letter ssok-letter-1">쏙</span><span class="ssok-letter ssok-letter-2">쏙</span>
-          </span>
-          <span class="title-word title-rest">개수 찾기</span>
-        </h1>
-        <div class="title-divider" aria-hidden="true">
-          <span></span>
-        </div>
+        <h1 id="start-title" class="sr-only">쏙쏙 개수 찾기</h1>
+        <img class="start-title-image" src="image/assets/game_title2.png" alt="" aria-hidden="true">
         <p class="subtitle">방금 본 물건은 몇 개였을까요?</p>
         <div class="start-actions">
           <button id="settings-button" class="game-button start-side-button" type="button">
@@ -36,7 +22,9 @@
           <button id="start-button" class="game-button primary-button" type="button">
             <span>시작하기</span>
           </button>
-          <button id="tutorial-button" class="game-button start-side-button" type="button">게임설명</button>
+          <button id="tutorial-button" class="game-button start-side-button" type="button">
+            <span>게임설명</span>
+          </button>
         </div>
       </div>
     </section>
@@ -49,7 +37,7 @@
           <button class="game-button difficulty-option" type="button" data-difficulty-index="0">
             <span class="difficulty-option-icon" aria-hidden="true">🙂</span>
             <strong>쉬움</strong>
-            <span>과일 1종류부터 천천히</span>
+            <span>1종류부터 천천히</span>
           </button>
           <button class="game-button difficulty-option" type="button" data-difficulty-index="1">
             <span class="difficulty-option-icon" aria-hidden="true">😊</span>
@@ -62,7 +50,7 @@
             <span>더 많이, 섞어서 기억</span>
           </button>
         </div>
-        <button id="difficulty-back-button" class="game-button secondary-button difficulty-back-button" type="button">뒤로가기</button>
+        <button id="difficulty-back-button" class="game-button secondary-button difficulty-back-button" type="button">닫기</button>
       </div>
     </section>
 
@@ -99,10 +87,9 @@
               <strong id="time-left">02:00</strong>
             </span>
           </div>
-          <div class="info-pill">
+          <div class="info-pill difficulty-pill">
             <span class="info-icon level-icon" aria-hidden="true"><i></i><i></i><i></i></span>
             <span class="info-copy">
-              <span class="info-label">난이도</span>
               <strong id="difficulty-label">쉬움</strong>
               <strong id="stage-label" class="sr-only">쉬움</strong>
             </span>
@@ -115,6 +102,7 @@
       </header>
 
       <main id="play-area" class="play-area" aria-live="polite"></main>
+      <div class="game-bottom-safe" aria-hidden="true"></div>
     </section>
 
     <section id="result-screen" class="screen result-screen is-hidden" aria-labelledby="result-title">
@@ -125,7 +113,7 @@
         <p id="result-message" class="result-message">천천히 집중해주신 것만으로도 참 좋습니다.</p>
         <div class="result-actions">
           <button id="restart-button" class="game-button primary-button" type="button">처음부터 다시</button>
-          <button id="result-home-button" class="game-button secondary-button" type="button">홈으로</button>
+          <button id="result-home-button" class="game-button secondary-button" type="button">나가기</button>
         </div>
       </div>
     </section>
@@ -143,50 +131,58 @@
 
     <div id="settings-modal" class="modal-layer is-hidden" role="dialog" aria-modal="true" aria-labelledby="settings-title">
       <div class="modal-card settings-card">
-        <h2 id="settings-title">설정</h2>
-        <div class="settings-options">
-          <label class="setting-row">
-            <input id="large-text-toggle" type="checkbox">
-            <span>
-              <strong>큰 글씨</strong>
-              <small>글자를 조금 더 크게 보여드려요.</small>
-            </span>
-          </label>
-          <label class="setting-row">
-            <input id="calm-motion-toggle" type="checkbox">
-            <span>
-              <strong>움직임 줄이기</strong>
-              <small>화면 움직임을 더 차분하게 줄여요.</small>
-            </span>
-          </label>
-          <label class="setting-row">
-            <input id="sound-toggle" type="checkbox" checked>
-            <span>
-              <strong>소리</strong>
-              <small>효과음 사용 여부를 설정해요.</small>
-            </span>
-          </label>
+        <div class="settings-layout">
+          <div class="settings-left-panel">
+            <button id="settings-exit-button" class="game-button settings-exit-button" type="button">게임 나가기</button>
+          </div>
+          <section class="settings-sound-panel" aria-labelledby="settings-title">
+            <h2 id="settings-title">소리설정</h2>
+            <div class="settings-options">
+              <label class="setting-row">
+                <span class="setting-icon" aria-hidden="true">
+                  <i data-lucide="music"></i>
+                </span>
+                <span class="setting-copy">
+                  <strong id="background-sound-label">배경음 켬</strong>
+                </span>
+                <input id="background-sound-toggle" class="setting-toggle" type="checkbox" checked>
+              </label>
+              <label class="setting-row">
+                <span class="setting-icon" aria-hidden="true">
+                  <i data-lucide="volume-2"></i>
+                </span>
+                <span class="setting-copy">
+                  <strong id="sound-label">효과음 켬</strong>
+                </span>
+                <input id="sound-toggle" class="setting-toggle" type="checkbox" checked>
+              </label>
+            </div>
+          </section>
         </div>
-        <div class="modal-actions">
-          <button id="settings-close-button" class="game-button primary-button" type="button">확인</button>
+        <div class="modal-actions settings-close-actions">
+          <button id="settings-close-button" class="game-button secondary-button difficulty-back-button" type="button">닫기</button>
         </div>
       </div>
     </div>
 
     <div id="tutorial-modal" class="modal-layer is-hidden" role="dialog" aria-modal="true" aria-labelledby="tutorial-title">
       <div class="modal-card tutorial-card">
-        <p id="tutorial-step" class="tutorial-step">1 / 5</p>
+        <div class="tutorial-heading">
+          <span class="tutorial-question-icon" aria-hidden="true">?</span>
+          <h2 id="tutorial-title">진행방법</h2>
+        </div>
+        <p id="tutorial-message">과일을 잠깐 보여드려요!</p>
         <div id="tutorial-preview" class="tutorial-preview" aria-hidden="true"></div>
-        <h2 id="tutorial-title">게임설명</h2>
-        <p id="tutorial-message">게임 설명을 확인해보세요.</p>
+        <p id="tutorial-detail" class="tutorial-detail" hidden></p>
         <div class="modal-actions tutorial-actions">
-          <button id="tutorial-close-button" class="game-button secondary-button" type="button">닫기</button>
+          <button id="tutorial-close-button" class="game-button secondary-button difficulty-back-button" type="button">닫기</button>
           <button id="tutorial-next-button" class="game-button primary-button" type="button">다음</button>
         </div>
       </div>
     </div>
   </div>
 
-  <script src="script.js"></script>
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+  <script src="script.js?v=tutorial-actions-lift-20260525"></script>
 </body>
 </html>
