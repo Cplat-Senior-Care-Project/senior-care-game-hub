@@ -18,6 +18,7 @@
   const MEMORY_LAYOUT_MAX_COLUMNS = 7;
   const STAGE_WIDTH = 1280;
   const STAGE_HEIGHT = 720;
+  const CONDITION_SLEEP_HOURS = [4, 5, 6, 7, 8, 9, 10, 11, 12];
 
   const FRUITS = [
     { id: "apple", name: "사과", image: "image/assets/apple.png" },
@@ -139,7 +140,13 @@
     resultDifficulty: document.getElementById("result-difficulty"),
     resultStage: document.getElementById("result-stage"),
     resultHomeButton: document.getElementById("result-home-button"),
-    resultCompare: document.getElementById("result-compare")
+    resultCompare: document.getElementById("result-compare"),
+    conditionModal: document.getElementById("condition-modal"),
+    conditionMoodButtons: Array.from(document.querySelectorAll(".condition-mood-button")),
+    conditionSleepRows: document.getElementById("condition-sleep-rows"),
+    conditionSleepUpButton: document.getElementById("condition-sleep-up-button"),
+    conditionSleepDownButton: document.getElementById("condition-sleep-down-button"),
+    conditionConfirmButton: document.getElementById("condition-confirm-button")
   };
 
   const state = {
@@ -165,6 +172,9 @@
     reachedDifficultyIndex: 0,
     reachedQuestion: 0,
     tutorialIndex: 0,
+    conditionCheckShown: false,
+    conditionMood: "good",
+    conditionSleepIndex: 3,
     soundContext: null
   };
   let memoryLayoutFrame = null;
@@ -225,6 +235,7 @@
         els.startScreen.classList.add("is-intro-revealing");
         window.setTimeout(() => {
           els.startScreen.classList.remove("is-intro-revealing");
+          openConditionCheck();
         }, 850);
       }, 260);
     }
@@ -955,6 +966,85 @@
     showOnly("start");
   }
 
+  function sleepIndexAt(offset) {
+    const length = CONDITION_SLEEP_HOURS.length;
+    return (state.conditionSleepIndex + offset + length) % length;
+  }
+
+  function sleepLabel(hours) {
+    return `${hours}\uC2DC\uAC04`;
+  }
+
+  function renderConditionSleepDial(direction) {
+    if (!els.conditionSleepRows) {
+      return;
+    }
+
+    els.conditionSleepRows.replaceChildren();
+    [-1, 0, 1].forEach((offset) => {
+      const row = document.createElement("span");
+      const hours = CONDITION_SLEEP_HOURS[sleepIndexAt(offset)];
+      const number = document.createElement("span");
+      const unit = document.createElement("span");
+
+      row.className = offset === 0 ? "condition-sleep-row is-selected" : "condition-sleep-row is-muted";
+      number.className = "condition-sleep-number";
+      number.textContent = String(hours);
+      unit.className = "condition-sleep-unit";
+      unit.textContent = "\uC2DC\uAC04";
+      row.append(number, unit);
+      els.conditionSleepRows.appendChild(row);
+    });
+
+    if (!direction) {
+      return;
+    }
+
+    const animationClass = direction === "down" ? "is-turning-down" : "is-turning-up";
+    els.conditionSleepRows.classList.remove("is-turning-down", "is-turning-up");
+    void els.conditionSleepRows.offsetWidth;
+    els.conditionSleepRows.classList.add(animationClass);
+    window.setTimeout(() => {
+      els.conditionSleepRows.classList.remove(animationClass);
+    }, 260);
+  }
+
+  function changeConditionSleep(delta) {
+    const length = CONDITION_SLEEP_HOURS.length;
+    state.conditionSleepIndex = (state.conditionSleepIndex + delta + length) % length;
+    renderConditionSleepDial(delta > 0 ? "down" : "up");
+  }
+
+  function selectConditionMood(button) {
+    state.conditionMood = button.dataset.mood || "good";
+    els.conditionMoodButtons.forEach((moodButton) => {
+      const isSelected = moodButton === button;
+      moodButton.classList.toggle("is-selected", isSelected);
+      moodButton.setAttribute("aria-pressed", isSelected ? "true" : "false");
+    });
+  }
+
+  function openConditionCheck() {
+    if (!els.conditionModal || state.conditionCheckShown) {
+      return;
+    }
+
+    state.conditionCheckShown = true;
+    renderConditionSleepDial();
+    els.conditionModal.classList.remove("is-hidden");
+    if (els.conditionConfirmButton) {
+      els.conditionConfirmButton.focus();
+    }
+  }
+
+  function closeConditionCheck() {
+    if (!els.conditionModal) {
+      return;
+    }
+
+    els.conditionModal.classList.add("is-hidden");
+  }
+
   function openSettings() {
     els.settingsModal.classList.remove("is-hidden");
     els.settingsCloseButton.focus();
@@ -1404,6 +1494,12 @@
     els.pauseSoundButton.addEventListener("click", () => toggleSoundSetting(els.soundToggle));
     els.tutorialCloseButton.addEventListener("click", handleTutorialCloseButton);
     els.tutorialNextButton.addEventListener("click", showNextTutorialStep);
+    els.conditionMoodButtons.forEach((button) => {
+      button.addEventListener("click", () => selectConditionMood(button));
+    });
+    els.conditionSleepUpButton.addEventListener("click", () => changeConditionSleep(-1));
+    els.conditionSleepDownButton.addEventListener("click", () => changeConditionSleep(1));
+    els.conditionConfirmButton.addEventListener("click", closeConditionCheck);
 
     document.addEventListener("keydown", (event) => {
       if (event.key === "Escape" && !els.settingsModal.classList.contains("is-hidden")) {

@@ -127,6 +127,50 @@
       </div>
     </section>
 
+    <div id="condition-modal" class="modal-layer is-hidden" role="dialog" aria-modal="true" aria-labelledby="condition-title">
+      <div class="modal-card condition-card">
+        <h2 id="condition-title" class="condition-title">
+          <span class="condition-title-icon" aria-hidden="true">&#128221;</span>
+          <span class="condition-title-text">&#50724;&#45720; &#52968;&#46356;&#49496; &#52404;&#53356;</span>
+          <span class="condition-title-icon" aria-hidden="true">&#9989;</span>
+        </h2>
+        <div class="condition-layout">
+          <section class="condition-panel condition-mood-panel" aria-labelledby="condition-mood-title">
+            <h3 id="condition-mood-title" class="condition-section-title">&#50724;&#45720;&#51032; &#44592;&#48516;</h3>
+            <div class="condition-mood-options" role="group" aria-label="condition mood">
+              <button class="condition-mood-button is-selected" type="button" data-mood="good" aria-pressed="true">
+                <span class="condition-mood-face" aria-hidden="true">&#128518;</span>
+                <span>&#51339;&#51020;</span>
+              </button>
+              <button class="condition-mood-button" type="button" data-mood="normal" aria-pressed="false">
+                <span class="condition-mood-face" aria-hidden="true">&#128528;</span>
+                <span>&#48372;&#53685;</span>
+              </button>
+              <button class="condition-mood-button" type="button" data-mood="bad" aria-pressed="false">
+                <span class="condition-mood-face" aria-hidden="true">&#128545;</span>
+                <span>&#45208;&#49256;</span>
+              </button>
+            </div>
+          </section>
+          <section class="condition-panel condition-sleep-panel" aria-labelledby="condition-sleep-title">
+            <h3 id="condition-sleep-title" class="condition-section-title">&#49688;&#47732; &#49884;&#44036;</h3>
+            <div class="condition-sleep-control">
+              <div class="condition-sleep-dial" aria-live="polite">
+                <div id="condition-sleep-rows" class="condition-sleep-rows"></div>
+              </div>
+              <div class="condition-sleep-arrows">
+                <button id="condition-sleep-up-button" class="condition-sleep-arrow" type="button" aria-label="sleep time up">&#9650;</button>
+                <button id="condition-sleep-down-button" class="condition-sleep-arrow" type="button" aria-label="sleep time down">&#9660;</button>
+              </div>
+            </div>
+          </section>
+        </div>
+        <div class="condition-actions">
+          <button id="condition-confirm-button" class="game-button condition-confirm-button" type="button">&#54869;&#51064;</button>
+        </div>
+      </div>
+    </div>
+
     <div id="pause-modal" class="modal-layer is-hidden" role="dialog" aria-modal="true" aria-labelledby="pause-title">
       <div class="modal-card pause-card">
         <h2 id="pause-title">잠시 쉬어가요</h2>
@@ -171,8 +215,8 @@
         <div class="settings-layout">
           <div class="settings-left-panel">
             <h2 class="settings-panel-title">
-              <span class="settings-title-icon" aria-hidden="true">
-                <i data-lucide="clipboard-check"></i>
+              <span class="settings-title-icon settings-title-icon-game" aria-hidden="true">
+                <i data-lucide="gamepad-2"></i>
               </span>
               <span>게임 관리</span>
             </h2>
@@ -181,7 +225,7 @@
           </div>
           <section class="settings-sound-panel" aria-labelledby="settings-title">
             <h2 id="settings-title" class="settings-panel-title">
-              <span class="settings-title-icon" aria-hidden="true">
+              <span class="settings-title-icon settings-title-icon-sound" aria-hidden="true">
                 <i data-lucide="music"></i>
               </span>
               <span>소리 설정</span>
