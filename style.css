@@ -1624,7 +1624,7 @@ h2 {
 }
 
 .result-actions #restart-button {
-  border: 3px solid #fde9a5;
+  border: 2px solid #f5c84b;
   color: #fffdf3;
   background:
     linear-gradient(315deg, rgba(54, 109, 24, 0.2) 0%, rgba(120, 173, 52, 0.04) 46%, rgba(184, 219, 88, 0.22) 100%),
@@ -1665,12 +1665,22 @@ h2 {
   position: fixed;
   inset: 0;
   z-index: 100;
-  display: grid;
-  place-items: center;
   width: 100vw;
   height: 100vh;
   height: 100dvh;
   background: rgba(31, 27, 22, 0.78);
+}
+
+.game-countdown-stage {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  display: grid;
+  place-items: center;
+  width: var(--stage-width);
+  height: var(--stage-height);
+  transform: translate(-50%, -50%) scale(var(--game-scale));
+  transform-origin: center center;
 }
 
 .game-countdown-timer {
@@ -1693,7 +1703,6 @@ h2 {
   box-shadow:
     0 0 0 2px rgba(255, 255, 244, 0.65),
     inset 0 2px 0 rgba(255, 255, 244, 0.7);
-  transition: --countdown-angle 260ms ease;
 }
 
 .game-countdown-face {
@@ -1719,16 +1728,6 @@ h2 {
   font-weight: 1000;
   line-height: 0.9;
   text-shadow: 0 2px 0 rgba(255, 255, 255, 0.72);
-}
-
-.game-countdown-face span {
-  display: block;
-  margin-top: 6px;
-  color: #f07f00;
-  font-size: 15px;
-  font-weight: 1000;
-  line-height: 1;
-  white-space: nowrap;
 }
 
 .modal-card {
@@ -3109,20 +3108,21 @@ h2 {
   justify-content: center;
   min-width: clamp(110px, 166.4px, 150px);
   min-height: clamp(58px, 64.8px, 78px);
-  border: 3px solid #fde9a5;
+  border: 2px solid #f5c84b;
   border-radius: clamp(22px, 46.08px, 38px);
   padding: clamp(10px, 12.96px, 16px) clamp(18px, 38.4px, 28px);
-  color: #fffdf3;
-  background: #DFA000;
+  color: #5f351a;
+  background:
+    linear-gradient(180deg, rgba(255, 247, 217, 0.98), rgba(255, 241, 196, 0.97)),
+    radial-gradient(circle at 50% 12%, rgba(255, 255, 255, 0.82), rgba(255, 255, 255, 0) 48%);
   box-shadow:
-    0 clamp(4px, 5.76px, 7px) clamp(10px, 12.96px, 18px) rgba(87, 56, 22, 0.16),
-    0 0 0 1px #5f351a,
-    inset 0 0 0 1px rgba(255, 224, 126, 0.72),
-    inset 0 2px 0 rgba(255, 238, 166, 0.42),
-    inset 0 -5px 0 rgba(125, 82, 0, 0.34);
+    inset 0 0 0 1px #f5c84b,
+    inset 0 3px 0 rgba(255, 255, 244, 0.48),
+    inset 0 -4px 0 rgba(204, 157, 52, 0.2);
   font-size: clamp(30px, min(37.12px, 36px), 34px);
   font-weight: 900;
   line-height: 1;
+  text-shadow: 0 2px 0 rgba(255, 255, 244, 0.62);
 }
 
 .start-screen #settings-button > span,
@@ -3130,6 +3130,7 @@ h2 {
   position: relative;
   display: inline-flex;
   align-items: center;
+  color: #5f351a;
   line-height: 1;
   transform: translateY(-0.06em);
 }
@@ -3155,6 +3156,7 @@ h2 {
   flex: 0 0 auto;
   position: relative;
   color: transparent;
+  text-shadow: none;
   transform: none;
 }
 
@@ -3183,12 +3185,6 @@ h2 {
 .start-screen #tutorial-button:active,
 .start-screen #tutorial-button.is-pressed {
   transform: translateY(3px) scale(0.98);
-  box-shadow:
-    0 3px 8px rgba(87, 56, 22, 0.14),
-    0 0 0 1px #5f351a,
-    inset 0 0 0 1px rgba(255, 224, 126, 0.62),
-    inset 0 2px 0 rgba(255, 238, 166, 0.34),
-    inset 0 -3px 0 rgba(125, 82, 0, 0.28);
 }
 
 @media (hover: hover) {
@@ -3196,11 +3192,10 @@ h2 {
   .start-screen #tutorial-button:hover {
     filter: brightness(1.03);
     box-shadow:
-      0 clamp(5px, 7.2px, 9px) clamp(12px, 14.4px, 20px) rgba(87, 56, 22, 0.18),
-      0 0 0 1px #5f351a,
-      inset 0 0 0 1px rgba(255, 224, 126, 0.78),
-      inset 0 2px 0 rgba(255, 238, 166, 0.48),
-      inset 0 -5px 0 rgba(125, 82, 0, 0.36);
+      0 7px 14px rgba(87, 56, 22, 0.16),
+      inset 0 0 0 1px #f5c84b,
+      inset 0 3px 0 rgba(255, 255, 244, 0.52),
+      inset 0 -4px 0 rgba(204, 157, 52, 0.22);
   }
 }
 
@@ -3960,7 +3955,7 @@ body {
 
 @property --countdown-angle {
   syntax: "<angle>";
-  inherits: false;
+  inherits: true;
   initial-value: 0deg;
 }
 

@@ -119,6 +119,7 @@
     tutorialCloseButton: document.getElementById("tutorial-close-button"),
     tutorialNextButton: document.getElementById("tutorial-next-button"),
     gameCountdown: document.getElementById("game-countdown"),
+    gameCountdownTimer: document.querySelector(".game-countdown-timer"),
     gameCountdownNumber: document.getElementById("game-countdown-number"),
     playArea: document.getElementById("play-area"),
     timeLeft: document.getElementById("time-left"),
@@ -273,7 +274,7 @@
     state.reachedDifficultyIndex = index;
     updateTopUi();
 
-    if (!els.gameCountdown || !els.gameCountdownNumber) {
+    if (!els.gameCountdown || !els.gameCountdownTimer || !els.gameCountdownNumber) {
       startDifficulty(index);
       return;
     }
@@ -287,14 +288,14 @@
       const elapsed = Math.max(0, now - startedAt);
       const remaining = Math.max(0, START_COUNTDOWN_TIME - elapsed);
       const displaySeconds = Math.max(1, Math.ceil(remaining / 1000));
-      const completedSeconds = Math.min(3, Math.floor(elapsed / 1000));
-      const angle = completedSeconds * 120;
+      const secondProgress = (elapsed % 1000) / 1000;
+      const angle = secondProgress * 360;
 
       els.gameCountdownNumber.textContent = String(displaySeconds);
-      els.gameCountdown.style.setProperty("--countdown-angle", `${angle}deg`);
+      els.gameCountdownTimer.style.setProperty("--countdown-angle", `${angle}deg`);
 
       if (remaining <= 0) {
-        els.gameCountdown.style.setProperty("--countdown-angle", "360deg");
+        els.gameCountdownTimer.style.setProperty("--countdown-angle", "360deg");
         clearStartCountdown();
         startDifficulty(index);
         return;
@@ -882,7 +883,9 @@
     if (els.gameCountdown) {
       els.gameCountdown.classList.add("is-hidden");
       els.gameCountdown.setAttribute("aria-hidden", "true");
-      els.gameCountdown.style.setProperty("--countdown-angle", "0deg");
+    }
+    if (els.gameCountdownTimer) {
+      els.gameCountdownTimer.style.setProperty("--countdown-angle", "0deg");
     }
   }
 
