@@ -4,16 +4,24 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>쏙쏙 개수 찾기</title>
-  <link rel="stylesheet" href="style.css?v=tutorial-actions-position-20260525">
+  <link rel="stylesheet" href="style.css?v=settings-modal-ui-20260526">
 </head>
 <body>
   <div class="game-background" aria-hidden="true"></div>
   <div id="app" class="app">
-    <section id="start-screen" class="screen start-screen" aria-labelledby="start-title">
+    <section id="start-screen" class="screen start-screen is-loading" aria-labelledby="start-title">
       <div class="brand-block">
         <h1 id="start-title" class="sr-only">쏙쏙 개수 찾기</h1>
+        <p class="start-title-badge">기억력에 도움이 되는 게임</p>
         <img class="start-title-image" src="image/assets/game_title2.png" alt="" aria-hidden="true">
+        <p class="start-loading-message">게임을 준비하고 있어요</p>
         <p class="subtitle">방금 본 물건은 몇 개였을까요?</p>
+        <div id="start-loading" class="start-loading" role="status" aria-live="polite" aria-label="로딩 중">
+          <div class="start-loading-track" aria-hidden="true">
+            <span id="start-loading-fill" class="start-loading-fill"></span>
+          </div>
+          <span id="start-loading-text" class="start-loading-text">0%</span>
+        </div>
         <div class="start-actions">
           <button id="settings-button" class="game-button start-side-button" type="button">
             <span class="settings-gear" aria-hidden="true">⚙</span>
@@ -23,7 +31,8 @@
             <span>시작하기</span>
           </button>
           <button id="tutorial-button" class="game-button start-side-button" type="button">
-            <span>게임설명</span>
+            <span class="pause-help-icon start-help-icon" aria-hidden="true">?</span>
+            <span>도움말</span>
           </button>
         </div>
       </div>
@@ -90,7 +99,7 @@
           <div class="info-pill difficulty-pill">
             <span class="info-icon level-icon" aria-hidden="true"><i></i><i></i><i></i></span>
             <span class="info-copy">
-              <strong id="difficulty-label">쉬움</strong>
+              <strong id="difficulty-label">🧠 기억력 게임</strong>
               <strong id="stage-label" class="sr-only">쉬움</strong>
             </span>
           </div>
@@ -108,7 +117,7 @@
     <section id="result-screen" class="screen result-screen is-hidden" aria-labelledby="result-title">
       <div class="result-content">
         <div id="result-emoji" class="result-emoji" aria-hidden="true">😊</div>
-        <p class="eyebrow">오늘도 잘하셨어요</p>
+        <p class="eyebrow">오늘은 기억력 훈련을 했어요</p>
         <h2 id="result-title">수고하셨어요</h2>
         <p id="result-message" class="result-message">천천히 집중해주신 것만으로도 참 좋습니다.</p>
         <div class="result-actions">
@@ -119,12 +128,40 @@
     </section>
 
     <div id="pause-modal" class="modal-layer is-hidden" role="dialog" aria-modal="true" aria-labelledby="pause-title">
-      <div class="modal-card">
+      <div class="modal-card pause-card">
         <h2 id="pause-title">잠시 쉬어가요</h2>
         <p>타이머가 멈췄습니다. 준비되면 이어서 해볼까요?</p>
-        <div class="modal-actions">
-          <button id="resume-button" class="game-button primary-button" type="button">계속하기</button>
-          <button id="home-button" class="game-button secondary-button" type="button">그만하기</button>
+        <div class="pause-layout">
+          <div class="pause-action-panel">
+            <button id="resume-button" class="game-button primary-button pause-main-button" type="button">계속하기</button>
+            <div class="pause-small-actions">
+              <button id="pause-restart-button" class="game-button secondary-button pause-sub-button" type="button">다시하기</button>
+              <button id="home-button" class="game-button secondary-button pause-sub-button" type="button">그만하기</button>
+            </div>
+            <button id="pause-help-button" class="game-button secondary-button pause-help-button" type="button">
+              <span class="pause-help-icon" aria-hidden="true">?</span>
+              <span>도움말 보기</span>
+            </button>
+          </div>
+          <section class="pause-sound-panel" aria-label="소리 설정">
+            <h3>소리 설정</h3>
+            <div class="pause-sound-options">
+              <button id="pause-background-sound-button" class="pause-sound-button" type="button" aria-pressed="true">
+                <span class="pause-sound-icon" aria-hidden="true">
+                  <i data-lucide="music"></i>
+                </span>
+                <span class="pause-sound-name">배경음</span>
+                <span class="pause-toggle-visual" aria-hidden="true"><span>ON</span><i></i></span>
+              </button>
+              <button id="pause-sound-button" class="pause-sound-button" type="button" aria-pressed="true">
+                <span class="pause-sound-icon" aria-hidden="true">
+                  <i data-lucide="volume-2"></i>
+                </span>
+                <span class="pause-sound-name">효과음</span>
+                <span class="pause-toggle-visual" aria-hidden="true"><span>ON</span><i></i></span>
+              </button>
+            </div>
+          </section>
         </div>
       </div>
     </div>
@@ -133,10 +170,22 @@
       <div class="modal-card settings-card">
         <div class="settings-layout">
           <div class="settings-left-panel">
-            <button id="settings-exit-button" class="game-button settings-exit-button" type="button">게임 나가기</button>
+            <h2 class="settings-panel-title">
+              <span class="settings-title-icon" aria-hidden="true">
+                <i data-lucide="clipboard-check"></i>
+              </span>
+              <span>게임 관리</span>
+            </h2>
+            <button id="settings-exit-button" class="game-button settings-exit-button" type="button">게임 종료</button>
+            <p class="settings-exit-copy">게임을 종료하고<br>효담콜 화면으로 돌아갑니다</p>
           </div>
           <section class="settings-sound-panel" aria-labelledby="settings-title">
-            <h2 id="settings-title">소리설정</h2>
+            <h2 id="settings-title" class="settings-panel-title">
+              <span class="settings-title-icon" aria-hidden="true">
+                <i data-lucide="music"></i>
+              </span>
+              <span>소리 설정</span>
+            </h2>
             <div class="settings-options">
               <label class="setting-row">
                 <span class="setting-icon" aria-hidden="true">
@@ -182,7 +231,16 @@
     </div>
   </div>
 
+  <div id="game-countdown" class="game-countdown-layer is-hidden" aria-live="polite" aria-hidden="true">
+    <div class="game-countdown-timer" style="--countdown-angle: 0deg;">
+      <div class="game-countdown-face">
+        <strong id="game-countdown-number">3</strong>
+        <span>초 남았어요!</span>
+      </div>
+    </div>
+  </div>
+
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
-  <script src="script.js?v=tutorial-actions-lift-20260525"></script>
+  <script src="script.js?v=pause-modal-ui-20260526"></script>
 </body>
 </html>

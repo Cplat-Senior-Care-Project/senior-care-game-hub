@@ -4,6 +4,7 @@
   const TOTAL_PER_DIFFICULTY = 10;
   const TOTAL_QUESTIONS = TOTAL_PER_DIFFICULTY;
   const DIFFICULTY_TIME = 120;
+  const START_COUNTDOWN_TIME = 3000;
   const FEEDBACK_TIME = 2400;
   const RETRY_FEEDBACK_TIME = 2200;
   const MAX_WRONG_RETRIES = 2;
@@ -83,6 +84,9 @@
   const els = {
     app: document.querySelector(".app"),
     startScreen: document.getElementById("start-screen"),
+    startLoading: document.getElementById("start-loading"),
+    startLoadingFill: document.getElementById("start-loading-fill"),
+    startLoadingText: document.getElementById("start-loading-text"),
     difficultyScreen: document.getElementById("difficulty-screen"),
     gameScreen: document.getElementById("game-screen"),
     resultScreen: document.getElementById("result-screen"),
@@ -94,6 +98,8 @@
     restartButton: document.getElementById("restart-button"),
     pauseButton: document.getElementById("pause-button"),
     resumeButton: document.getElementById("resume-button"),
+    pauseRestartButton: document.getElementById("pause-restart-button"),
+    pauseHelpButton: document.getElementById("pause-help-button"),
     homeButton: document.getElementById("home-button"),
     pauseModal: document.getElementById("pause-modal"),
     settingsModal: document.getElementById("settings-modal"),
@@ -101,8 +107,10 @@
     settingsExitButton: document.getElementById("settings-exit-button"),
     backgroundSoundToggle: document.getElementById("background-sound-toggle"),
     backgroundSoundLabel: document.getElementById("background-sound-label"),
+    pauseBackgroundSoundButton: document.getElementById("pause-background-sound-button"),
     soundToggle: document.getElementById("sound-toggle"),
     soundLabel: document.getElementById("sound-label"),
+    pauseSoundButton: document.getElementById("pause-sound-button"),
     tutorialModal: document.getElementById("tutorial-modal"),
     tutorialPreview: document.getElementById("tutorial-preview"),
     tutorialTitle: document.getElementById("tutorial-title"),
@@ -110,6 +118,8 @@
     tutorialDetail: document.getElementById("tutorial-detail"),
     tutorialCloseButton: document.getElementById("tutorial-close-button"),
     tutorialNextButton: document.getElementById("tutorial-next-button"),
+    gameCountdown: document.getElementById("game-countdown"),
+    gameCountdownNumber: document.getElementById("game-countdown-number"),
     playArea: document.getElementById("play-area"),
     timeLeft: document.getElementById("time-left"),
     timerBox: document.getElementById("timer-box"),
@@ -137,6 +147,7 @@
     correctCount: 0,
     timeLeft: DIFFICULTY_TIME,
     currentQuestion: null,
+    hintStep: 0,
     lastMemoryTotalCount: 0,
     wrongAttempts: 0,
     phase: "start",
@@ -144,6 +155,8 @@
     timerId: null,
     phaseTimerId: null,
     phaseCountdownId: null,
+    startCountdownFrameId: null,
+    hintTimerId: null,
     phaseStartedAt: 0,
     phaseDuration: 0,
     phaseRemaining: 0,
@@ -177,6 +190,47 @@
     });
   }
 
+  function startIntroLoading() {
+    if (!els.startScreen || !els.startLoadingFill || !els.startLoadingText) {
+      return;
+    }
+
+    els.startScreen.classList.add("is-loading");
+    els.startScreen.classList.remove("is-loaded");
+    els.startScreen.classList.remove("is-intro-revealing");
+
+    const duration = 1800;
+    const startedAt = performance.now();
+
+    function update(now) {
+      const progress = Math.min(1, (now - startedAt) / duration);
+      const easedProgress = 1 - Math.pow(1 - progress, 3);
+      const percent = Math.round(easedProgress * 100);
+
+      els.startLoadingFill.style.width = `${percent}%`;
+      els.startLoadingText.textContent = `${percent}%`;
+
+      if (progress < 1) {
+        window.requestAnimationFrame(update);
+        return;
+      }
+
+      els.startLoadingFill.style.width = "100%";
+      els.startLoadingText.textContent = "100%";
+
+      window.setTimeout(() => {
+        els.startScreen.classList.remove("is-loading");
+        els.startScreen.classList.add("is-loaded");
+        els.startScreen.classList.add("is-intro-revealing");
+        window.setTimeout(() => {
+          els.startScreen.classList.remove("is-intro-revealing");
+        }, 850);
+      }, 260);
+    }
+
+    window.requestAnimationFrame(update);
+  }
+
   function showDifficultySelect() {
     resetState();
     state.phase = "difficulty";
@@ -187,7 +241,7 @@
     const difficultyIndex = Number.isInteger(index) && index >= 0 && index < DIFFICULTIES.length ? index : 0;
     resetState();
     showOnly("game");
-    startDifficulty(difficultyIndex);
+    startReadyCountdown(difficultyIndex);
   }
 
   function resetState() {
@@ -197,6 +251,8 @@
     state.correctCount = 0;
     state.timeLeft = DIFFICULTY_TIME;
     state.currentQuestion = null;
+    state.hintStep = 0;
+    state.hintTimerId = null;
     state.lastMemoryTotalCount = 0;
     state.wrongAttempts = 0;
     state.phase = "start";
@@ -207,6 +263,47 @@
     state.reachedQuestion = 0;
     els.pauseModal.classList.add("is-hidden");
     els.pauseButton.classList.remove("is-paused");
+  }
+
+  function startReadyCountdown(index) {
+    state.difficultyIndex = index;
+    state.timeLeft = DIFFICULTY_TIME;
+    state.phase = "countdown";
+    state.isPaused = false;
+    state.reachedDifficultyIndex = index;
+    updateTopUi();
+
+    if (!els.gameCountdown || !els.gameCountdownNumber) {
+      startDifficulty(index);
+      return;
+    }
+
+    const startedAt = performance.now();
+    els.playArea.innerHTML = "";
+    els.gameCountdown.classList.remove("is-hidden");
+    els.gameCountdown.setAttribute("aria-hidden", "false");
+
+    function updateCountdown(now) {
+      const elapsed = Math.max(0, now - startedAt);
+      const remaining = Math.max(0, START_COUNTDOWN_TIME - elapsed);
+      const displaySeconds = Math.max(1, Math.ceil(remaining / 1000));
+      const completedSeconds = Math.min(3, Math.floor(elapsed / 1000));
+      const angle = completedSeconds * 120;
+
+      els.gameCountdownNumber.textContent = String(displaySeconds);
+      els.gameCountdown.style.setProperty("--countdown-angle", `${angle}deg`);
+
+      if (remaining <= 0) {
+        els.gameCountdown.style.setProperty("--countdown-angle", "360deg");
+        clearStartCountdown();
+        startDifficulty(index);
+        return;
+      }
+
+      state.startCountdownFrameId = window.requestAnimationFrame(updateCountdown);
+    }
+
+    updateCountdown(startedAt);
   }
 
   function startDifficulty(index) {
@@ -225,6 +322,7 @@
 
   function showNextQuestion() {
     clearPhaseTimer();
+    clearHintTimer();
 
     if (state.questionInDifficulty >= TOTAL_PER_DIFFICULTY) {
       showResult();
@@ -232,6 +330,7 @@
     }
 
     state.currentQuestion = createQuestion();
+    state.hintStep = 0;
     state.wrongAttempts = 0;
     state.phase = "memory";
     updateReachedPoint();
@@ -255,6 +354,7 @@
       return;
     }
 
+    clearHintTimer();
     const isCorrect = Number(choice) === state.currentQuestion.answer;
     if (isCorrect) {
       state.correctCount += 1;
@@ -483,9 +583,45 @@
     questionText.className = "guide-text";
     questionText.textContent = `${question.target.name}${getTopicParticle(question.target.name)} 몇 개였을까요?`;
 
+    const questionTopRow = document.createElement("div");
+    questionTopRow.className = "question-top-row";
+
+    const questionPromptWrap = document.createElement("div");
+    questionPromptWrap.className = "question-prompt-wrap";
+
     const target = document.createElement("div");
     target.className = "target-fruit";
     target.append(createFruitImage(question.target, "target-fruit-image"), createTargetFruitName(question.target.name));
+
+    const hintArea = document.createElement("div");
+    hintArea.className = "hint-area";
+
+    const hintMessage = document.createElement("p");
+    hintMessage.className = "hint-message";
+    hintMessage.setAttribute("aria-live", "polite");
+    hintMessage.textContent = "";
+    hintMessage.classList.add("is-hidden");
+
+    const hintButton = document.createElement("button");
+    hintButton.className = "game-button hint-button";
+    hintButton.type = "button";
+    const hintButtonText = document.createElement("span");
+    hintButtonText.className = "hint-button-text";
+    hintButtonText.textContent = "힌트";
+    hintButton.appendChild(hintButtonText);
+    hintButton.addEventListener("click", () => {
+      clearHintTimer();
+      state.hintStep = Math.min(state.hintStep + 1, 2);
+      hintMessage.textContent = getHintMessage(question, state.hintStep);
+      hintMessage.classList.remove("is-hidden");
+      state.hintTimerId = window.setTimeout(() => {
+        hintMessage.textContent = "";
+        hintMessage.classList.add("is-hidden");
+        state.hintTimerId = null;
+      }, 3000);
+    });
+
+    hintArea.appendChild(hintButton);
 
     const answerGrid = document.createElement("div");
     answerGrid.className = "answer-grid";
@@ -503,9 +639,48 @@
       answerGrid.appendChild(button);
     });
 
-    card.append(questionText, target, answerGrid);
+    questionPromptWrap.append(questionText, hintMessage);
+    questionTopRow.append(questionPromptWrap, hintArea);
+
+    card.append(questionTopRow, target, answerGrid);
     view.appendChild(card);
     els.playArea.appendChild(view);
+  }
+
+  function getHintMessage(question, hintStep) {
+    if (hintStep <= 1) {
+      return getFirstHintMessage(question.answer);
+    }
+
+    return getSecondHintMessage(question.answer, question.totalCount);
+  }
+
+  function getFirstHintMessage(answer) {
+    if (answer <= 1) {
+      return "아주 적게 있었어요!";
+    }
+
+    return `${answer - 1}개보다 많았어요!`;
+  }
+
+  function getSecondHintMessage(answer, totalCount) {
+    const maxCount = Math.max(totalCount, answer);
+    let min = Math.max(1, answer - 1);
+    let max = Math.min(maxCount, answer + 1);
+
+    if (min === max) {
+      if (min > 1) {
+        min -= 1;
+      } else {
+        max = Math.min(maxCount, min + 1);
+      }
+    }
+
+    if (min === max) {
+      return "아주 적게 있었어요!";
+    }
+
+    return `${min}~${max}개 사이였어요!`;
   }
 
   function getTopicParticle(text) {
@@ -695,10 +870,31 @@
     clearInterval(state.timerId);
     state.timerId = null;
     clearPhaseTimer();
+    clearStartCountdown();
+    clearHintTimer();
+  }
+
+  function clearStartCountdown() {
+    if (state.startCountdownFrameId) {
+      window.cancelAnimationFrame(state.startCountdownFrameId);
+      state.startCountdownFrameId = null;
+    }
+    if (els.gameCountdown) {
+      els.gameCountdown.classList.add("is-hidden");
+      els.gameCountdown.setAttribute("aria-hidden", "true");
+      els.gameCountdown.style.setProperty("--countdown-angle", "0deg");
+    }
+  }
+
+  function clearHintTimer() {
+    if (state.hintTimerId) {
+      window.clearTimeout(state.hintTimerId);
+      state.hintTimerId = null;
+    }
   }
 
   function pauseGame() {
-    if (state.phase === "start" || state.phase === "difficulty" || state.phase === "result" || state.isPaused) {
+    if (state.phase === "start" || state.phase === "difficulty" || state.phase === "countdown" || state.phase === "result" || state.isPaused) {
       return;
     }
 
@@ -734,11 +930,25 @@
   function quitGame() {
     state.isPaused = false;
     els.pauseButton.classList.remove("is-paused");
+    els.pauseModal.classList.add("is-hidden");
     showResult();
+  }
+
+  function restartPausedGame() {
+    const difficultyIndex = state.difficultyIndex;
+    state.isPaused = false;
+    els.pauseButton.classList.remove("is-paused");
+    els.pauseModal.classList.add("is-hidden");
+    startGame(difficultyIndex);
+  }
+
+  function openPauseHelp() {
+    openTutorial();
   }
 
   function goHome() {
     resetState();
+    els.startScreen.classList.remove("is-intro-revealing");
     showOnly("start");
   }
 
@@ -767,6 +977,32 @@
     if (els.soundLabel && els.soundToggle) {
       els.soundLabel.textContent = els.soundToggle.checked ? "효과음 켬" : "효과음 끔";
     }
+
+    updatePauseSoundButton(els.pauseBackgroundSoundButton, els.backgroundSoundToggle && els.backgroundSoundToggle.checked);
+    updatePauseSoundButton(els.pauseSoundButton, els.soundToggle && els.soundToggle.checked);
+  }
+
+  function updatePauseSoundButton(button, isOn) {
+    if (!button) {
+      return;
+    }
+
+    button.classList.toggle("is-off", !isOn);
+    button.setAttribute("aria-pressed", isOn ? "true" : "false");
+
+    const toggleText = button.querySelector(".pause-toggle-visual span");
+    if (toggleText) {
+      toggleText.textContent = isOn ? "ON" : "OFF";
+    }
+  }
+
+  function toggleSoundSetting(toggle) {
+    if (!toggle) {
+      return;
+    }
+
+    toggle.checked = !toggle.checked;
+    updateSettingClasses();
   }
 
   function playSound(type) {
@@ -961,15 +1197,15 @@
       return {
         emoji: "🙂",
         title: "괜찮아요",
-        message: "잠시 쉬어가셔도 좋습니다. 준비되시면 천천히 다시 시작해볼까요?"
+        message: "다시 시작해도 좋아요."
       };
     }
 
     if (rate >= 80) {
       return {
         emoji: "😊",
-        title: "참 잘하셨어요",
-        message: "차분히 기억해내신 모습이 정말 좋았습니다. 오늘도 머리를 잘 깨워주셨어요."
+        title: "잘하셨어요",
+        message: "좋은 훈련이었어요."
       };
     }
 
@@ -977,14 +1213,14 @@
       return {
         emoji: "🙂",
         title: "수고하셨어요",
-        message: "끝까지 집중해주셔서 좋았습니다. 천천히 하셔도 충분히 잘하고 계세요."
+        message: "끝까지 잘했어요."
       };
     }
 
     return {
       emoji: "😄",
-      title: "오늘도 고생하셨어요",
-      message: "맞고 틀리는 것보다 함께 기억해본 시간이 더 중요합니다. 편안하게 다시 해보셔도 좋아요."
+      title: "괜찮아요",
+      message: "다시 해도 좋아요."
     };
   }
 
@@ -1015,7 +1251,7 @@
     }
 
     if (diff <= -2) {
-      return "다음에는 더 좋아질 수 있어요!";
+      return "다음엔 더 좋아져요!";
     }
 
     return "지난번과 비슷해요.";
@@ -1055,10 +1291,9 @@
   function updateTopUi() {
     const difficulty = currentDifficulty();
 
-    els.difficultyLabel.textContent = difficulty.label;
+    els.difficultyLabel.textContent = "🧠 기억력 게임";
     if (els.levelIcon) {
-      els.levelIcon.textContent = difficulty.runner;
-      els.levelIcon.setAttribute("aria-label", `${difficulty.label} 난이도`);
+      els.levelIcon.setAttribute("aria-label", "기억력 게임");
     }
     if (els.stageLabel) {
       els.stageLabel.textContent = difficulty.label;
@@ -1155,11 +1390,15 @@
     els.resultHomeButton.addEventListener("click", goHome);
     els.pauseButton.addEventListener("click", pauseGame);
     els.resumeButton.addEventListener("click", resumeGame);
+    els.pauseRestartButton.addEventListener("click", restartPausedGame);
+    els.pauseHelpButton.addEventListener("click", openPauseHelp);
     els.homeButton.addEventListener("click", quitGame);
     els.settingsCloseButton.addEventListener("click", closeSettings);
     els.settingsExitButton.addEventListener("click", exitGameFromSettings);
     els.backgroundSoundToggle.addEventListener("change", updateSettingClasses);
     els.soundToggle.addEventListener("change", updateSettingClasses);
+    els.pauseBackgroundSoundButton.addEventListener("click", () => toggleSoundSetting(els.backgroundSoundToggle));
+    els.pauseSoundButton.addEventListener("click", () => toggleSoundSetting(els.soundToggle));
     els.tutorialCloseButton.addEventListener("click", handleTutorialCloseButton);
     els.tutorialNextButton.addEventListener("click", showNextTutorialStep);
 
@@ -1230,4 +1469,5 @@
   }
   updateSettingClasses();
   updateTimerUi();
+  startIntroLoading();
 })();
