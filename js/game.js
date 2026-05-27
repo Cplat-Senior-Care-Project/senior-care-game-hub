@@ -2,13 +2,12 @@
   "use strict";
 
   const TOTAL_PER_DIFFICULTY = 10;
-  const TOTAL_QUESTIONS = TOTAL_PER_DIFFICULTY;
   const DIFFICULTY_TIME = 120;
   const START_COUNTDOWN_TIME = 3000;
   const FEEDBACK_TIME = 2400;
   const RETRY_FEEDBACK_TIME = 2200;
   const MAX_WRONG_RETRIES = 2;
-  const STORAGE_KEY = "ssok_count_finder_last_result";
+  const STORAGE_KEY = "fruit_count_memory_game_last_result";
   const RACE_POINTS = [16, 50, 84, 94];
   const MEMORY_LAYOUT_MIN_CARD = 38;
   const MEMORY_LAYOUT_CARD_SIZE = 162;
@@ -19,13 +18,21 @@
   const STAGE_WIDTH = 1280;
   const STAGE_HEIGHT = 720;
   const CONDITION_SLEEP_HOURS = [4, 5, 6, 7, 8, 9, 10, 11, 12];
+  const DEFAULT_RUN_CONFIG = Object.freeze({
+    gameId: "fruit-count-memory-game",
+    sessionId: null,
+    difficultyKey: null,
+    difficultyIndex: null,
+    durationSeconds: DIFFICULTY_TIME,
+    totalQuestions: TOTAL_PER_DIFFICULTY
+  });
 
   const FRUITS = [
-    { id: "apple", name: "사과", image: "image/assets/apple.png" },
-    { id: "strawberry", name: "딸기", image: "image/assets/strawberry.png" },
-    { id: "watermelon", name: "수박", image: "image/assets/watermelon.png" },
-    { id: "grape", name: "포도", image: "image/assets/grapes.png" },
-    { id: "korean_melon", name: "참외", image: "image/assets/korean_melon.png" }
+    { id: "apple", name: "사과", image: "assets/images/apple.png" },
+    { id: "strawberry", name: "딸기", image: "assets/images/strawberry.png" },
+    { id: "watermelon", name: "수박", image: "assets/images/watermelon.png" },
+    { id: "grape", name: "포도", image: "assets/images/grapes.png" },
+    { id: "korean_melon", name: "참외", image: "assets/images/korean_melon.png" }
   ];
 
   FRUITS.forEach((fruit) => {
@@ -179,6 +186,7 @@
   };
   let memoryLayoutFrame = null;
   let memoryLayoutResizeObserver = null;
+  const runtimeConfig = { ...DEFAULT_RUN_CONFIG };
 
   function updateGameScale() {
     const viewportWidth = window.innerWidth || document.documentElement.clientWidth || STAGE_WIDTH;
@@ -244,6 +252,12 @@
   }
 
   function showDifficultySelect() {
+    const configuredDifficultyIndex = getConfiguredDifficultyIndex();
+    if (configuredDifficultyIndex !== null && configuredDifficultyIndex >= 0) {
+      startGame(configuredDifficultyIndex);
+      return;
+    }
+
     resetState();
     state.phase = "difficulty";
     showOnly("difficulty");
@@ -261,7 +275,7 @@
     state.difficultyIndex = 0;
     state.questionInDifficulty = 0;
     state.correctCount = 0;
-    state.timeLeft = DIFFICULTY_TIME;
+    state.timeLeft = runtimeConfig.durationSeconds;
     state.currentQuestion = null;
     state.hintStep = 0;
     state.hintTimerId = null;
@@ -279,7 +293,7 @@
 
   function startReadyCountdown(index) {
     state.difficultyIndex = index;
-    state.timeLeft = DIFFICULTY_TIME;
+    state.timeLeft = runtimeConfig.durationSeconds;
     state.phase = "countdown";
     state.isPaused = false;
     state.reachedDifficultyIndex = index;
@@ -323,7 +337,7 @@
     state.difficultyIndex = index;
     state.questionInDifficulty = 0;
     state.lastMemoryTotalCount = 0;
-    state.timeLeft = DIFFICULTY_TIME;
+    state.timeLeft = runtimeConfig.durationSeconds;
     state.phase = "ready";
     state.isPaused = false;
     state.reachedDifficultyIndex = index;
@@ -336,7 +350,7 @@
     clearPhaseTimer();
     clearHintTimer();
 
-    if (state.questionInDifficulty >= TOTAL_PER_DIFFICULTY) {
+    if (state.questionInDifficulty >= getTotalQuestions()) {
       showResult();
       return;
     }
@@ -975,7 +989,7 @@
     return `${hours}\uC2DC\uAC04`;
   }
 
-  function renderConditionSleepDial(direction) {
+  function renderConditionSleepDial() {
     if (!els.conditionSleepRows) {
       return;
     }
@@ -995,24 +1009,172 @@
       row.append(number, unit);
       els.conditionSleepRows.appendChild(row);
     });
+  }
 
-    if (!direction) {
+  function getAppBridge() {
+    return window.FruitCountMemoryGameAppBridge || window.SsokCountFinderAppBridge || null;
+  }
+
+  async function loadRunConfig() {
+    const bridge = getAppBridge();
+    if (!bridge || typeof bridge.getRunConfig !== "function") {
       return;
     }
 
-    const animationClass = direction === "down" ? "is-turning-down" : "is-turning-up";
-    els.conditionSleepRows.classList.remove("is-turning-down", "is-turning-up");
-    void els.conditionSleepRows.offsetWidth;
-    els.conditionSleepRows.classList.add(animationClass);
-    window.setTimeout(() => {
-      els.conditionSleepRows.classList.remove(animationClass);
-    }, 260);
+    try {
+      const config = await bridge.getRunConfig();
+      applyRunConfig(config);
+    } catch (error) {
+      reportAppError("CONFIG_LOAD_FAILED", error);
+    }
+  }
+
+  function applyRunConfig(config) {
+    const normalizedConfig = normalizeRunConfig(config);
+    Object.assign(runtimeConfig, normalizedConfig);
+    state.timeLeft = runtimeConfig.durationSeconds;
+  }
+
+  function normalizeRunConfig(config) {
+    const source = config && typeof config === "object" ? config : {};
+    return {
+      gameId: typeof source.gameId === "string" && source.gameId ? source.gameId : DEFAULT_RUN_CONFIG.gameId,
+      sessionId: typeof source.sessionId === "string" && source.sessionId ? source.sessionId : DEFAULT_RUN_CONFIG.sessionId,
+      difficultyKey: normalizeDifficultyKey(source.difficultyKey || source.difficulty),
+      difficultyIndex: normalizeDifficultyIndex(source.difficultyIndex),
+      durationSeconds: toPositiveInteger(source.durationSeconds, DEFAULT_RUN_CONFIG.durationSeconds),
+      totalQuestions: toPositiveInteger(source.totalQuestions, DEFAULT_RUN_CONFIG.totalQuestions)
+    };
+  }
+
+  function normalizeDifficultyKey(key) {
+    if (typeof key !== "string" || !key) {
+      return null;
+    }
+
+    return DIFFICULTIES.some((difficulty) => difficulty.key === key) ? key : null;
+  }
+
+  function normalizeDifficultyIndex(index) {
+    const number = Number(index);
+    if (!Number.isInteger(number) || number < 0 || number >= DIFFICULTIES.length) {
+      return null;
+    }
+
+    return number;
+  }
+
+  function toPositiveInteger(value, fallback) {
+    const number = Number(value);
+    if (!Number.isFinite(number) || number <= 0) {
+      return fallback;
+    }
+
+    return Math.round(number);
+  }
+
+  function getConfiguredDifficultyIndex() {
+    if (Number.isInteger(runtimeConfig.difficultyIndex)) {
+      return runtimeConfig.difficultyIndex;
+    }
+
+    if (runtimeConfig.difficultyKey) {
+      return DIFFICULTIES.findIndex((difficulty) => difficulty.key === runtimeConfig.difficultyKey);
+    }
+
+    return null;
+  }
+
+  function sendGameComplete(result) {
+    const bridge = getAppBridge();
+    if (!bridge || typeof bridge.sendComplete !== "function") {
+      return;
+    }
+
+    try {
+      const maybePromise = bridge.sendComplete(result);
+      if (maybePromise && typeof maybePromise.catch === "function") {
+        maybePromise.catch((error) => {
+          reportAppError("COMPLETE_SEND_FAILED", error);
+        });
+      }
+    } catch (error) {
+      reportAppError("COMPLETE_SEND_FAILED", error);
+    }
+  }
+
+  function reportAppError(code, error, detail) {
+    const bridge = getAppBridge();
+    const payload = createErrorResult(code, error, detail);
+
+    if (bridge && typeof bridge.sendError === "function") {
+      try {
+        const maybePromise = bridge.sendError(payload);
+        if (maybePromise && typeof maybePromise.catch === "function" && window.console) {
+          maybePromise.catch((sendError) => {
+            window.console.error("[app bridge] failed to send error", sendError);
+          });
+        }
+        return;
+      } catch (sendError) {
+        if (window.console) {
+          window.console.error("[app bridge] failed to send error", sendError);
+        }
+      }
+    }
+
+    if (window.console) {
+      window.console.error("[app bridge]", payload);
+    }
+  }
+
+  function createErrorResult(code, error, detail) {
+    return {
+      gameId: runtimeConfig.gameId,
+      sessionId: runtimeConfig.sessionId,
+      status: "error",
+      code,
+      message: error && error.message ? error.message : String(error || code),
+      detail: detail || null,
+      occurredAt: new Date().toISOString()
+    };
+  }
+
+  function createCompleteResult(totalAnswered, rate) {
+    const difficulty = currentDifficulty();
+    return {
+      gameId: runtimeConfig.gameId,
+      sessionId: runtimeConfig.sessionId,
+      status: "completed",
+      completedAt: new Date().toISOString(),
+      config: {
+        difficultyKey: runtimeConfig.difficultyKey,
+        difficultyIndex: runtimeConfig.difficultyIndex,
+        durationSeconds: runtimeConfig.durationSeconds,
+        totalQuestions: runtimeConfig.totalQuestions
+      },
+      result: {
+        difficultyKey: difficulty.key,
+        difficultyLabel: difficulty.label,
+        correctCount: state.correctCount,
+        wrongCount: Math.max(0, totalAnswered - state.correctCount),
+        totalAnswered,
+        totalQuestions: getTotalQuestions(),
+        accuracyRate: rate,
+        timeLeftSeconds: state.timeLeft,
+        elapsedSeconds: Math.max(0, runtimeConfig.durationSeconds - state.timeLeft)
+      },
+      condition: {
+        mood: state.conditionMood,
+        sleepHours: CONDITION_SLEEP_HOURS[state.conditionSleepIndex]
+      }
+    };
   }
 
   function changeConditionSleep(delta) {
     const length = CONDITION_SLEEP_HOURS.length;
     state.conditionSleepIndex = (state.conditionSleepIndex + delta + length) % length;
-    renderConditionSleepDial(delta > 0 ? "down" : "up");
+    renderConditionSleepDial();
   }
 
   function selectConditionMood(button) {
@@ -1277,7 +1439,13 @@
     els.resultTitle.textContent = resultMessage.title;
     renderResultMessage(resultMessage.message);
 
-    saveRecord(rate, totalAnswered);
+    try {
+      saveRecord(rate, totalAnswered);
+    } catch (error) {
+      reportAppError("RECORD_SAVE_FAILED", error);
+    }
+
+    sendGameComplete(createCompleteResult(totalAnswered, rate));
     showOnly("result");
   }
 
@@ -1431,7 +1599,11 @@
   }
 
   function getAnsweredCount() {
-    return Math.min(TOTAL_QUESTIONS, state.questionInDifficulty);
+    return Math.min(getTotalQuestions(), state.questionInDifficulty);
+  }
+
+  function getTotalQuestions() {
+    return runtimeConfig.totalQuestions;
   }
 
   function currentDifficulty() {
@@ -1439,11 +1611,12 @@
   }
 
   function difficultyProgress() {
-    if (TOTAL_PER_DIFFICULTY <= 1) {
+    const totalQuestions = getTotalQuestions();
+    if (totalQuestions <= 1) {
       return 1;
     }
 
-    return Math.min(1, state.questionInDifficulty / (TOTAL_PER_DIFFICULTY - 1));
+    return Math.min(1, state.questionInDifficulty / (totalQuestions - 1));
   }
 
   function formatTime(seconds) {
@@ -1543,6 +1716,16 @@
     }
   }
 
+  function bindAppErrorEvents() {
+    window.addEventListener("error", (event) => {
+      reportAppError("UNHANDLED_ERROR", event.error || event.message);
+    });
+
+    window.addEventListener("unhandledrejection", (event) => {
+      reportAppError("UNHANDLED_REJECTION", event.reason);
+    });
+  }
+
   function runAfterStartPress(button, action) {
     return (event) => {
       event.preventDefault();
@@ -1557,16 +1740,27 @@
     };
   }
 
-  updateGameScale();
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", updateGameScale, { once: true });
+  async function initializeGame() {
+    updateGameScale();
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", updateGameScale, { once: true });
+    }
+
+    bindEvents();
+    bindAppErrorEvents();
+    renderLucideIcons();
+    if (els.app) {
+      els.app.dataset.screen = state.phase;
+    }
+    updateSettingClasses();
+    await loadRunConfig();
+    updateTimerUi();
+    startIntroLoading();
   }
-  bindEvents();
-  renderLucideIcons();
-  if (els.app) {
-    els.app.dataset.screen = state.phase;
-  }
-  updateSettingClasses();
-  updateTimerUi();
-  startIntroLoading();
+
+  initializeGame().catch((error) => {
+    reportAppError("INITIALIZE_FAILED", error);
+    updateTimerUi();
+    startIntroLoading();
+  });
 })();

@@ -1,0 +1,13 @@
+{
+  "gameId": "fruit-count-memory-game",
+  "title": "쏙쏙 개수 찾기",
+  "description": "과일 개수를 기억하고 맞히는 기억력 훈련 게임",
+  "durationSeconds": 120,
+  "totalQuestions": 10,
+  "defaultDifficulty": null,
+  "difficulties": [
+    "easy",
+    "normal",
+    "hard"
+  ]
+}
