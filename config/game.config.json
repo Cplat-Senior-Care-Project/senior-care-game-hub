@@ -1,10 +1,21 @@
 {
   "gameId": "fruit-count-memory-game",
+  "sessionId": "",
+  "userId": "",
+  "anonymousUserId": "mock-user",
+  "deviceId": "mock-device",
+  "appVersion": "mock-app",
+  "gameVersion": "mock-game",
   "title": "쏙쏙 개수 찾기",
   "description": "과일 개수를 기억하고 맞히는 기억력 훈련 게임",
   "durationSeconds": 120,
   "totalQuestions": 10,
+  "revealMs": 3000,
   "defaultDifficulty": null,
+  "soundEnabled": true,
+  "voiceGuideEnabled": true,
+  "collectCondition": true,
+  "debugMode": false,
   "difficulties": {
     "easy": {
       "label": "쉬움",

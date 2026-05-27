@@ -4,6 +4,7 @@
   const TOTAL_PER_DIFFICULTY = 10;
   const DIFFICULTY_TIME = 120;
   const START_COUNTDOWN_TIME = 3000;
+  const DIFFICULTY_SELECT_TRANSITION_DELAY = 700;
   const FEEDBACK_TIME = 2400;
   const RETRY_FEEDBACK_TIME = 2200;
   const MAX_WRONG_RETRIES = 2;
@@ -22,10 +23,21 @@
   const DEFAULT_RUN_CONFIG = Object.freeze({
     gameId: "fruit-count-memory-game",
     sessionId: null,
+    userId: "",
+    anonymousUserId: "",
+    deviceId: "",
+    appVersion: "",
+    gameVersion: "",
     difficultyKey: null,
     difficultyIndex: null,
     durationSeconds: DIFFICULTY_TIME,
-    totalQuestions: TOTAL_PER_DIFFICULTY
+    totalQuestions: TOTAL_PER_DIFFICULTY,
+    revealMs: 3000,
+    soundEnabled: true,
+    voiceGuideEnabled: true,
+    collectCondition: true,
+    debugMode: false,
+    schemaVersion: "mock-v1"
   });
   const ERROR_SCREEN_COPY = Object.freeze({
     CONFIG_MISSING: {
@@ -241,7 +253,14 @@
     conditionSleepRows: document.getElementById("condition-sleep-rows"),
     conditionSleepUpButton: document.getElementById("condition-sleep-up-button"),
     conditionSleepDownButton: document.getElementById("condition-sleep-down-button"),
-    conditionConfirmButton: document.getElementById("condition-confirm-button")
+    conditionConfirmButton: document.getElementById("condition-confirm-button"),
+    postConditionModal: document.getElementById("post-condition-modal"),
+    postConditionPages: Array.from(document.querySelectorAll(".post-condition-page")),
+    postConditionDots: Array.from(document.querySelectorAll(".post-condition-dot")),
+    postConditionOptions: Array.from(document.querySelectorAll(".post-condition-option")),
+    postConditionNextButton: document.getElementById("post-condition-next-button"),
+    postConditionBackButton: document.getElementById("post-condition-back-button"),
+    postConditionConfirmButton: document.getElementById("post-condition-confirm-button")
   };
 
   const state = {
@@ -270,14 +289,46 @@
     conditionCheckShown: false,
     conditionMood: "good",
     conditionSleepIndex: 3,
+    postConditionChecked: false,
+    postConditionStep: 0,
+    postCondition: {
+      moodAfter: "good",
+      fatigue: "low",
+      perceivedDifficulty: "justRight",
+      neededHelp: "none",
+      replayIntent: "yes"
+    },
     soundContext: null
   };
   let memoryLayoutFrame = null;
   let memoryLayoutResizeObserver = null;
   const runtimeConfig = { ...DEFAULT_RUN_CONFIG };
   let runtimeDifficulties = cloneDifficulties(DIFFICULTIES);
+  const telemetryState = createEmptyTelemetryState();
   const audioPools = new Map();
   const audioPoolIndexes = new Map();
+
+  function createEmptyTelemetryState() {
+    return {
+      startedAt: null,
+      endedAt: null,
+      startedAtMs: 0,
+      endedAtMs: 0,
+      selectedDifficulty: null,
+      exitReason: "not_started",
+      questionResults: [],
+      currentQuestionRecord: null,
+      pauseCount: 0,
+      earlyExitQuestionIndex: null
+    };
+  }
+
+  function resetTelemetryState() {
+    const nextState = createEmptyTelemetryState();
+    Object.keys(nextState).forEach((key) => {
+      telemetryState[key] = nextState[key];
+    });
+  }
 
   function cloneDifficulties(difficulties) {
     return difficulties.map((difficulty) => ({
@@ -366,6 +417,7 @@
     const difficulties = getDifficulties();
     const difficultyIndex = Number.isInteger(index) && index >= 0 && index < difficulties.length ? index : 0;
     resetState();
+    resetTelemetryState();
     showOnly("game");
     startReadyCountdown(difficultyIndex);
   }
@@ -388,6 +440,9 @@
     state.reachedDifficultyIndex = 0;
     state.reachedQuestion = 0;
     els.pauseModal.classList.add("is-hidden");
+    if (els.postConditionModal) {
+      els.postConditionModal.classList.add("is-hidden");
+    }
     els.pauseButton.classList.remove("is-paused");
   }
 
@@ -448,6 +503,7 @@
     state.reachedDifficultyIndex = index;
     updateTopUi();
     playSound("start");
+    startTelemetrySession(index);
     sendGameStarted();
     startDifficultyTimer();
     showNextQuestion();
@@ -458,17 +514,19 @@
     clearHintTimer();
 
     if (state.questionInDifficulty >= getTotalQuestions()) {
-      showResult();
+      finishGame("all_questions");
       return;
     }
 
     state.currentQuestion = createQuestion();
+    recordQuestionCreated(state.currentQuestion);
     state.hintStep = 0;
     state.wrongAttempts = 0;
     state.phase = "memory";
     updateReachedPoint();
     updateTopUi();
     renderMemoryView(state.currentQuestion);
+    recordMemoryStarted();
     startPhaseTimer(currentDifficulty().revealMs, showQuestionView);
   }
 
@@ -480,6 +538,7 @@
     clearPhaseTimer();
     state.phase = "question";
     renderQuestionView(state.currentQuestion);
+    recordQuestionShown(state.currentQuestion);
   }
 
   function answerQuestion(choice) {
@@ -489,6 +548,7 @@
 
     clearHintTimer();
     const isCorrect = Number(choice) === state.currentQuestion.answer;
+    recordAnswerSelected(choice, isCorrect);
     if (isCorrect) {
       state.correctCount += 1;
       playSound("correct");
@@ -510,6 +570,7 @@
   }
 
   function completeQuestion(isCorrect) {
+    finalizeCurrentQuestion(isCorrect ? "correct" : "incorrect", isCorrect);
     state.phase = "feedback";
     state.questionInDifficulty += 1;
     renderFeedbackView(isCorrect, state.currentQuestion);
@@ -518,7 +579,8 @@
 
   function handleTimeExpired() {
     clearAllTimers();
-    showResult();
+    finalizeCurrentQuestion("timeout", false);
+    finishGame("time_expired");
   }
 
   function createQuestion() {
@@ -570,6 +632,168 @@
       answer,
       totalCount
     };
+  }
+
+  function startTelemetrySession(index) {
+    const difficulty = getDifficulties()[index] || getDifficulties()[0];
+    const startedAtMs = Date.now();
+    telemetryState.startedAtMs = startedAtMs;
+    telemetryState.startedAt = new Date(startedAtMs).toISOString();
+    telemetryState.endedAt = null;
+    telemetryState.endedAtMs = 0;
+    telemetryState.exitReason = "playing";
+    telemetryState.selectedDifficulty = {
+      key: difficulty.key,
+      label: difficulty.label,
+      index
+    };
+  }
+
+  function endTelemetrySession(reason) {
+    const endedAtMs = Date.now();
+    telemetryState.endedAtMs = endedAtMs;
+    telemetryState.endedAt = new Date(endedAtMs).toISOString();
+    telemetryState.exitReason = reason || telemetryState.exitReason || "unknown";
+  }
+
+  function createQuestionInstanceId(questionIndex) {
+    const sessionId = runtimeConfig.sessionId || runtimeConfig.gameId || "session";
+    return `${sessionId}_q${questionIndex}`;
+  }
+
+  function recordQuestionCreated(question) {
+    const difficulty = currentDifficulty();
+    const questionIndex = state.questionInDifficulty + 1;
+    const record = {
+      questionInstanceId: createQuestionInstanceId(questionIndex),
+      questionIndex,
+      difficulty: {
+        key: difficulty.key,
+        label: difficulty.label,
+        index: state.difficultyIndex
+      },
+      cognitiveDomainMain: "기억력",
+      cognitiveDomainSub: ["주의력", "실행기능", "시공간 구성능력"],
+      targetFruitId: question.target.id,
+      targetFruitName: question.target.name,
+      answerCount: question.answer,
+      totalFruitCount: question.totalCount,
+      fruitTypeCount: new Set(question.cards.map((fruit) => fruit.id)).size,
+      answerOptions: [],
+      userFinalAnswer: null,
+      isCorrect: false,
+      attemptCount: 0,
+      hintUsed: false,
+      hintCount: 0,
+      maxHintLevel: 0,
+      responseTimeMs: null,
+      finalState: "pending",
+      internal: {
+        memoryStartedAtMs: null,
+        questionShownAtMs: null,
+        firstResponseTimeMs: null,
+        finalResponseTimeMs: null,
+        wrongAnswers: [],
+        underCountAnswer: false,
+        overCountAnswer: false,
+        hintClickTimeMs: [],
+        pausedInQuestion: false
+      }
+    };
+
+    telemetryState.currentQuestionRecord = record;
+    telemetryState.questionResults.push(record);
+  }
+
+  function recordMemoryStarted() {
+    const record = telemetryState.currentQuestionRecord;
+    if (!record || record.finalState !== "pending") {
+      return;
+    }
+
+    record.internal.memoryStartedAtMs = Date.now();
+  }
+
+  function recordQuestionShown(question) {
+    const record = telemetryState.currentQuestionRecord;
+    if (!record || record.finalState !== "pending") {
+      return;
+    }
+
+    record.internal.questionShownAtMs = Date.now();
+    record.answerOptions = Array.isArray(question.options) ? [...question.options] : [];
+  }
+
+  function recordHintUsed(hintLevel) {
+    const record = telemetryState.currentQuestionRecord;
+    if (!record || record.finalState !== "pending") {
+      return;
+    }
+
+    const now = Date.now();
+    const baseTime = record.internal.questionShownAtMs || record.internal.memoryStartedAtMs || now;
+    record.hintUsed = true;
+    record.hintCount += 1;
+    record.maxHintLevel = Math.max(record.maxHintLevel, hintLevel);
+    record.internal.hintClickTimeMs.push(Math.max(0, now - baseTime));
+  }
+
+  function recordAnswerSelected(choice, isCorrect) {
+    const record = telemetryState.currentQuestionRecord;
+    if (!record || record.finalState !== "pending") {
+      return;
+    }
+
+    const now = Date.now();
+    const selectedValue = Number(choice);
+    const questionShownAtMs = record.internal.questionShownAtMs || now;
+    const responseTimeMs = Math.max(0, now - questionShownAtMs);
+
+    if (record.internal.firstResponseTimeMs === null) {
+      record.internal.firstResponseTimeMs = responseTimeMs;
+    }
+
+    record.internal.finalResponseTimeMs = responseTimeMs;
+    record.responseTimeMs = responseTimeMs;
+    record.userFinalAnswer = selectedValue;
+    record.attemptCount += 1;
+
+    if (!isCorrect) {
+      record.internal.wrongAnswers.push(selectedValue);
+      if (selectedValue < record.answerCount) {
+        record.internal.underCountAnswer = true;
+      }
+      if (selectedValue > record.answerCount) {
+        record.internal.overCountAnswer = true;
+      }
+    }
+  }
+
+  function recordQuestionPause() {
+    telemetryState.pauseCount += 1;
+    const record = telemetryState.currentQuestionRecord;
+    if (record && record.finalState === "pending") {
+      record.internal.pausedInQuestion = true;
+    }
+  }
+
+  function finalizeCurrentQuestion(finalState, isCorrect) {
+    const record = telemetryState.currentQuestionRecord;
+    if (!record || record.finalState !== "pending") {
+      return;
+    }
+
+    if (record.internal.questionShownAtMs && record.internal.finalResponseTimeMs === null) {
+      record.internal.finalResponseTimeMs = Math.max(0, Date.now() - record.internal.questionShownAtMs);
+      record.responseTimeMs = record.internal.finalResponseTimeMs;
+    }
+
+    record.finalState = finalState;
+    record.isCorrect = Boolean(isCorrect);
+
+    if ((finalState === "timeout" || finalState === "quit") && telemetryState.earlyExitQuestionIndex === null) {
+      telemetryState.earlyExitQuestionIndex = record.questionIndex;
+    }
   }
 
   function getCountRange(difficulty, progress) {
@@ -746,6 +970,7 @@
       playSound("button");
       clearHintTimer();
       state.hintStep = Math.min(state.hintStep + 1, 2);
+      recordHintUsed(state.hintStep);
       hintMessage.textContent = getHintMessage(question, state.hintStep);
       hintMessage.classList.remove("is-hidden");
       state.hintTimerId = window.setTimeout(() => {
@@ -1030,11 +1255,12 @@
   }
 
   function pauseGame() {
-    if (state.phase === "start" || state.phase === "difficulty" || state.phase === "countdown" || state.phase === "result" || state.isPaused) {
+    if (state.phase === "start" || state.phase === "difficulty" || state.phase === "countdown" || state.phase === "postCondition" || state.phase === "result" || state.isPaused) {
       return;
     }
 
     state.isPaused = true;
+    recordQuestionPause();
     els.pauseButton.classList.add("is-paused");
     clearInterval(state.timerId);
     state.timerId = null;
@@ -1067,7 +1293,7 @@
     state.isPaused = false;
     els.pauseButton.classList.remove("is-paused");
     els.pauseModal.classList.add("is-hidden");
-    showResult();
+    finishGame("quit");
   }
 
   function restartPausedGame() {
@@ -1120,17 +1346,18 @@
   }
 
   function getAppBridge() {
-    return window.FruitCountMemoryGameAppBridge || window.SsokCountFinderAppBridge || null;
+    return window.FruitCountMemoryGameAppBridge || null;
   }
 
   async function loadRunConfig() {
     const bridge = getAppBridge();
-    if (!bridge || typeof bridge.getRunConfig !== "function") {
+    const getConfig = bridge && (bridge.getRuntimeConfig || bridge.getRunConfig);
+    if (typeof getConfig !== "function") {
       return true;
     }
 
     try {
-      const config = await bridge.getRunConfig();
+      const config = await getConfig.call(bridge);
       applyRunConfig(config);
       return true;
     } catch (error) {
@@ -1145,6 +1372,17 @@
     delete normalizedConfig.difficulties;
     Object.assign(runtimeConfig, normalizedConfig);
     state.timeLeft = runtimeConfig.durationSeconds;
+    applyRuntimeAudioSettings();
+    updateSettingClasses();
+  }
+
+  function applyRuntimeAudioSettings() {
+    if (els.soundToggle) {
+      els.soundToggle.checked = runtimeConfig.soundEnabled !== false;
+    }
+    if (els.voiceGuideToggle) {
+      els.voiceGuideToggle.checked = runtimeConfig.voiceGuideEnabled !== false;
+    }
   }
 
   function normalizeRunConfig(config) {
@@ -1153,12 +1391,15 @@
     }
 
     const source = config;
-    const difficulties = normalizeDifficultySettings(source.difficulties);
-    const difficultyValue = source.difficultyKey || source.difficulty;
+    const revealMs = readPositiveIntegerConfig(source, "revealMs", DEFAULT_RUN_CONFIG.revealMs);
+    const difficulties = normalizeDifficultySettings(source.difficulties, revealMs);
+    const difficultyValue = source.difficultyKey || source.difficulty || source.defaultDifficulty;
     const difficultyKey = normalizeDifficultyKey(difficultyValue, difficulties);
-    const difficultyIndex = normalizeDifficultyIndex(source.difficultyIndex, difficulties);
+    const difficultyIndex = hasConfigValue(source, "difficultyIndex")
+      ? normalizeDifficultyIndex(source.difficultyIndex, difficulties)
+      : null;
 
-    if (hasConfigValue(source, "difficultyKey") || hasConfigValue(source, "difficulty")) {
+    if (hasConfigValue(source, "difficultyKey") || hasConfigValue(source, "difficulty") || hasConfigValue(source, "defaultDifficulty")) {
       if (!difficultyKey) {
         throw createGameError("CONFIG_INVALID", "Unknown difficulty key.", { difficulty: difficultyValue });
       }
@@ -1171,16 +1412,30 @@
     return {
       gameId: typeof source.gameId === "string" && source.gameId ? source.gameId : DEFAULT_RUN_CONFIG.gameId,
       sessionId: typeof source.sessionId === "string" && source.sessionId ? source.sessionId : DEFAULT_RUN_CONFIG.sessionId,
+      userId: typeof source.userId === "string" ? source.userId : DEFAULT_RUN_CONFIG.userId,
+      anonymousUserId: typeof source.anonymousUserId === "string" ? source.anonymousUserId : DEFAULT_RUN_CONFIG.anonymousUserId,
+      deviceId: typeof source.deviceId === "string" ? source.deviceId : DEFAULT_RUN_CONFIG.deviceId,
+      appVersion: typeof source.appVersion === "string" ? source.appVersion : DEFAULT_RUN_CONFIG.appVersion,
+      gameVersion: typeof source.gameVersion === "string" ? source.gameVersion : DEFAULT_RUN_CONFIG.gameVersion,
       difficultyKey,
       difficultyIndex,
       durationSeconds: readPositiveIntegerConfig(source, "durationSeconds", DEFAULT_RUN_CONFIG.durationSeconds),
       totalQuestions: readPositiveIntegerConfig(source, "totalQuestions", DEFAULT_RUN_CONFIG.totalQuestions),
+      revealMs,
+      soundEnabled: readBooleanConfig(source, "soundEnabled", DEFAULT_RUN_CONFIG.soundEnabled),
+      voiceGuideEnabled: readBooleanConfig(source, "voiceGuideEnabled", DEFAULT_RUN_CONFIG.voiceGuideEnabled),
+      collectCondition: readBooleanConfig(source, "collectCondition", DEFAULT_RUN_CONFIG.collectCondition),
+      debugMode: readBooleanConfig(source, "debugMode", DEFAULT_RUN_CONFIG.debugMode),
+      schemaVersion: typeof source.schemaVersion === "string" && source.schemaVersion ? source.schemaVersion : DEFAULT_RUN_CONFIG.schemaVersion,
       difficulties
     };
   }
 
-  function normalizeDifficultySettings(settings) {
-    const nextDifficulties = cloneDifficulties(DIFFICULTIES);
+  function normalizeDifficultySettings(settings, revealMs = DEFAULT_RUN_CONFIG.revealMs) {
+    const nextDifficulties = cloneDifficulties(DIFFICULTIES).map((difficulty) => ({
+      ...difficulty,
+      revealMs
+    }));
     if (!settings) {
       return nextDifficulties;
     }
@@ -1341,6 +1596,18 @@
     return Math.round(number);
   }
 
+  function readBooleanConfig(source, key, fallback) {
+    if (!hasConfigValue(source, key)) {
+      return fallback;
+    }
+
+    if (typeof source[key] !== "boolean") {
+      throw createGameError("CONFIG_INVALID", `Invalid ${key}.`, { [key]: source[key] });
+    }
+
+    return source[key];
+  }
+
   function normalizeDifficultyKey(key, difficulties = getDifficulties()) {
     if (typeof key !== "string" || !key) {
       return null;
@@ -1350,6 +1617,10 @@
   }
 
   function normalizeDifficultyIndex(index, difficulties = getDifficulties()) {
+    if (index === null || index === undefined || index === "") {
+      return null;
+    }
+
     const number = Number(index);
     if (!Number.isInteger(number) || number < 0 || number >= difficulties.length) {
       return null;
@@ -1446,6 +1717,8 @@
 
   function sendGameReady() {
     const payload = {
+      eventType: "GAME_READY",
+      schemaVersion: runtimeConfig.schemaVersion,
       gameId: runtimeConfig.gameId,
       sessionId: runtimeConfig.sessionId,
       status: "ready",
@@ -1454,20 +1727,23 @@
         difficultyKey: runtimeConfig.difficultyKey,
         difficultyIndex: runtimeConfig.difficultyIndex,
         durationSeconds: runtimeConfig.durationSeconds,
-        totalQuestions: runtimeConfig.totalQuestions
+        totalQuestions: runtimeConfig.totalQuestions,
+        collectCondition: runtimeConfig.collectCondition
       }
     };
 
-    sendBridgeEvent("sendReady", payload, "READY_SEND_FAILED");
+    sendBridgeEvent(["sendGameReady", "sendReady"], payload, "READY_SEND_FAILED");
   }
 
   function sendGameStarted() {
     const difficulty = currentDifficulty();
     const payload = {
+      eventType: "GAME_STARTED",
+      schemaVersion: runtimeConfig.schemaVersion,
       gameId: runtimeConfig.gameId,
       sessionId: runtimeConfig.sessionId,
       status: "started",
-      startedAt: new Date().toISOString(),
+      startedAt: telemetryState.startedAt || new Date().toISOString(),
       difficultyKey: difficulty.key,
       difficultyLabel: difficulty.label,
       condition: {
@@ -1476,16 +1752,18 @@
       }
     };
 
-    sendBridgeEvent("sendStarted", payload, "STARTED_SEND_FAILED");
+    sendBridgeEvent(["sendGameStarted", "sendStarted"], payload, "STARTED_SEND_FAILED");
   }
 
   function sendGameComplete(result) {
-    sendBridgeEvent("sendComplete", result, "COMPLETE_SEND_FAILED");
+    sendBridgeEvent(["sendGameCompleteResult", "sendComplete"], result, "COMPLETE_SEND_FAILED");
   }
 
-  function sendBridgeEvent(methodName, payload, errorCode) {
+  function sendBridgeEvent(methodNames, payload, errorCode) {
     const bridge = getAppBridge();
-    if (!bridge || typeof bridge[methodName] !== "function") {
+    const names = Array.isArray(methodNames) ? methodNames : [methodNames];
+    const methodName = bridge && names.find((name) => typeof bridge[name] === "function");
+    if (!bridge || !methodName) {
       return;
     }
 
@@ -1504,10 +1782,15 @@
   function reportAppError(code, error, detail) {
     const bridge = getAppBridge();
     const payload = createErrorResult(code, error, detail);
+    const sendErrorMethod = bridge && (bridge.sendGameErrorResult || bridge.sendError);
 
-    if (bridge && typeof bridge.sendError === "function") {
+    if (window.console) {
+      window.console.error("[game error]", code, error, detail || null);
+    }
+
+    if (typeof sendErrorMethod === "function") {
       try {
-        const maybePromise = bridge.sendError(payload);
+        const maybePromise = sendErrorMethod.call(bridge, payload);
         if (maybePromise && typeof maybePromise.catch === "function" && window.console) {
           maybePromise.catch((sendError) => {
             window.console.error("[app bridge] failed to send error", sendError);
@@ -1549,6 +1832,9 @@
     if (els.conditionModal) {
       els.conditionModal.classList.add("is-hidden");
     }
+    if (els.postConditionModal) {
+      els.postConditionModal.classList.add("is-hidden");
+    }
     if (els.pauseButton) {
       els.pauseButton.classList.remove("is-paused");
     }
@@ -1574,45 +1860,207 @@
 
   function createErrorResult(code, error, detail) {
     return {
+      eventType: "GAME_ERROR",
+      schemaVersion: runtimeConfig.schemaVersion,
       gameId: runtimeConfig.gameId,
       sessionId: runtimeConfig.sessionId,
-      status: "error",
-      code,
-      message: error && error.message ? error.message : String(error || code),
-      detail: detail || (error && error.detail) || null,
-      occurredAt: new Date().toISOString()
+      occurredAt: new Date().toISOString(),
+      error: {
+        code,
+        message: error && error.message ? error.message : String(error || code),
+        phase: state.phase || "unknown",
+        recoverable: isRecoverableError(code)
+      }
     };
   }
 
+  function isRecoverableError(code) {
+    return code === "STORAGE_FAILED" || code === "COMPLETE_SEND_FAILED";
+  }
+
   function createCompleteResult(totalAnswered, rate) {
-    const difficulty = currentDifficulty();
+    if (!telemetryState.endedAt) {
+      endTelemetrySession(telemetryState.exitReason === "playing" ? "unknown" : telemetryState.exitReason);
+    }
+
+    const questionResults = telemetryState.questionResults.map(createPublicQuestionResult);
+    const processData = telemetryState.questionResults.map(createPublicProcessData);
+    const summary = createSummary(questionResults, processData);
+    const resultId = createResultId();
+    const idempotencyKey = createIdempotencyKey();
+
     return {
+      eventType: "GAME_COMPLETED",
+      schemaVersion: runtimeConfig.schemaVersion,
       gameId: runtimeConfig.gameId,
       sessionId: runtimeConfig.sessionId,
-      status: "completed",
-      completedAt: new Date().toISOString(),
-      config: {
-        difficultyKey: runtimeConfig.difficultyKey,
-        difficultyIndex: runtimeConfig.difficultyIndex,
-        durationSeconds: runtimeConfig.durationSeconds,
-        totalQuestions: runtimeConfig.totalQuestions
-      },
-      result: {
-        difficultyKey: difficulty.key,
-        difficultyLabel: difficulty.label,
-        correctCount: state.correctCount,
-        wrongCount: Math.max(0, totalAnswered - state.correctCount),
-        totalAnswered,
-        totalQuestions: getTotalQuestions(),
-        accuracyRate: rate,
-        timeLeftSeconds: state.timeLeft,
-        elapsedSeconds: Math.max(0, runtimeConfig.durationSeconds - state.timeLeft)
-      },
-      condition: {
-        mood: state.conditionMood,
-        sleepHours: CONDITION_SLEEP_HOURS[state.conditionSleepIndex]
-      }
+      resultId,
+      idempotencyKey,
+      userId: runtimeConfig.userId || runtimeConfig.anonymousUserId || "",
+      completedAt: telemetryState.endedAt,
+      session: createSessionResult(questionResults),
+      questionResults,
+      processData,
+      condition: createConditionResult(),
+      summary
     };
+  }
+
+  function createResultId() {
+    return `result_${sanitizeResultIdPart(runtimeConfig.sessionId || runtimeConfig.gameId)}`;
+  }
+
+  function createIdempotencyKey() {
+    // TODO: 서버 저장 API 확정 후 idempotencyKey 기준 중복 저장 방지 정책 적용
+    // TODO: 앱/WebView 종료 또는 네트워크 실패 시 재전송 큐 정책 확정
+    // TODO: COMPLETE_SEND_FAILED 발생 시 로컬 임시 저장 및 재전송 방식 협의
+    return `${runtimeConfig.gameId}:${runtimeConfig.sessionId || "local-session"}`;
+  }
+
+  function sanitizeResultIdPart(value) {
+    return String(value || "local-session").replace(/[^a-zA-Z0-9_-]/g, "_");
+  }
+
+  function createSessionResult(questionResults) {
+    const completedQuestions = questionResults.filter((question) => question.finalState === "correct" || question.finalState === "incorrect").length;
+    const attemptedQuestions = questionResults.filter((question) => question.attemptCount > 0).length;
+    const exitReason = telemetryState.exitReason || "unknown";
+    const completed = exitReason === "all_questions";
+
+    return {
+      sessionId: runtimeConfig.sessionId,
+      userId: runtimeConfig.userId,
+      anonymousUserId: runtimeConfig.anonymousUserId,
+      deviceId: runtimeConfig.deviceId,
+      gameId: runtimeConfig.gameId,
+      gameVersion: runtimeConfig.gameVersion,
+      startedAt: telemetryState.startedAt,
+      endedAt: telemetryState.endedAt,
+      totalPlayTimeMs: getTotalPlayTimeMs(),
+      selectedDifficulty: telemetryState.selectedDifficulty,
+      totalQuestions: getTotalQuestions(),
+      attemptedQuestions,
+      completedQuestions,
+      completed,
+      exitedEarly: !completed,
+      exitReason
+    };
+  }
+
+  function createPublicQuestionResult(record) {
+    return {
+      questionInstanceId: record.questionInstanceId,
+      questionIndex: record.questionIndex,
+      difficulty: record.difficulty.key,
+      cognitiveDomainMain: record.cognitiveDomainMain,
+      cognitiveDomainSub: [...record.cognitiveDomainSub],
+      targetFruitId: record.targetFruitId,
+      targetFruitName: record.targetFruitName,
+      answerCount: record.answerCount,
+      totalFruitCount: record.totalFruitCount,
+      fruitTypeCount: record.fruitTypeCount,
+      answerOptions: [...record.answerOptions],
+      userFinalAnswer: record.userFinalAnswer,
+      isCorrect: record.isCorrect,
+      attemptCount: record.attemptCount,
+      hintUsed: record.hintUsed,
+      hintCount: record.hintCount,
+      maxHintLevel: record.maxHintLevel,
+      responseTimeMs: record.responseTimeMs,
+      finalState: record.finalState
+    };
+  }
+
+  function createPublicProcessData(record) {
+    return {
+      questionInstanceId: record.questionInstanceId,
+      questionIndex: record.questionIndex,
+      firstResponseTimeMs: record.internal.firstResponseTimeMs,
+      finalResponseTimeMs: record.internal.finalResponseTimeMs,
+      retryCount: record.internal.wrongAnswers.length,
+      wrongAnswers: [...record.internal.wrongAnswers],
+      underCountAnswer: record.internal.underCountAnswer,
+      overCountAnswer: record.internal.overCountAnswer,
+      hintClickTimeMs: [...record.internal.hintClickTimeMs],
+      pausedInQuestion: record.internal.pausedInQuestion,
+      exitedInQuestion: record.finalState === "timeout" || record.finalState === "quit"
+    };
+  }
+
+  function createConditionResult() {
+    return {
+      moodBefore: state.conditionMood,
+      sleepHours: CONDITION_SLEEP_HOURS[state.conditionSleepIndex],
+      moodAfter: state.postCondition.moodAfter,
+      fatigue: state.postCondition.fatigue,
+      perceivedDifficulty: state.postCondition.perceivedDifficulty,
+      neededHelp: state.postCondition.neededHelp,
+      replayIntent: state.postCondition.replayIntent
+    };
+  }
+
+  function createSummary(questionResults, processData) {
+    const completedQuestionCount = questionResults.filter((question) => question.finalState === "correct" || question.finalState === "incorrect").length;
+    const correctCount = questionResults.filter((question) => question.isCorrect).length;
+    const wrongCount = questionResults.filter((question) => question.finalState === "incorrect").length;
+    const accuracyRate = completedQuestionCount > 0 ? Math.round((correctCount / completedQuestionCount) * 100) : 0;
+    const hintUsedQuestionCount = questionResults.filter((question) => question.hintUsed).length;
+
+    return {
+      correctCount,
+      wrongCount,
+      accuracyRate,
+      completedQuestionCount,
+      totalPlayTimeMs: getTotalPlayTimeMs(),
+      hintUsedQuestionCount,
+      averageResponseTimeMs: averageNumber(processData.map((process) => process.finalResponseTimeMs)),
+      bestDifficultyReached: getBestDifficultyReached(),
+      resultLabel: createResultLabel({
+        exitedEarly: telemetryState.exitReason !== "all_questions",
+        accuracyRate,
+        hintUsedQuestionCount
+      })
+    };
+  }
+
+  function averageNumber(values) {
+    const validValues = values.filter((value) => typeof value === "number" && Number.isFinite(value));
+    if (validValues.length === 0) {
+      return null;
+    }
+
+    const total = validValues.reduce((sum, value) => sum + value, 0);
+    return Math.round(total / validValues.length);
+  }
+
+  function getTotalPlayTimeMs() {
+    if (!telemetryState.startedAtMs) {
+      return 0;
+    }
+
+    const endedAtMs = telemetryState.endedAtMs || Date.now();
+    return Math.max(0, endedAtMs - telemetryState.startedAtMs);
+  }
+
+  function getBestDifficultyReached() {
+    const difficulty = getDifficulties()[state.reachedDifficultyIndex] || currentDifficulty();
+    return difficulty ? difficulty.key : "";
+  }
+
+  function createResultLabel({ exitedEarly, accuracyRate, hintUsedQuestionCount }) {
+    if (exitedEarly) {
+      return "중간에 종료했어요";
+    }
+
+    if (accuracyRate < 50) {
+      return "오늘은 조금 어려워했어요";
+    }
+
+    if (hintUsedQuestionCount > 0) {
+      return "힌트를 활용해 차분히 풀었어요";
+    }
+
+    return "끝까지 잘 참여했어요";
   }
 
   function changeConditionSleep(delta) {
@@ -1631,7 +2079,7 @@
   }
 
   function openConditionCheck() {
-    if (!els.conditionModal || state.conditionCheckShown) {
+    if (!runtimeConfig.collectCondition || !els.conditionModal || state.conditionCheckShown) {
       return;
     }
 
@@ -1649,6 +2097,83 @@
     }
 
     els.conditionModal.classList.add("is-hidden");
+  }
+
+  function renderPostConditionStep() {
+    els.postConditionPages.forEach((page, index) => {
+      page.hidden = index !== state.postConditionStep;
+    });
+
+    els.postConditionDots.forEach((dot, index) => {
+      dot.classList.toggle("is-active", index === state.postConditionStep);
+    });
+  }
+
+  function openPostConditionCheck() {
+    if (!runtimeConfig.collectCondition || !els.postConditionModal) {
+      showResult();
+      return;
+    }
+
+    state.phase = "postCondition";
+    state.isPaused = false;
+    state.postConditionStep = 0;
+    els.pauseModal.classList.add("is-hidden");
+    els.pauseButton.classList.remove("is-paused");
+    renderPostConditionStep();
+    els.postConditionModal.classList.remove("is-hidden");
+    if (els.postConditionNextButton) {
+      els.postConditionNextButton.focus();
+    }
+  }
+
+  function closePostConditionCheck() {
+    if (!els.postConditionModal) {
+      return;
+    }
+
+    els.postConditionModal.classList.add("is-hidden");
+  }
+
+  function selectPostConditionOption(button) {
+    const field = button.dataset.postField;
+    const value = button.dataset.postValue;
+    if (!field || !value) {
+      return;
+    }
+
+    state.postCondition[field] = value;
+    els.postConditionOptions.forEach((option) => {
+      if (option.dataset.postField !== field) {
+        return;
+      }
+
+      const isSelected = option === button;
+      option.classList.toggle("is-selected", isSelected);
+      option.setAttribute("aria-pressed", isSelected ? "true" : "false");
+    });
+  }
+
+  function showNextPostConditionStep() {
+    state.postConditionStep = Math.min(1, state.postConditionStep + 1);
+    renderPostConditionStep();
+    if (els.postConditionConfirmButton) {
+      els.postConditionConfirmButton.focus();
+    }
+  }
+
+  function showPreviousPostConditionStep() {
+    state.postConditionStep = Math.max(0, state.postConditionStep - 1);
+    renderPostConditionStep();
+    if (els.postConditionNextButton) {
+      els.postConditionNextButton.focus();
+    }
+  }
+
+  function submitPostConditionCheck() {
+    state.postConditionChecked = true;
+    closePostConditionCheck();
+    showResult();
   }
 
   function openSettings() {
@@ -1899,9 +2424,28 @@
     return item;
   }
 
+  function finishGame(reason = "all_questions") {
+    clearAllTimers();
+    const finalReason = reason || "all_questions";
+    if (finalReason === "quit") {
+      finalizeCurrentQuestion("quit", false);
+    }
+    if (finalReason !== "all_questions" && telemetryState.earlyExitQuestionIndex === null) {
+      telemetryState.earlyExitQuestionIndex = state.questionInDifficulty + 1;
+    }
+    endTelemetrySession(finalReason);
+    if (!state.postConditionChecked) {
+      openPostConditionCheck();
+      return;
+    }
+
+    showResult();
+  }
+
   function showResult() {
     clearAllTimers();
     state.phase = "result";
+    closePostConditionCheck();
     els.pauseModal.classList.add("is-hidden");
     els.pauseButton.classList.remove("is-paused");
     const totalAnswered = getAnsweredCount();
@@ -2139,10 +2683,9 @@
     els.tutorialButton.addEventListener("click", runAfterStartPress(els.tutorialButton, openTutorial));
     els.restartButton.addEventListener("click", withButtonSound(restartCurrentDifficulty));
     els.difficultyButtons.forEach((button) => {
-      button.addEventListener("click", () => {
-        playSound("button");
+      button.addEventListener("click", runAfterStartPress(button, () => {
         startGame(Number(button.dataset.difficultyIndex));
-      });
+      }, DIFFICULTY_SELECT_TRANSITION_DELAY));
     });
     els.difficultyBackButton.addEventListener("click", withButtonSound(goHome));
     els.resultHomeButton.addEventListener("click", withButtonSound(goHome));
@@ -2177,8 +2720,21 @@
       changeConditionSleep(1);
     });
     els.conditionConfirmButton.addEventListener("click", withButtonSound(closeConditionCheck));
+    els.postConditionOptions.forEach((button) => {
+      button.addEventListener("click", () => {
+        playSound("button");
+        selectPostConditionOption(button);
+      });
+    });
+    els.postConditionNextButton.addEventListener("click", withButtonSound(showNextPostConditionStep));
+    els.postConditionBackButton.addEventListener("click", withButtonSound(showPreviousPostConditionStep));
+    els.postConditionConfirmButton.addEventListener("click", withButtonSound(submitPostConditionCheck));
 
     document.addEventListener("keydown", (event) => {
+      if (els.postConditionModal && !els.postConditionModal.classList.contains("is-hidden")) {
+        return;
+      }
+
       if (event.key === "Escape" && !els.settingsModal.classList.contains("is-hidden")) {
         closeSettings();
         return;
@@ -2230,7 +2786,7 @@
     });
   }
 
-  function runAfterStartPress(button, action) {
+  function runAfterStartPress(button, action, delay = 180) {
     return (event) => {
       event.preventDefault();
       playSound("button");
@@ -2241,7 +2797,7 @@
       window.setTimeout(() => {
         button.classList.remove("is-pressed");
         action();
-      }, 180);
+      }, delay);
     };
   }
 

@@ -181,6 +181,133 @@
       </div>
     </div>
 
+    <div id="post-condition-modal" class="modal-layer is-hidden" role="dialog" aria-modal="true" aria-labelledby="post-condition-title">
+      <div class="modal-card condition-card post-condition-card">
+        <h2 id="post-condition-title" class="condition-title post-condition-title">
+          <span class="condition-title-icon" aria-hidden="true">&#128221;</span>
+          <span class="condition-title-text">마무리 체크</span>
+          <span class="condition-title-icon" aria-hidden="true">&#9989;</span>
+        </h2>
+
+        <div class="post-condition-progress" aria-hidden="true">
+          <span class="post-condition-dot is-active"></span>
+          <span class="post-condition-dot"></span>
+        </div>
+
+        <div class="post-condition-page" data-post-condition-page="0">
+          <section class="post-condition-question" aria-labelledby="post-condition-mood-title">
+            <h3 id="post-condition-mood-title" class="post-condition-question-title">
+              <span>1</span>
+              지금 기분은 어떠세요?
+            </h3>
+            <div class="post-condition-options" role="group" aria-label="game after mood">
+              <button class="post-condition-option is-selected" type="button" data-post-field="moodAfter" data-post-value="good" aria-pressed="true">
+                <span class="post-condition-face" aria-hidden="true">&#128522;</span>
+                <span>좋아요</span>
+              </button>
+              <button class="post-condition-option" type="button" data-post-field="moodAfter" data-post-value="normal" aria-pressed="false">
+                <span class="post-condition-face" aria-hidden="true">&#128528;</span>
+                <span>보통이에요</span>
+              </button>
+              <button class="post-condition-option" type="button" data-post-field="moodAfter" data-post-value="hard" aria-pressed="false">
+                <span class="post-condition-face" aria-hidden="true">&#128532;</span>
+                <span>안 좋아요</span>
+              </button>
+            </div>
+          </section>
+
+          <section class="post-condition-question" aria-labelledby="post-condition-fatigue-title">
+            <h3 id="post-condition-fatigue-title" class="post-condition-question-title">
+              <span>2</span>
+              피로감은 어느 정도인가요?
+            </h3>
+            <div class="post-condition-options" role="group" aria-label="game after fatigue">
+              <button class="post-condition-option is-selected" type="button" data-post-field="fatigue" data-post-value="low" aria-pressed="true">
+                <span class="post-condition-face" aria-hidden="true">&#128578;</span>
+                <span>괜찮아요</span>
+              </button>
+              <button class="post-condition-option" type="button" data-post-field="fatigue" data-post-value="medium" aria-pressed="false">
+                <span class="post-condition-face" aria-hidden="true">&#128531;</span>
+                <span>조금 피곤해요</span>
+              </button>
+              <button class="post-condition-option" type="button" data-post-field="fatigue" data-post-value="high" aria-pressed="false">
+                <span class="post-condition-face" aria-hidden="true">&#128553;</span>
+                <span>많이 피곤해요</span>
+              </button>
+            </div>
+          </section>
+
+          <div class="condition-actions post-condition-actions">
+            <button id="post-condition-next-button" class="game-button condition-confirm-button post-condition-action-button" type="button">
+              다음
+            </button>
+          </div>
+        </div>
+
+        <div class="post-condition-page" data-post-condition-page="1" hidden>
+          <section class="post-condition-question" aria-labelledby="post-condition-difficulty-title">
+            <h3 id="post-condition-difficulty-title" class="post-condition-question-title">
+              <span>3</span>
+              체감 난이도는 어땠나요?
+            </h3>
+            <div class="post-condition-options" role="group" aria-label="perceived difficulty">
+              <button class="post-condition-option" type="button" data-post-field="perceivedDifficulty" data-post-value="easy" aria-pressed="false">
+                <span class="post-condition-face" aria-hidden="true">&#128516;</span>
+                <span>쉬웠어요</span>
+              </button>
+              <button class="post-condition-option is-selected" type="button" data-post-field="perceivedDifficulty" data-post-value="justRight" aria-pressed="true">
+                <span class="post-condition-face" aria-hidden="true">&#128578;</span>
+                <span>적당했어요</span>
+              </button>
+              <button class="post-condition-option" type="button" data-post-field="perceivedDifficulty" data-post-value="hard" aria-pressed="false">
+                <span class="post-condition-face" aria-hidden="true">&#128560;</span>
+                <span>어려웠어요</span>
+              </button>
+            </div>
+          </section>
+
+          <section class="post-condition-question" aria-labelledby="post-condition-help-title">
+            <h3 id="post-condition-help-title" class="post-condition-question-title">
+              <span>4</span>
+              도움이 필요했나요?
+            </h3>
+            <div class="post-condition-options" role="group" aria-label="needed help">
+              <button class="post-condition-option" type="button" data-post-field="neededHelp" data-post-value="some" aria-pressed="false">
+                <span class="post-condition-face" aria-hidden="true">&#9995;</span>
+                <span>네</span>
+              </button>
+              <button class="post-condition-option is-selected" type="button" data-post-field="neededHelp" data-post-value="none" aria-pressed="true">
+                <span class="post-condition-face" aria-hidden="true">&#128170;</span>
+                <span>아니요</span>
+              </button>
+            </div>
+          </section>
+
+          <section class="post-condition-question" aria-labelledby="post-condition-replay-title">
+            <h3 id="post-condition-replay-title" class="post-condition-question-title">
+              <span>5</span>
+              다시 하고 싶나요?
+            </h3>
+            <div class="post-condition-options" role="group" aria-label="replay intent">
+              <button class="post-condition-option is-selected" type="button" data-post-field="replayIntent" data-post-value="yes" aria-pressed="true">
+                <span class="post-condition-face" aria-hidden="true">&#11088;</span>
+                <span>네</span>
+              </button>
+              <button class="post-condition-option" type="button" data-post-field="replayIntent" data-post-value="no" aria-pressed="false">
+                <span class="post-condition-face" aria-hidden="true">&#128075;</span>
+                <span>아니요</span>
+              </button>
+            </div>
+          </section>
+
+          <div class="condition-actions post-condition-actions">
+            <button id="post-condition-back-button" class="game-button secondary-button post-condition-action-button" type="button">이전</button>
+            <button id="post-condition-confirm-button" class="game-button condition-confirm-button post-condition-action-button" type="button">확인</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <div id="pause-modal" class="modal-layer is-hidden" role="dialog" aria-modal="true" aria-labelledby="pause-title">
       <div class="modal-card pause-card">
         <h2 id="pause-title">잠시 쉬어가요</h2>
