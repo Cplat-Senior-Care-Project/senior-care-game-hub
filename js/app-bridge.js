@@ -7,7 +7,33 @@
     sessionId: "mock-session",
     difficultyKey: null,
     durationSeconds: 120,
-    totalQuestions: 10
+    totalQuestions: 10,
+    difficulties: {
+      easy: {
+        revealMs: 3000,
+        startRange: [2, 3],
+        endRange: [3, 4],
+        minTypes: 1,
+        maxTypes: 1,
+        shuffleCards: false
+      },
+      normal: {
+        revealMs: 3000,
+        startRange: [4, 5],
+        endRange: [5, 6],
+        minTypes: 2,
+        maxTypes: 3,
+        shuffleCards: false
+      },
+      hard: {
+        revealMs: 3000,
+        startRange: [5, 6],
+        endRange: [6, 7],
+        minTypes: 3,
+        maxTypes: 4,
+        shuffleCards: true
+      }
+    }
   });
 
   function createMockConfig() {
@@ -32,8 +58,16 @@
       return Promise.resolve(createMockConfig());
     },
 
+    sendReady(payload) {
+      sendMockMessage("GAME_READY", payload);
+    },
+
+    sendStarted(payload) {
+      sendMockMessage("GAME_STARTED", payload);
+    },
+
     sendComplete(result) {
-      sendMockMessage("GAME_COMPLETE", result);
+      sendMockMessage("GAME_COMPLETED", result);
     },
 
     sendError(error) {

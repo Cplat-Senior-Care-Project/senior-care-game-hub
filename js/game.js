@@ -18,6 +18,7 @@
   const STAGE_WIDTH = 1280;
   const STAGE_HEIGHT = 720;
   const CONDITION_SLEEP_HOURS = [4, 5, 6, 7, 8, 9, 10, 11, 12];
+  const ASSET_LOAD_TIMEOUT = 6000;
   const DEFAULT_RUN_CONFIG = Object.freeze({
     gameId: "fruit-count-memory-game",
     sessionId: null,
@@ -25,6 +26,57 @@
     difficultyIndex: null,
     durationSeconds: DIFFICULTY_TIME,
     totalQuestions: TOTAL_PER_DIFFICULTY
+  });
+  const ERROR_SCREEN_COPY = Object.freeze({
+    CONFIG_MISSING: {
+      title: "게임 설정을 불러오지 못했습니다",
+      message: "앱을 다시 열어 주세요."
+    },
+    CONFIG_INVALID: {
+      title: "게임 설정을 확인하지 못했습니다",
+      message: "앱을 다시 열어 주세요."
+    },
+    CONFIG_LOAD_FAILED: {
+      title: "게임 설정을 불러오지 못했습니다",
+      message: "앱을 다시 열어 주세요."
+    },
+    ASSET_LOAD_FAILED: {
+      title: "게임 리소스를 불러오지 못했습니다",
+      message: "잠시 후 다시 시도해 주세요."
+    },
+    INITIALIZE_FAILED: {
+      title: "게임을 시작하지 못했습니다",
+      message: "앱을 다시 열어 주세요."
+    },
+    GAME_RUNTIME_ERROR: {
+      title: "게임 진행 중 문제가 발생했습니다",
+      message: "처음부터 다시 시도해 주세요."
+    },
+    RESULT_CREATE_FAILED: {
+      title: "결과를 정리하지 못했습니다",
+      message: "앱으로 돌아가 다시 시도해 주세요."
+    },
+    COMPLETE_SEND_FAILED: {
+      title: "결과를 앱에 전달하지 못했습니다",
+      message: "앱으로 돌아가 확인해 주세요."
+    },
+    STORAGE_FAILED: {
+      title: "기록을 저장하지 못했습니다",
+      message: "게임은 계속 이용할 수 있습니다."
+    },
+    default: {
+      title: "게임을 불러오지 못했습니다",
+      message: "잠시 후 다시 시도해 주세요."
+    }
+  });
+  const DEBUG_ERROR_ALIASES = Object.freeze({
+    config: "CONFIG_INVALID",
+    asset: "ASSET_LOAD_FAILED",
+    init: "INITIALIZE_FAILED",
+    runtime: "GAME_RUNTIME_ERROR",
+    result: "RESULT_CREATE_FAILED",
+    complete: "COMPLETE_SEND_FAILED",
+    storage: "STORAGE_FAILED"
   });
 
   const FRUITS = [
@@ -34,6 +86,34 @@
     { id: "grape", name: "포도", image: "assets/images/grapes.png" },
     { id: "korean_melon", name: "참외", image: "assets/images/korean_melon.png" }
   ];
+
+  const ESSENTIAL_ASSET_SOURCES = [
+    ...FRUITS.map((fruit) => fruit.image),
+    "assets/images/game_title2.png",
+    "assets/images/new_background.png"
+  ];
+
+  const AUDIO_SOURCES = Object.freeze({
+    button: "assets/audio/button-click.wav",
+    toggle: "assets/audio/toggle.wav",
+    countdown: "assets/audio/countdown-tick.wav",
+    start: "assets/audio/start.wav",
+    correct: "assets/audio/correct.wav",
+    retry: "assets/audio/retry.wav",
+    wrong: "assets/audio/wrong.wav",
+    complete: "assets/audio/complete.wav"
+  });
+  const AUDIO_VOLUMES = Object.freeze({
+    button: 0.72,
+    toggle: 0.72,
+    countdown: 0.68,
+    start: 0.72,
+    correct: 0.72,
+    retry: 0.7,
+    wrong: 0.66,
+    complete: 0.72
+  });
+  const AUDIO_POOL_SIZE = 3;
 
   FRUITS.forEach((fruit) => {
     const image = new Image();
@@ -98,6 +178,11 @@
     difficultyScreen: document.getElementById("difficulty-screen"),
     gameScreen: document.getElementById("game-screen"),
     resultScreen: document.getElementById("result-screen"),
+    errorScreen: document.getElementById("error-screen"),
+    errorTitle: document.getElementById("error-title"),
+    errorMessage: document.getElementById("error-message"),
+    errorCode: document.getElementById("error-code"),
+    errorHomeButton: document.getElementById("error-home-button"),
     startButton: document.getElementById("start-button"),
     settingsButton: document.getElementById("settings-button"),
     tutorialButton: document.getElementById("tutorial-button"),
@@ -118,7 +203,10 @@
     pauseBackgroundSoundButton: document.getElementById("pause-background-sound-button"),
     soundToggle: document.getElementById("sound-toggle"),
     soundLabel: document.getElementById("sound-label"),
+    voiceGuideToggle: document.getElementById("voice-guide-toggle"),
+    voiceGuideLabel: document.getElementById("voice-guide-label"),
     pauseSoundButton: document.getElementById("pause-sound-button"),
+    pauseVoiceGuideButton: document.getElementById("pause-voice-guide-button"),
     tutorialModal: document.getElementById("tutorial-modal"),
     tutorialPreview: document.getElementById("tutorial-preview"),
     tutorialTitle: document.getElementById("tutorial-title"),
@@ -187,6 +275,17 @@
   let memoryLayoutFrame = null;
   let memoryLayoutResizeObserver = null;
   const runtimeConfig = { ...DEFAULT_RUN_CONFIG };
+  let runtimeDifficulties = cloneDifficulties(DIFFICULTIES);
+  const audioPools = new Map();
+  const audioPoolIndexes = new Map();
+
+  function cloneDifficulties(difficulties) {
+    return difficulties.map((difficulty) => ({
+      ...difficulty,
+      startRange: [...difficulty.startRange],
+      endRange: [...difficulty.endRange]
+    }));
+  }
 
   function updateGameScale() {
     const viewportWidth = window.innerWidth || document.documentElement.clientWidth || STAGE_WIDTH;
@@ -264,7 +363,8 @@
   }
 
   function startGame(index) {
-    const difficultyIndex = Number.isInteger(index) && index >= 0 && index < DIFFICULTIES.length ? index : 0;
+    const difficulties = getDifficulties();
+    const difficultyIndex = Number.isInteger(index) && index >= 0 && index < difficulties.length ? index : 0;
     resetState();
     showOnly("game");
     startReadyCountdown(difficultyIndex);
@@ -308,6 +408,7 @@
     els.playArea.innerHTML = "";
     els.gameCountdown.classList.remove("is-hidden");
     els.gameCountdown.setAttribute("aria-hidden", "false");
+    let lastDisplaySeconds = null;
 
     function updateCountdown(now) {
       const elapsed = Math.max(0, now - startedAt);
@@ -318,6 +419,10 @@
 
       els.gameCountdownNumber.textContent = String(displaySeconds);
       els.gameCountdownTimer.style.setProperty("--countdown-angle", `${angle}deg`);
+      if (displaySeconds !== lastDisplaySeconds && remaining > 0) {
+        lastDisplaySeconds = displaySeconds;
+        playSound("countdown");
+      }
 
       if (remaining <= 0) {
         els.gameCountdownTimer.style.setProperty("--countdown-angle", "360deg");
@@ -342,6 +447,8 @@
     state.isPaused = false;
     state.reachedDifficultyIndex = index;
     updateTopUi();
+    playSound("start");
+    sendGameStarted();
     startDifficultyTimer();
     showNextQuestion();
   }
@@ -636,6 +743,7 @@
     hintButtonText.textContent = "힌트";
     hintButton.appendChild(hintButtonText);
     hintButton.addEventListener("click", () => {
+      playSound("button");
       clearHintTimer();
       state.hintStep = Math.min(state.hintStep + 1, 2);
       hintMessage.textContent = getHintMessage(question, state.hintStep);
@@ -841,7 +949,7 @@
     updateTimerUi();
 
     state.timerId = window.setInterval(() => {
-      if (state.isPaused) {
+      if (state.isPaused || state.phase !== "question") {
         return;
       }
 
@@ -1018,59 +1126,310 @@
   async function loadRunConfig() {
     const bridge = getAppBridge();
     if (!bridge || typeof bridge.getRunConfig !== "function") {
-      return;
+      return true;
     }
 
     try {
       const config = await bridge.getRunConfig();
       applyRunConfig(config);
+      return true;
     } catch (error) {
-      reportAppError("CONFIG_LOAD_FAILED", error);
+      handleFatalError(error.code || "CONFIG_LOAD_FAILED", error, error.detail);
+      return false;
     }
   }
 
   function applyRunConfig(config) {
     const normalizedConfig = normalizeRunConfig(config);
+    runtimeDifficulties = normalizedConfig.difficulties;
+    delete normalizedConfig.difficulties;
     Object.assign(runtimeConfig, normalizedConfig);
     state.timeLeft = runtimeConfig.durationSeconds;
   }
 
   function normalizeRunConfig(config) {
-    const source = config && typeof config === "object" ? config : {};
+    if (!config || typeof config !== "object") {
+      throw createGameError("CONFIG_MISSING", "Run config is missing.");
+    }
+
+    const source = config;
+    const difficulties = normalizeDifficultySettings(source.difficulties);
+    const difficultyValue = source.difficultyKey || source.difficulty;
+    const difficultyKey = normalizeDifficultyKey(difficultyValue, difficulties);
+    const difficultyIndex = normalizeDifficultyIndex(source.difficultyIndex, difficulties);
+
+    if (hasConfigValue(source, "difficultyKey") || hasConfigValue(source, "difficulty")) {
+      if (!difficultyKey) {
+        throw createGameError("CONFIG_INVALID", "Unknown difficulty key.", { difficulty: difficultyValue });
+      }
+    }
+
+    if (hasConfigValue(source, "difficultyIndex") && difficultyIndex === null) {
+      throw createGameError("CONFIG_INVALID", "Unknown difficulty index.", { difficultyIndex: source.difficultyIndex });
+    }
+
     return {
       gameId: typeof source.gameId === "string" && source.gameId ? source.gameId : DEFAULT_RUN_CONFIG.gameId,
       sessionId: typeof source.sessionId === "string" && source.sessionId ? source.sessionId : DEFAULT_RUN_CONFIG.sessionId,
-      difficultyKey: normalizeDifficultyKey(source.difficultyKey || source.difficulty),
-      difficultyIndex: normalizeDifficultyIndex(source.difficultyIndex),
-      durationSeconds: toPositiveInteger(source.durationSeconds, DEFAULT_RUN_CONFIG.durationSeconds),
-      totalQuestions: toPositiveInteger(source.totalQuestions, DEFAULT_RUN_CONFIG.totalQuestions)
+      difficultyKey,
+      difficultyIndex,
+      durationSeconds: readPositiveIntegerConfig(source, "durationSeconds", DEFAULT_RUN_CONFIG.durationSeconds),
+      totalQuestions: readPositiveIntegerConfig(source, "totalQuestions", DEFAULT_RUN_CONFIG.totalQuestions),
+      difficulties
     };
   }
 
-  function normalizeDifficultyKey(key) {
+  function normalizeDifficultySettings(settings) {
+    const nextDifficulties = cloneDifficulties(DIFFICULTIES);
+    if (!settings) {
+      return nextDifficulties;
+    }
+
+    const overridesByKey = readDifficultyOverrides(settings);
+    nextDifficulties.forEach((difficulty, index) => {
+      const override = overridesByKey[difficulty.key];
+      if (!override) {
+        return;
+      }
+
+      nextDifficulties[index] = normalizeDifficultyOverride(difficulty, override);
+    });
+
+    return nextDifficulties;
+  }
+
+  function readDifficultyOverrides(settings) {
+    if (Array.isArray(settings)) {
+      return settings.reduce((overrides, item) => {
+        if (!item || typeof item !== "object" || typeof item.key !== "string") {
+          throw createGameError("CONFIG_INVALID", "Invalid difficulty item.", { difficulty: item });
+        }
+
+        assertKnownDifficultyKey(item.key);
+        overrides[item.key] = item;
+        return overrides;
+      }, {});
+    }
+
+    if (typeof settings !== "object") {
+      throw createGameError("CONFIG_INVALID", "Invalid difficulties config.", { difficulties: settings });
+    }
+
+    return Object.keys(settings).reduce((overrides, key) => {
+      assertKnownDifficultyKey(key);
+      const override = settings[key];
+      if (!override || typeof override !== "object") {
+        throw createGameError("CONFIG_INVALID", "Invalid difficulty override.", { key, difficulty: override });
+      }
+
+      overrides[key] = override;
+      return overrides;
+    }, {});
+  }
+
+  function normalizeDifficultyOverride(baseDifficulty, override) {
+    const difficulty = {
+      ...baseDifficulty,
+      label: readOptionalString(override, "label", baseDifficulty.label),
+      runner: readOptionalString(override, "runner", baseDifficulty.runner),
+      revealMs: readPositiveIntegerValue(override, "revealMs", baseDifficulty.revealMs),
+      startRange: readRangeValue(override, "startRange", baseDifficulty.startRange),
+      endRange: readRangeValue(override, "endRange", baseDifficulty.endRange),
+      minTypes: readPositiveIntegerValue(override, "minTypes", baseDifficulty.minTypes),
+      maxTypes: readPositiveIntegerValue(override, "maxTypes", baseDifficulty.maxTypes),
+      shuffleCards: readOptionalBoolean(override, "shuffleCards", baseDifficulty.shuffleCards)
+    };
+
+    if (difficulty.minTypes > difficulty.maxTypes) {
+      throw createGameError("CONFIG_INVALID", "minTypes cannot be greater than maxTypes.", {
+        key: baseDifficulty.key,
+        minTypes: difficulty.minTypes,
+        maxTypes: difficulty.maxTypes
+      });
+    }
+
+    difficulty.startRange.forEach((start, index) => {
+      const end = difficulty.endRange[index];
+      if (start > end) {
+        throw createGameError("CONFIG_INVALID", "startRange cannot be greater than endRange.", {
+          key: baseDifficulty.key,
+          startRange: difficulty.startRange,
+          endRange: difficulty.endRange
+        });
+      }
+    });
+
+    return difficulty;
+  }
+
+  function assertKnownDifficultyKey(key) {
+    if (!DIFFICULTIES.some((difficulty) => difficulty.key === key)) {
+      throw createGameError("CONFIG_INVALID", "Unknown difficulty key.", { difficulty: key });
+    }
+  }
+
+  function readOptionalString(source, key, fallback) {
+    if (!hasConfigValue(source, key)) {
+      return fallback;
+    }
+
+    if (typeof source[key] !== "string" || !source[key].trim()) {
+      throw createGameError("CONFIG_INVALID", `Invalid difficulty ${key}.`, { [key]: source[key] });
+    }
+
+    return source[key];
+  }
+
+  function readPositiveIntegerValue(source, key, fallback) {
+    if (!hasConfigValue(source, key)) {
+      return fallback;
+    }
+
+    const number = Number(source[key]);
+    if (!Number.isFinite(number) || number <= 0) {
+      throw createGameError("CONFIG_INVALID", `Invalid difficulty ${key}.`, { [key]: source[key] });
+    }
+
+    return Math.round(number);
+  }
+
+  function readRangeValue(source, key, fallback) {
+    if (!hasConfigValue(source, key)) {
+      return [...fallback];
+    }
+
+    if (!Array.isArray(source[key]) || source[key].length !== 2) {
+      throw createGameError("CONFIG_INVALID", `Invalid difficulty ${key}.`, { [key]: source[key] });
+    }
+
+    return source[key].map((value) => {
+      const number = Number(value);
+      if (!Number.isFinite(number) || number <= 0) {
+        throw createGameError("CONFIG_INVALID", `Invalid difficulty ${key}.`, { [key]: source[key] });
+      }
+
+      return Math.round(number);
+    });
+  }
+
+  function readOptionalBoolean(source, key, fallback) {
+    if (!hasConfigValue(source, key)) {
+      return fallback;
+    }
+
+    if (typeof source[key] !== "boolean") {
+      throw createGameError("CONFIG_INVALID", `Invalid difficulty ${key}.`, { [key]: source[key] });
+    }
+
+    return source[key];
+  }
+
+  function hasConfigValue(source, key) {
+    return Object.prototype.hasOwnProperty.call(source, key) && source[key] !== null && source[key] !== "";
+  }
+
+  function readPositiveIntegerConfig(source, key, fallback) {
+    if (!hasConfigValue(source, key)) {
+      return fallback;
+    }
+
+    const number = Number(source[key]);
+    if (!Number.isFinite(number) || number <= 0) {
+      throw createGameError("CONFIG_INVALID", `Invalid ${key}.`, { [key]: source[key] });
+    }
+
+    return Math.round(number);
+  }
+
+  function normalizeDifficultyKey(key, difficulties = getDifficulties()) {
     if (typeof key !== "string" || !key) {
       return null;
     }
 
-    return DIFFICULTIES.some((difficulty) => difficulty.key === key) ? key : null;
+    return difficulties.some((difficulty) => difficulty.key === key) ? key : null;
   }
 
-  function normalizeDifficultyIndex(index) {
+  function normalizeDifficultyIndex(index, difficulties = getDifficulties()) {
     const number = Number(index);
-    if (!Number.isInteger(number) || number < 0 || number >= DIFFICULTIES.length) {
+    if (!Number.isInteger(number) || number < 0 || number >= difficulties.length) {
       return null;
     }
 
     return number;
   }
 
-  function toPositiveInteger(value, fallback) {
-    const number = Number(value);
-    if (!Number.isFinite(number) || number <= 0) {
-      return fallback;
+  function createGameError(code, message, detail) {
+    const error = new Error(message || code);
+    error.code = code;
+    error.detail = detail || null;
+    return error;
+  }
+
+  async function validateEssentialAssets() {
+    const results = await Promise.allSettled(ESSENTIAL_ASSET_SOURCES.map(loadImageAsset));
+    const failedAssets = results
+      .map((result, index) => ({ result, src: ESSENTIAL_ASSET_SOURCES[index] }))
+      .filter((item) => item.result.status === "rejected")
+      .map((item) => item.src);
+
+    if (failedAssets.length > 0) {
+      throw createGameError("ASSET_LOAD_FAILED", "Essential assets failed to load.", { assets: failedAssets });
+    }
+  }
+
+  function loadImageAsset(src) {
+    return new Promise((resolve, reject) => {
+      const image = new Image();
+      let settled = false;
+      const finish = (isLoaded) => {
+        if (settled) {
+          return;
+        }
+
+        settled = true;
+        window.clearTimeout(timeoutId);
+        if (isLoaded) {
+          resolve(src);
+          return;
+        }
+
+        reject(new Error(`Asset failed to load: ${src}`));
+      };
+      const timeoutId = window.setTimeout(() => finish(false), ASSET_LOAD_TIMEOUT);
+
+      image.onload = () => finish(true);
+      image.onerror = () => finish(false);
+      image.src = src;
+
+      if (image.complete) {
+        window.setTimeout(() => finish(image.naturalWidth > 0), 0);
+      }
+    });
+  }
+
+  function getDebugErrorCode() {
+    const params = new URLSearchParams(window.location.search);
+    const requested = params.get("debugError");
+    if (!requested) {
+      return "";
     }
 
-    return Math.round(number);
+    const normalized = requested.trim();
+    return DEBUG_ERROR_ALIASES[normalized] || normalized.toUpperCase();
+  }
+
+  function showDebugErrorIfRequested() {
+    const debugErrorCode = getDebugErrorCode();
+    if (!debugErrorCode) {
+      return false;
+    }
+
+    handleFatalError(
+      debugErrorCode,
+      createGameError(debugErrorCode, `Debug error requested: ${debugErrorCode}`, { debug: true }),
+      { debug: true }
+    );
+    return true;
   }
 
   function getConfiguredDifficultyIndex() {
@@ -1079,27 +1438,66 @@
     }
 
     if (runtimeConfig.difficultyKey) {
-      return DIFFICULTIES.findIndex((difficulty) => difficulty.key === runtimeConfig.difficultyKey);
+      return getDifficulties().findIndex((difficulty) => difficulty.key === runtimeConfig.difficultyKey);
     }
 
     return null;
   }
 
+  function sendGameReady() {
+    const payload = {
+      gameId: runtimeConfig.gameId,
+      sessionId: runtimeConfig.sessionId,
+      status: "ready",
+      readyAt: new Date().toISOString(),
+      config: {
+        difficultyKey: runtimeConfig.difficultyKey,
+        difficultyIndex: runtimeConfig.difficultyIndex,
+        durationSeconds: runtimeConfig.durationSeconds,
+        totalQuestions: runtimeConfig.totalQuestions
+      }
+    };
+
+    sendBridgeEvent("sendReady", payload, "READY_SEND_FAILED");
+  }
+
+  function sendGameStarted() {
+    const difficulty = currentDifficulty();
+    const payload = {
+      gameId: runtimeConfig.gameId,
+      sessionId: runtimeConfig.sessionId,
+      status: "started",
+      startedAt: new Date().toISOString(),
+      difficultyKey: difficulty.key,
+      difficultyLabel: difficulty.label,
+      condition: {
+        mood: state.conditionMood,
+        sleepHours: CONDITION_SLEEP_HOURS[state.conditionSleepIndex]
+      }
+    };
+
+    sendBridgeEvent("sendStarted", payload, "STARTED_SEND_FAILED");
+  }
+
   function sendGameComplete(result) {
+    sendBridgeEvent("sendComplete", result, "COMPLETE_SEND_FAILED");
+  }
+
+  function sendBridgeEvent(methodName, payload, errorCode) {
     const bridge = getAppBridge();
-    if (!bridge || typeof bridge.sendComplete !== "function") {
+    if (!bridge || typeof bridge[methodName] !== "function") {
       return;
     }
 
     try {
-      const maybePromise = bridge.sendComplete(result);
+      const maybePromise = bridge[methodName](payload);
       if (maybePromise && typeof maybePromise.catch === "function") {
         maybePromise.catch((error) => {
-          reportAppError("COMPLETE_SEND_FAILED", error);
+          reportAppError(errorCode, error);
         });
       }
     } catch (error) {
-      reportAppError("COMPLETE_SEND_FAILED", error);
+      reportAppError(errorCode, error);
     }
   }
 
@@ -1128,6 +1526,52 @@
     }
   }
 
+  function handleFatalError(code, error, detail) {
+    reportAppError(code, error, detail || (error && error.detail));
+    showErrorScreen(code, detail || (error && error.detail));
+  }
+
+  function showErrorScreen(code, detail) {
+    const copy = ERROR_SCREEN_COPY[code] || ERROR_SCREEN_COPY.default;
+    clearAllTimers();
+    state.phase = "error";
+    state.isPaused = false;
+
+    if (els.pauseModal) {
+      els.pauseModal.classList.add("is-hidden");
+    }
+    if (els.settingsModal) {
+      els.settingsModal.classList.add("is-hidden");
+    }
+    if (els.tutorialModal) {
+      els.tutorialModal.classList.add("is-hidden");
+    }
+    if (els.conditionModal) {
+      els.conditionModal.classList.add("is-hidden");
+    }
+    if (els.pauseButton) {
+      els.pauseButton.classList.remove("is-paused");
+    }
+
+    if (els.errorTitle) {
+      els.errorTitle.textContent = copy.title;
+    }
+    if (els.errorMessage) {
+      els.errorMessage.textContent = copy.message;
+    }
+    if (els.errorCode) {
+      els.errorCode.textContent = code ? `오류 코드: ${code}` : "";
+      if (detail && detail.assets && detail.assets.length > 0) {
+        els.errorCode.textContent = `오류 코드: ${code} / ${detail.assets[0]}`;
+      }
+    }
+
+    showOnly("error");
+    if (els.errorHomeButton) {
+      els.errorHomeButton.focus();
+    }
+  }
+
   function createErrorResult(code, error, detail) {
     return {
       gameId: runtimeConfig.gameId,
@@ -1135,7 +1579,7 @@
       status: "error",
       code,
       message: error && error.message ? error.message : String(error || code),
-      detail: detail || null,
+      detail: detail || (error && error.detail) || null,
       occurredAt: new Date().toISOString()
     };
   }
@@ -1224,6 +1668,7 @@
   function updateSettingClasses() {
     els.app.classList.toggle("is-background-sound-off", els.backgroundSoundToggle && !els.backgroundSoundToggle.checked);
     els.app.classList.toggle("is-sound-off", els.soundToggle && !els.soundToggle.checked);
+    els.app.classList.toggle("is-voice-guide-off", els.voiceGuideToggle && !els.voiceGuideToggle.checked);
 
     if (els.backgroundSoundLabel && els.backgroundSoundToggle) {
       els.backgroundSoundLabel.textContent = els.backgroundSoundToggle.checked ? "배경음 켬" : "배경음 끔";
@@ -1233,8 +1678,13 @@
       els.soundLabel.textContent = els.soundToggle.checked ? "효과음 켬" : "효과음 끔";
     }
 
+    if (els.voiceGuideLabel && els.voiceGuideToggle) {
+      els.voiceGuideLabel.textContent = els.voiceGuideToggle.checked ? "안내음성 켬" : "안내음성 끔";
+    }
+
     updatePauseSoundButton(els.pauseBackgroundSoundButton, els.backgroundSoundToggle && els.backgroundSoundToggle.checked);
     updatePauseSoundButton(els.pauseSoundButton, els.soundToggle && els.soundToggle.checked);
+    updatePauseSoundButton(els.pauseVoiceGuideButton, els.voiceGuideToggle && els.voiceGuideToggle.checked);
   }
 
   function updatePauseSoundButton(button, isOn) {
@@ -1256,50 +1706,73 @@
       return;
     }
 
+    const wasEffectSoundOn = els.soundToggle && els.soundToggle.checked;
     toggle.checked = !toggle.checked;
     updateSettingClasses();
+    const shouldPlayToggleSound = toggle === els.soundToggle ? wasEffectSoundOn || toggle.checked : true;
+    if (shouldPlayToggleSound) {
+      playSound("toggle", { force: toggle === els.soundToggle && wasEffectSoundOn });
+    }
   }
 
-  function playSound(type) {
-    if (!els.soundToggle || !els.soundToggle.checked) {
-      return;
+  function handleSettingToggleChange(toggle) {
+    const shouldForce = toggle === els.soundToggle && !toggle.checked;
+    updateSettingClasses();
+    playSound("toggle", { force: shouldForce });
+  }
+
+  function getAudioPool(type) {
+    const source = AUDIO_SOURCES[type];
+    if (!source || typeof Audio !== "function") {
+      return [];
     }
 
-    const AudioContext = window.AudioContext || window.webkitAudioContext;
-    if (!AudioContext) {
-      return;
+    if (!audioPools.has(type)) {
+      const pool = Array.from({ length: AUDIO_POOL_SIZE }, () => {
+        const audio = new Audio(source);
+        audio.preload = "auto";
+        audio.volume = AUDIO_VOLUMES[type] || 0.7;
+        return audio;
+      });
+      audioPools.set(type, pool);
+      audioPoolIndexes.set(type, 0);
     }
 
-    if (!state.soundContext) {
-      state.soundContext = new AudioContext();
-    }
+    return audioPools.get(type);
+  }
 
-    const context = state.soundContext;
-    if (context.state === "suspended") {
-      context.resume();
-    }
-
-    const patterns = {
-      correct: [523.25, 659.25],
-      retry: [392],
-      wrong: [261.63]
-    };
-    const notes = patterns[type] || patterns.retry;
-    const start = context.currentTime;
-
-    notes.forEach((frequency, index) => {
-      const oscillator = context.createOscillator();
-      const gain = context.createGain();
-      const noteStart = start + index * 0.11;
-      oscillator.type = "sine";
-      oscillator.frequency.setValueAtTime(frequency, noteStart);
-      gain.gain.setValueAtTime(0.0001, noteStart);
-      gain.gain.exponentialRampToValueAtTime(0.045, noteStart + 0.02);
-      gain.gain.exponentialRampToValueAtTime(0.0001, noteStart + 0.16);
-      oscillator.connect(gain).connect(context.destination);
-      oscillator.start(noteStart);
-      oscillator.stop(noteStart + 0.18);
+  function preloadAudioAssets() {
+    Object.keys(AUDIO_SOURCES).forEach((type) => {
+      getAudioPool(type).forEach((audio) => {
+        try {
+          audio.load();
+        } catch (error) {
+          // Audio effects are optional; a failed preload should not block the game.
+        }
+      });
     });
+  }
+
+  function playSound(type, options = {}) {
+    if (!options.force && (!els.soundToggle || !els.soundToggle.checked)) {
+      return;
+    }
+
+    const pool = getAudioPool(type);
+    if (pool.length === 0) {
+      return;
+    }
+
+    const nextIndex = audioPoolIndexes.get(type) || 0;
+    const audio = pool[nextIndex % pool.length];
+    audioPoolIndexes.set(type, (nextIndex + 1) % pool.length);
+    audio.pause();
+    audio.currentTime = 0;
+    audio.volume = AUDIO_VOLUMES[type] || 0.7;
+    const playPromise = audio.play();
+    if (playPromise && typeof playPromise.catch === "function") {
+      playPromise.catch(() => {});
+    }
   }
 
   function openTutorial() {
@@ -1438,14 +1911,20 @@
     els.resultEmoji.textContent = resultMessage.emoji;
     els.resultTitle.textContent = resultMessage.title;
     renderResultMessage(resultMessage.message);
+    playSound("complete");
 
     try {
       saveRecord(rate, totalAnswered);
     } catch (error) {
-      reportAppError("RECORD_SAVE_FAILED", error);
+      reportAppError("STORAGE_FAILED", error);
     }
 
-    sendGameComplete(createCompleteResult(totalAnswered, rate));
+    try {
+      sendGameComplete(createCompleteResult(totalAnswered, rate));
+    } catch (error) {
+      handleFatalError("RESULT_CREATE_FAILED", error);
+      return;
+    }
     showOnly("result");
   }
 
@@ -1541,6 +2020,7 @@
     els.difficultyScreen.classList.toggle("is-hidden", screen !== "difficulty");
     els.gameScreen.classList.toggle("is-hidden", screen !== "game");
     els.resultScreen.classList.toggle("is-hidden", screen !== "result");
+    els.errorScreen.classList.toggle("is-hidden", screen !== "error");
     if (els.app) {
       els.app.dataset.screen = screen;
       els.app.scrollTop = 0;
@@ -1606,8 +2086,12 @@
     return runtimeConfig.totalQuestions;
   }
 
+  function getDifficulties() {
+    return runtimeDifficulties;
+  }
+
   function currentDifficulty() {
-    return DIFFICULTIES[state.difficultyIndex];
+    return getDifficulties()[state.difficultyIndex];
   }
 
   function difficultyProgress() {
@@ -1642,37 +2126,57 @@
     return copied;
   }
 
+  function withButtonSound(action) {
+    return (event) => {
+      playSound("button");
+      action(event);
+    };
+  }
+
   function bindEvents() {
     els.startButton.addEventListener("click", runAfterStartPress(els.startButton, showDifficultySelect));
     els.settingsButton.addEventListener("click", runAfterStartPress(els.settingsButton, openSettings));
     els.tutorialButton.addEventListener("click", runAfterStartPress(els.tutorialButton, openTutorial));
-    els.restartButton.addEventListener("click", restartCurrentDifficulty);
+    els.restartButton.addEventListener("click", withButtonSound(restartCurrentDifficulty));
     els.difficultyButtons.forEach((button) => {
       button.addEventListener("click", () => {
+        playSound("button");
         startGame(Number(button.dataset.difficultyIndex));
       });
     });
-    els.difficultyBackButton.addEventListener("click", goHome);
-    els.resultHomeButton.addEventListener("click", goHome);
-    els.pauseButton.addEventListener("click", pauseGame);
-    els.resumeButton.addEventListener("click", resumeGame);
-    els.pauseRestartButton.addEventListener("click", restartPausedGame);
-    els.pauseHelpButton.addEventListener("click", openPauseHelp);
-    els.homeButton.addEventListener("click", quitGame);
-    els.settingsCloseButton.addEventListener("click", closeSettings);
-    els.settingsExitButton.addEventListener("click", exitGameFromSettings);
-    els.backgroundSoundToggle.addEventListener("change", updateSettingClasses);
-    els.soundToggle.addEventListener("change", updateSettingClasses);
+    els.difficultyBackButton.addEventListener("click", withButtonSound(goHome));
+    els.resultHomeButton.addEventListener("click", withButtonSound(goHome));
+    els.errorHomeButton.addEventListener("click", withButtonSound(goHome));
+    els.pauseButton.addEventListener("click", withButtonSound(pauseGame));
+    els.resumeButton.addEventListener("click", withButtonSound(resumeGame));
+    els.pauseRestartButton.addEventListener("click", withButtonSound(restartPausedGame));
+    els.pauseHelpButton.addEventListener("click", withButtonSound(openPauseHelp));
+    els.homeButton.addEventListener("click", withButtonSound(quitGame));
+    els.settingsCloseButton.addEventListener("click", withButtonSound(closeSettings));
+    els.settingsExitButton.addEventListener("click", withButtonSound(exitGameFromSettings));
+    els.backgroundSoundToggle.addEventListener("change", () => handleSettingToggleChange(els.backgroundSoundToggle));
+    els.soundToggle.addEventListener("change", () => handleSettingToggleChange(els.soundToggle));
+    els.voiceGuideToggle.addEventListener("change", () => handleSettingToggleChange(els.voiceGuideToggle));
     els.pauseBackgroundSoundButton.addEventListener("click", () => toggleSoundSetting(els.backgroundSoundToggle));
     els.pauseSoundButton.addEventListener("click", () => toggleSoundSetting(els.soundToggle));
-    els.tutorialCloseButton.addEventListener("click", handleTutorialCloseButton);
-    els.tutorialNextButton.addEventListener("click", showNextTutorialStep);
+    els.pauseVoiceGuideButton.addEventListener("click", () => toggleSoundSetting(els.voiceGuideToggle));
+    els.tutorialCloseButton.addEventListener("click", withButtonSound(handleTutorialCloseButton));
+    els.tutorialNextButton.addEventListener("click", withButtonSound(showNextTutorialStep));
     els.conditionMoodButtons.forEach((button) => {
-      button.addEventListener("click", () => selectConditionMood(button));
+      button.addEventListener("click", () => {
+        playSound("button");
+        selectConditionMood(button);
+      });
     });
-    els.conditionSleepUpButton.addEventListener("click", () => changeConditionSleep(-1));
-    els.conditionSleepDownButton.addEventListener("click", () => changeConditionSleep(1));
-    els.conditionConfirmButton.addEventListener("click", closeConditionCheck);
+    els.conditionSleepUpButton.addEventListener("click", () => {
+      playSound("button");
+      changeConditionSleep(-1);
+    });
+    els.conditionSleepDownButton.addEventListener("click", () => {
+      playSound("button");
+      changeConditionSleep(1);
+    });
+    els.conditionConfirmButton.addEventListener("click", withButtonSound(closeConditionCheck));
 
     document.addEventListener("keydown", (event) => {
       if (event.key === "Escape" && !els.settingsModal.classList.contains("is-hidden")) {
@@ -1718,17 +2222,18 @@
 
   function bindAppErrorEvents() {
     window.addEventListener("error", (event) => {
-      reportAppError("UNHANDLED_ERROR", event.error || event.message);
+      handleFatalError("GAME_RUNTIME_ERROR", event.error || event.message);
     });
 
     window.addEventListener("unhandledrejection", (event) => {
-      reportAppError("UNHANDLED_REJECTION", event.reason);
+      handleFatalError("GAME_RUNTIME_ERROR", event.reason);
     });
   }
 
   function runAfterStartPress(button, action) {
     return (event) => {
       event.preventDefault();
+      playSound("button");
       button.classList.remove("is-pressed");
       void button.offsetWidth;
       button.classList.add("is-pressed");
@@ -1752,15 +2257,27 @@
     if (els.app) {
       els.app.dataset.screen = state.phase;
     }
+    preloadAudioAssets();
     updateSettingClasses();
-    await loadRunConfig();
+    const didLoadConfig = await loadRunConfig();
+    if (!didLoadConfig) {
+      return;
+    }
+    if (showDebugErrorIfRequested()) {
+      return;
+    }
+    try {
+      await validateEssentialAssets();
+    } catch (error) {
+      handleFatalError(error.code || "ASSET_LOAD_FAILED", error, error.detail);
+      return;
+    }
+    sendGameReady();
     updateTimerUi();
     startIntroLoading();
   }
 
   initializeGame().catch((error) => {
-    reportAppError("INITIALIZE_FAILED", error);
-    updateTimerUi();
-    startIntroLoading();
+    handleFatalError("INITIALIZE_FAILED", error);
   });
 })();

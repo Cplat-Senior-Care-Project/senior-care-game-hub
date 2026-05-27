@@ -1,0 +1,62 @@
+{
+  "generatedAt": "2026-05-27T05:00:18.885Z",
+  "sampleRate": 44100,
+  "format": "wav/pcm16/mono",
+  "style": "senior-friendly soft fruit memory game effects: warm, rounded, moderate volume, no harsh buzzer tones",
+  "designNotes": [
+    "Moderate volume to reduce startle response.",
+    "Mostly 250-800Hz fundamentals with only light harmonics for clarity.",
+    "Rounded attacks and short tails so sounds feel gentle and do not clutter the game.",
+    "Incorrect-answer cue is supportive rather than punitive."
+  ],
+  "files": [
+    {
+      "file": "button-click.wav",
+      "durationSeconds": 0.14,
+      "usage": "General button press",
+      "description": "Gentle wooden pop: cute, short, low-stress, without sharp high frequencies."
+    },
+    {
+      "file": "toggle.wav",
+      "durationSeconds": 0.22,
+      "usage": "Sound on/off toggles",
+      "description": "Soft two-step toggle cue with a rounded switch feeling."
+    },
+    {
+      "file": "countdown-tick.wav",
+      "durationSeconds": 0.3,
+      "usage": "Countdown pulse",
+      "description": "Clear but gentle countdown tick, easy to notice without startling."
+    },
+    {
+      "file": "start.wav",
+      "durationSeconds": 0.62,
+      "usage": "Game start",
+      "description": "Warm three-note start cue that feels inviting and unhurried."
+    },
+    {
+      "file": "correct.wav",
+      "durationSeconds": 0.58,
+      "usage": "Correct answer",
+      "description": "Positive soft chime, encouraging without being loud or piercing."
+    },
+    {
+      "file": "retry.wav",
+      "durationSeconds": 0.46,
+      "usage": "Retry hint after wrong answer",
+      "description": "Kind prompt sound that suggests another try, not failure."
+    },
+    {
+      "file": "wrong.wav",
+      "durationSeconds": 0.44,
+      "usage": "Final incorrect answer",
+      "description": "Low supportive cue with no buzzer quality, designed to avoid discouragement."
+    },
+    {
+      "file": "complete.wav",
+      "durationSeconds": 0.9,
+      "usage": "Result screen / game complete",
+      "description": "Gentle completion flourish with a warm, celebratory but calm finish."
+    }
+  ]
+}

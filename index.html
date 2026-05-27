@@ -31,8 +31,7 @@
             <span>시작하기</span>
           </button>
           <button id="tutorial-button" class="game-button start-side-button" type="button">
-            <span class="pause-help-icon start-help-icon" aria-hidden="true">?</span>
-            <span>도움말</span>
+            <span>진행방법</span>
           </button>
         </div>
       </div>
@@ -46,17 +45,17 @@
           <button class="game-button difficulty-option" type="button" data-difficulty-index="0">
             <span class="difficulty-option-icon" aria-hidden="true">🙂</span>
             <strong>쉬움</strong>
-            <span>1종류부터 천천히</span>
+            <span>천천히 시작!</span>
           </button>
           <button class="game-button difficulty-option" type="button" data-difficulty-index="1">
             <span class="difficulty-option-icon" aria-hidden="true">😊</span>
             <strong>보통</strong>
-            <span>여러 과일을 함께 기억</span>
+            <span>차근차근 도전!</span>
           </button>
           <button class="game-button difficulty-option" type="button" data-difficulty-index="2">
             <span class="difficulty-option-icon" aria-hidden="true">🤩</span>
             <strong>어려움</strong>
-            <span>더 많이, 섞어서 기억</span>
+            <span>집중해서 도전!</span>
           </button>
         </div>
         <button id="difficulty-back-button" class="game-button secondary-button difficulty-back-button" type="button">닫기</button>
@@ -127,6 +126,17 @@
       </div>
     </section>
 
+    <section id="error-screen" class="screen error-screen is-hidden" aria-labelledby="error-title">
+      <div class="error-content">
+        <div class="error-symbol" aria-hidden="true">!</div>
+        <p class="eyebrow">게임 안내</p>
+        <h2 id="error-title">게임을 불러오지 못했습니다</h2>
+        <p id="error-message" class="error-message">잠시 후 다시 시도해 주세요.</p>
+        <p id="error-code" class="error-code" aria-live="polite"></p>
+        <button id="error-home-button" class="game-button primary-button" type="button">처음으로</button>
+      </div>
+    </section>
+
     <div id="condition-modal" class="modal-layer is-hidden" role="dialog" aria-modal="true" aria-labelledby="condition-title">
       <div class="modal-card condition-card">
         <h2 id="condition-title" class="condition-title">
@@ -184,11 +194,10 @@
             </div>
             <button id="pause-help-button" class="game-button secondary-button pause-help-button" type="button">
               <span class="pause-help-icon" aria-hidden="true">?</span>
-              <span>도움말 보기</span>
+              <span>진행방법</span>
             </button>
           </div>
           <section class="pause-sound-panel" aria-label="소리 설정">
-            <h3>소리 설정</h3>
             <div class="pause-sound-options">
               <button id="pause-background-sound-button" class="pause-sound-button" type="button" aria-pressed="true">
                 <span class="pause-sound-icon" aria-hidden="true">
@@ -202,6 +211,13 @@
                   <i data-lucide="volume-2"></i>
                 </span>
                 <span class="pause-sound-name">효과음</span>
+                <span class="pause-toggle-visual" aria-hidden="true"><span>ON</span><i></i></span>
+              </button>
+              <button id="pause-voice-guide-button" class="pause-sound-button" type="button" aria-pressed="true">
+                <span class="pause-sound-icon" aria-hidden="true">
+                  <i data-lucide="volume-2"></i>
+                </span>
+                <span class="pause-sound-name">안내음성</span>
                 <span class="pause-toggle-visual" aria-hidden="true"><span>ON</span><i></i></span>
               </button>
             </div>
@@ -248,6 +264,15 @@
                   <strong id="sound-label">효과음 켬</strong>
                 </span>
                 <input id="sound-toggle" class="setting-toggle" type="checkbox" checked>
+              </label>
+              <label class="setting-row">
+                <span class="setting-icon" aria-hidden="true">
+                  <i data-lucide="volume-2"></i>
+                </span>
+                <span class="setting-copy">
+                  <strong id="voice-guide-label">안내음성 켬</strong>
+                </span>
+                <input id="voice-guide-toggle" class="setting-toggle" type="checkbox" checked>
               </label>
             </div>
           </section>
