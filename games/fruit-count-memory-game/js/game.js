@@ -38,6 +38,14 @@
     voiceGuideEnabled: true,
     collectCondition: true,
     debugMode: false,
+    mode: "standard",
+    ui: Object.freeze({
+      showTimer: true,
+      showProgress: true,
+      showSettings: true,
+      showTutorial: true,
+      showDifficultySelect: true
+    }),
     schemaVersion: "mock-v1"
   });
   const ERROR_SCREEN_COPY = Object.freeze({
@@ -394,8 +402,8 @@
 
   function showDifficultySelect() {
     const configuredDifficultyIndex = getConfiguredDifficultyIndex();
-    if (configuredDifficultyIndex !== null && configuredDifficultyIndex >= 0) {
-      startGame(configuredDifficultyIndex);
+    if (!shouldShowDifficultySelect() || (configuredDifficultyIndex !== null && configuredDifficultyIndex >= 0)) {
+      startGame(configuredDifficultyIndex !== null && configuredDifficultyIndex >= 0 ? configuredDifficultyIndex : 0);
       return;
     }
 
@@ -1180,6 +1188,12 @@
 
   function startDifficultyTimer() {
     clearInterval(state.timerId);
+    if (!shouldShowTimer()) {
+      state.timerId = null;
+      updateTimerUi();
+      return;
+    }
+
     updateTimerUi();
 
     state.timerId = window.setInterval(() => {
@@ -1388,8 +1402,55 @@
     state.timeLeft = runtimeConfig.durationSeconds;
     applyRuntimeAudioSettings();
     updateSettingClasses();
+    applyModeUiSettings();
   }
 
+  function normalizeGameMode(value) {
+    const mode = typeof value === "string" ? value.trim().toLowerCase() : "";
+    return ["standard", "reminder", "care", "ai_assisted"].includes(mode) ? mode : DEFAULT_RUN_CONFIG.mode;
+  }
+
+  function normalizeUiConfig(source) {
+    const base = DEFAULT_RUN_CONFIG.ui;
+    const override = source && typeof source === "object" ? source : {};
+    return {
+      showTimer: readOptionalBoolean(override, "showTimer", base.showTimer),
+      showProgress: readOptionalBoolean(override, "showProgress", base.showProgress),
+      showSettings: readOptionalBoolean(override, "showSettings", base.showSettings),
+      showTutorial: readOptionalBoolean(override, "showTutorial", base.showTutorial),
+      showDifficultySelect: readOptionalBoolean(override, "showDifficultySelect", base.showDifficultySelect)
+    };
+  }
+
+  function applyModeUiSettings() {
+    const mode = runtimeConfig.mode || DEFAULT_RUN_CONFIG.mode;
+    const ui = runtimeConfig.ui || DEFAULT_RUN_CONFIG.ui;
+    document.documentElement.dataset.mode = mode;
+    document.body.dataset.mode = mode;
+    if (els.app) {
+      els.app.dataset.mode = mode;
+    }
+    if (els.settingsButton) {
+      els.settingsButton.hidden = ui.showSettings === false;
+    }
+    if (els.tutorialButton) {
+      els.tutorialButton.hidden = ui.showTutorial === false;
+    }
+    if (els.timerBox) {
+      els.timerBox.hidden = ui.showTimer === false;
+    }
+    if (els.raceWrap) {
+      els.raceWrap.hidden = ui.showProgress === false;
+    }
+  }
+
+  function shouldShowTimer() {
+    return !runtimeConfig.ui || runtimeConfig.ui.showTimer !== false;
+  }
+
+  function shouldShowDifficultySelect() {
+    return !runtimeConfig.ui || runtimeConfig.ui.showDifficultySelect !== false;
+  }
   function applyRuntimeAudioSettings() {
     if (els.soundToggle) {
       els.soundToggle.checked = runtimeConfig.soundEnabled !== false;
@@ -1440,6 +1501,8 @@
       voiceGuideEnabled: readBooleanConfig(source, "voiceGuideEnabled", DEFAULT_RUN_CONFIG.voiceGuideEnabled),
       collectCondition: readBooleanConfig(source, "collectCondition", DEFAULT_RUN_CONFIG.collectCondition),
       debugMode: readBooleanConfig(source, "debugMode", DEFAULT_RUN_CONFIG.debugMode),
+      mode: normalizeGameMode(source.mode),
+      ui: normalizeUiConfig(source.ui),
       schemaVersion: typeof source.schemaVersion === "string" && source.schemaVersion ? source.schemaVersion : DEFAULT_RUN_CONFIG.schemaVersion,
       difficulties
     };
@@ -1742,7 +1805,9 @@
         difficultyIndex: runtimeConfig.difficultyIndex,
         durationSeconds: runtimeConfig.durationSeconds,
         totalQuestions: runtimeConfig.totalQuestions,
-        collectCondition: runtimeConfig.collectCondition
+        collectCondition: runtimeConfig.collectCondition,
+        mode: runtimeConfig.mode,
+        ui: runtimeConfig.ui
       }
     };
 
@@ -2640,8 +2705,11 @@
   }
 
   function updateTimerUi() {
+    if (!els.timeLeft || !els.timerBox) {
+      return;
+    }
     els.timeLeft.textContent = formatTime(state.timeLeft);
-    els.timerBox.classList.toggle("is-low", state.timeLeft <= 10);
+    els.timerBox.classList.toggle("is-low", shouldShowTimer() && state.timeLeft <= 10);
   }
 
   function updateReachedPoint() {

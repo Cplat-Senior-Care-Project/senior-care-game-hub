@@ -1,0 +1,19 @@
+{
+  "mode": "reminder",
+  "gameId": "fruit-count-memory-game",
+  "durationSeconds": 90,
+  "totalQuestions": 6,
+  "revealMs": 3500,
+  "difficultyKey": "easy",
+  "soundEnabled": true,
+  "voiceGuideEnabled": true,
+  "collectCondition": false,
+  "debugMode": false,
+  "ui": {
+    "showTimer": true,
+    "showProgress": true,
+    "showSettings": false,
+    "showTutorial": true,
+    "showDifficultySelect": false
+  }
+}

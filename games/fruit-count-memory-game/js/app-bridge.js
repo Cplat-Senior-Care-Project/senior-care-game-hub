@@ -21,6 +21,14 @@
     voiceGuideEnabled: true,
     collectCondition: true,
     debugMode: false,
+    mode: "standard",
+    ui: {
+      showTimer: true,
+      showProgress: true,
+      showSettings: true,
+      showTutorial: true,
+      showDifficultySelect: true
+    },
     difficulties: {
       easy: {
         revealMs: 3000,

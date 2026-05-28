@@ -490,7 +490,25 @@
     </div>
   </div>
 
-  <script src="js/app-bridge.js?v=direct-20260528"></script>
-  <script src="js/game.js?v=direct-20260528"></script>
+  <script>
+    (function () {
+      var modeMap = {
+        standard: "standard.config.json",
+        reminder: "reminder.config.json",
+        care: "care.config.json",
+        ai_assisted: "ai_assisted.config.json"
+      };
+      var params = new URLSearchParams(window.location.search);
+      var requestedMode = String(params.get("mode") || "standard").trim().toLowerCase();
+      var mode = Object.prototype.hasOwnProperty.call(modeMap, requestedMode) ? requestedMode : "standard";
+      window.__FRUIT_COUNT_GAME_MODE__ = mode;
+      if (!window.__GAME_CONFIG_URL__) {
+        window.__GAME_CONFIG_URL__ = "config/" + modeMap[mode];
+      }
+      document.documentElement.dataset.mode = mode;
+    })();
+  </script>
+  <script src="js/app-bridge.js?v=mode-config-20260528"></script>
+  <script src="js/game.js?v=mode-config-20260528"></script>
 </body>
 </html>
