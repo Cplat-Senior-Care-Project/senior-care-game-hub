@@ -612,12 +612,21 @@
 }
 
 .feedback-symbol.is-soft {
-  background: var(--brown);
+  width: clamp(92px, 124px, 148px);
+  height: clamp(92px, 124px, 148px);
+  color: inherit;
+  background: transparent;
+  box-shadow: none;
+  font-size: clamp(68px, 92px, 112px);
 }
 
 .feedback-symbol.is-thinking {
-  color: var(--brown-dark);
-  background: #f5f7e9;
+  width: clamp(92px, 124px, 148px);
+  height: clamp(92px, 124px, 148px);
+  color: inherit;
+  background: transparent;
+  box-shadow: none;
+  font-size: clamp(68px, 92px, 112px);
 }
 
 .feedback-title {

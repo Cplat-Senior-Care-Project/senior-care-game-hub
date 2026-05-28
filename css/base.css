@@ -19,8 +19,9 @@
   --safe-right: env(safe-area-inset-right, 0px);
   --safe-bottom: env(safe-area-inset-bottom, 0px);
   --safe-left: env(safe-area-inset-left, 0px);
-  --game-font: "Pretendard", "Noto Sans KR", system-ui, sans-serif;
-  --title-font: "Pretendard", "Noto Sans KR", system-ui, sans-serif;
+  --app-font: system-ui, -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Noto Sans CJK KR", "Noto Sans KR", "Malgun Gothic", sans-serif;
+  --game-font: var(--app-font);
+  --title-font: var(--app-font);
   --text-stroke: 0.45px;
   --stage-width: 1280px;
   --stage-height: 720px;
@@ -82,7 +83,7 @@ button {
   position: fixed;
   inset: 0;
   z-index: 0;
-  background: #fff7df url("../assets/images/new_background.png") center center / cover no-repeat;
+  background: #fff7df url("../assets/images/new_backgroud2.png") center center / cover no-repeat;
   pointer-events: none;
 }
 

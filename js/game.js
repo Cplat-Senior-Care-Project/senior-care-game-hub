@@ -102,8 +102,8 @@
 
   const ESSENTIAL_ASSET_SOURCES = [
     ...FRUITS.map((fruit) => fruit.image),
-    "assets/images/game_title2.png",
-    "assets/images/new_background.png"
+    "assets/images/game_title3.png",
+    "assets/images/new_backgroud2.png"
   ];
 
   const AUDIO_SOURCES = Object.freeze({
@@ -1073,17 +1073,13 @@
 
     const symbol = document.createElement("div");
     symbol.className = "feedback-symbol is-thinking";
-    symbol.textContent = "?";
+    symbol.textContent = "😊";
 
     const title = document.createElement("p");
     title.className = "feedback-title";
-    title.textContent = "다시 한 번 생각해보세요!";
+    title.append("괜찮아요.", document.createElement("br"), "천천히 다시 같이 볼까요?");
 
-    const message = document.createElement("p");
-    message.className = "feedback-message";
-    message.textContent = remainingRetries > 0 ? "조금 더 기억해보고 다시 골라보세요." : "마지막으로 한 번 더 골라볼까요?";
-
-    view.append(symbol, title, message);
+    view.append(symbol, title);
     els.playArea.appendChild(view);
   }
 
@@ -1095,17 +1091,17 @@
 
     const symbol = document.createElement("div");
     symbol.className = `feedback-symbol${isCorrect ? "" : " is-soft"}`;
-    symbol.textContent = isCorrect ? "✓" : "!";
+    symbol.textContent = isCorrect ? "✓" : "😊";
 
     const title = document.createElement("p");
     title.className = "feedback-title";
-    title.textContent = isCorrect ? "잘 기억하셨어요!" : "괜찮아요";
+    title.textContent = isCorrect ? "좋아요. 잘 보셨어요" : "괜찮아요";
 
     const message = document.createElement("p");
     message.className = "feedback-message";
     message.textContent = isCorrect
-      ? "좋습니다. 다음 문제로 넘어갈게요."
-      : `정답은 ${question.answer}개였어요. 다음 문제로 가볼까요?`;
+      ? "하나만 더 해볼까요? 힘드시면 쉬어도 괜찮아요."
+      : "조금 헷갈릴 수 있어요. 하나만 더 연습해볼까요?";
 
     view.append(symbol, title, message);
     els.playArea.appendChild(view);
@@ -2615,9 +2611,9 @@
   function updateTopUi() {
     const difficulty = currentDifficulty();
 
-    els.difficultyLabel.textContent = "🧠 기억력 게임";
+    els.difficultyLabel.textContent = "🧠 기억 활동";
     if (els.levelIcon) {
-      els.levelIcon.setAttribute("aria-label", "기억력 게임");
+      els.levelIcon.setAttribute("aria-label", "기억 활동");
     }
     if (els.stageLabel) {
       els.stageLabel.textContent = difficulty.label;
@@ -2848,6 +2844,7 @@
 
     bindEvents();
     bindAppErrorEvents();
+
     if (els.app) {
       els.app.dataset.screen = state.phase;
     }
