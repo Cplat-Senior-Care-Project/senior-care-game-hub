@@ -1403,6 +1403,7 @@
     applyRuntimeAudioSettings();
     updateSettingClasses();
     applyModeUiSettings();
+    applyModeExtension();
   }
 
   function normalizeGameMode(value) {
@@ -1444,6 +1445,24 @@
     }
   }
 
+  function getModeExtension() {
+    const extension = window.FruitCountMemoryGameMode;
+    return extension && typeof extension === "object" ? extension : null;
+  }
+
+  function applyModeExtension() {
+    const extension = getModeExtension();
+    if (!extension || typeof extension.apply !== "function") {
+      return;
+    }
+
+    extension.apply({
+      mode: runtimeConfig.mode,
+      config: runtimeConfig,
+      elements: els,
+      state
+    });
+  }
   function shouldShowTimer() {
     return !runtimeConfig.ui || runtimeConfig.ui.showTimer !== false;
   }

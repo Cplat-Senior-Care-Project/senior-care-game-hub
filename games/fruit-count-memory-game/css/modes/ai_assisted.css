@@ -1,0 +1,4 @@
+/* AI assisted mode only. */
+html[data-mode="ai_assisted"] #settings-button {
+  display: none !important;
+}

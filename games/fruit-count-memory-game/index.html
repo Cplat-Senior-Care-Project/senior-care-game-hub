@@ -501,14 +501,21 @@
       var params = new URLSearchParams(window.location.search);
       var requestedMode = String(params.get("mode") || "standard").trim().toLowerCase();
       var mode = Object.prototype.hasOwnProperty.call(modeMap, requestedMode) ? requestedMode : "standard";
+      var assetVersion = "mode-assets-20260528";
       window.__FRUIT_COUNT_GAME_MODE__ = mode;
+      window.__FRUIT_COUNT_MODE_ASSETS__ = {
+        css: "css/modes/" + mode + ".css",
+        js: "js/modes/" + mode + ".js"
+      };
       if (!window.__GAME_CONFIG_URL__) {
         window.__GAME_CONFIG_URL__ = "config/" + modeMap[mode];
       }
       document.documentElement.dataset.mode = mode;
+      document.write('<link rel="stylesheet" href="' + window.__FRUIT_COUNT_MODE_ASSETS__.css + '?v=' + assetVersion + '">');
+      document.write('<script src="' + window.__FRUIT_COUNT_MODE_ASSETS__.js + '?v=' + assetVersion + '"><\/script>');
     })();
   </script>
-  <script src="js/app-bridge.js?v=mode-config-20260528"></script>
-  <script src="js/game.js?v=mode-config-20260528"></script>
+  <script src="js/app-bridge.js?v=mode-assets-20260528"></script>
+  <script src="js/game.js?v=mode-assets-20260528"></script>
 </body>
 </html>

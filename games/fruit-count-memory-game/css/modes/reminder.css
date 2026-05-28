@@ -1,0 +1,4 @@
+/* Reminder mode only. */
+html[data-mode="reminder"] #settings-button {
+  display: none !important;
+}

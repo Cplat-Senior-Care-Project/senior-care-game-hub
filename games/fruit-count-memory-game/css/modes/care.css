@@ -1,0 +1,8 @@
+/* Care mode only. */
+html[data-mode="care"] #settings-button,
+html[data-mode="care"] #timer-box,
+html[data-mode="care"] .race-wrap,
+html[data-mode="care"] #condition-modal,
+html[data-mode="care"] #post-condition-modal {
+  display: none !important;
+}
