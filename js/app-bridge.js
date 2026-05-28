@@ -237,6 +237,10 @@
     sendMockMessage("GAME_COMPLETED", result);
   }
 
+  function sendGameExit(payload) {
+    sendMockMessage("GAME_EXIT_REQUESTED", payload);
+  }
+
   function sendGameErrorResult(error) {
     sendMockMessage("GAME_ERROR", error);
   }
@@ -249,6 +253,7 @@
     sendGameReady,
     sendGameStarted,
     sendGameCompleteResult,
+    sendGameExit,
     sendGameErrorResult,
 
     // Backward-compatible aliases used by older game builds.
@@ -256,6 +261,9 @@
     sendReady: sendGameReady,
     sendStarted: sendGameStarted,
     sendComplete: sendGameCompleteResult,
+    sendExit: sendGameExit,
+    exitGame: sendGameExit,
+    closeGame: sendGameExit,
     sendError: sendGameErrorResult
   };
 

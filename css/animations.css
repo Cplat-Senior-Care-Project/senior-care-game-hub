@@ -1,0 +1,128 @@
+/* Animations */
+@keyframes tutorial-finger-tap {
+  0%,
+  18%,
+  100% {
+    opacity: 0.9;
+    transform: translate(-50%, 26px) rotate(-12deg) scale(1);
+  }
+
+  38% {
+    opacity: 1;
+    transform: translate(-50%, -10px) rotate(-10deg) scale(1.08);
+  }
+
+  50%,
+  62% {
+    opacity: 1;
+    transform: translate(-50%, -22px) rotate(-8deg) scale(0.88);
+  }
+
+  74% {
+    transform: translate(-50%, -8px) rotate(-10deg) scale(0.98);
+  }
+
+  88% {
+    opacity: 0.92;
+    transform: translate(-50%, 22px) rotate(-12deg) scale(1);
+  }
+}
+
+@keyframes tutorial-target-press {
+  0%,
+  42%,
+  74%,
+  100% {
+    transform: scale(1);
+    filter: none;
+  }
+
+  50%,
+  62% {
+    transform: scale(0.92);
+    filter: brightness(0.93);
+  }
+}
+
+@keyframes gentle-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  45% {
+    transform: scale(1.08);
+    opacity: 0.82;
+  }
+}
+
+@keyframes runner-bob {
+  0%,
+  100% {
+    transform: translate(-50%, -50%) translateY(0);
+  }
+  50% {
+    transform: translate(-50%, -50%) translateY(-4px);
+  }
+}
+
+@keyframes title-playful-pop {
+  0%,
+  100% {
+    transform: scale(1);
+    filter: drop-shadow(0 10px 14px rgba(75, 54, 28, 0.16));
+  }
+
+  46% {
+    transform: scale(1.025);
+    filter: drop-shadow(0 12px 16px rgba(75, 54, 28, 0.17));
+  }
+}
+
+@keyframes timer-color-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  45% {
+    opacity: 0.82;
+  }
+}
+
+@keyframes start-title-reveal {
+  from {
+    opacity: 0;
+    transform: scale(0.98);
+    filter: drop-shadow(0 8px 12px rgba(75, 54, 28, 0.13));
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+    filter: drop-shadow(0 10px 14px rgba(75, 54, 28, 0.16));
+  }
+}
+
+@keyframes start-badge-reveal {
+  from {
+    opacity: 0;
+    transform: scale(0.98);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes start-content-reveal {
+  from {
+    opacity: 0;
+    transform: scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}

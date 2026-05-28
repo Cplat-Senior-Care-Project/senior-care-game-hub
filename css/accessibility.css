@@ -1,0 +1,19 @@
+/* Accessibility States */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.001ms !important;
+  }
+
+  .tutorial-preview .tutorial-tap-pointer {
+    animation: tutorial-finger-tap 1.6s ease-in-out infinite !important;
+  }
+
+  .tutorial-preview .tutorial-tap-target {
+    animation: tutorial-target-press 1.6s ease-in-out infinite !important;
+  }
+}

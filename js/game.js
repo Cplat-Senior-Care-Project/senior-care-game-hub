@@ -3,8 +3,9 @@
 
   const TOTAL_PER_DIFFICULTY = 10;
   const DIFFICULTY_TIME = 120;
+  const START_READY_MESSAGE_TIME = 2000;
   const START_COUNTDOWN_TIME = 3000;
-  const DIFFICULTY_SELECT_TRANSITION_DELAY = 700;
+  const DIFFICULTY_SELECT_TRANSITION_DELAY = 0;
   const FEEDBACK_TIME = 2400;
   const RETRY_FEEDBACK_TIME = 2200;
   const MAX_WRONG_RETRIES = 2;
@@ -227,6 +228,7 @@
     tutorialCloseButton: document.getElementById("tutorial-close-button"),
     tutorialNextButton: document.getElementById("tutorial-next-button"),
     gameCountdown: document.getElementById("game-countdown"),
+    gameCountdownMessage: document.getElementById("game-countdown-message"),
     gameCountdownTimer: document.querySelector(".game-countdown-timer"),
     gameCountdownNumber: document.getElementById("game-countdown-number"),
     playArea: document.getElementById("play-area"),
@@ -277,6 +279,7 @@
     timerId: null,
     phaseTimerId: null,
     phaseCountdownId: null,
+    startCountdownIntroTimeoutId: null,
     startCountdownFrameId: null,
     hintTimerId: null,
     phaseStartedAt: 0,
@@ -339,24 +342,12 @@
   }
 
   function updateGameScale() {
-    const viewportWidth = window.innerWidth || document.documentElement.clientWidth || STAGE_WIDTH;
-    const viewportHeight = window.innerHeight || document.documentElement.clientHeight || STAGE_HEIGHT;
+    const viewport = window.visualViewport;
+    const viewportWidth = viewport && viewport.width ? viewport.width : window.innerWidth || document.documentElement.clientWidth || STAGE_WIDTH;
+    const viewportHeight = viewport && viewport.height ? viewport.height : window.innerHeight || document.documentElement.clientHeight || STAGE_HEIGHT;
     const scale = Math.max(0.01, Math.min(viewportWidth / STAGE_WIDTH, viewportHeight / STAGE_HEIGHT));
     document.documentElement.style.setProperty("--game-scale", String(scale));
     return scale;
-  }
-
-  function renderLucideIcons() {
-    if (!window.lucide || typeof window.lucide.createIcons !== "function") {
-      return;
-    }
-
-    window.lucide.createIcons({
-      attrs: {
-        "aria-hidden": "true",
-        focusable: "false"
-      }
-    });
   }
 
   function startIntroLoading() {
@@ -459,10 +450,32 @@
       return;
     }
 
-    const startedAt = performance.now();
     els.playArea.innerHTML = "";
     els.gameCountdown.classList.remove("is-hidden");
+    els.gameCountdown.classList.add("is-intro");
     els.gameCountdown.setAttribute("aria-hidden", "false");
+    els.gameCountdownNumber.textContent = "3";
+    els.gameCountdownTimer.style.setProperty("--countdown-angle", "0deg");
+
+    if (!els.gameCountdownMessage) {
+      beginReadyCountdown(index);
+      return;
+    }
+
+    els.gameCountdownMessage.textContent = "게임이 곧 시작돼요!";
+    state.startCountdownIntroTimeoutId = window.setTimeout(() => {
+      state.startCountdownIntroTimeoutId = null;
+      beginReadyCountdown(index);
+    }, START_READY_MESSAGE_TIME);
+  }
+
+  function beginReadyCountdown(index) {
+    if (state.phase !== "countdown" || !els.gameCountdown || !els.gameCountdownTimer || !els.gameCountdownNumber) {
+      return;
+    }
+
+    const startedAt = performance.now();
+    els.gameCountdown.classList.remove("is-intro");
     let lastDisplaySeconds = null;
 
     function updateCountdown(now) {
@@ -1238,8 +1251,13 @@
       window.cancelAnimationFrame(state.startCountdownFrameId);
       state.startCountdownFrameId = null;
     }
+    if (state.startCountdownIntroTimeoutId) {
+      window.clearTimeout(state.startCountdownIntroTimeoutId);
+      state.startCountdownIntroTimeoutId = null;
+    }
     if (els.gameCountdown) {
       els.gameCountdown.classList.add("is-hidden");
+      els.gameCountdown.classList.remove("is-intro");
       els.gameCountdown.setAttribute("aria-hidden", "true");
     }
     if (els.gameCountdownTimer) {
@@ -1759,12 +1777,16 @@
     sendBridgeEvent(["sendGameCompleteResult", "sendComplete"], result, "COMPLETE_SEND_FAILED");
   }
 
+  function sendGameExit(payload) {
+    return sendBridgeEvent(["sendGameExit", "sendExit", "exitGame", "closeGame"], payload, "EXIT_SEND_FAILED");
+  }
+
   function sendBridgeEvent(methodNames, payload, errorCode) {
     const bridge = getAppBridge();
     const names = Array.isArray(methodNames) ? methodNames : [methodNames];
     const methodName = bridge && names.find((name) => typeof bridge[name] === "function");
     if (!bridge || !methodName) {
-      return;
+      return false;
     }
 
     try {
@@ -1774,8 +1796,10 @@
           reportAppError(errorCode, error);
         });
       }
+      return true;
     } catch (error) {
       reportAppError(errorCode, error);
+      return false;
     }
   }
 
@@ -1903,6 +1927,19 @@
       processData,
       condition: createConditionResult(),
       summary
+    };
+  }
+
+  function createExitPayload(source) {
+    return {
+      eventType: "GAME_EXIT_REQUESTED",
+      schemaVersion: runtimeConfig.schemaVersion,
+      gameId: runtimeConfig.gameId,
+      sessionId: runtimeConfig.sessionId,
+      userId: runtimeConfig.userId || runtimeConfig.anonymousUserId || "",
+      requestedAt: new Date().toISOString(),
+      source: source || "settings",
+      phase: state.phase || "unknown"
     };
   }
 
@@ -2187,7 +2224,10 @@
 
   function exitGameFromSettings() {
     closeSettings();
-    goHome();
+    const didSendExit = sendGameExit(createExitPayload("settings"));
+    if (!didSendExit) {
+      goHome();
+    }
   }
 
   function updateSettingClasses() {
@@ -2345,7 +2385,6 @@
     els.tutorialModal.classList.toggle("is-question-step", step.type === "question");
     els.tutorialPreview.classList.toggle("has-tap-pointer", step.type === "question");
     els.tutorialPreview.appendChild(createTutorialPreview(step.type));
-    renderLucideIcons();
   }
 
   function createTutorialPreview(type) {
@@ -2809,7 +2848,6 @@
 
     bindEvents();
     bindAppErrorEvents();
-    renderLucideIcons();
     if (els.app) {
       els.app.dataset.screen = state.phase;
     }

@@ -4,7 +4,26 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>쏙쏙 개수 찾기</title>
-  <link rel="stylesheet" href="css/game.css?v=file-structure-20260527">
+  <script>
+    (function () {
+      var stageWidth = 1280;
+      var stageHeight = 720;
+      var visualViewport = window.visualViewport;
+      var viewportWidth = visualViewport && visualViewport.width ? visualViewport.width : window.innerWidth || document.documentElement.clientWidth || stageWidth;
+      var viewportHeight = visualViewport && visualViewport.height ? visualViewport.height : window.innerHeight || document.documentElement.clientHeight || stageHeight;
+      var scale = Math.max(0.01, Math.min(viewportWidth / stageWidth, viewportHeight / stageHeight));
+      document.documentElement.style.setProperty("--game-scale", String(scale));
+    })();
+  </script>
+  <link rel="stylesheet" href="css/base.css?v=css-split-20260528">
+  <link rel="stylesheet" href="css/start.css?v=css-split-20260528">
+  <link rel="stylesheet" href="css/difficulty.css?v=css-split-20260528">
+  <link rel="stylesheet" href="css/game-screen.css?v=css-split-20260528">
+  <link rel="stylesheet" href="css/result.css?v=css-split-20260528">
+  <link rel="stylesheet" href="css/condition.css?v=css-split-20260528">
+  <link rel="stylesheet" href="css/tutorial-settings-pause.css?v=css-split-20260528">
+  <link rel="stylesheet" href="css/animations.css?v=css-split-20260528">
+  <link rel="stylesheet" href="css/accessibility.css?v=css-split-20260528">
 </head>
 <body>
   <div class="game-background" aria-hidden="true"></div>
@@ -328,21 +347,33 @@
             <div class="pause-sound-options">
               <button id="pause-background-sound-button" class="pause-sound-button" type="button" aria-pressed="true">
                 <span class="pause-sound-icon" aria-hidden="true">
-                  <i data-lucide="music"></i>
+                  <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                    <path d="M9 18V5l12-2v13"></path>
+                    <circle cx="6" cy="18" r="3"></circle>
+                    <circle cx="18" cy="16" r="3"></circle>
+                  </svg>
                 </span>
                 <span class="pause-sound-name">배경음</span>
                 <span class="pause-toggle-visual" aria-hidden="true"><span>ON</span><i></i></span>
               </button>
               <button id="pause-sound-button" class="pause-sound-button" type="button" aria-pressed="true">
                 <span class="pause-sound-icon" aria-hidden="true">
-                  <i data-lucide="volume-2"></i>
+                  <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                    <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+                    <path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+                    <path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path>
+                  </svg>
                 </span>
                 <span class="pause-sound-name">효과음</span>
                 <span class="pause-toggle-visual" aria-hidden="true"><span>ON</span><i></i></span>
               </button>
               <button id="pause-voice-guide-button" class="pause-sound-button" type="button" aria-pressed="true">
                 <span class="pause-sound-icon" aria-hidden="true">
-                  <i data-lucide="volume-2"></i>
+                  <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                    <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+                    <path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+                    <path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path>
+                  </svg>
                 </span>
                 <span class="pause-sound-name">안내음성</span>
                 <span class="pause-toggle-visual" aria-hidden="true"><span>ON</span><i></i></span>
@@ -359,7 +390,13 @@
           <div class="settings-left-panel">
             <h2 class="settings-panel-title">
               <span class="settings-title-icon settings-title-icon-game" aria-hidden="true">
-                <i data-lucide="gamepad-2"></i>
+                <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                  <line x1="6" x2="10" y1="11" y2="11"></line>
+                  <line x1="8" x2="8" y1="9" y2="13"></line>
+                  <line x1="15" x2="15.01" y1="12" y2="12"></line>
+                  <line x1="18" x2="18.01" y1="10" y2="10"></line>
+                  <path d="M17.32 5H6.68a4 4 0 0 0-3.98 3.59C2.61 9.27 2 14.45 2 16a3 3 0 0 0 3 3c1 0 1.5-.5 2-1l1.41-1.41A2 2 0 0 1 9.83 16h4.34a2 2 0 0 1 1.42.59L17 18c.5.5 1 1 2 1a3 3 0 0 0 3-3c0-1.55-.61-6.73-.7-7.41A4 4 0 0 0 17.32 5z"></path>
+                </svg>
               </span>
               <span>게임 관리</span>
             </h2>
@@ -369,14 +406,22 @@
           <section class="settings-sound-panel" aria-labelledby="settings-title">
             <h2 id="settings-title" class="settings-panel-title">
               <span class="settings-title-icon settings-title-icon-sound" aria-hidden="true">
-                <i data-lucide="music"></i>
+                <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                  <path d="M9 18V5l12-2v13"></path>
+                  <circle cx="6" cy="18" r="3"></circle>
+                  <circle cx="18" cy="16" r="3"></circle>
+                </svg>
               </span>
               <span>소리 설정</span>
             </h2>
             <div class="settings-options">
               <label class="setting-row">
                 <span class="setting-icon" aria-hidden="true">
-                  <i data-lucide="music"></i>
+                  <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                    <path d="M9 18V5l12-2v13"></path>
+                    <circle cx="6" cy="18" r="3"></circle>
+                    <circle cx="18" cy="16" r="3"></circle>
+                  </svg>
                 </span>
                 <span class="setting-copy">
                   <strong id="background-sound-label">배경음 켬</strong>
@@ -385,7 +430,11 @@
               </label>
               <label class="setting-row">
                 <span class="setting-icon" aria-hidden="true">
-                  <i data-lucide="volume-2"></i>
+                  <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                    <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+                    <path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+                    <path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path>
+                  </svg>
                 </span>
                 <span class="setting-copy">
                   <strong id="sound-label">효과음 켬</strong>
@@ -394,7 +443,11 @@
               </label>
               <label class="setting-row">
                 <span class="setting-icon" aria-hidden="true">
-                  <i data-lucide="volume-2"></i>
+                  <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                    <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+                    <path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+                    <path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path>
+                  </svg>
                 </span>
                 <span class="setting-copy">
                   <strong id="voice-guide-label">안내음성 켬</strong>
@@ -429,6 +482,7 @@
 
   <div id="game-countdown" class="game-countdown-layer is-hidden" aria-live="polite" aria-hidden="true">
     <div class="game-countdown-stage">
+      <p id="game-countdown-message" class="game-countdown-message">게임이 곧 시작돼요!</p>
       <div class="game-countdown-timer" style="--countdown-angle: 0deg;">
         <div class="game-countdown-face">
           <strong id="game-countdown-number">3</strong>
@@ -437,8 +491,7 @@
     </div>
   </div>
 
-  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
-  <script src="js/app-bridge.js?v=mock-app-bridge-20260527"></script>
-  <script src="js/game.js?v=file-structure-20260527"></script>
+  <script src="js/app-bridge.js?v=game-exit-20260528"></script>
+  <script src="js/game.js?v=game-exit-20260528"></script>
 </body>
 </html>
