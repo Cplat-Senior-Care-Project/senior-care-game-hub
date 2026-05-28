@@ -1,29 +1,23 @@
 {
   "mode": "care",
-  "gameId": "fruit-count-memory-game",
-  "durationSeconds": 90,
-  "totalQuestions": 5,
-  "revealMs": 4000,
-  "difficultyKey": "easy",
-  "soundEnabled": true,
-  "voiceGuideEnabled": true,
-  "collectCondition": false,
-  "debugMode": false,
-  "ui": {
-    "showTimer": false,
-    "showProgress": false,
-    "showSettings": false,
-    "showTutorial": true,
-    "showDifficultySelect": false
-  },
-  "difficulties": {
-    "easy": {
-      "revealMs": 4000,
-      "startRange": [2, 3],
-      "endRange": [3, 4],
-      "minTypes": 1,
-      "maxTypes": 1,
-      "shuffleCards": false
-    }
+  "difficulty": "easy",
+  "config": {
+    "show_timer": false,
+    "show_score": false,
+    "show_difficulty_select": false,
+    "show_settings": false,
+    "show_how_to_play": true,
+    "show_condition_check": false,
+    "show_finish_check": false,
+    "duration_seconds": 90,
+    "reveal_ms": 4000,
+    "question_count": 3,
+    "choice_count": 2,
+    "max_items_to_remember": 1,
+    "hint_enabled": true,
+    "auto_hint_enabled": true,
+    "soft_feedback": true,
+    "voice_guide_enabled": true,
+    "result_log_level": "detailed"
   }
 }

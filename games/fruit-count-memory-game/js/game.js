@@ -33,18 +33,27 @@
     difficultyIndex: null,
     durationSeconds: DIFFICULTY_TIME,
     totalQuestions: TOTAL_PER_DIFFICULTY,
+    answerChoiceCount: 4,
+    maxItemsToRemember: null,
     revealMs: 3000,
     soundEnabled: true,
     voiceGuideEnabled: true,
     collectCondition: true,
     debugMode: false,
+    hintEnabled: true,
+    autoHintEnabled: true,
+    softFeedback: true,
+    resultLogLevel: "detailed",
     mode: "standard",
     ui: Object.freeze({
       showTimer: true,
       showProgress: true,
+      showScore: true,
       showSettings: true,
       showTutorial: true,
-      showDifficultySelect: true
+      showDifficultySelect: true,
+      showConditionCheck: true,
+      showFinishCheck: true
     }),
     schemaVersion: "mock-v1"
   });
@@ -1169,7 +1178,7 @@
 
   function createAnswerOptions(answer, totalCount) {
     const maxOption = Math.max(4, totalCount);
-    const optionCount = 4;
+    const optionCount = Math.max(2, Math.min(6, runtimeConfig.answerChoiceCount || 4));
     const values = new Set([answer]);
     const closeNumbers = [answer - 2, answer - 1, answer + 1, answer + 2, answer + 3, answer - 3];
 
@@ -1470,6 +1479,15 @@
   function shouldShowDifficultySelect() {
     return !runtimeConfig.ui || runtimeConfig.ui.showDifficultySelect !== false;
   }
+
+  function shouldShowConditionCheck() {
+    return runtimeConfig.collectCondition !== false && (!runtimeConfig.ui || runtimeConfig.ui.showConditionCheck !== false);
+  }
+
+  function shouldShowFinishCheck() {
+    return !runtimeConfig.ui || runtimeConfig.ui.showFinishCheck !== false;
+  }
+
   function applyRuntimeAudioSettings() {
     if (els.soundToggle) {
       els.soundToggle.checked = runtimeConfig.soundEnabled !== false;
@@ -1479,14 +1497,82 @@
     }
   }
 
+  function normalizeExternalRunConfig(config) {
+    if (!config || typeof config !== "object") {
+      return config;
+    }
+
+    const settings = config.config && typeof config.config === "object" && !Array.isArray(config.config) ? config.config : {};
+    const normalized = { ...config };
+    delete normalized.config;
+
+    if (hasConfigValue(config, "difficulty") && !hasConfigValue(normalized, "difficultyKey")) {
+      normalized.difficultyKey = config.difficulty;
+    }
+    if (hasConfigValue(config, "external_input") && !hasConfigValue(normalized, "externalInput")) {
+      normalized.externalInput = config.external_input;
+    }
+    if (hasConfigValue(settings, "question_count")) {
+      normalized.totalQuestions = settings.question_count;
+    }
+    if (hasConfigValue(settings, "choice_count")) {
+      normalized.answerChoiceCount = settings.choice_count;
+    }
+    if (hasConfigValue(settings, "max_items_to_remember")) {
+      normalized.maxItemsToRemember = settings.max_items_to_remember;
+    }
+    if (hasConfigValue(settings, "duration_seconds")) {
+      normalized.durationSeconds = settings.duration_seconds;
+    }
+    if (hasConfigValue(settings, "reveal_ms")) {
+      normalized.revealMs = settings.reveal_ms;
+    }
+    if (hasConfigValue(settings, "voice_guide_enabled")) {
+      normalized.voiceGuideEnabled = settings.voice_guide_enabled;
+    }
+    if (hasConfigValue(settings, "hint_enabled")) {
+      normalized.hintEnabled = settings.hint_enabled;
+    }
+    if (hasConfigValue(settings, "auto_hint_enabled")) {
+      normalized.autoHintEnabled = settings.auto_hint_enabled;
+    }
+    if (hasConfigValue(settings, "soft_feedback")) {
+      normalized.softFeedback = settings.soft_feedback;
+    }
+    if (hasConfigValue(settings, "result_log_level")) {
+      normalized.resultLogLevel = settings.result_log_level;
+    }
+    if (hasConfigValue(settings, "show_condition_check")) {
+      normalized.collectCondition = settings.show_condition_check;
+    }
+
+    normalized.ui = {
+      ...(normalized.ui && typeof normalized.ui === "object" ? normalized.ui : {}),
+      ...(hasConfigValue(settings, "show_timer") ? { showTimer: settings.show_timer } : {}),
+      ...(hasConfigValue(settings, "show_progress") ? { showProgress: settings.show_progress } : {}),
+      ...(!hasConfigValue(settings, "show_progress") && hasConfigValue(settings, "show_score") ? { showProgress: settings.show_score } : {}),
+      ...(hasConfigValue(settings, "show_score") ? { showScore: settings.show_score } : {}),
+      ...(hasConfigValue(settings, "show_difficulty_select") ? { showDifficultySelect: settings.show_difficulty_select } : {}),
+      ...(hasConfigValue(settings, "show_settings") ? { showSettings: settings.show_settings } : {}),
+      ...(hasConfigValue(settings, "show_how_to_play") ? { showTutorial: settings.show_how_to_play } : {}),
+      ...(hasConfigValue(settings, "show_condition_check") ? { showConditionCheck: settings.show_condition_check } : {}),
+      ...(hasConfigValue(settings, "show_finish_check") ? { showFinishCheck: settings.show_finish_check } : {})
+    };
+
+    return normalized;
+  }
+
   function normalizeRunConfig(config) {
     if (!config || typeof config !== "object") {
       throw createGameError("CONFIG_MISSING", "Run config is missing.");
     }
 
-    const source = config;
+    const source = normalizeExternalRunConfig(config);
     const revealMs = readPositiveIntegerConfig(source, "revealMs", DEFAULT_RUN_CONFIG.revealMs);
-    const difficulties = normalizeDifficultySettings(source.difficulties, revealMs);
+    const maxItemsToRemember = hasConfigValue(source, "maxItemsToRemember")
+      ? readPositiveIntegerConfig(source, "maxItemsToRemember", DEFAULT_RUN_CONFIG.maxItemsToRemember)
+      : DEFAULT_RUN_CONFIG.maxItemsToRemember;
+    const difficulties = applyMaxItemsToRemember(normalizeDifficultySettings(source.difficulties, revealMs), maxItemsToRemember);
     const difficultyValue = source.difficultyKey || source.difficulty || source.defaultDifficulty;
     const difficultyKey = normalizeDifficultyKey(difficultyValue, difficulties);
     const difficultyIndex = hasConfigValue(source, "difficultyIndex")
@@ -1515,16 +1601,41 @@
       difficultyIndex,
       durationSeconds: readPositiveIntegerConfig(source, "durationSeconds", DEFAULT_RUN_CONFIG.durationSeconds),
       totalQuestions: readPositiveIntegerConfig(source, "totalQuestions", DEFAULT_RUN_CONFIG.totalQuestions),
+      answerChoiceCount: readPositiveIntegerConfig(source, "answerChoiceCount", DEFAULT_RUN_CONFIG.answerChoiceCount),
+      maxItemsToRemember,
       revealMs,
       soundEnabled: readBooleanConfig(source, "soundEnabled", DEFAULT_RUN_CONFIG.soundEnabled),
       voiceGuideEnabled: readBooleanConfig(source, "voiceGuideEnabled", DEFAULT_RUN_CONFIG.voiceGuideEnabled),
       collectCondition: readBooleanConfig(source, "collectCondition", DEFAULT_RUN_CONFIG.collectCondition),
       debugMode: readBooleanConfig(source, "debugMode", DEFAULT_RUN_CONFIG.debugMode),
+      hintEnabled: readBooleanConfig(source, "hintEnabled", DEFAULT_RUN_CONFIG.hintEnabled),
+      autoHintEnabled: readBooleanConfig(source, "autoHintEnabled", DEFAULT_RUN_CONFIG.autoHintEnabled),
+      softFeedback: readBooleanConfig(source, "softFeedback", DEFAULT_RUN_CONFIG.softFeedback),
+      resultLogLevel: typeof source.resultLogLevel === "string" && source.resultLogLevel ? source.resultLogLevel : DEFAULT_RUN_CONFIG.resultLogLevel,
       mode: normalizeGameMode(source.mode),
       ui: normalizeUiConfig(source.ui),
       schemaVersion: typeof source.schemaVersion === "string" && source.schemaVersion ? source.schemaVersion : DEFAULT_RUN_CONFIG.schemaVersion,
       difficulties
     };
+  }
+
+  function applyMaxItemsToRemember(difficulties, maxItemsToRemember) {
+    if (!Number.isInteger(maxItemsToRemember) || maxItemsToRemember <= 0) {
+      return difficulties;
+    }
+
+    return difficulties.map((difficulty) => {
+      const clampCount = (value) => Math.max(1, Math.min(value, maxItemsToRemember));
+      const startRange = difficulty.startRange.map(clampCount);
+      const endRange = difficulty.endRange.map(clampCount);
+      return {
+        ...difficulty,
+        startRange,
+        endRange: endRange.map((end, index) => Math.max(end, startRange[index])),
+        minTypes: Math.max(1, Math.min(difficulty.minTypes, maxItemsToRemember)),
+        maxTypes: Math.max(1, Math.min(difficulty.maxTypes, maxItemsToRemember))
+      };
+    });
   }
 
   function normalizeDifficultySettings(settings, revealMs = DEFAULT_RUN_CONFIG.revealMs) {
@@ -2196,7 +2307,7 @@
   }
 
   function openConditionCheck() {
-    if (!runtimeConfig.collectCondition || !els.conditionModal || state.conditionCheckShown) {
+    if (!shouldShowConditionCheck() || !els.conditionModal || state.conditionCheckShown) {
       return;
     }
 
@@ -2227,7 +2338,7 @@
   }
 
   function openPostConditionCheck() {
-    if (!runtimeConfig.collectCondition || !els.postConditionModal) {
+    if (!shouldShowFinishCheck() || !els.postConditionModal) {
       showResult();
       return;
     }

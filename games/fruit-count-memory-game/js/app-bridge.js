@@ -16,18 +16,27 @@
     difficultyIndex: null,
     durationSeconds: 120,
     totalQuestions: 10,
+    answerChoiceCount: 4,
+    maxItemsToRemember: null,
     revealMs: 3000,
     soundEnabled: true,
     voiceGuideEnabled: true,
     collectCondition: true,
     debugMode: false,
+    hintEnabled: true,
+    autoHintEnabled: true,
+    softFeedback: true,
+    resultLogLevel: "detailed",
     mode: "standard",
     ui: {
       showTimer: true,
       showProgress: true,
+      showScore: true,
       showSettings: true,
       showTutorial: true,
-      showDifficultySelect: true
+      showDifficultySelect: true,
+      showConditionCheck: true,
+      showFinishCheck: true
     },
     difficulties: {
       easy: {
@@ -129,10 +138,76 @@
     return true;
   }
 
+  function normalizeExternalConfig(config) {
+    if (!isPlainObject(config)) {
+      return config;
+    }
+
+    const settings = isPlainObject(config.config) ? config.config : {};
+    const normalized = { ...config };
+    delete normalized.config;
+
+    if (hasConfigValue(config, "difficulty") && !hasConfigValue(normalized, "difficultyKey")) {
+      normalized.difficultyKey = config.difficulty;
+    }
+    if (hasConfigValue(config, "external_input") && !hasConfigValue(normalized, "externalInput")) {
+      normalized.externalInput = config.external_input;
+    }
+    if (hasConfigValue(settings, "question_count")) {
+      normalized.totalQuestions = settings.question_count;
+    }
+    if (hasConfigValue(settings, "choice_count")) {
+      normalized.answerChoiceCount = settings.choice_count;
+    }
+    if (hasConfigValue(settings, "max_items_to_remember")) {
+      normalized.maxItemsToRemember = settings.max_items_to_remember;
+    }
+    if (hasConfigValue(settings, "duration_seconds")) {
+      normalized.durationSeconds = settings.duration_seconds;
+    }
+    if (hasConfigValue(settings, "reveal_ms")) {
+      normalized.revealMs = settings.reveal_ms;
+    }
+    if (hasConfigValue(settings, "voice_guide_enabled")) {
+      normalized.voiceGuideEnabled = settings.voice_guide_enabled;
+    }
+    if (hasConfigValue(settings, "hint_enabled")) {
+      normalized.hintEnabled = settings.hint_enabled;
+    }
+    if (hasConfigValue(settings, "auto_hint_enabled")) {
+      normalized.autoHintEnabled = settings.auto_hint_enabled;
+    }
+    if (hasConfigValue(settings, "soft_feedback")) {
+      normalized.softFeedback = settings.soft_feedback;
+    }
+    if (hasConfigValue(settings, "result_log_level")) {
+      normalized.resultLogLevel = settings.result_log_level;
+    }
+    if (hasConfigValue(settings, "show_condition_check")) {
+      normalized.collectCondition = settings.show_condition_check;
+    }
+
+    normalized.ui = {
+      ...(isPlainObject(normalized.ui) ? normalized.ui : {}),
+      ...(hasConfigValue(settings, "show_timer") ? { showTimer: settings.show_timer } : {}),
+      ...(hasConfigValue(settings, "show_progress") ? { showProgress: settings.show_progress } : {}),
+      ...(!hasConfigValue(settings, "show_progress") && hasConfigValue(settings, "show_score") ? { showProgress: settings.show_score } : {}),
+      ...(hasConfigValue(settings, "show_score") ? { showScore: settings.show_score } : {}),
+      ...(hasConfigValue(settings, "show_difficulty_select") ? { showDifficultySelect: settings.show_difficulty_select } : {}),
+      ...(hasConfigValue(settings, "show_settings") ? { showSettings: settings.show_settings } : {}),
+      ...(hasConfigValue(settings, "show_how_to_play") ? { showTutorial: settings.show_how_to_play } : {}),
+      ...(hasConfigValue(settings, "show_condition_check") ? { showConditionCheck: settings.show_condition_check } : {}),
+      ...(hasConfigValue(settings, "show_finish_check") ? { showFinishCheck: settings.show_finish_check } : {})
+    };
+
+    return normalized;
+  }
+
   function normalizeRuntimeConfig(config) {
     validateRuntimeConfig(config);
 
-    const merged = deepMerge(DEFAULT_MOCK_CONFIG, config);
+    const externalConfig = normalizeExternalConfig(config);
+    const merged = deepMerge(DEFAULT_MOCK_CONFIG, externalConfig);
     const normalized = {
       ...merged,
       gameId: readString(merged, "gameId", DEFAULT_MOCK_CONFIG.gameId),
@@ -144,11 +219,19 @@
       gameVersion: readString(merged, "gameVersion", ""),
       durationSeconds: readPositiveInteger(merged, "durationSeconds", DEFAULT_MOCK_CONFIG.durationSeconds),
       totalQuestions: readPositiveInteger(merged, "totalQuestions", DEFAULT_MOCK_CONFIG.totalQuestions),
+      answerChoiceCount: readPositiveInteger(merged, "answerChoiceCount", DEFAULT_MOCK_CONFIG.answerChoiceCount),
+      maxItemsToRemember: hasConfigValue(merged, "maxItemsToRemember") ? readPositiveInteger(merged, "maxItemsToRemember", DEFAULT_MOCK_CONFIG.maxItemsToRemember) : DEFAULT_MOCK_CONFIG.maxItemsToRemember,
       revealMs: readPositiveInteger(merged, "revealMs", DEFAULT_MOCK_CONFIG.revealMs),
       soundEnabled: readBoolean(merged, "soundEnabled", DEFAULT_MOCK_CONFIG.soundEnabled),
       voiceGuideEnabled: readBoolean(merged, "voiceGuideEnabled", DEFAULT_MOCK_CONFIG.voiceGuideEnabled),
       collectCondition: readBoolean(merged, "collectCondition", DEFAULT_MOCK_CONFIG.collectCondition),
       debugMode: readBoolean(merged, "debugMode", DEFAULT_MOCK_CONFIG.debugMode),
+      hintEnabled: readBoolean(merged, "hintEnabled", DEFAULT_MOCK_CONFIG.hintEnabled),
+      autoHintEnabled: readBoolean(merged, "autoHintEnabled", DEFAULT_MOCK_CONFIG.autoHintEnabled),
+      softFeedback: readBoolean(merged, "softFeedback", DEFAULT_MOCK_CONFIG.softFeedback),
+      resultLogLevel: readString(merged, "resultLogLevel", DEFAULT_MOCK_CONFIG.resultLogLevel),
+      mode: readString(merged, "mode", DEFAULT_MOCK_CONFIG.mode),
+      ui: isPlainObject(merged.ui) ? merged.ui : DEFAULT_MOCK_CONFIG.ui,
       schemaVersion: MOCK_SCHEMA_VERSION,
       receivedAt: new Date().toISOString()
     };
