@@ -1,0 +1,27 @@
+{
+  "gameId": "light-memory-game",
+  "gameTitle": "빛나는 전구를 찾아라",
+  "schemaVersion": "1.0.0",
+  "difficultyOptions": {
+    "EASY": {
+      "gridSize": 2,
+      "targetCount": 2,
+      "roundCount": 10,
+      "timeLimitSec": 60
+    },
+    "NORMAL": {
+      "gridSize": 3,
+      "targetCount": 3,
+      "roundCount": 10,
+      "timeLimitSec": 60
+    },
+    "HARD": {
+      "gridSize": 4,
+      "targetCount": 4,
+      "roundCount": 10,
+      "timeLimitSec": 60,
+      "flowerStartsFromRound": 6
+    }
+  },
+  "runtimeConfigNote": "이 파일은 앱 연동 및 검토용 mock/reference config입니다. 현재 실제 게임 로직은 js/game.js의 runtimeConfig 값을 기준으로 동작합니다."
+}

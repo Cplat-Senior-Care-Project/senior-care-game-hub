@@ -1,0 +1,47 @@
+{
+  "gameId": "light-memory-game",
+  "gameTitle": "빛나는 전구를 찾아라",
+  "schemaVersion": "1.0.0",
+  "mode": "standard",
+  "modeTitle": "표준 모드",
+  "difficultyOptions": {
+    "EASY": {
+      "gridSize": 2,
+      "targetCount": 2,
+      "roundCount": 10,
+      "timeLimitSec": 60
+    },
+    "NORMAL": {
+      "gridSize": 3,
+      "targetCount": 3,
+      "roundCount": 10,
+      "timeLimitSec": 60
+    },
+    "HARD": {
+      "gridSize": 4,
+      "targetCount": 4,
+      "roundCount": 10,
+      "timeLimitSec": 60,
+      "flowerStartsFromRound": 6
+    }
+  },
+  "runtimeConfig": {
+    "show_timer": true,
+    "show_score": true,
+    "show_difficulty_select": true,
+    "show_settings": true,
+    "show_how_to_play": true,
+    "show_condition_check": true,
+    "show_finish_check": true,
+    "question_count": 10,
+    "exposure_time_ms": 5000,
+    "round_time_limit_sec": 60,
+    "hint_enabled": true,
+    "auto_start": false,
+    "auto_return": false,
+    "soft_feedback": false,
+    "voice_guide_enabled": true,
+    "result_log_level": "standard"
+  },
+  "runtimeConfigNote": "모드별 폴더에서 window.__GAME_CONFIG__와 같은 값으로 실행됩니다."
+}

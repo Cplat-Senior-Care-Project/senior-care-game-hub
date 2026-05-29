@@ -1,0 +1,53 @@
+{
+  "gameId": "light-memory-game",
+  "gameTitle": "빛나는 전구를 찾아라",
+  "schemaVersion": "1.0.0",
+  "mode": "care",
+  "modeTitle": "케어 모드",
+  "difficultyOptions": {
+    "EASY": {
+      "gridSize": 2,
+      "targetCount": 2,
+      "roundCount": 10,
+      "timeLimitSec": 60
+    },
+    "NORMAL": {
+      "gridSize": 3,
+      "targetCount": 3,
+      "roundCount": 10,
+      "timeLimitSec": 60
+    },
+    "HARD": {
+      "gridSize": 4,
+      "targetCount": 4,
+      "roundCount": 10,
+      "timeLimitSec": 60,
+      "flowerStartsFromRound": 6
+    }
+  },
+  "runtimeConfig": {
+    "show_timer": false,
+    "show_score": false,
+    "show_difficulty_select": false,
+    "show_settings": false,
+    "show_how_to_play": false,
+    "show_condition_check": false,
+    "show_finish_check": false,
+    "question_count": 3,
+    "grid_rows": 2,
+    "grid_cols": 2,
+    "target_count": 1,
+    "exposure_time_ms": 8000,
+    "round_time_limit_sec": 0,
+    "hint_enabled": true,
+    "auto_hint_enabled": true,
+    "auto_start": true,
+    "auto_return": true,
+    "soft_feedback": true,
+    "flash_effect_level": "low",
+    "high_contrast": true,
+    "voice_guide_enabled": true,
+    "result_log_level": "detailed"
+  },
+  "runtimeConfigNote": "요양원/돌봄기관용으로 쉬운 진행, UI 단순화, 상세 로그를 기본 적용합니다."
+}
