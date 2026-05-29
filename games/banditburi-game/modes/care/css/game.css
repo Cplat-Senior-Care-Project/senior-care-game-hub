@@ -3296,8 +3296,8 @@
       grid-column: 1 !important;
       grid-row: 3 !important;
       place-self: start center !important;
-      width: min(70vw, calc(100dvh - 170px), 560px) !important;
-      height: min(70vw, calc(100dvh - 170px), 560px) !important;
+      width: min(calc(100% - 24px), calc(100dvh - 170px), 560px) !important;
+      height: min(calc(100% - 24px), calc(100dvh - 170px), 560px) !important;
       min-width: 0 !important;
       min-height: 0 !important;
       max-width: none !important;
@@ -3315,5 +3315,161 @@
 
     body.mode-care.theme-bulb .object-img,
     body.mode-ai-assisted.theme-bulb .object-img {
-      --object-size: 170%;
+      --object-size: 142%;
+    }
+
+    @media (orientation: portrait) {
+      body.mode-care .board-wrap,
+      body.mode-ai-assisted .board-wrap {
+        padding-inline: 10px !important;
+      }
+
+      body.mode-care .message,
+      body.mode-ai-assisted .message {
+        width: min(calc(100vw - 48px), 240px) !important;
+        min-height: clamp(74px, 13vh, 104px) !important;
+        max-height: clamp(86px, 15vh, 124px) !important;
+        padding: 10px 14px !important;
+        font-size: clamp(20px, 6vw, 28px) !important;
+        line-height: 1.08 !important;
+      }
+
+      body.mode-care .board,
+      body.mode-ai-assisted .board {
+        width: min(calc(100vw - 96px), calc(100dvh - 190px), 240px) !important;
+        height: min(calc(100vw - 96px), calc(100dvh - 190px), 240px) !important;
+        gap: clamp(7px, 2vw, 12px) !important;
+        padding: clamp(7px, 2vw, 12px) !important;
+      }
+
+      body.mode-care .object-img,
+      body.mode-ai-assisted .object-img {
+        width: var(--object-size, 135%) !important;
+        height: var(--object-size, 135%) !important;
+      }
+
+      body.mode-care .result-mode .board,
+      body.mode-ai-assisted .result-mode .board {
+        width: min(calc(100vw - 96px), 240px) !important;
+        height: min(calc(100dvh - 86px), 440px) !important;
+      }
+
+      body.mode-care .result-card,
+      body.mode-ai-assisted .result-card {
+        width: min(100%, 210px) !important;
+        padding: 16px 18px !important;
+        font-size: clamp(18px, 5.4vw, 22px) !important;
+      }
+
+      body.mode-care .result-card button.primary,
+      body.mode-ai-assisted .result-card button.primary {
+        min-height: 54px !important;
+        font-size: clamp(16px, 4.8vw, 20px) !important;
+      }
+    }
+
+    body.mode-care .message,
+    body.mode-ai-assisted .message {
+      font-size: clamp(18px, min(5vw, 4vh), 40px) !important;
+      line-height: 1.08 !important;
+    }
+
+    body.mode-care .result-mode.board-wrap,
+    body.mode-ai-assisted .result-mode.board-wrap {
+      grid-template-rows: auto minmax(0, 1fr) !important;
+      align-content: start !important;
+      justify-items: center !important;
+    }
+
+    body.mode-care .result-mode .message,
+    body.mode-ai-assisted .result-mode .message {
+      display: none !important;
+    }
+
+    body.mode-care .result-mode .board,
+    body.mode-ai-assisted .result-mode .board {
+      grid-row: 2 !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      width: min(92vw, 300px) !important;
+      height: min(calc(100dvh - 92px), 590px) !important;
+      padding: clamp(8px, 2.2vw, 18px) !important;
+      background: transparent !important;
+      border: 0 !important;
+      box-shadow: none !important;
+    }
+
+    body.mode-care .result-card,
+    body.mode-ai-assisted .result-card {
+      width: min(100%, 240px) !important;
+      min-height: 0 !important;
+      max-height: 100% !important;
+      padding: clamp(16px, 4vw, 24px) !important;
+      border-width: 4px !important;
+      border-radius: 26px !important;
+      font-size: clamp(18px, min(5.4vw, 4vh), 24px) !important;
+      line-height: 1.18 !important;
+      text-align: left !important;
+      overflow: hidden !important;
+    }
+
+    body.mode-care .result-card p,
+    body.mode-ai-assisted .result-card p {
+      margin: 0 0 clamp(16px, 3vh, 26px) !important;
+      word-break: keep-all !important;
+    }
+
+    body.mode-care .result-card button.primary,
+    body.mode-ai-assisted .result-card button.primary {
+      width: 100% !important;
+      min-height: clamp(52px, 8vh, 70px) !important;
+      padding: 8px 16px !important;
+      font-size: clamp(16px, min(4.8vw, 3.6vh), 21px) !important;
+      white-space: normal !important;
+      line-height: 1.12 !important;
+    }
+
+    @media (orientation: landscape) and (max-height: 520px) {
+      body.mode-care .play-training-label,
+      body.mode-ai-assisted .play-training-label {
+        min-height: 34px !important;
+        padding: 4px 24px !important;
+        font-size: clamp(17px, 5vh, 24px) !important;
+      }
+
+      body.mode-care .message,
+      body.mode-ai-assisted .message {
+        min-height: clamp(46px, 15vh, 62px) !important;
+        max-height: clamp(52px, 17vh, 70px) !important;
+        padding: 6px 18px !important;
+        font-size: clamp(17px, min(4vw, 5vh), 25px) !important;
+        line-height: 1.05 !important;
+      }
+
+      body.mode-care .board,
+      body.mode-ai-assisted .board {
+        width: min(48vw, calc(100dvh - 118px), 300px) !important;
+        height: min(48vw, calc(100dvh - 118px), 300px) !important;
+      }
+
+      body.mode-care .result-mode .board,
+      body.mode-ai-assisted .result-mode .board {
+        width: min(78vw, 440px) !important;
+        height: min(calc(100dvh - 52px), 280px) !important;
+        padding: 4px !important;
+      }
+
+      body.mode-care .result-card,
+      body.mode-ai-assisted .result-card {
+        width: min(100%, 360px) !important;
+        padding: 16px 22px !important;
+        font-size: clamp(18px, 5.3vh, 24px) !important;
+      }
+
+      body.mode-care .result-card button.primary,
+      body.mode-ai-assisted .result-card button.primary {
+        min-height: 46px !important;
+        font-size: clamp(17px, 5vh, 22px) !important;
+      }
     }
