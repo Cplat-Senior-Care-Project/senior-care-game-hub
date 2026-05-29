@@ -3214,3 +3214,106 @@
         height: min(calc(100dvh - 86px), calc(100vw - clamp(122px, 20vw, 150px)), 490px);
       }
     }
+
+    body.mode-care,
+    body.mode-ai-assisted {
+      overflow: hidden;
+    }
+
+    body.mode-care .app,
+    body.mode-ai-assisted .app {
+      display: grid !important;
+      grid-template-columns: minmax(0, 1fr) !important;
+      grid-template-rows: minmax(0, 1fr) !important;
+      width: 100vw;
+      height: 100dvh;
+      min-width: 0;
+      min-height: 0;
+      padding: clamp(6px, 1.4vw, 18px) !important;
+      gap: 0 !important;
+    }
+
+    body.mode-care .panel,
+    body.mode-ai-assisted .panel {
+      display: none !important;
+    }
+
+    body.mode-care .board-wrap,
+    body.mode-ai-assisted .board-wrap {
+      display: grid !important;
+      grid-column: 1 !important;
+      grid-row: 1 !important;
+      grid-template-columns: minmax(0, 1fr) !important;
+      grid-template-rows: auto auto minmax(0, 1fr) !important;
+      align-content: start !important;
+      align-items: start !important;
+      justify-items: center !important;
+      width: min(100%, 1180px) !important;
+      height: 100% !important;
+      min-height: 0 !important;
+      margin: 0 auto !important;
+      padding: clamp(6px, 1.5vh, 18px) !important;
+      gap: clamp(6px, 1.3vh, 14px) !important;
+      overflow: hidden !important;
+      border-radius: 18px;
+    }
+
+    body.mode-care .play-training-label,
+    body.mode-ai-assisted .play-training-label {
+      grid-column: 1 !important;
+      grid-row: 1 !important;
+      align-self: center !important;
+      justify-self: center !important;
+      width: auto !important;
+      min-height: clamp(34px, 6.5vh, 58px) !important;
+      padding: 6px clamp(18px, 3vw, 34px) !important;
+      writing-mode: horizontal-tb !important;
+      white-space: nowrap !important;
+      font-size: clamp(18px, 3.2vh, 30px) !important;
+      line-height: 1.05 !important;
+    }
+
+    body.mode-care .message,
+    body.mode-ai-assisted .message {
+      grid-column: 1 !important;
+      grid-row: 2 !important;
+      align-self: start !important;
+      justify-self: center !important;
+      width: min(100%, 1100px) !important;
+      height: auto !important;
+      min-height: clamp(58px, 13vh, 118px) !important;
+      max-height: clamp(72px, 16vh, 138px) !important;
+      padding: clamp(10px, 1.8vh, 22px) clamp(14px, 3vw, 34px) !important;
+      overflow: hidden !important;
+      text-align: center !important;
+      justify-content: center !important;
+      font-size: clamp(21px, 4.7vh, 42px) !important;
+      line-height: 1.12 !important;
+    }
+
+    body.mode-care .board,
+    body.mode-ai-assisted .board {
+      grid-column: 1 !important;
+      grid-row: 3 !important;
+      place-self: start center !important;
+      width: min(70vw, calc(100dvh - 170px), 560px) !important;
+      height: min(70vw, calc(100dvh - 170px), 560px) !important;
+      min-width: 0 !important;
+      min-height: 0 !important;
+      max-width: none !important;
+      max-height: none !important;
+      gap: clamp(8px, 1.5vw, 18px) !important;
+      padding: clamp(8px, 1.6vw, 18px) !important;
+      border-width: clamp(3px, .8vw, 5px) !important;
+    }
+
+    body.mode-care .object-img,
+    body.mode-ai-assisted .object-img {
+      width: var(--object-size, 165%) !important;
+      height: var(--object-size, 165%) !important;
+    }
+
+    body.mode-care.theme-bulb .object-img,
+    body.mode-ai-assisted.theme-bulb .object-img {
+      --object-size: 170%;
+    }
