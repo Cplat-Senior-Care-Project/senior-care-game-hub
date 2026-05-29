@@ -1,8 +1,208 @@
 /* Care mode only. */
 html[data-mode="care"] #settings-button,
+html[data-mode="care"] #tutorial-button,
+html[data-mode="care"] #pause-help-button,
+html[data-mode="care"] .game-header,
+html[data-mode="care"] .game-bottom-safe,
 html[data-mode="care"] #timer-box,
 html[data-mode="care"] .race-wrap,
 html[data-mode="care"] #condition-modal,
 html[data-mode="care"] #post-condition-modal {
   display: none !important;
+}
+
+html[data-mode="care"] .game-screen {
+  grid-template-rows: minmax(0, 1fr);
+  padding: 0;
+}
+
+html[data-mode="care"] .start-actions {
+  width: 100%;
+  grid-template-columns: 1fr;
+  justify-items: center;
+}
+
+html[data-mode="care"] #start-button {
+  grid-column: 1;
+  justify-self: center;
+}
+
+html[data-mode="care"] .play-area {
+  grid-row: 1;
+  min-height: 100%;
+  padding: 32px;
+  overflow: visible;
+}
+
+html[data-mode="care"] .play-area > .memory-view,
+html[data-mode="care"] .play-area > .question-view,
+html[data-mode="care"] .play-area > .feedback-view {
+  height: auto;
+  min-height: 100%;
+  max-height: none;
+  overflow: visible;
+  padding: 0;
+}
+
+html[data-mode="care"] .memory-view,
+html[data-mode="care"] .question-view,
+html[data-mode="care"] .feedback-view {
+  align-content: center;
+  justify-content: center;
+  gap: 28px;
+}
+
+html[data-mode="care"] .memory-countdown {
+  display: none !important;
+}
+
+html[data-mode="care"] .memory-card,
+html[data-mode="care"] .question-card {
+  width: min(100%, 980px);
+  max-height: none;
+  border-radius: 8px;
+}
+
+html[data-mode="care"] .guide-text {
+  white-space: pre-line;
+}
+
+html[data-mode="care"] .memory-card .guide-text,
+html[data-mode="care"] .question-top-row .guide-text {
+  max-width: 980px;
+  font-size: 42px;
+  line-height: 1.25;
+}
+
+html[data-mode="care"] .question-top-row {
+  display: grid;
+  width: 100%;
+  max-width: 980px;
+  transform: none;
+  white-space: normal;
+  gap: 10px;
+}
+
+html[data-mode="care"] .question-prompt-wrap {
+  width: 100%;
+  max-width: 100%;
+}
+
+html[data-mode="care"] .hint-area {
+  display: none !important;
+}
+
+html[data-mode="care"] .fruit-grid {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 32px;
+  width: 100%;
+  max-width: 1040px;
+  transform: none !important;
+}
+
+html[data-mode="care"] .memory-view .fruit-grid.is-auto-fit {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 100% !important;
+  max-width: 1040px !important;
+  gap: 32px !important;
+  transform: none !important;
+}
+
+html[data-mode="care"] .fruit-card {
+  flex: 0 0 200px;
+  width: 200px;
+  min-width: 200px;
+  min-height: 180px;
+}
+
+html[data-mode="care"] .fruit-image,
+html[data-mode="care"] .target-fruit-image {
+  width: 140px;
+  height: 140px;
+}
+
+html[data-mode="care"] .memory-view .fruit-card {
+  flex: 0 0 280px;
+  width: 280px;
+  min-width: 280px;
+  min-height: 280px;
+}
+
+html[data-mode="care"] .memory-view .fruit-grid.is-auto-fit .fruit-card {
+  flex: 0 0 280px !important;
+  width: 280px !important;
+  min-width: 280px !important;
+  min-height: 280px !important;
+}
+
+html[data-mode="care"] .memory-view .fruit-grid.is-auto-fit .fruit-image {
+  width: 200px !important;
+  height: 200px !important;
+}
+
+html[data-mode="care"] .memory-view .fruit-image {
+  width: 200px;
+  height: 200px;
+}
+
+html[data-mode="care"] .memory-view .fruit-name {
+  font-size: 80px !important;
+  line-height: 1.05;
+}
+
+html[data-mode="care"] .memory-view .fruit-grid.is-auto-fit .fruit-name,
+html[data-mode="care"] .memory-view .fruit-grid.is-auto-fit.is-sparse .fruit-name,
+html[data-mode="care"] .memory-view .fruit-grid.is-auto-fit.is-medium .fruit-name,
+html[data-mode="care"] .memory-view .fruit-grid.is-auto-fit.is-balanced .fruit-name,
+html[data-mode="care"] .memory-view .fruit-grid.is-auto-fit.is-many .fruit-name,
+html[data-mode="care"] .memory-view .fruit-grid.is-auto-fit.is-dense .fruit-name {
+  font-size: 80px !important;
+  line-height: 1.05 !important;
+}
+
+html[data-mode="care"] .target-fruit {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  min-height: 0;
+  width: min(100%, 420px);
+  padding: 12px 28px;
+  gap: 14px;
+}
+
+html[data-mode="care"] .target-fruit-image {
+  position: static;
+  flex: 0 0 auto;
+  width: 96px;
+  height: 96px;
+  transform: none;
+}
+
+html[data-mode="care"] .target-fruit-name {
+  transform: none;
+  font-size: 50px;
+}
+
+html[data-mode="care"] .answer-grid {
+  grid-template-columns: repeat(auto-fit, minmax(180px, max-content));
+  justify-content: center;
+  width: min(100%, 720px);
+  gap: 28px;
+}
+
+html[data-mode="care"] .number-button {
+  width: 240px;
+  min-width: 0;
+  height: 112px;
+  min-height: 0;
+  aspect-ratio: auto;
+  padding: 18px 24px;
+  font-size: 44px;
 }

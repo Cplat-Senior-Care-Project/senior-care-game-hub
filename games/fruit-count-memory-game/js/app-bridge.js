@@ -3,6 +3,7 @@
 
   const MOCK_SCHEMA_VERSION = "mock-v1";
   const DEFAULT_CONFIG_URL = "config/game.config.json";
+  const RUNTIME_CONFIG_STORAGE_KEY = "fruit-count-memory-game:runtime-config:v2";
 
   const DEFAULT_MOCK_CONFIG = Object.freeze({
     gameId: "fruit-count-memory-game",
@@ -292,11 +293,48 @@
     return null;
   }
 
+  function getStoredRuntimeConfig() {
+    if (!global.sessionStorage || typeof global.sessionStorage.getItem !== "function") {
+      return null;
+    }
+
+    try {
+      const rawConfig = global.sessionStorage.getItem(RUNTIME_CONFIG_STORAGE_KEY);
+      if (!rawConfig) {
+        return null;
+      }
+
+      const config = JSON.parse(rawConfig);
+      if (!isPlainObject(config)) {
+        return null;
+      }
+
+      const requestedMode = global.location && global.location.search
+        ? new URLSearchParams(global.location.search).get("mode")
+        : "";
+      if (requestedMode && config.mode && String(config.mode).toLowerCase() !== String(requestedMode).toLowerCase()) {
+        return null;
+      }
+
+      return config;
+    } catch (error) {
+      if (global.console) {
+        global.console.warn("[mock app bridge] failed to read stored runtime config", error);
+      }
+      return null;
+    }
+  }
+
   async function getRuntimeConfig() {
     // TODO: 내부 개발팀에서 확정한 postMessage 메시지명으로 교체
     const inlineConfig = getInlineConfig();
     if (inlineConfig) {
       return normalizeRuntimeConfig(inlineConfig);
+    }
+
+    const storedConfig = getStoredRuntimeConfig();
+    if (storedConfig) {
+      return normalizeRuntimeConfig(storedConfig);
     }
 
     const fileConfig = await loadConfigFile();

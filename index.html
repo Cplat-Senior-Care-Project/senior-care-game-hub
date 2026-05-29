@@ -257,10 +257,10 @@
           <p class="card-copy">과일 개수를 보고 기억한 뒤 정답을 고르는 기억 활동입니다.</p>
         </div>
         <div class="mode-grid" aria-label="쏙쏙개수찾기 모드">
-          <a class="mode-link standard" href="games/fruit-count-memory-game/index.html?mode=standard">표준 모드</a>
-          <a class="mode-link reminder" href="games/fruit-count-memory-game/index.html?mode=reminder">알림 모드</a>
-          <a class="mode-link care" href="games/fruit-count-memory-game/index.html?mode=care">케어 모드</a>
-          <a class="mode-link ai_assisted" href="games/fruit-count-memory-game/index.html?mode=ai_assisted">AI 연동 모드</a>
+          <a class="mode-link standard" href="games/fruit-count-memory-game/index.html?mode=standard" data-game-key="fruit-count-memory-game" data-mode="standard">표준 모드</a>
+          <a class="mode-link reminder" href="games/fruit-count-memory-game/index.html?mode=reminder" data-game-key="fruit-count-memory-game" data-mode="reminder">알림 모드</a>
+          <a class="mode-link care" href="games/fruit-count-memory-game/index.html?mode=care" data-game-key="fruit-count-memory-game" data-mode="care">케어 모드</a>
+          <a class="mode-link ai_assisted" href="games/fruit-count-memory-game/index.html?mode=ai_assisted" data-game-key="fruit-count-memory-game" data-mode="ai_assisted">AI 연동 모드</a>
         </div>
       </article>
 
@@ -297,5 +297,132 @@
       새 게임은 <strong>games/게임폴더명/</strong> 안에 추가하고, 허브의 버튼 링크만 해당 경로로 연결하면 됩니다.
     </p>
   </main>
+  <script>
+    (function () {
+      "use strict";
+
+      var runtimeConfigs = {
+        "fruit-count-memory-game": {
+          standard: {
+            mode: "standard",
+            difficulty: null,
+            config: {
+              show_timer: true,
+              show_score: true,
+              show_difficulty_select: true,
+              show_settings: true,
+              show_how_to_play: true,
+              show_condition_check: true,
+              show_finish_check: true,
+              duration_seconds: 120,
+              reveal_ms: 3000,
+              question_count: 10,
+              choice_count: 4,
+              max_items_to_remember: 7,
+              hint_enabled: true,
+              auto_hint_enabled: true,
+              soft_feedback: true,
+              voice_guide_enabled: true,
+              result_log_level: "detailed"
+            }
+          },
+          reminder: {
+            mode: "reminder",
+            difficulty: "easy",
+            config: {
+              show_timer: true,
+              show_score: true,
+              show_difficulty_select: false,
+              show_settings: false,
+              show_how_to_play: true,
+              show_condition_check: false,
+              show_finish_check: false,
+              duration_seconds: 90,
+              reveal_ms: 3500,
+              question_count: 6,
+              choice_count: 4,
+              max_items_to_remember: 4,
+              hint_enabled: true,
+              auto_hint_enabled: true,
+              soft_feedback: true,
+              voice_guide_enabled: true,
+              result_log_level: "detailed"
+            }
+          },
+          care: {
+            mode: "care",
+            difficulty: "easy",
+            config: {
+              show_timer: false,
+              show_score: false,
+              show_difficulty_select: false,
+              show_settings: false,
+              show_how_to_play: false,
+              show_condition_check: false,
+              show_finish_check: false,
+              duration_seconds: 90,
+              reveal_ms: 4000,
+              question_count: 10,
+              choice_count: 3,
+              max_items_to_remember: 5,
+              hint_enabled: true,
+              auto_hint_enabled: true,
+              soft_feedback: true,
+              voice_guide_enabled: true,
+              result_log_level: "detailed"
+            }
+          },
+          ai_assisted: {
+            mode: "ai_assisted",
+            difficulty: "easy",
+            config: {
+              show_timer: true,
+              show_score: true,
+              show_difficulty_select: false,
+              show_settings: false,
+              show_how_to_play: true,
+              show_condition_check: false,
+              show_finish_check: false,
+              duration_seconds: 90,
+              reveal_ms: 3500,
+              question_count: 6,
+              choice_count: 4,
+              max_items_to_remember: 4,
+              hint_enabled: true,
+              auto_hint_enabled: true,
+              soft_feedback: true,
+              voice_guide_enabled: true,
+              result_log_level: "detailed"
+            },
+            external_input: {
+              enabled: true,
+              source: "app_or_ai"
+            }
+          }
+        }
+      };
+
+      var storageKeys = {
+        "fruit-count-memory-game": "fruit-count-memory-game:runtime-config:v2"
+      };
+
+      function saveRuntimeConfig(gameKey, mode) {
+        var gameConfigs = runtimeConfigs[gameKey];
+        var config = gameConfigs && gameConfigs[mode];
+        var storageKey = storageKeys[gameKey];
+        if (!config || !storageKey || !window.sessionStorage) {
+          return;
+        }
+
+        window.sessionStorage.setItem(storageKey, JSON.stringify(config));
+      }
+
+      document.querySelectorAll("[data-game-key][data-mode]").forEach(function (link) {
+        link.addEventListener("click", function () {
+          saveRuntimeConfig(link.dataset.gameKey, link.dataset.mode);
+        });
+      });
+    })();
+  </script>
 </body>
 </html>

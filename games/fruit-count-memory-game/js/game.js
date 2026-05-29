@@ -614,6 +614,10 @@
   }
 
   function createQuestion() {
+    if (isCareMode()) {
+      return createCareQuestion();
+    }
+
     const difficulty = currentDifficulty();
     const progress = difficultyProgress();
 
@@ -622,6 +626,72 @@
     }
 
     return createMixedQuestion(progress);
+  }
+
+  function isCareMode() {
+    return runtimeConfig.mode === "care";
+  }
+
+  function createCareQuestion() {
+    const questionIndex = state.questionInDifficulty;
+    const fruitCountLimit = Math.max(1, Math.min(5, runtimeConfig.maxItemsToRemember || 5));
+    if (questionIndex < 6) {
+      const fruit = pickOne(FRUITS);
+      const maxCount = Math.min(fruitCountLimit, questionIndex < 2 ? 2 : 3);
+      const count = randomInRange(1, maxCount);
+      const cards = Array.from({ length: count }, () => fruit);
+
+      return {
+        cards,
+        target: fruit,
+        answer: count,
+        totalCount: count,
+        options: createCareAnswerOptions(count, Math.max(2, maxCount), questionIndex),
+        memoryPrompt: `${fruit.name}${getSubjectParticle(fruit.name)} 몇 개 있는지 같이 봐볼까요?`,
+        questionPrompt: `좋아요. 이제 한 번 떠올려볼까요?\n방금 ${fruit.name}${getSubjectParticle(fruit.name)} 몇 개 있었을까요?`
+      };
+    }
+
+    const selectedFruits = shuffle([...FRUITS]).slice(0, 2);
+    const totalCount = Math.min(fruitCountLimit, questionIndex < 8 ? 4 : 5);
+    const firstCount = randomInRange(1, totalCount - 1);
+    const counts = [firstCount, totalCount - firstCount];
+    let cards = [];
+    selectedFruits.forEach((fruit, index) => {
+      cards = cards.concat(Array.from({ length: counts[index] }, () => fruit));
+    });
+    cards = shuffle(cards);
+
+    const targetIndex = randomInRange(0, selectedFruits.length - 1);
+    const target = selectedFruits[targetIndex];
+    const answer = counts[targetIndex];
+
+    return {
+      cards,
+      target,
+      answer,
+      totalCount,
+      options: createCareAnswerOptions(answer, totalCount, questionIndex),
+      memoryPrompt: `${target.name}${getSubjectParticle(target.name)} 몇 개 있는지 같이 봐볼까요?`,
+      questionPrompt: `좋아요. 이제 한 번 떠올려볼까요?\n방금 ${target.name}${getSubjectParticle(target.name)} 몇 개 있었을까요?`
+    };
+  }
+
+  function createCareAnswerOptions(answer, totalCount, questionIndex) {
+    const optionCount = questionIndex < 3 ? 2 : 3;
+    const maxOption = Math.max(optionCount, answer, Math.min(5, totalCount));
+    const values = new Set([answer]);
+    [answer - 1, answer + 1, answer - 2, answer + 2].forEach((value) => {
+      if (value >= 1 && value <= maxOption && values.size < optionCount) {
+        values.add(value);
+      }
+    });
+
+    while (values.size < optionCount) {
+      values.add(randomInRange(1, maxOption));
+    }
+
+    return Array.from(values).sort((a, b) => a - b);
   }
 
   function createEasyQuestion(progress) {
@@ -871,7 +941,7 @@
 
     const title = document.createElement("p");
     title.className = "guide-text";
-    title.textContent = "잘 보고 기억해주세요";
+    title.textContent = question.memoryPrompt || "잘 보고 기억해주세요";
 
     const countdown = document.createElement("p");
     countdown.className = "memory-countdown";
@@ -968,7 +1038,7 @@
 
     const questionText = document.createElement("p");
     questionText.className = "guide-text";
-    questionText.textContent = `${question.target.name}${getTopicParticle(question.target.name)} 몇 개였을까요?`;
+    questionText.textContent = question.questionPrompt || `${question.target.name}${getTopicParticle(question.target.name)} 몇 개였을까요?`;
 
     const questionTopRow = document.createElement("div");
     questionTopRow.className = "question-top-row";
@@ -1023,7 +1093,7 @@
       const button = document.createElement("button");
       button.className = "game-button number-button";
       button.type = "button";
-      button.textContent = String(option);
+      button.textContent = formatAnswerOption(option);
       button.addEventListener("click", () => answerQuestion(option));
       answerGrid.appendChild(button);
     });
@@ -1082,6 +1152,31 @@
     return (code - 0xac00) % 28 === 0 ? "는" : "은";
   }
 
+  function getSubjectParticle(text) {
+    const lastChar = text.trim().charAt(text.trim().length - 1);
+    const code = lastChar.charCodeAt(0);
+    if (code < 0xac00 || code > 0xd7a3) {
+      return "가";
+    }
+
+    return (code - 0xac00) % 28 === 0 ? "가" : "이";
+  }
+
+  function formatAnswerOption(value) {
+    if (!isCareMode()) {
+      return String(value);
+    }
+
+    const labels = {
+      1: "하나",
+      2: "두 개",
+      3: "세 개",
+      4: "네 개",
+      5: "다섯 개"
+    };
+    return labels[value] || `${value}개`;
+  }
+
   function renderRetryFeedbackView(remainingRetries) {
     els.playArea.innerHTML = "";
 
@@ -1112,13 +1207,15 @@
 
     const title = document.createElement("p");
     title.className = "feedback-title";
-    title.textContent = isCorrect ? "좋아요. 잘 보셨어요" : "괜찮아요";
+    title.textContent = isCareMode()
+      ? (isCorrect ? "좋습니다. 잘 보셨어요." : "조금 헷갈릴 수 있어요.")
+      : (isCorrect ? "좋아요. 잘 보셨어요" : "괜찮아요");
 
     const message = document.createElement("p");
     message.className = "feedback-message";
     message.textContent = isCorrect
       ? "하나만 더 해볼까요? 힘드시면 쉬어도 괜찮아요."
-      : "조금 헷갈릴 수 있어요. 하나만 더 연습해볼까요?";
+      : (isCareMode() ? "괜찮아요. 천천히 다시 같이 볼까요?" : "조금 헷갈릴 수 있어요. 하나만 더 연습해볼까요?");
 
     view.append(symbol, title, message);
     els.playArea.appendChild(view);
