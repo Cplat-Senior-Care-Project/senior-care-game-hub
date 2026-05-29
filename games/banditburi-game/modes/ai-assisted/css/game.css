@@ -3433,24 +3433,26 @@
     @media (orientation: landscape) and (max-height: 520px) {
       body.mode-care .play-training-label,
       body.mode-ai-assisted .play-training-label {
-        min-height: 34px !important;
-        padding: 4px 24px !important;
-        font-size: clamp(17px, 5vh, 24px) !important;
+        min-height: 30px !important;
+        padding: 3px 22px !important;
+        font-size: clamp(16px, 4.5vh, 22px) !important;
       }
 
       body.mode-care .message,
       body.mode-ai-assisted .message {
-        min-height: clamp(46px, 15vh, 62px) !important;
-        max-height: clamp(52px, 17vh, 70px) !important;
-        padding: 6px 18px !important;
+        min-height: clamp(42px, 13.5vh, 56px) !important;
+        max-height: clamp(46px, 15vh, 62px) !important;
+        padding: 5px 16px !important;
         font-size: clamp(17px, min(4vw, 5vh), 25px) !important;
         line-height: 1.05 !important;
       }
 
       body.mode-care .board,
       body.mode-ai-assisted .board {
-        width: min(48vw, calc(100dvh - 118px), 300px) !important;
-        height: min(48vw, calc(100dvh - 118px), 300px) !important;
+        width: min(42vw, calc(100dvh - 130px), 260px) !important;
+        height: min(42vw, calc(100dvh - 130px), 260px) !important;
+        gap: clamp(6px, 1.2vw, 10px) !important;
+        padding: clamp(6px, 1.2vw, 10px) !important;
       }
 
       body.mode-care .result-mode .board,
