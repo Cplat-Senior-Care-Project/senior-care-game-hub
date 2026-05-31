@@ -291,8 +291,8 @@
     let roundTelemetry = null;
     let roundClosed = false;
     const BUTTON_CLICK_SOUND_SRC = "assets/audio/audio-01-7e204aa7.mp3";
-    const CORRECT_SOUND_SRC = "assets/audio/audio-01-7e204aa7.mp3";
-    const WRONG_SOUND_SRC = "assets/audio/audio-01-7e204aa7.mp3";
+    const CORRECT_SOUND_SRC = "assets/audio/correct.mp3";
+    const WRONG_SOUND_SRC = "assets/audio/wrong.mp3";
     const INTRO_MUSIC_SRC = "assets/audio/audio-02-7642c099.mp3";
     const PLAY_MUSIC_SRC = "assets/audio/audio-03-e0e7d5be.mp3";
     const buttonClickSound = new Audio(BUTTON_CLICK_SOUND_SRC);
