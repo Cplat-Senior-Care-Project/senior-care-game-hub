@@ -3182,7 +3182,7 @@
       }
 
       .theme-bulb .board[data-grid-size="2"] .object-img {
-        --object-size: 230%;
+        --object-size: 220%;
       }
 
       .theme-bird .board[data-grid-size="2"] .object-img {
