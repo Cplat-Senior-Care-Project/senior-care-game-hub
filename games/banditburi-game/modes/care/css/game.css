@@ -3183,7 +3183,7 @@
 
       .theme-bulb .board[data-grid-size="2"] .object-img {
         --object-size: 202%;
-        transform: translateY(6px);
+        transform: translateY(10px);
       }
 
       .theme-bird .board[data-grid-size="2"] .object-img {
