@@ -3116,7 +3116,7 @@
       }
 
       .theme-bulb .board[data-grid-size="2"] .object-img {
-        --object-size: 220%;
+        --object-size: 215%;
       }
 
       .theme-bird .board[data-grid-size="2"] .object-img {
