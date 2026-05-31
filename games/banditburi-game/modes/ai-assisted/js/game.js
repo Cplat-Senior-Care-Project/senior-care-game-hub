@@ -476,9 +476,9 @@
 
     function roundTransitionVoice(doneMessage) {
       const isFinalRound = currentRound >= maxRounds;
-      const isSuccess = doneMessage === TEXT.done;
-      if (isSuccess && isFinalRound) return "잘하셨어요. 결과 화면으로 갈게요.";
-      if (isSuccess) return "잘하셨어요. 다음 문제로 갈게요.";
+      const isSuccess = doneMessage === TEXT.done || doneMessage === "좋습니다. 잘 보셨어요.";
+      if (isSuccess && isFinalRound) return appliedGameConfig.soft_feedback ? "좋습니다. 결과 화면으로 갈게요." : "잘하셨어요. 결과 화면으로 갈게요.";
+      if (isSuccess) return appliedGameConfig.soft_feedback ? "좋습니다. 다음 문제로 갈게요." : "잘하셨어요. 다음 문제로 갈게요.";
       if (isFinalRound) return "괜찮아요. 결과 화면으로 갈게요.";
       return "괜찮아요. 다음 문제로 갈게요.";
     }
@@ -1294,18 +1294,25 @@
       startButton.disabled = true;
       hintButton.disabled = false;
       setPauseReady(true);
-      message.textContent = `${targetPhrase(targetIndexes.size)}가 있었던 위치를 골라주세요.`;
-      speakGuide(`${targetPhrase(targetIndexes.size)}가 있었던 위치를 골라주세요.`);
+      const selectionText = appliedGameConfig.soft_feedback
+        ? "방금 불이 켜졌던 곳을 눌러주세요."
+        : `${targetPhrase(targetIndexes.size)}가 있었던 위치를 골라주세요.`;
+      message.textContent = selectionText;
+      speakGuide(selectionText);
       renderBoard("hidden");
       startRoundTimer();
     }
 
     function startPreviewCountdown() {
       const updatePreviewMessage = () => {
-        message.textContent = `${targetPhrase(targetIndexes.size)}의 위치를 기억하세요. ${previewSecondsLeft}초`;
+        message.textContent = appliedGameConfig.soft_feedback
+          ? "불이 켜진 곳을 천천히 봐주세요."
+          : `${targetPhrase(targetIndexes.size)}의 위치를 기억하세요. ${previewSecondsLeft}초`;
       };
       updatePreviewMessage();
-      speakGuide(`${targetPhrase(targetIndexes.size)}의 위치를 기억하세요.`);
+      speakGuide(appliedGameConfig.soft_feedback
+        ? "불이 켜지는 곳을 같이 볼까요? 불이 켜진 곳을 천천히 봐주세요."
+        : `${targetPhrase(targetIndexes.size)}의 위치를 기억하세요.`);
       previewCountdownTimer = setInterval(() => {
         if (isPaused) return;
         previewSecondsLeft -= 1;
@@ -1405,8 +1412,8 @@
           showCelebration();
           finishRound(appliedGameConfig.soft_feedback ? "좋습니다. 잘 보셨어요." : TEXT.done, "success");
         } else {
-          message.textContent = appliedGameConfig.soft_feedback ? "좋아요. 천천히 하나 더 찾아볼까요?" : TEXT.correct;
-          speakGuide(appliedGameConfig.soft_feedback ? "좋아요. 천천히 하나 더 찾아볼까요?" : "정답입니다. 잘하셨어요.");
+          message.textContent = appliedGameConfig.soft_feedback ? "좋습니다. 천천히 하나 더 찾아볼까요?" : TEXT.correct;
+          speakGuide(appliedGameConfig.soft_feedback ? "좋습니다. 천천히 하나 더 찾아볼까요?" : "정답입니다. 잘하셨어요.");
         }
         return;
       }
@@ -1430,7 +1437,7 @@
         return;
       }
       const wrongText = appliedGameConfig.soft_feedback
-        ? "조금 헷갈릴 수 있어요. 제가 힌트를 드릴게요."
+        ? "조금 헷갈릴 수 있어요. 다시 한 번 같이 볼까요?"
         : TEXT.wrong;
       message.textContent = wrongText;
       speakGuide(wrongText);
@@ -1571,8 +1578,11 @@
         hintButton.disabled = false;
         setPauseReady(true);
         const remaining = targetIndexes.size - chosenCorrect.size;
-        message.textContent = `${objectTypes[targetType].label} ${remaining}개가 있던 위치를 골라주세요.`;
-        speakGuide(`${objectTypes[targetType].label} ${remaining}개가 있던 위치를 골라주세요.`);
+        const hintDoneText = appliedGameConfig.soft_feedback
+          ? "방금 불이 켜졌던 곳을 눌러주세요."
+          : `${objectTypes[targetType].label} ${remaining}개가 있던 위치를 골라주세요.`;
+        message.textContent = hintDoneText;
+        speakGuide(hintDoneText);
         renderBoard("hidden");
       }, 1000);
     }
@@ -1586,8 +1596,10 @@
       if (currentPhase === "preview") {
         isPreviewing = true;
         renderBoard("preview");
-        message.textContent = `${objectTypes[targetType].label} ${targetIndexes.size}개의 위치를 기억하세요. ${previewSecondsLeft}초`;
-        speakGuide("계속합니다. 위치를 기억해 주세요.");
+        message.textContent = appliedGameConfig.soft_feedback
+          ? "불이 켜진 곳을 천천히 봐주세요."
+          : `${objectTypes[targetType].label} ${targetIndexes.size}개의 위치를 기억하세요. ${previewSecondsLeft}초`;
+        speakGuide(appliedGameConfig.soft_feedback ? "계속합니다. 불이 켜진 곳을 천천히 봐주세요." : "계속합니다. 위치를 기억해 주세요.");
         return;
       }
       if (currentPhase === "hint") {
@@ -1612,8 +1624,10 @@
       startButton.disabled = true;
       hintButton.disabled = false;
       const remaining = targetIndexes.size - chosenCorrect.size;
-      message.textContent = `${objectTypes[targetType].label} ${remaining}개가 있던 위치를 골라주세요.`;
-      speakGuide("계속합니다. 기억나는 위치를 골라주세요.");
+      message.textContent = appliedGameConfig.soft_feedback
+        ? "방금 불이 켜졌던 곳을 눌러주세요."
+        : `${objectTypes[targetType].label} ${remaining}개가 있던 위치를 골라주세요.`;
+      speakGuide(appliedGameConfig.soft_feedback ? "계속합니다. 방금 불이 켜졌던 곳을 눌러주세요." : "계속합니다. 기억나는 위치를 골라주세요.");
       renderBoard("hidden");
     }
 
