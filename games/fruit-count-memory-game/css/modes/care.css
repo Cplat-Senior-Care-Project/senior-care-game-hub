@@ -36,6 +36,7 @@ html[data-mode="care"] .play-area {
 
 html[data-mode="care"] .play-area > .memory-view,
 html[data-mode="care"] .play-area > .question-view,
+html[data-mode="care"] .play-area > .care-recall-view,
 html[data-mode="care"] .play-area > .feedback-view {
   height: auto;
   min-height: 100%;
@@ -46,6 +47,7 @@ html[data-mode="care"] .play-area > .feedback-view {
 
 html[data-mode="care"] .memory-view,
 html[data-mode="care"] .question-view,
+html[data-mode="care"] .care-recall-view,
 html[data-mode="care"] .feedback-view {
   align-content: center;
   justify-content: center;
@@ -54,6 +56,17 @@ html[data-mode="care"] .feedback-view {
 
 html[data-mode="care"] .memory-countdown {
   display: none !important;
+}
+
+html[data-mode="care"] .feedback-symbol.is-final-care {
+  width: auto;
+  height: auto;
+  border-radius: 0;
+  color: inherit;
+  background: transparent;
+  box-shadow: none;
+  font-size: 96px;
+  line-height: 1;
 }
 
 html[data-mode="care"] .memory-card,
@@ -70,7 +83,7 @@ html[data-mode="care"] .guide-text {
 html[data-mode="care"] .memory-card .guide-text,
 html[data-mode="care"] .question-top-row .guide-text {
   max-width: 980px;
-  font-size: 42px;
+  font-size: 66px;
   line-height: 1.25;
 }
 
@@ -128,31 +141,35 @@ html[data-mode="care"] .target-fruit-image {
 }
 
 html[data-mode="care"] .memory-view .fruit-card {
-  flex: 0 0 280px;
-  width: 280px;
-  min-width: 280px;
-  min-height: 280px;
+  flex: 0 0 232px;
+  width: 232px;
+  min-width: 232px;
+  min-height: 260px;
 }
 
 html[data-mode="care"] .memory-view .fruit-grid.is-auto-fit .fruit-card {
-  flex: 0 0 280px !important;
-  width: 280px !important;
-  min-width: 280px !important;
-  min-height: 280px !important;
+  flex: 0 0 232px !important;
+  width: 232px !important;
+  min-width: 232px !important;
+  min-height: 260px !important;
 }
 
 html[data-mode="care"] .memory-view .fruit-grid.is-auto-fit .fruit-image {
-  width: 200px !important;
-  height: 200px !important;
+  width: 180px !important;
+  height: 180px !important;
+  max-width: 96% !important;
+  max-height: 180px !important;
 }
 
 html[data-mode="care"] .memory-view .fruit-image {
-  width: 200px;
-  height: 200px;
+  width: 180px;
+  height: 180px;
+  max-width: 96%;
+  max-height: 180px;
 }
 
 html[data-mode="care"] .memory-view .fruit-name {
-  font-size: 80px !important;
+  font-size: 70px !important;
   line-height: 1.05;
 }
 
@@ -162,7 +179,7 @@ html[data-mode="care"] .memory-view .fruit-grid.is-auto-fit.is-medium .fruit-nam
 html[data-mode="care"] .memory-view .fruit-grid.is-auto-fit.is-balanced .fruit-name,
 html[data-mode="care"] .memory-view .fruit-grid.is-auto-fit.is-many .fruit-name,
 html[data-mode="care"] .memory-view .fruit-grid.is-auto-fit.is-dense .fruit-name {
-  font-size: 80px !important;
+  font-size: 70px !important;
   line-height: 1.05 !important;
 }
 
@@ -172,37 +189,161 @@ html[data-mode="care"] .target-fruit {
   justify-content: center;
   min-width: 0;
   min-height: 0;
-  width: min(100%, 420px);
-  padding: 12px 28px;
-  gap: 14px;
+  width: min(100%, 500px);
+  min-height: 150px;
+  padding: 18px 34px;
+  gap: 18px;
 }
 
 html[data-mode="care"] .target-fruit-image {
   position: static;
   flex: 0 0 auto;
-  width: 96px;
-  height: 96px;
+  width: 116px;
+  height: 116px;
   transform: none;
 }
 
 html[data-mode="care"] .target-fruit-name {
   transform: none;
-  font-size: 50px;
+  font-size: 64px;
 }
 
 html[data-mode="care"] .answer-grid {
   grid-template-columns: repeat(auto-fit, minmax(180px, max-content));
   justify-content: center;
   width: min(100%, 720px);
-  gap: 28px;
+  column-gap: 120px;
+  row-gap: 28px;
 }
 
 html[data-mode="care"] .number-button {
   width: 240px;
   min-width: 0;
-  height: 112px;
+  height: 148px;
   min-height: 0;
   aspect-ratio: auto;
   padding: 18px 24px;
-  font-size: 44px;
+  font-size: 60px;
+}
+
+html[data-mode="care"] .care-recall-view {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+  min-height: 100%;
+  padding: 0 32px;
+  text-align: center;
+  box-sizing: border-box;
+}
+
+html[data-mode="care"] .care-recall-text {
+  margin: 0;
+  color: #5f351a;
+  font-size: 66px;
+  font-weight: 1000;
+  line-height: 1.25;
+  word-break: keep-all;
+  -webkit-text-stroke: var(--text-stroke) currentColor;
+  paint-order: stroke fill;
+}
+
+html[data-mode="care"] .play-area > .memory-view,
+html[data-mode="care"] .play-area > .question-view {
+  display: grid;
+  grid-template-rows: minmax(124px, max-content) minmax(0, 1fr);
+  align-content: stretch;
+  align-items: stretch;
+  justify-content: stretch;
+  gap: 0;
+  width: 100%;
+  height: 100%;
+  min-height: 100%;
+  max-height: 100%;
+  overflow: hidden;
+}
+
+html[data-mode="care"] .play-area > .question-view {
+  grid-template-rows: minmax(0, 1fr);
+  place-items: stretch center;
+}
+
+html[data-mode="care"] .question-card {
+  display: grid;
+  grid-template-rows: minmax(124px, max-content) minmax(0, 1fr);
+  align-content: stretch;
+  align-items: stretch;
+  justify-items: center;
+  gap: 0;
+  width: 100%;
+  height: 100%;
+  max-width: 1040px;
+}
+
+html[data-mode="care"] .play-area > .question-view .question-card {
+  align-self: stretch;
+  min-height: 100%;
+  grid-template-rows: 30% minmax(0, 70%);
+}
+
+html[data-mode="care"] .care-stage-top {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  min-width: 0;
+  min-height: 124px;
+  padding: 20px 16px 10px;
+  box-sizing: border-box;
+}
+
+html[data-mode="care"] .care-stage-center {
+  display: grid;
+  place-items: center;
+  align-content: center;
+  width: 100%;
+  min-width: 0;
+  min-height: 0;
+  padding: 8px 0 0;
+  box-sizing: border-box;
+  overflow: visible;
+}
+
+html[data-mode="care"] .care-memory-center {
+  padding-top: 0;
+}
+
+html[data-mode="care"] .memory-view .care-stage-top {
+  padding-top: 44px;
+  padding-bottom: 4px;
+}
+
+html[data-mode="care"] .care-question-center {
+  gap: 34px;
+  padding-top: 0;
+}
+
+html[data-mode="care"] .question-view .care-stage-top {
+  min-height: 0;
+  padding-top: 18px;
+  padding-bottom: 8px;
+}
+
+html[data-mode="care"] .question-view .target-fruit {
+  transform: translateY(-40px);
+}
+
+html[data-mode="care"] .play-area > .question-view .answer-grid {
+  transform: none;
+}
+
+html[data-mode="care"] .play-area > .memory-view .memory-card,
+html[data-mode="care"] .question-top-row {
+  align-self: center;
+  margin: 0;
+}
+
+html[data-mode="care"] .play-area > .memory-view .memory-card .guide-text,
+html[data-mode="care"] .question-top-row .guide-text {
+  margin: 0;
+  transform: none !important;
 }

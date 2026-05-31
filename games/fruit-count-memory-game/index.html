@@ -501,7 +501,7 @@
       var params = new URLSearchParams(window.location.search);
       var requestedMode = String(params.get("mode") || "standard").trim().toLowerCase();
       var mode = Object.prototype.hasOwnProperty.call(modeMap, requestedMode) ? requestedMode : "standard";
-      var assetVersion = "care-mode-20260529";
+      var assetVersion = "care-mode-20260531-final-icon";
       window.__FRUIT_COUNT_GAME_MODE__ = mode;
       window.__FRUIT_COUNT_MODE_ASSETS__ = {
         css: "css/modes/" + mode + ".css",
@@ -515,7 +515,7 @@
       document.write('<script src="' + window.__FRUIT_COUNT_MODE_ASSETS__.js + '?v=' + assetVersion + '"><\/script>');
     })();
   </script>
-  <script src="js/app-bridge.js?v=care-mode-20260529"></script>
-  <script src="js/game.js?v=care-mode-20260529"></script>
+  <script src="js/app-bridge.js?v=care-mode-20260531-final-icon"></script>
+  <script src="js/game.js?v=care-mode-20260531-final-icon"></script>
 </body>
 </html>

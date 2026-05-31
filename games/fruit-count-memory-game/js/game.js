@@ -5,9 +5,11 @@
   const DIFFICULTY_TIME = 120;
   const START_READY_MESSAGE_TIME = 2000;
   const START_COUNTDOWN_TIME = 3000;
+  const CARE_RECALL_TRANSITION_TIME = 3000;
   const DIFFICULTY_SELECT_TRANSITION_DELAY = 0;
   const FEEDBACK_TIME = 2400;
   const RETRY_FEEDBACK_TIME = 2200;
+  const CARE_FEEDBACK_TIME = 4000;
   const MAX_WRONG_RETRIES = 2;
   const STORAGE_KEY = "fruit_count_memory_game_last_result";
   const RACE_POINTS = [16, 50, 84, 94];
@@ -557,7 +559,18 @@
     updateTopUi();
     renderMemoryView(state.currentQuestion);
     recordMemoryStarted();
-    startPhaseTimer(currentDifficulty().revealMs, showQuestionView);
+    startPhaseTimer(getMemoryRevealMs(), isCareMode() ? showCareRecallTransition : showQuestionView);
+  }
+
+  function showCareRecallTransition() {
+    if (!state.currentQuestion) {
+      return;
+    }
+
+    clearPhaseTimer();
+    state.phase = "recall";
+    renderCareRecallTransitionView();
+    startPhaseTimer(CARE_RECALL_TRANSITION_TIME, showQuestionView);
   }
 
   function showQuestionView() {
@@ -591,7 +604,7 @@
       playSound("retry");
       state.phase = "feedback";
       renderRetryFeedbackView(MAX_WRONG_RETRIES - state.wrongAttempts);
-      startPhaseTimer(RETRY_FEEDBACK_TIME, showQuestionView);
+      startPhaseTimer(getRetryFeedbackTime(), showQuestionView);
       return;
     }
 
@@ -604,7 +617,7 @@
     state.phase = "feedback";
     state.questionInDifficulty += 1;
     renderFeedbackView(isCorrect, state.currentQuestion);
-    startPhaseTimer(FEEDBACK_TIME, showNextQuestion);
+    startPhaseTimer(getFeedbackTime(), showNextQuestion);
   }
 
   function handleTimeExpired() {
@@ -632,54 +645,116 @@
     return runtimeConfig.mode === "care";
   }
 
+  function getMemoryRevealMs() {
+    return isCareMode() ? runtimeConfig.revealMs : currentDifficulty().revealMs;
+  }
+
+  function getFeedbackTime() {
+    return isCareMode() ? CARE_FEEDBACK_TIME : FEEDBACK_TIME;
+  }
+
+  function getRetryFeedbackTime() {
+    return isCareMode() ? CARE_FEEDBACK_TIME : RETRY_FEEDBACK_TIME;
+  }
+
   function createCareQuestion() {
     const questionIndex = state.questionInDifficulty;
-    const fruitCountLimit = Math.max(1, Math.min(5, runtimeConfig.maxItemsToRemember || 5));
-    if (questionIndex < 6) {
-      const fruit = pickOne(FRUITS);
-      const maxCount = Math.min(fruitCountLimit, questionIndex < 2 ? 2 : 3);
-      const count = randomInRange(1, maxCount);
-      const cards = Array.from({ length: count }, () => fruit);
-
-      return {
-        cards,
-        target: fruit,
-        answer: count,
-        totalCount: count,
-        options: createCareAnswerOptions(count, Math.max(2, maxCount), questionIndex),
-        memoryPrompt: `${fruit.name}${getSubjectParticle(fruit.name)} 몇 개 있는지 같이 봐볼까요?`,
-        questionPrompt: `좋아요. 이제 한 번 떠올려볼까요?\n방금 ${fruit.name}${getSubjectParticle(fruit.name)} 몇 개 있었을까요?`
-      };
-    }
-
-    const selectedFruits = shuffle([...FRUITS]).slice(0, 2);
-    const totalCount = Math.min(fruitCountLimit, questionIndex < 8 ? 4 : 5);
-    const firstCount = randomInRange(1, totalCount - 1);
-    const counts = [firstCount, totalCount - firstCount];
+    const fruitCountLimit = Math.max(1, Math.min(4, runtimeConfig.maxItemsToRemember || 4));
+    const plan = getCareQuestionPlan(currentDifficulty().key, questionIndex, fruitCountLimit);
+    const selectedFruits = pickCareFruits(plan.typeCount);
+    const counts = splitCareCounts(plan.totalCount, plan.typeCount);
     let cards = [];
     selectedFruits.forEach((fruit, index) => {
       cards = cards.concat(Array.from({ length: counts[index] }, () => fruit));
     });
-    cards = shuffle(cards);
+    if (plan.shuffleCards) {
+      cards = shuffle(cards);
+    }
 
     const targetIndex = randomInRange(0, selectedFruits.length - 1);
     const target = selectedFruits[targetIndex];
     const answer = counts[targetIndex];
+    const options = createCareAnswerOptions(answer, plan.totalCount);
 
     return {
       cards,
       target,
       answer,
-      totalCount,
-      options: createCareAnswerOptions(answer, totalCount, questionIndex),
+      totalCount: plan.totalCount,
+      options,
       memoryPrompt: `${target.name}${getSubjectParticle(target.name)} 몇 개 있는지 같이 봐볼까요?`,
-      questionPrompt: `좋아요. 이제 한 번 떠올려볼까요?\n방금 ${target.name}${getSubjectParticle(target.name)} 몇 개 있었을까요?`
+      questionPrompt: createCareQuestionPrompt(target, options)
     };
   }
 
-  function createCareAnswerOptions(answer, totalCount, questionIndex) {
-    const optionCount = questionIndex < 3 ? 2 : 3;
-    const maxOption = Math.max(optionCount, answer, Math.min(5, totalCount));
+  function getCareQuestionPlan(difficultyKey, questionIndex, fruitCountLimit) {
+    const plansByDifficulty = {
+      easy: [
+        { totalCount: 1, typeCount: 1, shuffleCards: false },
+        { totalCount: 2, typeCount: 1, shuffleCards: false },
+        { totalCount: 2, typeCount: 1, shuffleCards: false },
+        { totalCount: 3, typeCount: 1, shuffleCards: false },
+        { totalCount: 3, typeCount: 1, shuffleCards: false },
+        { totalCount: 4, typeCount: 1, shuffleCards: false },
+        { totalCount: 4, typeCount: 1, shuffleCards: false }
+      ],
+      normal: [
+        { totalCount: 1, typeCount: 1, shuffleCards: false },
+        { totalCount: 2, typeCount: 1, shuffleCards: false },
+        { totalCount: 2, typeCount: 2, shuffleCards: false },
+        { totalCount: 3, typeCount: 2, shuffleCards: false },
+        { totalCount: 3, typeCount: 2, shuffleCards: false },
+        { totalCount: 4, typeCount: 2, shuffleCards: false },
+        { totalCount: 4, typeCount: 2, shuffleCards: false }
+      ],
+      hard: [
+        { totalCount: 2, typeCount: 1, shuffleCards: true },
+        { totalCount: 2, typeCount: 2, shuffleCards: true },
+        { totalCount: 3, typeCount: 2, shuffleCards: true },
+        { totalCount: 3, typeCount: 2, shuffleCards: true },
+        { totalCount: 4, typeCount: 2, shuffleCards: true },
+        { totalCount: 4, typeCount: 3, shuffleCards: true },
+        { totalCount: 4, typeCount: 3, shuffleCards: true }
+      ]
+    };
+    const plans = plansByDifficulty[difficultyKey] || plansByDifficulty.easy;
+    const basePlan = plans[Math.min(questionIndex, plans.length - 1)];
+    const totalCount = Math.max(1, Math.min(basePlan.totalCount, fruitCountLimit));
+    const typeCount = Math.max(1, Math.min(basePlan.typeCount, totalCount));
+    return { totalCount, typeCount, shuffleCards: Boolean(basePlan.shuffleCards) };
+  }
+
+  function pickCareFruits(typeCount) {
+    const previousFruitIds = new Set(
+      state.currentQuestion && Array.isArray(state.currentQuestion.cards)
+        ? state.currentQuestion.cards.map((fruit) => fruit.id)
+        : []
+    );
+    let candidates = FRUITS.filter((fruit) => !previousFruitIds.has(fruit.id));
+
+    if (candidates.length < typeCount && state.currentQuestion && state.currentQuestion.target) {
+      const previousTargetId = state.currentQuestion.target.id;
+      candidates = FRUITS.filter((fruit) => fruit.id !== previousTargetId);
+    }
+
+    if (candidates.length < typeCount) {
+      candidates = FRUITS;
+    }
+
+    return shuffle(candidates).slice(0, typeCount);
+  }
+
+  function splitCareCounts(totalCount, typeCount) {
+    if (typeCount <= 1) {
+      return [totalCount];
+    }
+
+    return splitCount(totalCount, typeCount);
+  }
+
+  function createCareAnswerOptions(answer, totalCount) {
+    const optionCount = 2;
+    const maxOption = Math.max(optionCount, answer, Math.min(4, totalCount));
     const values = new Set([answer]);
     [answer - 1, answer + 1, answer - 2, answer + 2].forEach((value) => {
       if (value >= 1 && value <= maxOption && values.size < optionCount) {
@@ -692,6 +767,22 @@
     }
 
     return Array.from(values).sort((a, b) => a - b);
+  }
+
+  function createCareQuestionPrompt(fruit, options) {
+    const optionText = options.map((option) => `${formatCareCountLabel(option)}일까요`).join(", ");
+    return `${fruit.name}${getSubjectParticle(fruit.name)} ${optionText}?`;
+  }
+
+  function formatCareCountLabel(value) {
+    const labels = {
+      1: "하나",
+      2: "두 개",
+      3: "세 개",
+      4: "네 개",
+      5: "다섯 개"
+    };
+    return labels[value] || `${value}개`;
   }
 
   function createEasyQuestion(progress) {
@@ -946,7 +1037,7 @@
     const countdown = document.createElement("p");
     countdown.className = "memory-countdown";
     countdown.setAttribute("aria-live", "polite");
-    countdown.textContent = `${Math.ceil(currentDifficulty().revealMs / 1000)}초`;
+    countdown.textContent = `${Math.ceil(getMemoryRevealMs() / 1000)}초`;
 
     notice.append(title, countdown);
 
@@ -956,10 +1047,34 @@
     grid.style.setProperty("--memory-count", question.cards.length);
     question.cards.forEach((fruit) => grid.appendChild(createFruitCard(fruit)));
 
-    view.append(notice, grid);
+    if (isCareMode()) {
+      const topRegion = document.createElement("div");
+      topRegion.className = "care-stage-top";
+      const centerRegion = document.createElement("div");
+      centerRegion.className = "care-stage-center care-memory-center";
+      topRegion.appendChild(notice);
+      centerRegion.appendChild(grid);
+      view.append(topRegion, centerRegion);
+    } else {
+      view.append(notice, grid);
+    }
     els.playArea.appendChild(view);
     scheduleMemoryLayout();
     window.setTimeout(scheduleMemoryLayout, 60);
+  }
+
+  function renderCareRecallTransitionView() {
+    els.playArea.innerHTML = "";
+
+    const view = document.createElement("section");
+    view.className = "care-recall-view";
+
+    const message = document.createElement("p");
+    message.className = "care-recall-text";
+    message.textContent = "좋아요. 이제 한 번 떠올려볼까요?";
+
+    view.appendChild(message);
+    els.playArea.appendChild(view);
   }
 
   function scheduleMemoryLayout() {
@@ -1101,7 +1216,17 @@
     questionPromptWrap.append(questionText, hintMessage);
     questionTopRow.append(questionPromptWrap, hintArea);
 
-    card.append(questionTopRow, target, answerGrid);
+    if (isCareMode()) {
+      const topRegion = document.createElement("div");
+      topRegion.className = "care-stage-top";
+      const centerRegion = document.createElement("div");
+      centerRegion.className = "care-stage-center care-question-center";
+      topRegion.appendChild(questionTopRow);
+      centerRegion.append(target, answerGrid);
+      card.append(topRegion, centerRegion);
+    } else {
+      card.append(questionTopRow, target, answerGrid);
+    }
     view.appendChild(card);
     els.playArea.appendChild(view);
   }
@@ -1197,23 +1322,30 @@
 
   function renderFeedbackView(isCorrect, question) {
     els.playArea.innerHTML = "";
+    const isFinalCareFeedback = isCareMode() && state.questionInDifficulty >= getTotalQuestions();
 
     const view = document.createElement("section");
     view.className = "feedback-view";
 
     const symbol = document.createElement("div");
-    symbol.className = `feedback-symbol${isCorrect ? "" : " is-soft"}`;
-    symbol.textContent = isCorrect ? "✓" : "😊";
+    symbol.className = isFinalCareFeedback
+      ? "feedback-symbol is-final-care"
+      : `feedback-symbol${isCorrect ? "" : " is-soft"}`;
+    symbol.textContent = isFinalCareFeedback ? "🥰" : (isCorrect ? "✓" : "😊");
 
     const title = document.createElement("p");
     title.className = "feedback-title";
-    title.textContent = isCareMode()
+    title.textContent = isFinalCareFeedback
+      ? "여기까지 마쳤습니다."
+      : isCareMode()
       ? (isCorrect ? "좋습니다. 잘 보셨어요." : "조금 헷갈릴 수 있어요.")
       : (isCorrect ? "좋아요. 잘 보셨어요" : "괜찮아요");
 
     const message = document.createElement("p");
     message.className = "feedback-message";
-    message.textContent = isCorrect
+    message.textContent = isFinalCareFeedback
+      ? "오늘도 차분히 집중해 주셨어요. 잠시 편안히 쉬어가셔도 좋습니다."
+      : isCorrect
       ? "하나만 더 해볼까요? 힘드시면 쉬어도 괜찮아요."
       : (isCareMode() ? "괜찮아요. 천천히 다시 같이 볼까요?" : "조금 헷갈릴 수 있어요. 하나만 더 연습해볼까요?");
 
@@ -1418,7 +1550,7 @@
     els.pauseModal.classList.add("is-hidden");
     startDifficultyTimer();
 
-    if ((state.phase === "memory" || state.phase === "feedback") && state.phaseCallback) {
+    if ((state.phase === "memory" || state.phase === "recall" || state.phase === "feedback") && state.phaseCallback) {
       startPhaseTimer(state.phaseRemaining, state.phaseCallback);
     }
   }
@@ -2804,6 +2936,10 @@
   }
 
   function createResultMessage(totalAnswered, rate) {
+    if (isCareMode()) {
+      return createCareResultMessage(totalAnswered);
+    }
+
     if (totalAnswered === 0) {
       return {
         emoji: "🙂",
@@ -2832,6 +2968,22 @@
       emoji: "😄",
       title: "괜찮아요",
       message: "다시 해도 좋아요."
+    };
+  }
+
+  function createCareResultMessage(totalAnswered) {
+    if (totalAnswered === 0) {
+      return {
+        emoji: "🌿",
+        title: "괜찮습니다.",
+        message: "오늘은 여기서 멈춰도 좋습니다. 편안한 때에 다시 이어가면 됩니다."
+      };
+    }
+
+    return {
+      emoji: "🌿",
+      title: "수고 많으셨습니다.",
+      message: "오늘의 기억 활동을 끝까지 마쳤습니다. 잠시 편안히 쉬어가셔도 좋습니다."
     };
   }
 
