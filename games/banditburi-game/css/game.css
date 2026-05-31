@@ -3120,6 +3120,12 @@
         transform: translateY(10px);
       }
 
+      .theme-bulb .board[data-grid-size="2"] .cell.object-yellow .object-img,
+      .theme-bulb .board[data-grid-size="2"] .cell.correct .object-img,
+      .theme-bulb .board[data-grid-size="2"] .cell.hint .object-img {
+        transform: translateY(6px);
+      }
+
       .theme-bird .board[data-grid-size="2"] .object-img {
         --object-size: 185%;
       }
