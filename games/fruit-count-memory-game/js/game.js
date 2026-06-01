@@ -11,7 +11,7 @@
   const RETRY_FEEDBACK_TIME = 2200;
   const CARE_FEEDBACK_TIME = 4000;
   const MAX_WRONG_RETRIES = 2;
-  const STORAGE_KEY = "fruit_count_memory_game_last_result";
+  const STORAGE_KEY_PREFIX = "fruit_count_memory_game_last_result";
   const RACE_POINTS = [16, 50, 84, 94];
   const MEMORY_LAYOUT_MIN_CARD = 38;
   const MEMORY_LAYOUT_CARD_SIZE = 162;
@@ -22,6 +22,7 @@
   const STAGE_WIDTH = 1280;
   const STAGE_HEIGHT = 720;
   const CONDITION_SLEEP_HOURS = [4, 5, 6, 7, 8, 9, 10, 11, 12];
+  const CONDITION_SLEEP_DRAG_STEP_PX = 42;
   const ASSET_LOAD_TIMEOUT = 6000;
   const DEFAULT_RUN_CONFIG = Object.freeze({
     gameId: "fruit-count-memory-game",
@@ -57,6 +58,9 @@
       showConditionCheck: true,
       showFinishCheck: true
     }),
+    previousResult: null,
+    previousRecord: null,
+    lastResult: null,
     schemaVersion: "mock-v1"
   });
   const ERROR_SCREEN_COPY = Object.freeze({
@@ -265,17 +269,21 @@
     raceMarker: document.getElementById("race-marker"),
     raceSteps: Array.from(document.querySelectorAll(".race-step")),
     resultEmoji: document.getElementById("result-emoji"),
+    resultEyebrow: document.querySelector("#result-screen .eyebrow"),
     resultTitle: document.getElementById("result-title"),
     resultMessage: document.getElementById("result-message"),
+    standardResultRecord: document.getElementById("standard-result-record"),
     resultCorrect: document.getElementById("result-correct"),
     resultTotal: document.getElementById("result-total"),
     resultRate: document.getElementById("result-rate"),
-    resultDifficulty: document.getElementById("result-difficulty"),
     resultStage: document.getElementById("result-stage"),
+    resultHintCount: document.getElementById("result-hint-count"),
+    resultStartButton: document.getElementById("result-start-button"),
     resultHomeButton: document.getElementById("result-home-button"),
     resultCompare: document.getElementById("result-compare"),
     conditionModal: document.getElementById("condition-modal"),
     conditionMoodButtons: Array.from(document.querySelectorAll(".condition-mood-button")),
+    conditionSleepDial: document.querySelector(".condition-sleep-dial"),
     conditionSleepRows: document.getElementById("condition-sleep-rows"),
     conditionSleepUpButton: document.getElementById("condition-sleep-up-button"),
     conditionSleepDownButton: document.getElementById("condition-sleep-down-button"),
@@ -325,6 +333,10 @@
       neededHelp: "none",
       replayIntent: "yes"
     },
+    sleepDrag: {
+      pointerId: null,
+      lastStepY: 0
+    },
     soundContext: null
   };
   let memoryLayoutFrame = null;
@@ -370,7 +382,9 @@
     const viewportWidth = viewport && viewport.width ? viewport.width : window.innerWidth || document.documentElement.clientWidth || STAGE_WIDTH;
     const viewportHeight = viewport && viewport.height ? viewport.height : window.innerHeight || document.documentElement.clientHeight || STAGE_HEIGHT;
     const scale = Math.max(0.01, Math.min(viewportWidth / STAGE_WIDTH, viewportHeight / STAGE_HEIGHT));
+    const verticalGutter = Math.max(0, (viewportHeight - (STAGE_HEIGHT * scale)) / (2 * scale));
     document.documentElement.style.setProperty("--game-scale", String(scale));
+    document.documentElement.style.setProperty("--game-viewport-top-gutter", `${Math.min(verticalGutter, 120)}px`);
     return scale;
   }
 
@@ -661,7 +675,11 @@
   }
 
   function isCareMode() {
-    return runtimeConfig.mode === "care";
+    return runtimeConfig.mode === "care" || runtimeConfig.mode === "ai_assisted";
+  }
+
+  function isStandardLikeMode() {
+    return runtimeConfig.mode === "standard" || runtimeConfig.mode === "reminder";
   }
 
   function getMemoryRevealMs() {
@@ -1954,6 +1972,9 @@
       resultLogLevel: typeof source.resultLogLevel === "string" && source.resultLogLevel ? source.resultLogLevel : DEFAULT_RUN_CONFIG.resultLogLevel,
       mode: normalizeGameMode(source.mode),
       ui: normalizeUiConfig(source.ui),
+      previousResult: source.previousResult && typeof source.previousResult === "object" ? source.previousResult : DEFAULT_RUN_CONFIG.previousResult,
+      previousRecord: source.previousRecord && typeof source.previousRecord === "object" ? source.previousRecord : DEFAULT_RUN_CONFIG.previousRecord,
+      lastResult: source.lastResult && typeof source.lastResult === "object" ? source.lastResult : DEFAULT_RUN_CONFIG.lastResult,
       schemaVersion: typeof source.schemaVersion === "string" && source.schemaVersion ? source.schemaVersion : DEFAULT_RUN_CONFIG.schemaVersion,
       difficulties
     };
@@ -2637,6 +2658,61 @@
     renderConditionSleepDial();
   }
 
+  function startConditionSleepDrag(event) {
+    if (!els.conditionSleepDial || event.button > 0) {
+      return;
+    }
+
+    event.preventDefault();
+    state.sleepDrag.pointerId = event.pointerId;
+    state.sleepDrag.lastStepY = event.clientY;
+    els.conditionSleepDial.classList.add("is-dragging");
+
+    if (typeof els.conditionSleepDial.setPointerCapture === "function") {
+      els.conditionSleepDial.setPointerCapture(event.pointerId);
+    }
+  }
+
+  function dragConditionSleep(event) {
+    if (state.sleepDrag.pointerId !== event.pointerId) {
+      return;
+    }
+
+    event.preventDefault();
+    const deltaY = event.clientY - state.sleepDrag.lastStepY;
+    const steps = Math.trunc(Math.abs(deltaY) / CONDITION_SLEEP_DRAG_STEP_PX);
+
+    if (steps < 1) {
+      return;
+    }
+
+    const direction = deltaY > 0 ? -1 : 1;
+    state.sleepDrag.lastStepY += direction * -steps * CONDITION_SLEEP_DRAG_STEP_PX;
+    changeConditionSleep(direction * steps);
+    playSound("button");
+  }
+
+  function endConditionSleepDrag(event) {
+    if (state.sleepDrag.pointerId !== event.pointerId) {
+      return;
+    }
+
+    if (
+      els.conditionSleepDial &&
+      typeof els.conditionSleepDial.releasePointerCapture === "function" &&
+      els.conditionSleepDial.hasPointerCapture(event.pointerId)
+    ) {
+      els.conditionSleepDial.releasePointerCapture(event.pointerId);
+    }
+
+    state.sleepDrag.pointerId = null;
+    state.sleepDrag.lastStepY = 0;
+
+    if (els.conditionSleepDial) {
+      els.conditionSleepDial.classList.remove("is-dragging");
+    }
+  }
+
   function selectConditionMood(button) {
     state.conditionMood = button.dataset.mood || "good";
     els.conditionMoodButtons.forEach((moodButton) => {
@@ -2755,6 +2831,12 @@
 
   function exitGameFromSettings() {
     closeSettings();
+    if (isStandardLikeMode()) {
+      sendGameExit(createExitPayload("settings"));
+      returnToHub();
+      return;
+    }
+
     const didSendExit = sendGameExit(createExitPayload("settings"));
     if (!didSendExit) {
       goHome();
@@ -3033,22 +3115,26 @@
     els.pauseModal.classList.add("is-hidden");
     els.pauseButton.classList.remove("is-paused");
     const totalAnswered = getAnsweredCount();
-    const rate = totalAnswered > 0 ? Math.round((state.correctCount / totalAnswered) * 100) : 0;
+    const resultTotal = getResultTotalCount(totalAnswered);
+    const rate = resultTotal > 0 ? Math.round((state.correctCount / resultTotal) * 100) : 0;
     const resultMessage = createResultMessage(totalAnswered, rate);
+    const previousRecord = readPreviousRecord();
 
+    updateResultEyebrow();
     els.resultEmoji.textContent = resultMessage.emoji;
     els.resultTitle.textContent = resultMessage.title;
     renderResultMessage(resultMessage.message);
+    updateStandardResultRecord(resultTotal, rate, previousRecord);
     playSound("complete");
 
     try {
-      saveRecord(rate, totalAnswered);
+      saveRecord(rate, resultTotal);
     } catch (error) {
       reportAppError("STORAGE_FAILED", error);
     }
 
     try {
-      sendGameComplete(createCompleteResult(totalAnswered, rate));
+      sendGameComplete(createCompleteResult(resultTotal, rate));
     } catch (error) {
       handleFatalError("RESULT_CREATE_FAILED", error);
       return;
@@ -3056,8 +3142,44 @@
     showOnly("result");
   }
 
+  function getResultTotalCount(totalAnswered) {
+    return isStandardLikeMode() ? getTotalQuestions() : totalAnswered;
+  }
+
   function restartCurrentDifficulty() {
     startGame(state.difficultyIndex);
+  }
+
+  function updateResultEyebrow() {
+    if (!els.resultEyebrow || !isStandardLikeMode()) {
+      return;
+    }
+
+    els.resultEyebrow.textContent = "오늘 기억 활동 정말 잘하셨어요!";
+  }
+
+  function updateStandardResultRecord(resultTotal, rate, previousRecord) {
+    if (!isStandardLikeMode()) {
+      return;
+    }
+
+    const hintUsedQuestionCount = telemetryState.questionResults.filter((question) => question.hintUsed).length;
+    els.resultTitle.textContent = "오늘의 기억 활동";
+    if (els.resultCorrect) {
+      els.resultCorrect.textContent = String(state.correctCount);
+    }
+    if (els.resultTotal) {
+      els.resultTotal.textContent = String(resultTotal);
+    }
+    if (els.resultRate) {
+      els.resultRate.textContent = `${rate}%`;
+    }
+    if (els.resultHintCount) {
+      els.resultHintCount.textContent = `${hintUsedQuestionCount}회`;
+    }
+    if (els.resultCompare) {
+      els.resultCompare.textContent = createCompareText(previousRecord, rate);
+    }
   }
 
   function createResultMessage(totalAnswered, rate) {
@@ -3130,27 +3252,65 @@
 
   function createCompareText(previous, currentRate) {
     if (!previous || typeof previous.rate !== "number") {
-      return "첫 기록입니다!";
+      return "오늘 첫 기록을 남겼어요";
     }
 
     const diff = currentRate - previous.rate;
     if (diff >= 2) {
-      return `지난번보다 ${Math.round(diff)}% 좋아졌어요!`;
+      return `지난번보다 ${Math.round(diff)}% 좋아졌어요`;
     }
 
     if (diff <= -2) {
-      return "다음엔 더 좋아져요!";
+      return "다음번엔 더 좋아질 수 있어요";
     }
 
-    return "지난번과 비슷해요.";
+    return "지난번과 비슷해요";
   }
 
   function readPreviousRecord() {
     try {
-      return JSON.parse(localStorage.getItem(STORAGE_KEY));
+      return readPreviousRecordForCurrentProfile();
     } catch (error) {
       return null;
     }
+  }
+
+  function readPreviousRecordForCurrentProfile() {
+    return readPreviousRecordFromRuntimeConfig();
+  }
+
+  function readPreviousRecordFromRuntimeConfig() {
+    const candidates = [
+      runtimeConfig.previousResult,
+      runtimeConfig.previousRecord,
+      runtimeConfig.lastResult
+    ];
+    const ownerId = getResultRecordOwnerId();
+
+    return candidates.find((record) => {
+      if (!record || typeof record !== "object" || typeof record.rate !== "number") {
+        return false;
+      }
+      if (!record.userId && !record.anonymousUserId && !record.ownerId) {
+        return true;
+      }
+      return [record.userId, record.anonymousUserId, record.ownerId].includes(ownerId);
+    }) || null;
+  }
+
+  function getResultRecordOwnerId() {
+    return runtimeConfig.userId || runtimeConfig.anonymousUserId || runtimeConfig.deviceId || "local-user";
+  }
+
+  function getResultStorageKey() {
+    const gameId = runtimeConfig.gameId || DEFAULT_RUN_CONFIG.gameId;
+    const mode = runtimeConfig.mode || DEFAULT_RUN_CONFIG.mode;
+    return [
+      STORAGE_KEY_PREFIX,
+      sanitizeResultIdPart(gameId),
+      sanitizeResultIdPart(mode),
+      sanitizeResultIdPart(getResultRecordOwnerId())
+    ].join(":");
   }
 
   function saveRecord(rate, totalAnswered) {
@@ -3158,9 +3318,14 @@
       rate,
       correct: state.correctCount,
       total: totalAnswered,
+      gameId: runtimeConfig.gameId || DEFAULT_RUN_CONFIG.gameId,
+      mode: runtimeConfig.mode || DEFAULT_RUN_CONFIG.mode,
+      userId: runtimeConfig.userId || "",
+      anonymousUserId: runtimeConfig.anonymousUserId || "",
+      ownerId: getResultRecordOwnerId(),
       playedAt: new Date().toISOString()
     };
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(record));
+    localStorage.setItem(getResultStorageKey(), JSON.stringify(record));
   }
 
   function showOnly(screen) {
@@ -3295,6 +3460,7 @@
       }, DIFFICULTY_SELECT_TRANSITION_DELAY));
     });
     els.difficultyBackButton.addEventListener("click", withButtonSound(goHome));
+    els.resultStartButton.addEventListener("click", withButtonSound(goHome));
     els.resultHomeButton.addEventListener("click", withButtonSound(exitGameFromResult));
     els.errorHomeButton.addEventListener("click", withButtonSound(goHome));
     els.pauseButton.addEventListener("click", withButtonSound(pauseGame));
@@ -3329,6 +3495,13 @@
       playSound("button");
       changeConditionSleep(1);
     });
+    if (els.conditionSleepDial) {
+      els.conditionSleepDial.addEventListener("pointerdown", startConditionSleepDrag);
+      els.conditionSleepDial.addEventListener("pointermove", dragConditionSleep);
+      els.conditionSleepDial.addEventListener("pointerup", endConditionSleepDrag);
+      els.conditionSleepDial.addEventListener("pointercancel", endConditionSleepDrag);
+      els.conditionSleepDial.addEventListener("lostpointercapture", endConditionSleepDrag);
+    }
     els.conditionConfirmButton.addEventListener("click", withButtonSound(closeConditionCheck));
     els.postConditionOptions.forEach((button) => {
       button.addEventListener("click", () => {

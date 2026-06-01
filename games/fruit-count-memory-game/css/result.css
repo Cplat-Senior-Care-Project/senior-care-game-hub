@@ -13,7 +13,18 @@
         0 0 4px rgba(56, 69, 32, 0.42);
   font-size: 50px;
   display: none;
-}.result-actions #restart-button:active,
+}
+
+.result-actions #result-start-button,
+.standard-result-record {
+  display: none;
+}
+
+.standard-result-card {
+  display: contents;
+}
+
+.result-actions #restart-button:active,
 .result-actions #restart-button.is-pressed {
   transform: translateY(3px) scale(0.98);
   box-shadow: 0 3px 9px rgba(47, 65, 21, 0.2),

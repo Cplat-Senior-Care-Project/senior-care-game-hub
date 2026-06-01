@@ -259,6 +259,13 @@
     inset 0 0 0 3px rgba(121, 77, 26, 0.18),
     inset 0 24px 30px rgba(64, 40, 19, 0.1),
     inset 0 -24px 30px rgba(64, 40, 19, 0.1);
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+}
+
+.condition-sleep-dial.is-dragging {
+  cursor: grabbing;
 }
 
 .condition-sleep-dial::before {

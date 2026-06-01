@@ -12,14 +12,16 @@
       var viewportWidth = visualViewport && visualViewport.width ? visualViewport.width : window.innerWidth || document.documentElement.clientWidth || stageWidth;
       var viewportHeight = visualViewport && visualViewport.height ? visualViewport.height : window.innerHeight || document.documentElement.clientHeight || stageHeight;
       var scale = Math.max(0.01, Math.min(viewportWidth / stageWidth, viewportHeight / stageHeight));
+      var verticalGutter = Math.max(0, (viewportHeight - (stageHeight * scale)) / (2 * scale));
       document.documentElement.style.setProperty("--game-scale", String(scale));
+      document.documentElement.style.setProperty("--game-viewport-top-gutter", String(Math.min(verticalGutter, 120)) + "px");
     })();
   </script>
   <link rel="stylesheet" href="css/base.css?v=direct-20260528">
   <link rel="stylesheet" href="css/start.css?v=direct-20260528">
   <link rel="stylesheet" href="css/difficulty.css?v=direct-20260528">
   <link rel="stylesheet" href="css/game-screen.css?v=direct-20260528">
-  <link rel="stylesheet" href="css/result.css?v=direct-20260528">
+  <link rel="stylesheet" href="css/result.css?v=standard-first-record-only-20260601">
   <link rel="stylesheet" href="css/condition.css?v=direct-20260528">
   <link rel="stylesheet" href="css/tutorial-settings-pause.css?v=direct-20260528">
   <link rel="stylesheet" href="css/animations.css?v=direct-20260528">
@@ -152,11 +154,40 @@
       <div class="result-content">
         <div id="result-emoji" class="result-emoji" aria-hidden="true">🤗</div>
         <p class="eyebrow">오늘 기억활동 정말 잘하셨어요!</p>
-        <h2 id="result-title">수고하셨어요</h2>
-        <p id="result-message" class="result-message">천천히 집중해주신 것만으로도 참 좋습니다.</p>
-        <div class="result-actions">
-          <button id="restart-button" class="game-button primary-button" type="button">처음부터 다시</button>
-          <button id="result-home-button" class="game-button secondary-button" type="button">효담콜로 돌아가기</button>
+        <div class="standard-result-card">
+          <h2 id="result-title">오늘의 기억 활동</h2>
+          <p id="result-message" class="result-message">천천히 집중해주신 것만으로도 참 좋습니다.</p>
+          <div id="standard-result-record" class="standard-result-record" aria-live="polite">
+            <div class="standard-result-score-panel">
+              <span class="standard-result-trophy" aria-hidden="true">🏆</span>
+              <div class="standard-result-score" aria-label="점수">
+                <strong id="result-correct" class="standard-result-correct">0</strong>
+                <span class="standard-result-score-divider">/</span>
+                <strong id="result-total" class="standard-result-total">0</strong>
+                <span class="standard-result-answer-label">정답</span>
+              </div>
+              <div class="standard-result-rate">
+                <span>정답률</span>
+                <strong id="result-rate">0%</strong>
+              </div>
+            </div>
+            <div class="standard-result-details">
+              <div class="standard-result-detail standard-result-hint">
+                <span class="standard-result-detail-icon" aria-hidden="true">💡</span>
+                <span>힌트</span>
+                <strong id="result-hint-count">0회</strong>
+              </div>
+              <div class="standard-result-detail standard-result-compare">
+                <span class="standard-result-detail-icon" aria-hidden="true">↗</span>
+                <strong id="result-compare">오늘 첫 기록을 남겼어요</strong>
+              </div>
+            </div>
+          </div>
+          <div class="result-actions">
+            <button id="restart-button" class="game-button primary-button" type="button">처음부터 다시</button>
+            <button id="result-start-button" class="game-button secondary-button" type="button">홈으로 돌아가기</button>
+            <button id="result-home-button" class="game-button secondary-button" type="button">효담콜로 돌아가기</button>
+          </div>
         </div>
       </div>
     </section>
@@ -518,7 +549,7 @@
       var params = new URLSearchParams(window.location.search);
       var requestedMode = String(params.get("mode") || "standard").trim().toLowerCase();
       var mode = Object.prototype.hasOwnProperty.call(modeMap, requestedMode) ? requestedMode : "standard";
-      var assetVersion = "care-mode-20260531-final-icon";
+      var assetVersion = "care-ai-home-green-20260601";
       window.__FRUIT_COUNT_GAME_MODE__ = mode;
       window.__FRUIT_COUNT_MODE_ASSETS__ = {
         css: "css/modes/" + mode + ".css",
@@ -532,7 +563,7 @@
       document.write('<script src="' + window.__FRUIT_COUNT_MODE_ASSETS__.js + '?v=' + assetVersion + '"><\/script>');
     })();
   </script>
-  <script src="js/app-bridge.js?v=care-mode-20260531-final-icon"></script>
-  <script src="js/game.js?v=care-mode-20260531-final-icon"></script>
+  <script src="js/app-bridge.js?v=standard-first-record-only-20260601"></script>
+  <script src="js/game.js?v=standard-reminder-result-total-20260601"></script>
 </body>
 </html>

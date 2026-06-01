@@ -4,7 +4,7 @@
   global.FruitCountMemoryGameMode = {
     id: "ai_assisted",
     apply: function () {
-      document.documentElement.classList.add("is-ai-assisted-mode");
+      document.documentElement.classList.add("is-ai-assisted-mode", "is-care-mode");
     }
   };
 })(window);

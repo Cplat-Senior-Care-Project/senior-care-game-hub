@@ -29,6 +29,9 @@
     softFeedback: true,
     resultLogLevel: "detailed",
     mode: "standard",
+    previousResult: null,
+    previousRecord: null,
+    lastResult: null,
     ui: {
       showTimer: true,
       showProgress: true,
@@ -232,6 +235,9 @@
       softFeedback: readBoolean(merged, "softFeedback", DEFAULT_MOCK_CONFIG.softFeedback),
       resultLogLevel: readString(merged, "resultLogLevel", DEFAULT_MOCK_CONFIG.resultLogLevel),
       mode: readString(merged, "mode", DEFAULT_MOCK_CONFIG.mode),
+      previousResult: isPlainObject(merged.previousResult) ? merged.previousResult : DEFAULT_MOCK_CONFIG.previousResult,
+      previousRecord: isPlainObject(merged.previousRecord) ? merged.previousRecord : DEFAULT_MOCK_CONFIG.previousRecord,
+      lastResult: isPlainObject(merged.lastResult) ? merged.lastResult : DEFAULT_MOCK_CONFIG.lastResult,
       ui: isPlainObject(merged.ui) ? merged.ui : DEFAULT_MOCK_CONFIG.ui,
       schemaVersion: MOCK_SCHEMA_VERSION,
       receivedAt: new Date().toISOString()
