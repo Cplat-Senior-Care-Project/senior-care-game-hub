@@ -28,6 +28,10 @@
   transform: none;
 }
 
+.care-play-controls {
+  display: none;
+}
+
 .race-wrap {
   --marker-left: 13%;
   --race-fill: 0%;

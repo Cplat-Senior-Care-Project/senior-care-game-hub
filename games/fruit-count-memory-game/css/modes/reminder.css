@@ -1,4 +1,8 @@
 /* Reminder mode only. */
+html[data-mode="reminder"]:has(#start-screen:not(.is-hidden)) .game-background {
+  background-image: url("../../assets/images/standard_background2.png");
+}
+
 html[data-mode="reminder"] #settings-button {
   display: none !important;
 }

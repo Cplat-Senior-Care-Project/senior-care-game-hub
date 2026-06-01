@@ -1,4 +1,8 @@
 /* AI assisted mode only. */
+html[data-mode="ai_assisted"]:has(#start-screen:not(.is-hidden)) .game-background {
+  background-image: url("../../assets/images/standard_background2.png");
+}
+
 html[data-mode="ai_assisted"] #settings-button {
   display: none !important;
 }

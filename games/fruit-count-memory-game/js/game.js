@@ -216,12 +216,17 @@
     errorCode: document.getElementById("error-code"),
     errorHomeButton: document.getElementById("error-home-button"),
     startButton: document.getElementById("start-button"),
+    startExitButton: document.getElementById("start-exit-button"),
     settingsButton: document.getElementById("settings-button"),
     tutorialButton: document.getElementById("tutorial-button"),
     difficultyButtons: Array.from(document.querySelectorAll(".difficulty-option")),
     difficultyBackButton: document.getElementById("difficulty-back-button"),
     restartButton: document.getElementById("restart-button"),
     pauseButton: document.getElementById("pause-button"),
+    carePlayControls: document.getElementById("care-play-controls"),
+    carePauseButton: document.getElementById("care-pause-button"),
+    careHintButton: document.getElementById("care-hint-button"),
+    careHintMessage: document.getElementById("care-hint-message"),
     resumeButton: document.getElementById("resume-button"),
     pauseRestartButton: document.getElementById("pause-restart-button"),
     pauseHelpButton: document.getElementById("pause-help-button"),
@@ -369,6 +374,14 @@
     return scale;
   }
 
+  function mountCareControlsOverlay() {
+    if (!els.carePlayControls || !els.app || els.carePlayControls.parentElement === document.body) {
+      return;
+    }
+
+    document.body.insertBefore(els.carePlayControls, els.app.nextSibling);
+  }
+
   function startIntroLoading() {
     if (!els.startScreen || !els.startLoadingFill || !els.startLoadingText) {
       return;
@@ -463,6 +476,7 @@
     state.isPaused = false;
     state.reachedDifficultyIndex = index;
     updateTopUi();
+    updateCareHintButtonState();
 
     if (!els.gameCountdown || !els.gameCountdownTimer || !els.gameCountdownNumber) {
       startDifficulty(index);
@@ -614,8 +628,13 @@
 
   function completeQuestion(isCorrect) {
     finalizeCurrentQuestion(isCorrect ? "correct" : "incorrect", isCorrect);
-    state.phase = "feedback";
     state.questionInDifficulty += 1;
+    if (isCareMode() && state.questionInDifficulty >= getTotalQuestions()) {
+      finishGame("all_questions");
+      return;
+    }
+
+    state.phase = "feedback";
     renderFeedbackView(isCorrect, state.currentQuestion);
     startPhaseTimer(getFeedbackTime(), showNextQuestion);
   }
@@ -1059,6 +1078,7 @@
       view.append(notice, grid);
     }
     els.playArea.appendChild(view);
+    updateCareHintButtonState();
     scheduleMemoryLayout();
     window.setTimeout(scheduleMemoryLayout, 60);
   }
@@ -1075,6 +1095,7 @@
 
     view.appendChild(message);
     els.playArea.appendChild(view);
+    updateCareHintButtonState();
   }
 
   function scheduleMemoryLayout() {
@@ -1229,6 +1250,7 @@
     }
     view.appendChild(card);
     els.playArea.appendChild(view);
+    updateCareHintButtonState();
   }
 
   function getHintMessage(question, hintStep) {
@@ -1318,6 +1340,7 @@
 
     view.append(symbol, title);
     els.playArea.appendChild(view);
+    updateCareHintButtonState();
   }
 
   function renderFeedbackView(isCorrect, question) {
@@ -1344,13 +1367,14 @@
     const message = document.createElement("p");
     message.className = "feedback-message";
     message.textContent = isFinalCareFeedback
-      ? "오늘도 차분히 집중해 주셨어요. 잠시 편안히 쉬어가셔도 좋습니다."
+      ? "오늘도 차분히 집중해 주셨어요."
       : isCorrect
       ? "하나만 더 해볼까요? 힘드시면 쉬어도 괜찮아요."
       : (isCareMode() ? "괜찮아요. 천천히 다시 같이 볼까요?" : "조금 헷갈릴 수 있어요. 하나만 더 연습해볼까요?");
 
     view.append(symbol, title, message);
     els.playArea.appendChild(view);
+    updateCareHintButtonState();
   }
 
   function createFruitCard(fruit) {
@@ -1518,6 +1542,62 @@
       window.clearTimeout(state.hintTimerId);
       state.hintTimerId = null;
     }
+    hideCareHintMessage();
+  }
+
+  function hideCareHintMessage() {
+    if (!els.careHintMessage) {
+      return;
+    }
+
+    els.careHintMessage.textContent = "";
+    els.careHintMessage.classList.add("is-hidden");
+    if (els.app) {
+      els.app.classList.remove("is-care-hint-open");
+    }
+  }
+
+  function updateCareHintButtonState() {
+    const isCare = isCareMode();
+    const canPause = isCare && !state.isPaused && !["start", "difficulty", "countdown", "postCondition", "result"].includes(state.phase);
+
+    if (els.carePauseButton) {
+      els.carePauseButton.disabled = !canPause;
+      els.carePauseButton.setAttribute("aria-disabled", canPause ? "false" : "true");
+    }
+
+    const hasQuestionView = state.phase === "question" && els.playArea && !!els.playArea.querySelector(".question-view");
+    const canUseHint = isCare && !!state.currentQuestion && hasQuestionView && !state.isPaused;
+    if (els.careHintButton) {
+      els.careHintButton.hidden = !hasQuestionView;
+      els.careHintButton.disabled = !canUseHint;
+      els.careHintButton.setAttribute("aria-disabled", canUseHint ? "false" : "true");
+    }
+    if (!hasQuestionView) {
+      hideCareHintMessage();
+    }
+  }
+
+  function triggerCareHint() {
+    if (els.careHintButton.disabled || !state.currentQuestion) {
+      return;
+    }
+
+    playSound("button");
+    clearHintTimer();
+    state.hintStep = Math.min(state.hintStep + 1, 2);
+    recordHintUsed(state.hintStep);
+    if (els.careHintMessage) {
+      els.careHintMessage.textContent = getHintMessage(state.currentQuestion, state.hintStep);
+      els.careHintMessage.classList.remove("is-hidden");
+      if (els.app) {
+        els.app.classList.add("is-care-hint-open");
+      }
+    }
+    state.hintTimerId = window.setTimeout(() => {
+      hideCareHintMessage();
+      state.hintTimerId = null;
+    }, 3000);
   }
 
   function pauseGame() {
@@ -1528,6 +1608,13 @@
     state.isPaused = true;
     recordQuestionPause();
     els.pauseButton.classList.add("is-paused");
+    if (els.carePauseButton) {
+      els.carePauseButton.classList.add("is-paused");
+    }
+    if (els.app) {
+      els.app.classList.add("is-care-paused");
+    }
+    updateCareHintButtonState();
     clearInterval(state.timerId);
     state.timerId = null;
 
@@ -1547,7 +1634,14 @@
 
     state.isPaused = false;
     els.pauseButton.classList.remove("is-paused");
+    if (els.carePauseButton) {
+      els.carePauseButton.classList.remove("is-paused");
+    }
+    if (els.app) {
+      els.app.classList.remove("is-care-paused");
+    }
     els.pauseModal.classList.add("is-hidden");
+    updateCareHintButtonState();
     startDifficultyTimer();
 
     if ((state.phase === "memory" || state.phase === "recall" || state.phase === "feedback") && state.phaseCallback) {
@@ -1558,7 +1652,17 @@
   function quitGame() {
     state.isPaused = false;
     els.pauseButton.classList.remove("is-paused");
+    if (els.carePauseButton) {
+      els.carePauseButton.classList.remove("is-paused");
+    }
+    if (els.app) {
+      els.app.classList.remove("is-care-paused");
+    }
     els.pauseModal.classList.add("is-hidden");
+    updateCareHintButtonState();
+    if (isCareMode()) {
+      state.postConditionChecked = true;
+    }
     finishGame("quit");
   }
 
@@ -1566,7 +1670,14 @@
     const difficultyIndex = state.difficultyIndex;
     state.isPaused = false;
     els.pauseButton.classList.remove("is-paused");
+    if (els.carePauseButton) {
+      els.carePauseButton.classList.remove("is-paused");
+    }
+    if (els.app) {
+      els.app.classList.remove("is-care-paused");
+    }
     els.pauseModal.classList.add("is-hidden");
+    updateCareHintButtonState();
     startGame(difficultyIndex);
   }
 
@@ -2650,6 +2761,20 @@
     }
   }
 
+  function returnToHub() {
+    window.location.href = new URL("../../index.html", window.location.href).href;
+  }
+
+  function exitGameFromStart() {
+    sendGameExit(createExitPayload("start"));
+    returnToHub();
+  }
+
+  function exitGameFromResult() {
+    sendGameExit(createExitPayload("result"));
+    returnToHub();
+  }
+
   function updateSettingClasses() {
     els.app.classList.toggle("is-background-sound-off", els.backgroundSoundToggle && !els.backgroundSoundToggle.checked);
     els.app.classList.toggle("is-sound-off", els.soundToggle && !els.soundToggle.checked);
@@ -2974,16 +3099,16 @@
   function createCareResultMessage(totalAnswered) {
     if (totalAnswered === 0) {
       return {
-        emoji: "🌿",
+        emoji: "🤗",
         title: "괜찮습니다.",
-        message: "오늘은 여기서 멈춰도 좋습니다. 편안한 때에 다시 이어가면 됩니다."
+        message: "편안한 때에 다시 이어가면 됩니다."
       };
     }
 
     return {
-      emoji: "🌿",
+      emoji: "🤗",
       title: "수고 많으셨습니다.",
-      message: "오늘의 기억 활동을 끝까지 마쳤습니다. 잠시 편안히 쉬어가셔도 좋습니다."
+      message: "오늘도 차분히 집중해 주셨어요."
     };
   }
 
@@ -3170,15 +3295,18 @@
       }, DIFFICULTY_SELECT_TRANSITION_DELAY));
     });
     els.difficultyBackButton.addEventListener("click", withButtonSound(goHome));
-    els.resultHomeButton.addEventListener("click", withButtonSound(goHome));
+    els.resultHomeButton.addEventListener("click", withButtonSound(exitGameFromResult));
     els.errorHomeButton.addEventListener("click", withButtonSound(goHome));
     els.pauseButton.addEventListener("click", withButtonSound(pauseGame));
+    els.carePauseButton.addEventListener("click", withButtonSound(pauseGame));
+    els.careHintButton.addEventListener("click", triggerCareHint);
     els.resumeButton.addEventListener("click", withButtonSound(resumeGame));
     els.pauseRestartButton.addEventListener("click", withButtonSound(restartPausedGame));
     els.pauseHelpButton.addEventListener("click", withButtonSound(openPauseHelp));
     els.homeButton.addEventListener("click", withButtonSound(quitGame));
     els.settingsCloseButton.addEventListener("click", withButtonSound(closeSettings));
     els.settingsExitButton.addEventListener("click", withButtonSound(exitGameFromSettings));
+    els.startExitButton.addEventListener("click", withButtonSound(exitGameFromStart));
     els.backgroundSoundToggle.addEventListener("change", () => handleSettingToggleChange(els.backgroundSoundToggle));
     els.soundToggle.addEventListener("change", () => handleSettingToggleChange(els.soundToggle));
     els.voiceGuideToggle.addEventListener("change", () => handleSettingToggleChange(els.voiceGuideToggle));
@@ -3285,6 +3413,7 @@
 
   async function initializeGame() {
     updateGameScale();
+    mountCareControlsOverlay();
     if (document.readyState === "loading") {
       document.addEventListener("DOMContentLoaded", updateGameScale, { once: true });
     }
