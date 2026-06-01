@@ -3482,3 +3482,667 @@
         font-size: clamp(17px, 5vh, 22px) !important;
       }
     }
+
+    body.mode-care .result-mode .board {
+      width: min(92vw, 640px) !important;
+      height: min(calc(100dvh - 92px), 680px) !important;
+    }
+
+    body.mode-care .result-card {
+      width: min(100%, 520px) !important;
+      padding: clamp(34px, 4.8vw, 52px) !important;
+      font-size: clamp(30px, min(3.2vw, 5vh), 42px) !important;
+      line-height: 1.18 !important;
+    }
+
+    body.mode-care .result-card button.primary {
+      min-height: clamp(74px, 9vh, 96px) !important;
+      font-size: clamp(26px, min(2.7vw, 4.4vh), 34px) !important;
+    }
+
+    @media (orientation: portrait) {
+      body.mode-care.theme-bulb .board[data-grid-size="2"] .object-img {
+        --object-size: 214%;
+        transform: translateY(5px);
+      }
+
+      body.mode-care.theme-bulb .board[data-grid-size="2"] .cell.object-yellow .object-img,
+      body.mode-care.theme-bulb .board[data-grid-size="2"] .cell.correct .object-img,
+      body.mode-care.theme-bulb .board[data-grid-size="2"] .cell.hint .object-img {
+        transform: translateY(2px);
+      }
+
+      body.mode-care .result-mode .board {
+        width: min(calc(100vw - 44px), 360px) !important;
+        height: min(calc(100dvh - 86px), 560px) !important;
+      }
+
+      body.mode-care .result-card {
+        width: min(100%, 320px) !important;
+        padding: 22px 24px !important;
+        font-size: clamp(22px, 6.4vw, 28px) !important;
+      }
+
+      body.mode-care .result-card button.primary {
+        min-height: 62px !important;
+        font-size: clamp(19px, 5.6vw, 24px) !important;
+      }
+    }
+
+    @media (orientation: landscape) and (max-height: 520px) {
+      body.mode-care.theme-bulb .board[data-grid-size="2"] .object-img {
+        --object-size: 210%;
+        transform: translateY(4px);
+      }
+
+      body.mode-care.theme-bulb .board[data-grid-size="2"] .cell.object-yellow .object-img,
+      body.mode-care.theme-bulb .board[data-grid-size="2"] .cell.correct .object-img,
+      body.mode-care.theme-bulb .board[data-grid-size="2"] .cell.hint .object-img {
+        transform: translateY(2px);
+      }
+
+      body.mode-care .result-mode .board {
+        width: min(86vw, 500px) !important;
+        height: min(calc(100dvh - 48px), 320px) !important;
+      }
+
+      body.mode-care .result-card {
+        width: min(100%, 430px) !important;
+        padding: 18px 28px !important;
+        font-size: clamp(20px, 5.8vh, 28px) !important;
+      }
+
+      body.mode-care .result-card button.primary {
+        min-height: 54px !important;
+        font-size: clamp(19px, 5.4vh, 25px) !important;
+      }
+    }
+
+    /* Care mode AX final pass: larger task area, clearer states, safer tap spacing. */
+    .loading-copy {
+      position: absolute;
+      left: 50%;
+      bottom: clamp(82px, 13vh, 142px);
+      z-index: 2;
+      transform: translateX(-50%);
+      width: min(calc(100vw - 48px), 560px);
+      padding: 12px 20px;
+      border: 3px solid rgba(255, 246, 166, .98);
+      border-radius: 999px;
+      background: rgba(255, 253, 232, .94);
+      color: #063522;
+      box-shadow: 0 12px 28px rgba(34, 92, 50, .2);
+      font-size: clamp(20px, min(4.6vw, 3.3vh), 30px);
+      font-weight: 900;
+      line-height: 1.2;
+      text-align: center;
+      word-break: keep-all;
+    }
+
+    body.mode-care .board-wrap {
+      width: min(100%, 1360px) !important;
+      padding: clamp(8px, 1.4vh, 18px) !important;
+      gap: clamp(8px, 1.35vh, 16px) !important;
+    }
+
+    body.mode-care .message {
+      width: min(100%, 1180px) !important;
+      min-height: clamp(60px, 12vh, 124px) !important;
+      max-height: clamp(74px, 15vh, 140px) !important;
+    }
+
+    body.mode-care .board {
+      width: min(calc(100% - 28px), calc(100dvh - 180px), 760px) !important;
+      height: min(calc(100% - 28px), calc(100dvh - 180px), 760px) !important;
+      gap: clamp(12px, 1.35vw, 24px) !important;
+      padding: clamp(12px, 1.35vw, 24px) !important;
+      border-width: clamp(4px, .55vw, 6px) !important;
+    }
+
+    body.mode-care .cell {
+      border-width: clamp(4px, .45vw, 6px) !important;
+    }
+
+    body.mode-care .cell:hover:not(:disabled) {
+      border-color: #ffe66a !important;
+      outline: clamp(4px, .55vw, 7px) solid rgba(255, 232, 86, .95);
+      outline-offset: clamp(-10px, -1vw, -6px);
+      box-shadow:
+        inset 0 0 0 3px rgba(255, 255, 255, .7),
+        0 10px 18px rgba(74, 123, 67, .18),
+        0 0 0 4px rgba(255, 226, 72, .24) !important;
+    }
+
+    body.mode-care .cell.preview-glow,
+    body.mode-care .cell.object-yellow,
+    body.mode-care .cell.hint,
+    body.mode-care .cell.round-complete:not(.correct) {
+      outline: clamp(4px, .55vw, 7px) solid rgba(255, 248, 158, .98);
+      outline-offset: clamp(-10px, -1vw, -6px);
+      border-color: #fff6a6 !important;
+      box-shadow:
+        inset 0 0 0 3px rgba(255, 255, 255, .72),
+        0 10px 18px rgba(74, 123, 67, .2),
+        0 0 0 4px rgba(255, 221, 68, .32) !important;
+    }
+
+    body.mode-care .cell.correct,
+    body.mode-care .cell.wrong {
+      outline: clamp(6px, .72vw, 9px) solid #f25fa8;
+      outline-offset: clamp(-10px, -1vw, -6px);
+      border-color: #b82773 !important;
+      box-shadow:
+        inset 0 0 0 4px rgba(255, 255, 255, .7),
+        0 10px 18px rgba(92, 34, 73, .18),
+        0 0 0 5px rgba(242, 95, 168, .3) !important;
+    }
+
+    @media (orientation: portrait) {
+      body.mode-care .board-wrap {
+        padding-inline: 8px !important;
+        gap: clamp(10px, 1.4vh, 16px) !important;
+      }
+
+      body.mode-care .message {
+        width: min(calc(100vw - 42px), 310px) !important;
+        min-height: clamp(82px, 13vh, 112px) !important;
+        max-height: clamp(96px, 16vh, 132px) !important;
+        padding: 11px 15px !important;
+        font-size: clamp(20px, 5.7vw, 28px) !important;
+      }
+
+      body.mode-care .board {
+        width: min(calc(100vw - 42px), calc(100dvh - 180px), 344px) !important;
+        height: min(calc(100vw - 42px), calc(100dvh - 180px), 344px) !important;
+        gap: clamp(10px, 2.5vw, 15px) !important;
+        padding: clamp(10px, 2.5vw, 15px) !important;
+      }
+
+      body.mode-care.theme-bulb .object-img {
+        --object-size: 144%;
+      }
+
+      body.mode-care.theme-bulb .board[data-grid-size="2"] .object-img {
+        --object-size: 218%;
+        transform: translateY(-1px);
+      }
+
+      body.mode-care.theme-bulb .board[data-grid-size="2"] .cell.object-yellow .object-img,
+      body.mode-care.theme-bulb .board[data-grid-size="2"] .cell.correct .object-img,
+      body.mode-care.theme-bulb .board[data-grid-size="2"] .cell.hint .object-img {
+        transform: translateY(-1px);
+      }
+    }
+
+    @media (orientation: landscape) and (max-height: 520px) {
+      .loading-copy {
+        bottom: clamp(58px, 13vh, 86px);
+        width: min(calc(100vw - 42px), 480px);
+        padding: 8px 16px;
+        font-size: clamp(16px, 4.4vh, 22px);
+      }
+
+      body.mode-care .board-wrap {
+        padding: clamp(5px, 1.1vh, 10px) !important;
+        gap: clamp(5px, 1.05vh, 9px) !important;
+      }
+
+      body.mode-care .play-training-label {
+        min-height: clamp(30px, 8vh, 40px) !important;
+        padding: 3px 24px !important;
+      }
+
+      body.mode-care .message {
+        width: min(calc(100vw - 44px), 620px) !important;
+        min-height: clamp(44px, 13.5vh, 58px) !important;
+        max-height: clamp(48px, 15.5vh, 64px) !important;
+        padding: 5px 16px !important;
+        font-size: clamp(18px, 5.1vh, 25px) !important;
+      }
+
+      body.mode-care .board {
+        width: min(44vw, calc(100dvh - 156px), 286px) !important;
+        height: min(44vw, calc(100dvh - 156px), 286px) !important;
+        gap: clamp(8px, 1.45vw, 13px) !important;
+        padding: clamp(8px, 1.45vw, 13px) !important;
+      }
+
+      body.mode-care.theme-bulb .object-img {
+        --object-size: 148%;
+      }
+
+      body.mode-care.theme-bulb .board[data-grid-size="2"] .object-img {
+        --object-size: 214%;
+        transform: translateY(0);
+      }
+
+      body.mode-care.theme-bulb .board[data-grid-size="2"] .cell.object-yellow .object-img,
+      body.mode-care.theme-bulb .board[data-grid-size="2"] .cell.correct .object-img,
+      body.mode-care.theme-bulb .board[data-grid-size="2"] .cell.hint .object-img {
+        transform: translateY(0);
+      }
+    }
+
+    body.mode-care .cell.preview-glow,
+    body.mode-care .cell.object-yellow:not(.correct):not(.wrong),
+    body.mode-care .cell.hint:not(.correct):not(.wrong) {
+      outline: clamp(5px, .64vw, 8px) solid #ffd51a !important;
+      outline-offset: clamp(-10px, -1vw, -6px);
+      border-color: #f2c300 !important;
+      box-shadow:
+        inset 0 0 0 4px rgba(255, 250, 185, .88),
+        0 10px 18px rgba(74, 123, 67, .2),
+        0 0 0 5px rgba(255, 213, 26, .34) !important;
+    }
+
+    body.mode-care .cell:hover {
+      border-color: #ffe66a !important;
+      outline: clamp(5px, .64vw, 8px) solid #ffd51a !important;
+      outline-offset: clamp(-10px, -1vw, -6px);
+      box-shadow:
+        inset 0 0 0 4px rgba(255, 250, 185, .82),
+        0 10px 18px rgba(74, 123, 67, .2),
+        0 0 0 5px rgba(255, 213, 26, .3) !important;
+    }
+
+    body.mode-care .cell.correct:hover,
+    body.mode-care .cell.wrong:hover {
+      outline: clamp(6px, .72vw, 9px) solid #f25fa8 !important;
+      border-color: #b82773 !important;
+      box-shadow:
+        inset 0 0 0 4px rgba(255, 255, 255, .7),
+        0 10px 18px rgba(92, 34, 73, .18),
+        0 0 0 5px rgba(242, 95, 168, .3) !important;
+    }
+
+    body.mode-care .board button.cell:hover,
+    body.mode-care .board button.cell:focus-visible {
+      border-color: #ffe66a !important;
+      outline: clamp(5px, .64vw, 8px) solid #ffd51a !important;
+      outline-offset: clamp(-10px, -1vw, -6px);
+      box-shadow:
+        inset 0 0 0 4px rgba(255, 250, 185, .82),
+        0 10px 18px rgba(74, 123, 67, .2),
+        0 0 0 5px rgba(255, 213, 26, .3) !important;
+    }
+
+    body.mode-care .board button.cell:disabled:active {
+      border-color: #ffe66a !important;
+      outline: clamp(5px, .64vw, 8px) solid #ffd51a !important;
+      outline-offset: clamp(-10px, -1vw, -6px);
+      box-shadow:
+        inset 0 0 0 4px rgba(255, 250, 185, .82),
+        0 10px 18px rgba(74, 123, 67, .2),
+        0 0 0 5px rgba(255, 213, 26, .3) !important;
+    }
+
+    body.mode-care .board button.cell:not(:disabled):active {
+      outline: clamp(6px, .72vw, 9px) solid #f25fa8 !important;
+      border-color: #b82773 !important;
+      box-shadow:
+        inset 0 0 0 4px rgba(255, 255, 255, .7),
+        0 10px 18px rgba(92, 34, 73, .18),
+        0 0 0 5px rgba(242, 95, 168, .3) !important;
+    }
+
+    body.mode-care .board button.cell.correct:hover,
+    body.mode-care .board button.cell.correct:active,
+    body.mode-care .board button.cell.correct:focus-visible,
+    body.mode-care .board button.cell.wrong:hover,
+    body.mode-care .board button.cell.wrong:active,
+    body.mode-care .board button.cell.wrong:focus-visible {
+      outline: clamp(6px, .72vw, 9px) solid #f25fa8 !important;
+      border-color: #b82773 !important;
+      box-shadow:
+        inset 0 0 0 4px rgba(255, 255, 255, .7),
+        0 10px 18px rgba(92, 34, 73, .18),
+        0 0 0 5px rgba(242, 95, 168, .3) !important;
+    }
+
+    body.mode-care .board button.cell.empty:disabled:hover,
+    body.mode-care .board button.cell.empty:disabled:active,
+    body.mode-care .board button.cell.empty:disabled:focus-visible {
+      transform: none !important;
+      outline: 0 !important;
+      border-color: rgba(224, 255, 225, .9) !important;
+      background:
+        radial-gradient(circle at 22% 12%, rgba(255, 255, 255, .72), transparent 28%),
+        linear-gradient(180deg, #e9fae9 0%, #d8f2dc 62%, #c5e8ca 100%) !important;
+      box-shadow:
+        inset 0 4px 0 rgba(255, 255, 255, .82),
+        inset 0 -12px 0 rgba(64, 137, 73, .12),
+        inset 0 -18px 22px rgba(46, 111, 58, .12),
+        0 9px 0 rgba(76, 146, 84, .24),
+        0 17px 22px rgba(20, 70, 35, .2) !important;
+    }
+
+    @media (hover: none), (pointer: coarse) {
+      body.mode-care .board button.cell:disabled {
+        pointer-events: none !important;
+        -webkit-tap-highlight-color: transparent;
+      }
+
+      body.mode-care .board button.cell {
+        -webkit-appearance: none;
+        appearance: none;
+        -webkit-tap-highlight-color: transparent;
+        touch-action: manipulation;
+        user-select: none;
+      }
+
+      body.mode-care .board button.cell.empty:not(.correct):not(.wrong):not(.preview-glow):not(.hint):not(.object-yellow):hover,
+      body.mode-care .board button.cell.empty:not(.correct):not(.wrong):not(.preview-glow):not(.hint):not(.object-yellow):focus,
+      body.mode-care .board button.cell.empty:not(.correct):not(.wrong):not(.preview-glow):not(.hint):not(.object-yellow):focus-visible {
+        transform: none !important;
+        outline: 0 !important;
+        border-color: rgba(224, 255, 225, .9) !important;
+        background:
+          radial-gradient(circle at 22% 12%, rgba(255, 255, 255, .72), transparent 28%),
+          linear-gradient(180deg, #e9fae9 0%, #d8f2dc 62%, #c5e8ca 100%) !important;
+        box-shadow:
+          inset 0 4px 0 rgba(255, 255, 255, .82),
+          inset 0 -12px 0 rgba(64, 137, 73, .12),
+          inset 0 -18px 22px rgba(46, 111, 58, .12),
+          0 9px 0 rgba(76, 146, 84, .24),
+          0 17px 22px rgba(20, 70, 35, .2) !important;
+      }
+
+      body.mode-care .board button.cell.empty:not(:disabled):active {
+        outline: clamp(6px, .72vw, 9px) solid #f25fa8 !important;
+        border-color: #b82773 !important;
+        background:
+          radial-gradient(circle at 22% 12%, rgba(255, 255, 255, .72), transparent 28%),
+          linear-gradient(180deg, #e9fae9 0%, #d8f2dc 62%, #c5e8ca 100%) !important;
+        box-shadow:
+          inset 0 0 0 4px rgba(255, 255, 255, .7),
+          0 10px 18px rgba(92, 34, 73, .18),
+          0 0 0 5px rgba(242, 95, 168, .3) !important;
+      }
+    }
+
+    body.mode-care .board-wrap {
+      grid-template-rows: auto clamp(106px, 12vh, 124px) minmax(0, 1fr) !important;
+    }
+
+    body.mode-care .message {
+      height: clamp(106px, 12vh, 124px) !important;
+      min-height: clamp(106px, 12vh, 124px) !important;
+      max-height: clamp(106px, 12vh, 124px) !important;
+      align-self: stretch !important;
+    }
+
+    @media (orientation: portrait) {
+      body.mode-care .board-wrap {
+        grid-template-rows: auto clamp(112px, 16vh, 132px) minmax(0, 1fr) !important;
+      }
+
+      body.mode-care .message {
+        height: clamp(112px, 16vh, 132px) !important;
+        min-height: clamp(112px, 16vh, 132px) !important;
+        max-height: clamp(112px, 16vh, 132px) !important;
+      }
+    }
+
+    @media (orientation: landscape) and (max-height: 520px) {
+      body.mode-care .board-wrap {
+        grid-template-rows: auto clamp(58px, 15.5vh, 64px) minmax(0, 1fr) !important;
+      }
+
+      body.mode-care .message {
+        height: clamp(58px, 15.5vh, 64px) !important;
+        min-height: clamp(58px, 15.5vh, 64px) !important;
+        max-height: clamp(58px, 15.5vh, 64px) !important;
+      }
+    }
+
+    @media (orientation: landscape) and (max-height: 520px) {
+      body.mode-care .board-wrap {
+        grid-template-columns: minmax(230px, 36vw) minmax(0, 1fr) !important;
+        grid-template-rows: auto minmax(0, 1fr) !important;
+        align-content: stretch !important;
+        align-items: stretch !important;
+        justify-items: center !important;
+        column-gap: clamp(14px, 2.4vw, 26px) !important;
+        row-gap: clamp(10px, 2.2vh, 16px) !important;
+        padding: clamp(10px, 2.5vh, 18px) clamp(12px, 2.4vw, 22px) !important;
+      }
+
+      body.mode-care .play-training-label {
+        grid-column: 1 !important;
+        grid-row: 1 !important;
+        justify-self: start !important;
+        align-self: start !important;
+        min-height: clamp(32px, 8vh, 42px) !important;
+        margin-left: clamp(4px, 1vw, 10px) !important;
+        padding: 3px clamp(24px, 4vw, 34px) !important;
+      }
+
+      body.mode-care .message {
+        grid-column: 1 !important;
+        grid-row: 2 !important;
+        justify-self: stretch !important;
+        align-self: stretch !important;
+        width: 100% !important;
+        height: 100% !important;
+        min-height: 0 !important;
+        max-height: none !important;
+        padding: clamp(14px, 4vh, 24px) clamp(18px, 3.2vw, 28px) !important;
+        font-size: clamp(22px, 6vh, 32px) !important;
+        line-height: 1.12 !important;
+        text-align: left !important;
+        justify-content: center !important;
+      }
+
+      body.mode-care .board {
+        grid-column: 2 !important;
+        grid-row: 1 / span 2 !important;
+        place-self: center !important;
+        width: min(calc(100dvh - 44px), calc(100vw - 282px), 350px) !important;
+        height: min(calc(100dvh - 44px), calc(100vw - 282px), 350px) !important;
+        gap: clamp(8px, 1.5vw, 14px) !important;
+        padding: clamp(8px, 1.5vw, 14px) !important;
+      }
+
+      body.mode-care .result-mode.board-wrap {
+        grid-template-columns: minmax(0, 1fr) !important;
+        grid-template-rows: auto minmax(0, 1fr) !important;
+        align-content: start !important;
+        justify-items: center !important;
+        padding: clamp(8px, 2vh, 14px) clamp(12px, 2.4vw, 20px) !important;
+      }
+
+      body.mode-care .result-mode .play-training-label {
+        grid-column: 1 !important;
+        grid-row: 1 !important;
+        justify-self: start !important;
+      }
+
+      body.mode-care .result-mode .board {
+        grid-column: 1 !important;
+        grid-row: 2 !important;
+        width: min(calc(100vw - 44px), 520px) !important;
+        height: min(calc(100dvh - 62px), 310px) !important;
+        place-self: center !important;
+        padding: 0 !important;
+      }
+
+      body.mode-care .result-card {
+        width: min(100%, 460px) !important;
+        padding: clamp(18px, 4.5vh, 28px) clamp(22px, 4.6vw, 36px) !important;
+        font-size: clamp(20px, 5.7vh, 28px) !important;
+      }
+
+      body.mode-care .result-card button.primary {
+        min-height: clamp(50px, 12vh, 66px) !important;
+        font-size: clamp(19px, 5.2vh, 25px) !important;
+      }
+    }
+
+    .return-button {
+      position: fixed;
+      top: max(12px, env(safe-area-inset-top));
+      right: max(12px, env(safe-area-inset-right));
+      z-index: 45;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: auto !important;
+      min-width: 0 !important;
+      min-height: clamp(40px, 5vh, 52px) !important;
+      padding: 8px clamp(14px, 2vw, 22px) !important;
+      border: 3px solid #ffe36a;
+      border-radius: 999px;
+      background: linear-gradient(180deg, #fff9d8 0%, #ffd65f 100%);
+      color: #073421;
+      font-size: clamp(16px, 1.2vw, 20px) !important;
+      font-weight: 900;
+      line-height: 1.05;
+      letter-spacing: 0;
+      white-space: nowrap;
+      box-shadow: 0 6px 0 rgba(90, 128, 77, .18), 0 10px 22px rgba(40, 76, 44, .14);
+    }
+
+    .return-button:hover,
+    .return-button:focus-visible {
+      border-color: #ffcb2f;
+      outline: 4px solid rgba(255, 211, 58, .32);
+      outline-offset: 2px;
+    }
+
+    .return-button:active {
+      transform: translateY(2px);
+      box-shadow: 0 3px 0 rgba(90, 128, 77, .18), 0 6px 14px rgba(40, 76, 44, .14);
+    }
+
+    .result-mode .return-button {
+      display: none !important;
+    }
+
+    @media (orientation: portrait) and (max-width: 740px) {
+      .return-button {
+        top: auto;
+        right: max(12px, env(safe-area-inset-right));
+        bottom: max(12px, env(safe-area-inset-bottom));
+        min-height: 42px !important;
+        padding: 7px 14px !important;
+        font-size: clamp(15px, 4vw, 18px) !important;
+      }
+    }
+
+    @media (orientation: landscape) and (max-height: 520px) {
+      body.mode-care .board-wrap {
+        grid-template-rows: auto minmax(0, 1fr) auto !important;
+      }
+
+      body.mode-care .message {
+        height: auto !important;
+        min-height: 0 !important;
+        max-height: none !important;
+      }
+
+      body.mode-care .board {
+        grid-row: 1 / span 3 !important;
+      }
+
+      .return-button {
+        position: static;
+        grid-column: 1 !important;
+        grid-row: 3 !important;
+        justify-self: center !important;
+        align-self: end !important;
+        width: min(100%, 210px) !important;
+        min-height: clamp(34px, 9vh, 42px) !important;
+        margin: 0 !important;
+        padding: 5px 14px !important;
+        font-size: clamp(14px, 3.8vh, 18px) !important;
+      }
+    }
+
+    /* Unified selection border feedback across modes. */
+    .board button.cell {
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
+      user-select: none;
+    }
+
+    .board button.cell:hover:not(:disabled):not(.correct):not(.wrong),
+    .board button.cell:focus-visible:not(:disabled):not(.correct):not(.wrong) {
+      border-color: #ffe66a !important;
+      outline: clamp(5px, .64vw, 8px) solid #ffd51a !important;
+      outline-offset: clamp(-10px, -1vw, -6px);
+      box-shadow:
+        inset 0 0 0 4px rgba(255, 250, 185, .82),
+        0 10px 18px rgba(79, 138, 88, .22) !important;
+    }
+
+    .board button.cell.preview-glow,
+    .board button.cell.object-yellow:not(.correct):not(.wrong),
+    .board button.cell.hint:not(.correct):not(.wrong) {
+      border-color: #f2c300 !important;
+      outline: clamp(5px, .64vw, 8px) solid #ffd51a !important;
+      outline-offset: clamp(-10px, -1vw, -6px);
+      box-shadow:
+        inset 0 0 0 4px rgba(255, 250, 185, .82),
+        0 12px 22px rgba(213, 170, 31, .24) !important;
+    }
+
+    .board button.cell:not(:disabled):active,
+    .board button.cell.correct,
+    .board button.cell.wrong,
+    .board button.cell.correct:hover,
+    .board button.cell.wrong:hover,
+    .board button.cell.correct:focus-visible,
+    .board button.cell.wrong:focus-visible {
+      border-color: #b82773 !important;
+      outline: clamp(6px, .72vw, 9px) solid #f25fa8 !important;
+      outline-offset: clamp(-10px, -1vw, -6px);
+      box-shadow:
+        inset 0 0 0 4px rgba(255, 217, 236, .88),
+        0 12px 24px rgba(184, 39, 115, .24) !important;
+    }
+
+    @media (hover: none), (pointer: coarse) {
+      .board button.cell:hover:not(.correct):not(.wrong):not(.preview-glow):not(.object-yellow):not(.hint),
+      .board button.cell:focus:not(.correct):not(.wrong):not(.preview-glow):not(.object-yellow):not(.hint),
+      .board button.cell:focus-visible:not(.correct):not(.wrong):not(.preview-glow):not(.object-yellow):not(.hint) {
+        transform: none !important;
+        outline: 0 !important;
+        border-color: rgba(224, 255, 225, .9) !important;
+      }
+    }
+
+    /* Care mode final visual tuning. */
+    body.mode-care .message {
+      justify-content: flex-start !important;
+      text-align: left !important;
+    }
+
+    body.mode-care.theme-bulb .board[data-grid-size="2"] .object-img {
+      width: var(--object-size, 210%) !important;
+      height: 95% !important;
+      object-fit: contain !important;
+    }
+
+    @media (min-width: 901px) and (min-height: 521px) {
+      body.mode-care .result-mode .board {
+        width: min(82vw, 860px) !important;
+        height: min(calc(100dvh - 116px), 760px) !important;
+      }
+
+      body.mode-care .result-card {
+        width: min(100%, 760px) !important;
+        padding: clamp(48px, 5.4vw, 72px) clamp(58px, 6.2vw, 86px) !important;
+        border-radius: 28px !important;
+        font-size: clamp(38px, min(3.2vw, 5.8vh), 52px) !important;
+        line-height: 1.18 !important;
+      }
+
+      body.mode-care .result-card p {
+        margin-bottom: clamp(34px, 4vh, 46px) !important;
+      }
+
+      body.mode-care .result-card button.primary {
+        min-height: clamp(86px, 9.2vh, 108px) !important;
+        font-size: clamp(30px, min(2.6vw, 4.8vh), 40px) !important;
+      }
+    }

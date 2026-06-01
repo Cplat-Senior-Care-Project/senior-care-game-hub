@@ -3057,9 +3057,9 @@
 
     @media (orientation: landscape) and (max-height: 520px) {
       .app {
-        grid-template-columns: clamp(104px, 17vw, 132px) minmax(0, 1fr);
-        grid-template-rows: clamp(56px, 17vh, 72px) auto minmax(0, 1fr) auto;
-        gap: 6px;
+        grid-template-columns: clamp(112px, 18vw, 140px) minmax(0, 1fr);
+        grid-template-rows: clamp(56px, 17vh, 72px) auto minmax(0, 1fr);
+        gap: 6px 8px;
         padding: 6px;
       }
 
@@ -3093,12 +3093,14 @@
         align-self: stretch;
         justify-self: stretch;
         width: auto;
-        height: clamp(56px, 17vh, 72px);
+        height: auto;
         min-height: 0;
-        padding: 6px 14px;
+        padding: 6px clamp(14px, 2.6vw, 24px);
         border-radius: 18px;
-        font-size: clamp(15px, 3.7vh, 24px);
-        line-height: 1.12;
+        font-size: clamp(17px, 4.4vh, 27px);
+        line-height: 1.08;
+        text-align: left;
+        justify-content: center;
         overflow: hidden;
       }
 
@@ -3129,8 +3131,8 @@
 
       .controls {
         grid-column: 1;
-        grid-row: 4;
-        align-self: end;
+        grid-row: 3;
+        align-self: start;
         justify-self: stretch;
         display: grid;
         grid-template-columns: 1fr;
@@ -3153,10 +3155,10 @@
 
       .board {
         grid-column: 2;
-        grid-row: 2 / 5;
+        grid-row: 2 / span 2;
         place-self: center;
-        width: min(calc(100dvh - 86px), calc(100vw - clamp(122px, 20vw, 150px)), 490px);
-        height: min(calc(100dvh - 86px), calc(100vw - clamp(122px, 20vw, 150px)), 490px);
+        width: min(calc(100dvh - clamp(56px, 17vh, 72px) - 24px), calc(100vw - clamp(128px, 20vw, 158px)), 520px);
+        height: min(calc(100dvh - clamp(56px, 17vh, 72px) - 24px), calc(100vw - clamp(128px, 20vw, 158px)), 520px);
         max-width: none;
         max-height: none;
         border-radius: 22px;
@@ -3217,7 +3219,109 @@
       }
 
       .result-mode .board {
-        width: min(calc(100dvh - 86px), calc(100vw - clamp(122px, 20vw, 150px)), 490px);
-        height: min(calc(100dvh - 86px), calc(100vw - clamp(122px, 20vw, 150px)), 490px);
+        grid-column: 2;
+        grid-row: 2 / span 2;
+        width: min(calc(100dvh - clamp(56px, 17vh, 72px) - 24px), calc(100vw - clamp(128px, 20vw, 158px)), 520px);
+        height: min(calc(100dvh - clamp(56px, 17vh, 72px) - 24px), calc(100vw - clamp(128px, 20vw, 158px)), 520px);
+      }
+    }
+
+    @media (orientation: portrait) {
+      .theme-bulb .board[data-grid-size="2"] .object-img {
+        --object-size: 214%;
+        transform: translateY(5px);
+      }
+
+      .theme-bulb .board[data-grid-size="2"] .cell.object-yellow .object-img,
+      .theme-bulb .board[data-grid-size="2"] .cell.correct .object-img,
+      .theme-bulb .board[data-grid-size="2"] .cell.hint .object-img {
+        transform: translateY(2px);
+      }
+    }
+
+    @media (orientation: landscape) and (max-height: 520px) {
+      .theme-bulb .board[data-grid-size="2"] .object-img {
+        --object-size: 210%;
+        transform: translateY(4px);
+      }
+
+      .theme-bulb .board[data-grid-size="2"] .cell.object-yellow .object-img,
+      .theme-bulb .board[data-grid-size="2"] .cell.correct .object-img,
+      .theme-bulb .board[data-grid-size="2"] .cell.hint .object-img {
+        transform: translateY(2px);
+      }
+    }
+
+    @media (min-width: 901px) and (min-height: 521px) {
+      .theme-bulb .board[data-grid-size="3"] .object-img {
+        --object-size: 170%;
+        transform: translateY(0);
+      }
+    }
+
+    @media (orientation: portrait) {
+      .theme-bulb .board[data-grid-size="3"] .object-img {
+        --object-size: 204%;
+        transform: translateY(4px);
+      }
+    }
+
+    @media (orientation: landscape) and (max-height: 520px) {
+      .theme-bulb .board[data-grid-size="3"] .object-img {
+        --object-size: 202%;
+        transform: translateY(3px);
+      }
+    }
+
+    /* Unified selection border feedback across modes. */
+    .board button.cell {
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
+      user-select: none;
+    }
+
+    .board button.cell:hover:not(:disabled):not(.correct):not(.wrong),
+    .board button.cell:focus-visible:not(:disabled):not(.correct):not(.wrong) {
+      border-color: #ffe66a !important;
+      outline: clamp(5px, .64vw, 8px) solid #ffd51a !important;
+      outline-offset: clamp(-10px, -1vw, -6px);
+      box-shadow:
+        inset 0 0 0 4px rgba(255, 250, 185, .82),
+        0 10px 18px rgba(79, 138, 88, .22) !important;
+    }
+
+    .board button.cell.preview-glow,
+    .board button.cell.object-yellow:not(.correct):not(.wrong),
+    .board button.cell.hint:not(.correct):not(.wrong) {
+      border-color: #f2c300 !important;
+      outline: clamp(5px, .64vw, 8px) solid #ffd51a !important;
+      outline-offset: clamp(-10px, -1vw, -6px);
+      box-shadow:
+        inset 0 0 0 4px rgba(255, 250, 185, .82),
+        0 12px 22px rgba(213, 170, 31, .24) !important;
+    }
+
+    .board button.cell:not(:disabled):active,
+    .board button.cell.correct,
+    .board button.cell.wrong,
+    .board button.cell.correct:hover,
+    .board button.cell.wrong:hover,
+    .board button.cell.correct:focus-visible,
+    .board button.cell.wrong:focus-visible {
+      border-color: #b82773 !important;
+      outline: clamp(6px, .72vw, 9px) solid #f25fa8 !important;
+      outline-offset: clamp(-10px, -1vw, -6px);
+      box-shadow:
+        inset 0 0 0 4px rgba(255, 217, 236, .88),
+        0 12px 24px rgba(184, 39, 115, .24) !important;
+    }
+
+    @media (hover: none), (pointer: coarse) {
+      .board button.cell:hover:not(.correct):not(.wrong):not(.preview-glow):not(.object-yellow):not(.hint),
+      .board button.cell:focus:not(.correct):not(.wrong):not(.preview-glow):not(.object-yellow):not(.hint),
+      .board button.cell:focus-visible:not(.correct):not(.wrong):not(.preview-glow):not(.object-yellow):not(.hint) {
+        transform: none !important;
+        outline: 0 !important;
+        border-color: rgba(224, 255, 225, .9) !important;
       }
     }

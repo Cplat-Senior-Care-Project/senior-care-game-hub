@@ -228,6 +228,7 @@
     const celebrationLayer = document.getElementById("celebrationLayer");
     const board = document.getElementById("board");
     const message = document.getElementById("message");
+    const returnButton = document.getElementById("returnButton");
     const levelText = document.getElementById("levelText");
     const remainText = document.getElementById("remainText");
     const roundText = document.getElementById("roundText");
@@ -1696,6 +1697,7 @@
     hintButton.addEventListener("click", showHint);
     pauseButton.addEventListener("click", togglePause);
     resetButton.addEventListener("click", openHomeConfirm);
+    returnButton?.addEventListener("click", openHomeConfirm);
     introStartButton.addEventListener("click", startModeFlow);
     introSettingsButton.addEventListener("click", () => {
       settingsModal.classList.add("open");
@@ -1807,12 +1809,7 @@
       openTutorial("pause");
     });
     resumeButton.addEventListener("click", resumeGame);
-    exitButton.addEventListener("click", () => {
-      sendAbandonedResult("user_exit");
-      pauseModal.classList.remove("open");
-      resetToHome();
-      showIntroScreen();
-    });
+    exitButton.addEventListener("click", openHomeConfirm);
     pauseMusicButton.addEventListener("click", () => {
       musicEnabled = !musicEnabled;
       syncAudioButtons();
@@ -1836,7 +1833,9 @@
     });
     homeYesButton.addEventListener("click", () => {
       sendAbandonedResult("home_confirm");
+      sendGameMessage({ type: "GAME_RETURN_REQUESTED", reason: "manual_return" });
       homeConfirmModal.classList.remove("open");
+      pauseModal.classList.remove("open");
       resetToHome();
       showIntroScreen();
     });

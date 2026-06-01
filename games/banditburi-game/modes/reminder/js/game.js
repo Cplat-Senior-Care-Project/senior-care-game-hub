@@ -1807,12 +1807,7 @@
       openTutorial("pause");
     });
     resumeButton.addEventListener("click", resumeGame);
-    exitButton.addEventListener("click", () => {
-      sendAbandonedResult("user_exit");
-      pauseModal.classList.remove("open");
-      resetToHome();
-      showIntroScreen();
-    });
+    exitButton.addEventListener("click", openHomeConfirm);
     pauseMusicButton.addEventListener("click", () => {
       musicEnabled = !musicEnabled;
       syncAudioButtons();
@@ -1836,7 +1831,9 @@
     });
     homeYesButton.addEventListener("click", () => {
       sendAbandonedResult("home_confirm");
+      sendGameMessage({ type: "GAME_RETURN_REQUESTED", reason: "manual_return" });
       homeConfirmModal.classList.remove("open");
+      pauseModal.classList.remove("open");
       resetToHome();
       showIntroScreen();
     });
