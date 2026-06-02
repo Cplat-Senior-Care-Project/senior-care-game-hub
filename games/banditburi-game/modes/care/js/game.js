@@ -6,8 +6,8 @@
       bulb: {
         label: TEXT.yellow,
         offLabel: TEXT.offBulb,
-        on: IMAGES.yellow,
-        off: IMAGES.off,
+        on: "assets/images/bulb-on-fit.png",
+        off: "assets/images/bulb-off-fit.png",
       },
       bird: {
         label: "새",
@@ -87,14 +87,16 @@
         show_how_to_play: false,
         show_condition_check: false,
         show_finish_check: false,
-        question_count: 3,
+        question_count: 4,
         grid_rows: 2,
         grid_cols: 2,
         target_count: 1,
         exposure_time_ms: 8000,
         round_time_limit_sec: 0,
+        total_time_limit_sec: 180,
         hint_enabled: true,
         auto_hint_enabled: true,
+        auto_hint_delay_sec: 40,
         auto_start: true,
         auto_return: true,
         soft_feedback: true,
@@ -112,13 +114,16 @@
         show_how_to_play: false,
         show_condition_check: false,
         show_finish_check: false,
-        question_count: 3,
+        question_count: 4,
         grid_rows: 2,
         grid_cols: 2,
         target_count: 1,
         exposure_time_ms: 8000,
         round_time_limit_sec: 0,
+        total_time_limit_sec: 180,
         hint_enabled: true,
+        auto_hint_enabled: true,
+        auto_hint_delay_sec: 40,
         auto_start: true,
         auto_return: true,
         soft_feedback: true,
@@ -243,6 +248,9 @@
     const homeConfirmModal = document.getElementById("homeConfirmModal");
     const homeYesButton = document.getElementById("homeYesButton");
     const homeNoButton = document.getElementById("homeNoButton");
+    const assistNoticeModal = document.getElementById("assistNoticeModal");
+    const assistNoticeTitle = document.getElementById("assistNoticeTitle");
+    const assistNoticeText = document.getElementById("assistNoticeText");
     const startDifficultyButtons = [...document.querySelectorAll("[data-start-difficulty]")];
 
     let currentDifficulty = defaultDifficultyKey;
@@ -257,6 +265,8 @@
     let hintTimer = null;
     let hintCountdownTimer = null;
     let roundTimer = null;
+    let totalTimer = null;
+    let noticeTimer = null;
     let betweenTimer = null;
     let isPreviewing = false;
     let isHinting = false;
@@ -286,14 +296,16 @@
     let hintSecondsLeft = 5;
     const maxRounds = Math.max(1, Number(appliedGameConfig.question_count) || 10);
     const roundTimeLimit = Math.max(0, Number(appliedGameConfig.round_time_limit_sec) || 0);
+    const totalTimeLimit = Math.max(0, Number(appliedGameConfig.total_time_limit_sec) || 0);
+    const autoHintDelay = Math.max(0, Number(appliedGameConfig.auto_hint_delay_sec) || 0);
+    let totalTimeLeft = totalTimeLimit;
     const gameSchemaVersion = "1.0.0";
     let gameSessionId = defaultGameConfig.sessionId || `local-${Date.now()}`;
     let gameTelemetry = null;
     let roundTelemetry = null;
     let roundClosed = false;
     const BUTTON_CLICK_SOUND_SRC = "assets/audio/audio-01-7e204aa7.mp3";
-    const CORRECT_SOUND_SRC = "assets/audio/correct.mp3";
-    const WRONG_SOUND_SRC = "assets/audio/wrong.mp3";
+    const BOARD_SELECT_SOUND_SRC = "assets/audio/board-select.mp3";
     const INTRO_MUSIC_SRC = "assets/audio/audio-02-7642c099.mp3";
     const PLAY_MUSIC_SRC = "assets/audio/audio-03-e0e7d5be.mp3";
     const buttonClickSound = new Audio(BUTTON_CLICK_SOUND_SRC);
@@ -618,7 +630,7 @@
 
       roundClosed = true;
       const correct = reason === "success";
-      const timeout = reason === "timeout";
+      const timeout = reason === "timeout" || reason === "total_timeout";
       const durationMs = Math.max(0, Date.now() - roundTelemetry.startedAt);
       telemetry.playedRoundCount += 1;
       telemetry.durationMs += durationMs;
@@ -720,6 +732,7 @@
           gridSize: difficultySettings[currentDifficulty].gridSize,
           targetCountPerRound: difficultySettings[currentDifficulty].targetCount,
           timeLimitSec: roundTimeLimit,
+          totalTimeLimitSec: totalTimeLimit,
           maxWrongPerRound: 3,
           flowerEnabledFromRound: currentDifficulty === "high" ? 6 : null,
           rounds: telemetry.rounds,
@@ -730,6 +743,8 @@
           target_count: difficultySettings[currentDifficulty].targetCount,
           max_target_count: difficultySettings[currentDifficulty].targetCount,
           exposure_time_ms: Number(appliedGameConfig.exposure_time_ms) || 5000,
+          total_time_limit_sec: totalTimeLimit,
+          auto_hint_delay_sec: autoHintDelay,
           flash_effect_level: appliedGameConfig.flash_effect_level,
           near_miss_count: 0,
           replay_count: 0,
@@ -759,11 +774,11 @@
     }
 
     function playCorrectSound() {
-      playEffectSound(CORRECT_SOUND_SRC);
+      playEffectSound(BOARD_SELECT_SOUND_SRC);
     }
 
     function playWrongSound() {
-      playEffectSound(WRONG_SOUND_SRC);
+      playEffectSound(BOARD_SELECT_SOUND_SRC);
     }
 
     function stopBackgroundMusic() {
@@ -878,6 +893,7 @@
       boardItems.forEach((type, index) => {
         const cell = document.createElement("button");
         cell.className = "cell";
+        if (type === "off") cell.classList.add("object-off");
         cell.type = "button";
         cell.setAttribute("aria-label", objectTypes[type].label);
         cell.dataset.index = String(index);
@@ -911,6 +927,7 @@
         cell.classList.toggle("hint", mode === "hint" && isUnchosenTarget && !isWrongChoice);
         cell.classList.toggle("preview-glow", mode === "preview" && targetIndexes.has(index) && type === targetType && type !== "off");
         if (type && type !== "off" && !isChosenAnswer) cell.classList.add(`object-${type}`);
+        if (type === "off") cell.classList.add("object-off");
         if (isChosenAnswer) cell.classList.add("correct");
         if (isWrongChoice) cell.classList.add("wrong");
         cell.disabled = mode === "preview" || !roundActive;
@@ -1010,13 +1027,108 @@
       }
     }
 
-    function resetSessionState() {
+    function clearNoticeTimer() {
+      if (noticeTimer) {
+        clearTimeout(noticeTimer);
+        noticeTimer = null;
+      }
+      assistNoticeModal?.classList.remove("open");
+    }
+
+    function showAssistNotice(title, text, voiceText, onDone, durationMs = 1800) {
+      clearNoticeTimer();
+      if (!assistNoticeModal || !assistNoticeTitle || !assistNoticeText) {
+        if (voiceText) speakGuide(voiceText);
+        setTimeout(() => onDone?.(), durationMs);
+        return;
+      }
+      assistNoticeTitle.textContent = title;
+      assistNoticeText.textContent = text;
+      assistNoticeModal.classList.add("open");
+      if (voiceText) speakGuide(voiceText);
+      noticeTimer = setTimeout(() => {
+        noticeTimer = null;
+        assistNoticeModal.classList.remove("open");
+        onDone?.();
+      }, durationMs);
+    }
+
+    function clearTotalTimer() {
+      if (totalTimer) {
+        clearInterval(totalTimer);
+        totalTimer = null;
+      }
+    }
+
+    function showTimedResultNotice() {
+      const noticeText = "정해진 시간이 다 되어 결과 화면으로 이동합니다.";
+      message.textContent = noticeText;
+      showAssistNotice("결과 화면으로 이동합니다", noticeText, noticeText, () => {
+        showPostGameScreen();
+      }, 2200);
+    }
+
+    function handleTotalTimeExpired() {
+      if (currentPhase === "result" || currentPhase === "postgame") return;
+      clearTotalTimer();
       clearPreviewTimer();
       clearHintTimer();
       clearRoundTimer();
       clearBetweenTimer();
+      if (roundTelemetry && !roundClosed) {
+        closeRoundTelemetry("total_timeout");
+      }
+      roundActive = false;
+      isPreviewing = false;
+      isHinting = false;
+      currentPhase = "between";
+      hintButton.disabled = true;
+      setPauseReady(false);
+      [...board.children].forEach((item) => {
+        item.disabled = true;
+      });
+      showTimedResultNotice();
+    }
+
+    function startTotalTimer() {
+      if (!totalTimeLimit || totalTimer || currentPhase === "result") return;
+      if (totalTimeLeft <= 0) totalTimeLeft = totalTimeLimit;
+      totalTimer = setInterval(() => {
+        if (isPaused || currentPhase === "home" || currentPhase === "result" || currentPhase === "postgame") return;
+        totalTimeLeft -= 1;
+        if (totalTimeLeft <= 0) {
+          handleTotalTimeExpired();
+        }
+      }, 1000);
+    }
+
+    function scheduleAutoHint() {
+      if (!appliedGameConfig.auto_hint_enabled || !appliedGameConfig.hint_enabled || autoHintDelay <= 0) return;
+      if (hintTimer) clearTimeout(hintTimer);
+      hintTimer = setTimeout(() => {
+        hintTimer = null;
+        if (isPaused || isHinting || isPreviewing || currentPhase !== "playing" || !roundActive) {
+          scheduleAutoHint();
+          return;
+        }
+        if (!targetIndexes.size || chosenCorrect.size >= targetIndexes.size) return;
+        const noticeText = "잠시 후 남은 위치를 다시 보여드릴게요.";
+        showAssistNotice("힌트를 보여드릴게요", noticeText, noticeText, () => {
+          showHint();
+        });
+      }, autoHintDelay * 1000);
+    }
+
+    function resetSessionState() {
+      clearPreviewTimer();
+      clearHintTimer();
+      clearRoundTimer();
+      clearTotalTimer();
+      clearNoticeTimer();
+      clearBetweenTimer();
       currentRound = 0;
       timeLeft = roundTimeLimit;
+      totalTimeLeft = totalTimeLimit;
       isPaused = false;
       pausedPhase = null;
       currentPhase = "home";
@@ -1204,6 +1316,7 @@
       clearPreviewTimer();
       clearHintTimer();
       clearRoundTimer();
+      clearTotalTimer();
       clearBetweenTimer();
       sendCompletedResult();
       postGameModal.classList.remove("open");
@@ -1300,6 +1413,7 @@
       speakGuide(selectionText);
       renderBoard("hidden");
       startRoundTimer();
+      scheduleAutoHint();
     }
 
     function startPreviewCountdown() {
@@ -1346,6 +1460,7 @@
         return distractors[Math.floor(Math.random() * distractors.length)];
       });
       currentRound = nextRound;
+      startTotalTimer();
       startRoundTelemetry(currentRound);
       updateRoundDisplay();
       if (currentDifficulty === "high" && currentRound > 5) {

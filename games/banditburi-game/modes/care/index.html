@@ -272,6 +272,13 @@
     </div>
   </div>
 
+  <div id="assistNoticeModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="assistNoticeTitle">
+    <div class="modal-card">
+      <h2 id="assistNoticeTitle">안내</h2>
+      <p id="assistNoticeText">잠시 후 안내가 이어집니다.</p>
+    </div>
+  </div>
+
   <script>
     window.__GAME_CONFIG__ = {
       mode: "care",
@@ -287,14 +294,16 @@
         show_how_to_play: false,
         show_condition_check: false,
         show_finish_check: false,
-        question_count: 3,
+        question_count: 4,
         grid_rows: 2,
         grid_cols: 2,
         target_count: 1,
         exposure_time_ms: 8000,
         round_time_limit_sec: 0,
+        total_time_limit_sec: 180,
         hint_enabled: true,
         auto_hint_enabled: true,
+        auto_hint_delay_sec: 40,
         auto_start: true,
         auto_return: true,
         soft_feedback: true,
@@ -305,6 +314,6 @@
       }
     };
   </script>
-  <script src="js/game.js?v=20260531-care-copy-2"></script>
+  <script src="js/game.js?v=20260602-total-timer-1"></script>
 </body>
 </html>

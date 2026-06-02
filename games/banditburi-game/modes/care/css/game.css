@@ -4146,3 +4146,171 @@
         font-size: clamp(30px, min(2.6vw, 4.8vh), 40px) !important;
       }
     }
+
+    /* Care mode uses gentler success feedback for senior users. */
+    @keyframes careSoftCorrectPop {
+      0% { transform: scale(.96); }
+      48% { transform: scale(1.035); }
+      100% { transform: scale(1); }
+    }
+
+    @keyframes careSoftLightBurst {
+      0% { opacity: 0; transform: scale(.12); filter: blur(0); }
+      34% { opacity: .34; transform: scale(.42); filter: blur(.5px); }
+      100% { opacity: 0; transform: scale(.92); filter: blur(3px); }
+    }
+
+    @keyframes careSoftRayBurst {
+      0% { opacity: 0; transform: scale(.45) rotate(0deg); }
+      38% { opacity: .28; transform: scale(.82) rotate(10deg); }
+      100% { opacity: 0; transform: scale(1.12) rotate(22deg); }
+    }
+
+    @keyframes careSoftCompleteGlow {
+      0%, 100% {
+        filter: brightness(1);
+        transform: scale(1);
+      }
+      50% {
+        filter: brightness(1.08) saturate(1.05);
+        transform: scale(1.018);
+      }
+    }
+
+    body.mode-care .board button.cell.correct {
+      box-shadow:
+        inset 0 0 0 4px rgba(255, 217, 236, .68),
+        0 8px 14px rgba(184, 39, 115, .14) !important;
+    }
+
+    body.mode-care .cell.just-correct {
+      animation: careSoftCorrectPop .62s ease-out !important;
+    }
+
+    body.mode-care .cell.just-correct::before {
+      animation: careSoftLightBurst .62s ease-out !important;
+    }
+
+    body.mode-care .cell.just-correct::after {
+      animation: careSoftRayBurst .62s ease-out !important;
+    }
+
+    body.mode-care .cell.round-complete {
+      animation: careSoftCompleteGlow .8s ease-in-out 1 !important;
+    }
+
+    /* Care mode high-contrast accessibility tuning. */
+    body.mode-care {
+      color: #002f20;
+    }
+
+    body.mode-care .play-training-label {
+      color: #002f20 !important;
+      background: linear-gradient(180deg, #fff8c9 0%, #ffe88b 100%) !important;
+      border-color: #b7dca9 !important;
+      box-shadow:
+        0 5px 0 rgba(86, 140, 78, .28),
+        0 12px 24px rgba(24, 88, 44, .14) !important;
+    }
+
+    body.mode-care .message {
+      color: #002b1b !important;
+      background: linear-gradient(180deg, #fffef6 0%, #fff8df 100%) !important;
+      border-color: #c9ad51 !important;
+      box-shadow:
+        0 8px 0 rgba(177, 151, 76, .26),
+        0 18px 30px rgba(31, 85, 45, .14) !important;
+    }
+
+    body.mode-care .board {
+      background:
+        linear-gradient(180deg, rgba(236, 255, 237, .96) 0%, rgba(205, 234, 207, .98) 100%) !important;
+      border-color: #1f6f40 !important;
+      box-shadow:
+        0 8px 0 rgba(25, 91, 50, .36),
+        0 18px 28px rgba(14, 69, 35, .24) !important;
+    }
+
+    body.mode-care .cell {
+      background:
+        linear-gradient(145deg, #f8fff8 0%, #e7f8e8 48%, #c9e5cd 100%) !important;
+      border-color: #c5f0ca !important;
+      box-shadow:
+        inset 0 0 0 3px rgba(255, 255, 255, .9),
+        inset 0 -10px 0 rgba(50, 116, 64, .14),
+        0 7px 0 rgba(33, 96, 49, .3) !important;
+    }
+
+    body.mode-care .cell.empty {
+      background:
+        linear-gradient(145deg, #fbfffb 0%, #e6f7e8 52%, #c5e2cb 100%) !important;
+      border-color: #bfecc6 !important;
+    }
+
+    body.mode-care .cell.object-yellow,
+    body.mode-care .cell.preview-glow,
+    body.mode-care .cell.hint {
+      background: linear-gradient(180deg, #fff37a 0%, #ffd338 100%) !important;
+      border-color: #d8b200 !important;
+    }
+
+    body.mode-care .cell.correct {
+      background: linear-gradient(180deg, #fff37a 0%, #ffd338 100%) !important;
+    }
+
+    body.mode-care .cell.wrong {
+      background: linear-gradient(180deg, #ff8f8f 0%, #ef5656 100%) !important;
+    }
+
+    body.mode-care .cell.correct,
+    body.mode-care .cell.wrong {
+      border-color: #b82773 !important;
+    }
+
+    /* Bulb theme uses trimmed assets so every grid keeps the same cell-fit ratio. */
+    .theme-bulb .board {
+      --bulb-fit-height: 92%;
+      --bulb-fit-y: 0px;
+    }
+
+    .theme-bulb .board[data-grid-size="4"] {
+      --bulb-fit-height: 90%;
+      --bulb-fit-y: -1px;
+    }
+
+    .theme-bulb .board .cell.object-yellow .object-img,
+    .theme-bulb .board .cell.object-off .object-img,
+    .theme-bulb .board .cell.correct .object-img,
+    .theme-bulb .board .cell.hint .object-img,
+    .theme-bulb .board .cell.wrong .object-img {
+      width: auto !important;
+      height: var(--bulb-fit-height) !important;
+      max-width: 96% !important;
+      max-height: 96% !important;
+      object-fit: contain !important;
+      transform: translateY(var(--bulb-fit-y)) !important;
+    }
+
+    @media (orientation: portrait) {
+      .theme-bulb .board {
+        --bulb-fit-height: 94%;
+        --bulb-fit-y: -2px;
+      }
+
+      .theme-bulb .board[data-grid-size="4"] {
+        --bulb-fit-height: 92%;
+        --bulb-fit-y: -3px;
+      }
+    }
+
+    @media (orientation: landscape) and (max-height: 520px) {
+      .theme-bulb .board {
+        --bulb-fit-height: 94%;
+        --bulb-fit-y: -2px;
+      }
+
+      .theme-bulb .board[data-grid-size="4"] {
+        --bulb-fit-height: 92%;
+        --bulb-fit-y: -3px;
+      }
+    }

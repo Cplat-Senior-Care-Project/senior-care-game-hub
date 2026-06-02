@@ -6,8 +6,8 @@
       bulb: {
         label: TEXT.yellow,
         offLabel: TEXT.offBulb,
-        on: IMAGES.yellow,
-        off: IMAGES.off,
+        on: "assets/images/bulb-on-fit.png",
+        off: "assets/images/bulb-off-fit.png",
       },
       bird: {
         label: "새",
@@ -291,8 +291,7 @@
     let roundTelemetry = null;
     let roundClosed = false;
     const BUTTON_CLICK_SOUND_SRC = "assets/audio/audio-01-7e204aa7.mp3";
-    const CORRECT_SOUND_SRC = "assets/audio/correct.mp3";
-    const WRONG_SOUND_SRC = "assets/audio/wrong.mp3";
+    const BOARD_SELECT_SOUND_SRC = "assets/audio/board-select.mp3";
     const INTRO_MUSIC_SRC = "assets/audio/audio-02-7642c099.mp3";
     const PLAY_MUSIC_SRC = "assets/audio/audio-03-e0e7d5be.mp3";
     const buttonClickSound = new Audio(BUTTON_CLICK_SOUND_SRC);
@@ -758,11 +757,11 @@
     }
 
     function playCorrectSound() {
-      playEffectSound(CORRECT_SOUND_SRC);
+      playEffectSound(BOARD_SELECT_SOUND_SRC);
     }
 
     function playWrongSound() {
-      playEffectSound(WRONG_SOUND_SRC);
+      playEffectSound(BOARD_SELECT_SOUND_SRC);
     }
 
     function stopBackgroundMusic() {
@@ -877,6 +876,7 @@
       boardItems.forEach((type, index) => {
         const cell = document.createElement("button");
         cell.className = "cell";
+        if (type === "off") cell.classList.add("object-off");
         cell.type = "button";
         cell.setAttribute("aria-label", objectTypes[type].label);
         cell.dataset.index = String(index);
@@ -910,6 +910,7 @@
         cell.classList.toggle("hint", mode === "hint" && isUnchosenTarget && !isWrongChoice);
         cell.classList.toggle("preview-glow", mode === "preview" && targetIndexes.has(index) && type === targetType && type !== "off");
         if (type && type !== "off" && !isChosenAnswer) cell.classList.add(`object-${type}`);
+        if (type === "off") cell.classList.add("object-off");
         if (isChosenAnswer) cell.classList.add("correct");
         if (isWrongChoice) cell.classList.add("wrong");
         cell.disabled = mode === "preview" || !roundActive;
