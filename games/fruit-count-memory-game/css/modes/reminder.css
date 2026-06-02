@@ -404,3 +404,116 @@ html[data-mode="reminder"] .post-condition-option[data-post-field="fatigue"][dat
   word-break: keep-all;
   white-space: nowrap;
 }
+
+html[data-mode="reminder"] .result-screen {
+  display: grid;
+  place-items: center;
+  align-content: center;
+  overflow-y: auto;
+  text-align: center;
+}
+
+html[data-mode="reminder"] .result-content {
+  max-height: 100%;
+  overflow-y: auto;
+  scrollbar-width: none;
+  max-width: calc(1280px - var(--safe-left) - var(--safe-right) - 16px);
+  width: min(940px, 100%);
+  display: grid;
+  justify-items: center;
+  align-content: center;
+  gap: 0;
+  padding: clamp(26px, 36px, 58px) clamp(18px, 64px, 62px);
+}
+
+html[data-mode="reminder"] .standard-result-card {
+  display: contents;
+}
+
+html[data-mode="reminder"] .standard-result-record,
+html[data-mode="reminder"] .result-actions #result-start-button,
+html[data-mode="reminder"] .result-actions #result-home-button {
+  display: none;
+}
+
+html[data-mode="reminder"] .result-emoji {
+  display: grid;
+  width: auto;
+  height: auto;
+  margin-bottom: clamp(12px, 16px, 22px);
+  border: 0;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+  font-size: clamp(88px, 108px, 132px);
+}
+
+html[data-mode="reminder"] .result-content > .eyebrow,
+html[data-mode="reminder"] .result-message {
+  display: block;
+}
+
+html[data-mode="reminder"] .result-content > .eyebrow {
+  width: max-content;
+  max-width: none;
+  white-space: nowrap;
+}
+
+html[data-mode="reminder"] .result-content h2 {
+  width: auto;
+  margin: 0;
+  padding-bottom: 0;
+  border-bottom: 0;
+  color: var(--brown-dark);
+  font-size: clamp(38px, 76.8px, 72px);
+  line-height: 1.08;
+  white-space: normal;
+  text-shadow: none;
+}
+
+html[data-mode="reminder"] .result-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  width: auto;
+  gap: clamp(10px, 25.6px, 18px);
+  margin-top: 0;
+  padding-top: 0;
+}
+
+html[data-mode="reminder"] .result-actions .game-button {
+  flex: 0 0 auto;
+  width: auto;
+  min-width: clamp(126px, 217.6px, 184px);
+  min-height: clamp(48px, 50.4px, 62px);
+  padding: clamp(9px, 10.8px, 14px) clamp(22px, 51.2px, 34px);
+}
+
+html[data-mode="reminder"] .result-actions #result-home-button {
+  width: auto;
+  min-width: 420px;
+  min-height: 116px;
+  padding-block: 24px;
+  border-color: #fde9a5;
+  background:
+    linear-gradient(315deg, rgba(54, 109, 24, 0.2) 0%, rgba(120, 173, 52, 0.04) 46%, rgba(184, 219, 88, 0.22) 100%),
+    #78ad34;
+  box-shadow:
+    0 8px 18px rgba(47, 65, 21, 0.22),
+    0 0 0 1px #245312,
+    inset 0 0 0 1px #245312,
+    inset 0 3px 0 rgba(255, 255, 244, 0.42),
+    inset 0 -6px 0 rgba(43, 79, 18, 0.38);
+  text-shadow:
+    0 2px 0 rgba(56, 69, 32, 0.72),
+    0 0 4px rgba(56, 69, 32, 0.42);
+}
+
+html[data-mode="reminder"] .result-actions #result-home-button:hover {
+  box-shadow:
+    0 8px 18px rgba(47, 65, 21, 0.22),
+    0 0 0 1px #245312,
+    inset 0 0 0 1px #245312,
+    inset 0 3px 0 rgba(255, 255, 244, 0.42),
+    inset 0 -6px 0 rgba(43, 79, 18, 0.38);
+}

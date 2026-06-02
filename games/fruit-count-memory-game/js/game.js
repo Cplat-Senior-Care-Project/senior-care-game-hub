@@ -314,6 +314,7 @@
     startCountdownIntroTimeoutId: null,
     startCountdownFrameId: null,
     hintTimerId: null,
+    resultAutoReturnTimerId: null,
     phaseStartedAt: 0,
     phaseDuration: 0,
     phaseRemaining: 0,
@@ -396,8 +397,15 @@
     document.body.insertBefore(els.carePlayControls, els.app.nextSibling);
   }
 
+  function shouldAutoStartAfterLoading() {
+    return runtimeConfig.mode === "reminder";
+  }
+
   function startIntroLoading() {
     if (!els.startScreen || !els.startLoadingFill || !els.startLoadingText) {
+      if (shouldAutoStartAfterLoading()) {
+        showDifficultySelect();
+      }
       return;
     }
 
@@ -425,6 +433,13 @@
       els.startLoadingText.textContent = "100%";
 
       window.setTimeout(() => {
+        if (shouldAutoStartAfterLoading()) {
+          els.startScreen.classList.remove("is-loading");
+          els.startScreen.classList.add("is-loaded");
+          showDifficultySelect();
+          return;
+        }
+
         els.startScreen.classList.remove("is-loading");
         els.startScreen.classList.add("is-loaded");
         els.startScreen.classList.add("is-intro-revealing");
@@ -440,8 +455,10 @@
 
   function showDifficultySelect() {
     const configuredDifficultyIndex = getConfiguredDifficultyIndex();
-    if (!shouldShowDifficultySelect() || (configuredDifficultyIndex !== null && configuredDifficultyIndex >= 0)) {
-      startGame(configuredDifficultyIndex !== null && configuredDifficultyIndex >= 0 ? configuredDifficultyIndex : 0);
+    const hasConfiguredDifficulty = configuredDifficultyIndex !== null && configuredDifficultyIndex >= 0;
+    const shouldStartConfiguredDifficulty = hasConfiguredDifficulty && runtimeConfig.mode !== "reminder";
+    if (!shouldShowDifficultySelect() || shouldStartConfiguredDifficulty) {
+      startGame(hasConfiguredDifficulty ? configuredDifficultyIndex : 0);
       return;
     }
 
@@ -613,6 +630,11 @@
   }
 
   function answerQuestion(choice) {
+    if (state.phase !== "question" && isQuestionViewVisible() && !state.isPaused && state.currentQuestion) {
+      state.phase = "question";
+      updateCareHintButtonState();
+    }
+
     if (state.phase !== "question" || state.isPaused || !state.currentQuestion) {
       return;
     }
@@ -644,13 +666,24 @@
     finalizeCurrentQuestion(isCorrect ? "correct" : "incorrect", isCorrect);
     state.questionInDifficulty += 1;
     if (isCareMode() && state.questionInDifficulty >= getTotalQuestions()) {
-      finishGame("all_questions");
+      finishCareSessionWithoutFinalFeedback();
       return;
     }
 
     state.phase = "feedback";
     renderFeedbackView(isCorrect, state.currentQuestion);
     startPhaseTimer(getFeedbackTime(), showNextQuestion);
+  }
+
+  function finishCareSessionWithoutFinalFeedback() {
+    state.phase = "result";
+    state.currentQuestion = null;
+    clearHintTimer();
+    if (els.playArea) {
+      els.playArea.innerHTML = "";
+    }
+    updateCareHintButtonState();
+    finishGame("all_questions");
   }
 
   function handleTimeExpired() {
@@ -680,6 +713,14 @@
 
   function isStandardLikeMode() {
     return runtimeConfig.mode === "standard" || runtimeConfig.mode === "reminder";
+  }
+
+  function isStandardResultMode() {
+    return runtimeConfig.mode === "standard";
+  }
+
+  function isCareResultMode() {
+    return isCareMode() || runtimeConfig.mode === "reminder";
   }
 
   function getMemoryRevealMs() {
@@ -790,20 +831,8 @@
   }
 
   function createCareAnswerOptions(answer, totalCount) {
-    const optionCount = 2;
-    const maxOption = Math.max(optionCount, answer, Math.min(4, totalCount));
-    const values = new Set([answer]);
-    [answer - 1, answer + 1, answer - 2, answer + 2].forEach((value) => {
-      if (value >= 1 && value <= maxOption && values.size < optionCount) {
-        values.add(value);
-      }
-    });
-
-    while (values.size < optionCount) {
-      values.add(randomInRange(1, maxOption));
-    }
-
-    return Array.from(values).sort((a, b) => a - b);
+    const nearbyOptions = answer > 1 ? [answer - 1, answer + 1] : [answer + 1];
+    return shuffle([answer, pickOne(nearbyOptions)]);
   }
 
   function createCareQuestionPrompt(fruit, options) {
@@ -1534,6 +1563,14 @@
     clearPhaseTimer();
     clearStartCountdown();
     clearHintTimer();
+    clearResultAutoReturnTimer();
+  }
+
+  function clearResultAutoReturnTimer() {
+    if (state.resultAutoReturnTimerId) {
+      window.clearTimeout(state.resultAutoReturnTimerId);
+      state.resultAutoReturnTimerId = null;
+    }
   }
 
   function clearStartCountdown() {
@@ -1577,15 +1614,18 @@
 
   function updateCareHintButtonState() {
     const isCare = isCareMode();
-    const canPause = isCare && !state.isPaused && !["start", "difficulty", "countdown", "postCondition", "result"].includes(state.phase);
+    const hasQuestionView = isQuestionViewVisible();
+    const isQuestionInputReady = hasQuestionView && !!state.currentQuestion;
+    const canPause = isCare && !state.isPaused && (
+      isQuestionInputReady || !["start", "difficulty", "countdown", "postCondition", "result"].includes(state.phase)
+    );
 
     if (els.carePauseButton) {
       els.carePauseButton.disabled = !canPause;
       els.carePauseButton.setAttribute("aria-disabled", canPause ? "false" : "true");
     }
 
-    const hasQuestionView = state.phase === "question" && els.playArea && !!els.playArea.querySelector(".question-view");
-    const canUseHint = isCare && !!state.currentQuestion && hasQuestionView && !state.isPaused;
+    const canUseHint = isCare && isQuestionInputReady && !state.isPaused;
     if (els.careHintButton) {
       els.careHintButton.hidden = !hasQuestionView;
       els.careHintButton.disabled = !canUseHint;
@@ -1594,6 +1634,10 @@
     if (!hasQuestionView) {
       hideCareHintMessage();
     }
+  }
+
+  function isQuestionViewVisible() {
+    return !!(els.playArea && els.playArea.querySelector(".question-view"));
   }
 
   function triggerCareHint() {
@@ -1619,6 +1663,11 @@
   }
 
   function pauseGame() {
+    if (state.phase !== "question" && isQuestionViewVisible() && state.currentQuestion && !state.isPaused) {
+      state.phase = "question";
+      updateCareHintButtonState();
+    }
+
     if (state.phase === "start" || state.phase === "difficulty" || state.phase === "countdown" || state.phase === "postCondition" || state.phase === "result" || state.isPaused) {
       return;
     }
@@ -1843,6 +1892,14 @@
   }
 
   function shouldShowFinishCheck() {
+    if (isCareMode()) {
+      return false;
+    }
+
+    if (runtimeConfig.mode === "reminder") {
+      return false;
+    }
+
     return !runtimeConfig.ui || runtimeConfig.ui.showFinishCheck !== false;
   }
 
@@ -3140,10 +3197,23 @@
       return;
     }
     showOnly("result");
+    scheduleResultAutoReturn();
+  }
+
+  function scheduleResultAutoReturn() {
+    clearResultAutoReturnTimer();
+    if (runtimeConfig.mode !== "reminder") {
+      return;
+    }
+
+    state.resultAutoReturnTimerId = window.setTimeout(() => {
+      state.resultAutoReturnTimerId = null;
+      returnToHub();
+    }, 3000);
   }
 
   function getResultTotalCount(totalAnswered) {
-    return isStandardLikeMode() ? getTotalQuestions() : totalAnswered;
+    return isStandardResultMode() ? getTotalQuestions() : totalAnswered;
   }
 
   function restartCurrentDifficulty() {
@@ -3151,7 +3221,7 @@
   }
 
   function updateResultEyebrow() {
-    if (!els.resultEyebrow || !isStandardLikeMode()) {
+    if (!els.resultEyebrow || !isStandardResultMode()) {
       return;
     }
 
@@ -3159,7 +3229,7 @@
   }
 
   function updateStandardResultRecord(resultTotal, rate, previousRecord) {
-    if (!isStandardLikeMode()) {
+    if (!isStandardResultMode()) {
       return;
     }
 
@@ -3183,7 +3253,7 @@
   }
 
   function createResultMessage(totalAnswered, rate) {
-    if (isCareMode()) {
+    if (isCareResultMode()) {
       return createCareResultMessage(totalAnswered);
     }
 

@@ -549,7 +549,7 @@
       var params = new URLSearchParams(window.location.search);
       var requestedMode = String(params.get("mode") || "standard").trim().toLowerCase();
       var mode = Object.prototype.hasOwnProperty.call(modeMap, requestedMode) ? requestedMode : "standard";
-      var assetVersion = "care-ai-home-green-20260601";
+      var assetVersion = "care-ai-five-option-fit-20260602";
       window.__FRUIT_COUNT_GAME_MODE__ = mode;
       window.__FRUIT_COUNT_MODE_ASSETS__ = {
         css: "css/modes/" + mode + ".css",
@@ -564,6 +564,6 @@
     })();
   </script>
   <script src="js/app-bridge.js?v=standard-first-record-only-20260601"></script>
-  <script src="js/game.js?v=standard-reminder-result-total-20260601"></script>
+  <script src="js/game.js?v=care-ai-five-option-fit-20260602"></script>
 </body>
 </html>

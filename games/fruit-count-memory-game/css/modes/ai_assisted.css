@@ -186,6 +186,10 @@ html[data-mode="ai_assisted"] .care-hint-message {
   pointer-events: none;
 }
 
+html[data-mode="ai_assisted"] .care-hint-button::before {
+  content: "\1F4A1";
+}
+
 html[data-mode="ai_assisted"] .care-hint-message.is-hidden {
   display: none;
 }
@@ -349,6 +353,7 @@ html[data-mode="ai_assisted"] .question-prompt-wrap {
 html[data-mode="ai_assisted"] .question-top-row .guide-text {
   width: max-content;
   max-width: none;
+  font-size: 62px;
   white-space: nowrap;
 }
 
@@ -579,21 +584,22 @@ html[data-mode="ai_assisted"] .target-fruit-name {
 }
 
 html[data-mode="ai_assisted"] .answer-grid {
-  grid-template-columns: repeat(auto-fit, minmax(180px, max-content));
+  grid-template-columns: repeat(auto-fit, minmax(260px, max-content));
   justify-content: center;
   width: min(100%, 720px);
-  column-gap: 120px;
+  column-gap: 80px;
   row-gap: 28px;
 }
 
 html[data-mode="ai_assisted"] .number-button {
-  width: 240px;
+  width: 280px;
   min-width: 0;
   height: 148px;
   min-height: 0;
   aspect-ratio: auto;
-  padding: 18px 24px;
-  font-size: 60px;
+  padding: 18px 20px;
+  font-size: 58px;
+  white-space: nowrap;
 }
 
 html[data-mode="ai_assisted"] .care-recall-view {
