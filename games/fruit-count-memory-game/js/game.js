@@ -10,6 +10,7 @@
   const FEEDBACK_TIME = 2400;
   const RETRY_FEEDBACK_TIME = 2200;
   const CARE_FEEDBACK_TIME = 4000;
+  const AUTO_HINT_DELAY_MS = 10000;
   const MAX_WRONG_RETRIES = 2;
   const STORAGE_KEY_PREFIX = "fruit_count_memory_game_last_result";
   const RACE_POINTS = [16, 50, 84, 94];
@@ -45,7 +46,7 @@
     debugMode: false,
     hintEnabled: true,
     autoHintEnabled: true,
-    softFeedback: true,
+    softFeedback: null,
     resultLogLevel: "detailed",
     mode: "standard",
     ui: Object.freeze({
@@ -213,6 +214,7 @@
     startLoadingText: document.getElementById("start-loading-text"),
     difficultyScreen: document.getElementById("difficulty-screen"),
     gameScreen: document.getElementById("game-screen"),
+    gameHeader: document.querySelector(".game-header"),
     resultScreen: document.getElementById("result-screen"),
     errorScreen: document.getElementById("error-screen"),
     errorTitle: document.getElementById("error-title"),
@@ -314,6 +316,7 @@
     startCountdownIntroTimeoutId: null,
     startCountdownFrameId: null,
     hintTimerId: null,
+    autoHintTimerId: null,
     resultAutoReturnTimerId: null,
     phaseStartedAt: 0,
     phaseDuration: 0,
@@ -398,7 +401,7 @@
   }
 
   function shouldAutoStartAfterLoading() {
-    return runtimeConfig.mode === "reminder";
+    return runtimeConfig.mode === "reminder" && !shouldShowConditionCheck();
   }
 
   function startIntroLoading() {
@@ -456,8 +459,7 @@
   function showDifficultySelect() {
     const configuredDifficultyIndex = getConfiguredDifficultyIndex();
     const hasConfiguredDifficulty = configuredDifficultyIndex !== null && configuredDifficultyIndex >= 0;
-    const shouldStartConfiguredDifficulty = hasConfiguredDifficulty && runtimeConfig.mode !== "reminder";
-    if (!shouldShowDifficultySelect() || shouldStartConfiguredDifficulty) {
+    if (!shouldShowDifficultySelect()) {
       startGame(hasConfiguredDifficulty ? configuredDifficultyIndex : 0);
       return;
     }
@@ -493,6 +495,7 @@
     state.phaseCallback = null;
     state.reachedDifficultyIndex = 0;
     state.reachedQuestion = 0;
+    state.postConditionChecked = false;
     els.pauseModal.classList.add("is-hidden");
     if (els.postConditionModal) {
       els.postConditionModal.classList.add("is-hidden");
@@ -627,6 +630,7 @@
     state.phase = "question";
     renderQuestionView(state.currentQuestion);
     recordQuestionShown(state.currentQuestion);
+    scheduleAutoHint();
   }
 
   function answerQuestion(choice) {
@@ -639,7 +643,7 @@
       return;
     }
 
-    clearHintTimer();
+    clearQuestionHintTimers();
     const isCorrect = Number(choice) === state.currentQuestion.answer;
     recordAnswerSelected(choice, isCorrect);
     if (isCorrect) {
@@ -678,7 +682,7 @@
   function finishCareSessionWithoutFinalFeedback() {
     state.phase = "result";
     state.currentQuestion = null;
-    clearHintTimer();
+    clearQuestionHintTimers();
     if (els.playArea) {
       els.playArea.innerHTML = "";
     }
@@ -716,11 +720,15 @@
   }
 
   function isStandardResultMode() {
-    return runtimeConfig.mode === "standard";
+    return shouldShowScoreResult();
   }
 
   function isCareResultMode() {
-    return isCareMode() || runtimeConfig.mode === "reminder";
+    return !shouldShowScoreResult();
+  }
+
+  function shouldShowScoreResult() {
+    return !runtimeConfig.ui || runtimeConfig.ui.showScore !== false;
   }
 
   function getMemoryRevealMs() {
@@ -737,7 +745,7 @@
 
   function createCareQuestion() {
     const questionIndex = state.questionInDifficulty;
-    const fruitCountLimit = Math.max(1, Math.min(4, runtimeConfig.maxItemsToRemember || 4));
+    const fruitCountLimit = Math.max(1, runtimeConfig.maxItemsToRemember || 4);
     const plan = getCareQuestionPlan(currentDifficulty().key, questionIndex, fruitCountLimit);
     const selectedFruits = pickCareFruits(plan.typeCount);
     const counts = splitCareCounts(plan.totalCount, plan.typeCount);
@@ -772,8 +780,6 @@
         { totalCount: 2, typeCount: 1, shuffleCards: false },
         { totalCount: 2, typeCount: 1, shuffleCards: false },
         { totalCount: 3, typeCount: 1, shuffleCards: false },
-        { totalCount: 3, typeCount: 1, shuffleCards: false },
-        { totalCount: 4, typeCount: 1, shuffleCards: false },
         { totalCount: 4, typeCount: 1, shuffleCards: false }
       ],
       normal: [
@@ -781,18 +787,14 @@
         { totalCount: 2, typeCount: 1, shuffleCards: false },
         { totalCount: 2, typeCount: 2, shuffleCards: false },
         { totalCount: 3, typeCount: 2, shuffleCards: false },
-        { totalCount: 3, typeCount: 2, shuffleCards: false },
-        { totalCount: 4, typeCount: 2, shuffleCards: false },
         { totalCount: 4, typeCount: 2, shuffleCards: false }
       ],
       hard: [
         { totalCount: 2, typeCount: 1, shuffleCards: true },
         { totalCount: 2, typeCount: 2, shuffleCards: true },
         { totalCount: 3, typeCount: 2, shuffleCards: true },
-        { totalCount: 3, typeCount: 2, shuffleCards: true },
         { totalCount: 4, typeCount: 2, shuffleCards: true },
-        { totalCount: 4, typeCount: 3, shuffleCards: true },
-        { totalCount: 4, typeCount: 3, shuffleCards: true }
+        { totalCount: 4, typeCount: 2, shuffleCards: true }
       ]
     };
     const plans = plansByDifficulty[difficultyKey] || plansByDifficulty.easy;
@@ -831,8 +833,28 @@
   }
 
   function createCareAnswerOptions(answer, totalCount) {
-    const nearbyOptions = answer > 1 ? [answer - 1, answer + 1] : [answer + 1];
-    return shuffle([answer, pickOne(nearbyOptions)]);
+    const optionCount = Math.max(2, Math.min(6, runtimeConfig.answerChoiceCount || 2));
+    const maxOption = Math.max(5, totalCount + optionCount, answer + optionCount);
+    const values = new Set([answer]);
+    const nearbyOptionGroups = [
+      shuffle([answer - 1, answer + 1]),
+      shuffle([answer - 2, answer + 2]),
+      shuffle([answer - 3, answer + 3])
+    ];
+
+    nearbyOptionGroups.forEach((group) => {
+      group.forEach((number) => {
+        if (number >= 1 && number <= maxOption && values.size < optionCount) {
+          values.add(number);
+        }
+      });
+    });
+
+    while (values.size < optionCount) {
+      values.add(randomInRange(1, maxOption));
+    }
+
+    return shuffle(Array.from(values));
   }
 
   function createCareQuestionPrompt(fruit, options) {
@@ -1250,6 +1272,10 @@
     hintButtonText.textContent = "힌트";
     hintButton.appendChild(hintButtonText);
     hintButton.addEventListener("click", () => {
+      if (!shouldShowHintButton()) {
+        return;
+      }
+
       playSound("button");
       clearHintTimer();
       state.hintStep = Math.min(state.hintStep + 1, 2);
@@ -1263,7 +1289,11 @@
       }, 3000);
     });
 
-    hintArea.appendChild(hintButton);
+    if (shouldShowHintButton()) {
+      hintArea.appendChild(hintButton);
+    } else {
+      hintArea.hidden = true;
+    }
 
     const answerGrid = document.createElement("div");
     answerGrid.className = "answer-grid";
@@ -1383,9 +1413,23 @@
 
     const title = document.createElement("p");
     title.className = "feedback-title";
-    title.append("괜찮아요.", document.createElement("br"), "천천히 다시 같이 볼까요?");
+    if (shouldUseDirectFeedback()) {
+      title.textContent = "다시 한 번 생각해보세요!";
+    } else {
+      title.append("괜찮아요.", document.createElement("br"), "천천히 다시 같이 볼까요?");
+    }
 
-    view.append(symbol, title);
+    const message = document.createElement("p");
+    message.className = "feedback-message";
+    message.textContent = remainingRetries > 0
+      ? "조금 더 기억해보고 다시 골라보세요."
+      : "마지막으로 한 번 더 골라볼까요?";
+
+    if (shouldUseDirectFeedback()) {
+      view.append(symbol, title, message);
+    } else {
+      view.append(symbol, title);
+    }
     els.playArea.appendChild(view);
     updateCareHintButtonState();
   }
@@ -1405,23 +1449,42 @@
 
     const title = document.createElement("p");
     title.className = "feedback-title";
-    title.textContent = isFinalCareFeedback
-      ? "여기까지 마쳤습니다."
-      : isCareMode()
-      ? (isCorrect ? "좋습니다. 잘 보셨어요." : "조금 헷갈릴 수 있어요.")
-      : (isCorrect ? "좋아요. 잘 보셨어요" : "괜찮아요");
+    if (shouldUseDirectFeedback() && !isFinalCareFeedback) {
+      title.textContent = isCorrect ? "잘 기억하셨어요!" : "괜찮아요.";
+    } else {
+      title.textContent = isFinalCareFeedback
+        ? "여기까지 마쳤습니다."
+        : isCareMode()
+        ? (isCorrect ? "좋습니다. 잘 보셨어요." : "조금 헷갈릴 수 있어요.")
+        : (isCorrect ? "좋아요. 잘 보셨어요" : "괜찮아요");
+    }
 
     const message = document.createElement("p");
     message.className = "feedback-message";
-    message.textContent = isFinalCareFeedback
-      ? "오늘도 차분히 집중해 주셨어요."
-      : isCorrect
-      ? "하나만 더 해볼까요? 힘드시면 쉬어도 괜찮아요."
-      : (isCareMode() ? "괜찮아요. 천천히 다시 같이 볼까요?" : "조금 헷갈릴 수 있어요. 하나만 더 연습해볼까요?");
+    if (shouldUseDirectFeedback() && !isFinalCareFeedback) {
+      message.textContent = isCorrect
+        ? "좋습니다. 다음 문제로 넘어갈게요."
+        : `정답은 ${formatStandardAnswerCount(question)}였어요. 다음 문제로 가볼까요?`;
+    } else {
+      message.textContent = isFinalCareFeedback
+        ? "오늘도 차분히 집중해 주셨어요."
+        : isCorrect
+        ? "하나만 더 해볼까요? 힘드시면 쉬어도 괜찮아요."
+        : (isCareMode() ? "괜찮아요. 천천히 다시 같이 볼까요?" : "조금 헷갈릴 수 있어요. 하나만 더 연습해볼까요?");
+    }
 
     view.append(symbol, title, message);
     els.playArea.appendChild(view);
     updateCareHintButtonState();
+  }
+
+  function shouldUseDirectFeedback() {
+    return runtimeConfig.softFeedback === false;
+  }
+
+  function formatStandardAnswerCount(question) {
+    const answer = question && Number.isFinite(Number(question.answer)) ? Number(question.answer) : null;
+    return answer === null ? "정답" : `${answer}개`;
   }
 
   function createFruitCard(fruit) {
@@ -1497,12 +1560,6 @@
 
   function startDifficultyTimer() {
     clearInterval(state.timerId);
-    if (!shouldShowTimer()) {
-      state.timerId = null;
-      updateTimerUi();
-      return;
-    }
-
     updateTimerUi();
 
     state.timerId = window.setInterval(() => {
@@ -1562,8 +1619,20 @@
     state.timerId = null;
     clearPhaseTimer();
     clearStartCountdown();
-    clearHintTimer();
+    clearQuestionHintTimers();
     clearResultAutoReturnTimer();
+  }
+
+  function clearQuestionHintTimers() {
+    clearAutoHintTimer();
+    clearHintTimer();
+  }
+
+  function clearAutoHintTimer() {
+    if (state.autoHintTimerId) {
+      window.clearTimeout(state.autoHintTimerId);
+      state.autoHintTimerId = null;
+    }
   }
 
   function clearResultAutoReturnTimer() {
@@ -1614,6 +1683,7 @@
 
   function updateCareHintButtonState() {
     const isCare = isCareMode();
+    const shouldShowHint = shouldShowHintButton();
     const hasQuestionView = isQuestionViewVisible();
     const isQuestionInputReady = hasQuestionView && !!state.currentQuestion;
     const canPause = isCare && !state.isPaused && (
@@ -1625,15 +1695,23 @@
       els.carePauseButton.setAttribute("aria-disabled", canPause ? "false" : "true");
     }
 
-    const canUseHint = isCare && isQuestionInputReady && !state.isPaused;
+    const canUseHint = isCare && shouldShowHint && isQuestionInputReady && !state.isPaused;
     if (els.careHintButton) {
-      els.careHintButton.hidden = !hasQuestionView;
+      els.careHintButton.hidden = !shouldShowHint || !hasQuestionView;
       els.careHintButton.disabled = !canUseHint;
       els.careHintButton.setAttribute("aria-disabled", canUseHint ? "false" : "true");
     }
-    if (!hasQuestionView) {
+    if ((!shouldShowHint && !shouldUseAutoHint()) || !hasQuestionView) {
       hideCareHintMessage();
     }
+  }
+
+  function shouldShowHintButton() {
+    return runtimeConfig.hintEnabled !== false;
+  }
+
+  function shouldUseAutoHint() {
+    return isCareMode() && runtimeConfig.autoHintEnabled !== false;
   }
 
   function isQuestionViewVisible() {
@@ -1641,11 +1719,16 @@
   }
 
   function triggerCareHint() {
-    if (els.careHintButton.disabled || !state.currentQuestion) {
+    if (!shouldShowHintButton() || els.careHintButton.disabled || !state.currentQuestion) {
       return;
     }
 
     playSound("button");
+    clearAutoHintTimer();
+    showCareHint();
+  }
+
+  function showCareHint() {
     clearHintTimer();
     state.hintStep = Math.min(state.hintStep + 1, 2);
     recordHintUsed(state.hintStep);
@@ -1660,6 +1743,27 @@
       hideCareHintMessage();
       state.hintTimerId = null;
     }, 3000);
+  }
+
+  function scheduleAutoHint() {
+    clearAutoHintTimer();
+    if (!shouldUseAutoHint() || state.phase !== "question" || state.isPaused || !state.currentQuestion || state.hintStep > 0) {
+      return;
+    }
+
+    state.autoHintTimerId = window.setTimeout(() => {
+      state.autoHintTimerId = null;
+      triggerAutoHint();
+    }, AUTO_HINT_DELAY_MS);
+  }
+
+  function triggerAutoHint() {
+    if (!shouldUseAutoHint() || state.phase !== "question" || state.isPaused || !state.currentQuestion || state.hintStep > 0) {
+      return;
+    }
+
+    playSound("button");
+    showCareHint();
   }
 
   function pauseGame() {
@@ -1684,6 +1788,7 @@
     updateCareHintButtonState();
     clearInterval(state.timerId);
     state.timerId = null;
+    clearAutoHintTimer();
 
     if (state.phaseTimerId) {
       state.phaseRemaining = Math.max(0, state.phaseDuration - (Date.now() - state.phaseStartedAt));
@@ -1710,6 +1815,9 @@
     els.pauseModal.classList.add("is-hidden");
     updateCareHintButtonState();
     startDifficultyTimer();
+    if (state.phase === "question") {
+      scheduleAutoHint();
+    }
 
     if ((state.phase === "memory" || state.phase === "recall" || state.phase === "feedback") && state.phaseCallback) {
       startPhaseTimer(state.phaseRemaining, state.phaseCallback);
@@ -1727,9 +1835,6 @@
     }
     els.pauseModal.classList.add("is-hidden");
     updateCareHintButtonState();
-    if (isCareMode()) {
-      state.postConditionChecked = true;
-    }
     finishGame("quit");
   }
 
@@ -1833,19 +1938,36 @@
     return {
       showTimer: readOptionalBoolean(override, "showTimer", base.showTimer),
       showProgress: readOptionalBoolean(override, "showProgress", base.showProgress),
+      showScore: readOptionalBoolean(override, "showScore", base.showScore),
       showSettings: readOptionalBoolean(override, "showSettings", base.showSettings),
       showTutorial: readOptionalBoolean(override, "showTutorial", base.showTutorial),
-      showDifficultySelect: readOptionalBoolean(override, "showDifficultySelect", base.showDifficultySelect)
+      showDifficultySelect: readOptionalBoolean(override, "showDifficultySelect", base.showDifficultySelect),
+      showConditionCheck: readOptionalBoolean(override, "showConditionCheck", base.showConditionCheck),
+      showFinishCheck: readOptionalBoolean(override, "showFinishCheck", base.showFinishCheck)
     };
   }
 
   function applyModeUiSettings() {
     const mode = runtimeConfig.mode || DEFAULT_RUN_CONFIG.mode;
     const ui = runtimeConfig.ui || DEFAULT_RUN_CONFIG.ui;
+    const showTimer = shouldShowTimer();
+    const showScore = shouldShowScoreResult();
+    const showProgress = ui.showProgress !== false;
     document.documentElement.dataset.mode = mode;
+    document.documentElement.dataset.resultStyle = showScore ? "standard" : "care";
+    document.documentElement.dataset.showTimer = showTimer ? "true" : "false";
+    document.documentElement.dataset.showScore = showScore ? "true" : "false";
+    document.documentElement.dataset.showSettings = ui.showSettings === false ? "false" : "true";
+    document.documentElement.dataset.showTutorial = ui.showTutorial === false ? "false" : "true";
+    document.documentElement.dataset.showDifficultySelect = shouldShowDifficultySelect() ? "true" : "false";
+    document.documentElement.dataset.showConditionCheck = shouldShowConditionCheck() ? "true" : "false";
+    document.documentElement.dataset.showFinishCheck = shouldShowFinishCheck() ? "true" : "false";
     document.body.dataset.mode = mode;
     if (els.app) {
       els.app.dataset.mode = mode;
+      els.app.dataset.resultStyle = showScore ? "standard" : "care";
+      els.app.dataset.showTimer = showTimer ? "true" : "false";
+      els.app.dataset.showScore = showScore ? "true" : "false";
     }
     if (els.settingsButton) {
       els.settingsButton.hidden = ui.showSettings === false;
@@ -1854,10 +1976,14 @@
       els.tutorialButton.hidden = ui.showTutorial === false;
     }
     if (els.timerBox) {
-      els.timerBox.hidden = ui.showTimer === false;
+      els.timerBox.hidden = !showTimer;
     }
     if (els.raceWrap) {
-      els.raceWrap.hidden = ui.showProgress === false;
+      els.raceWrap.hidden = !showProgress;
+    }
+    if (els.gameHeader) {
+      const shouldShowGameHeader = !isCareMode() || showTimer || showProgress;
+      els.gameHeader.hidden = !shouldShowGameHeader;
     }
   }
 
@@ -1892,14 +2018,6 @@
   }
 
   function shouldShowFinishCheck() {
-    if (isCareMode()) {
-      return false;
-    }
-
-    if (runtimeConfig.mode === "reminder") {
-      return false;
-    }
-
     return !runtimeConfig.ui || runtimeConfig.ui.showFinishCheck !== false;
   }
 
@@ -1953,6 +2071,15 @@
     }
     if (hasConfigValue(settings, "soft_feedback")) {
       normalized.softFeedback = settings.soft_feedback;
+      normalized.softFeedbackConfigured = true;
+    } else if (hasConfigValue(config, "soft_feedback")) {
+      normalized.softFeedback = config.soft_feedback;
+      normalized.softFeedbackConfigured = true;
+    } else if (config.softFeedbackConfigured === true && hasConfigValue(config, "softFeedback")) {
+      normalized.softFeedbackConfigured = true;
+    } else {
+      delete normalized.softFeedback;
+      normalized.softFeedbackConfigured = false;
     }
     if (hasConfigValue(settings, "result_log_level")) {
       normalized.resultLogLevel = settings.result_log_level;
@@ -1993,6 +2120,8 @@
     const difficultyIndex = hasConfigValue(source, "difficultyIndex")
       ? normalizeDifficultyIndex(source.difficultyIndex, difficulties)
       : null;
+    const mode = normalizeGameMode(source.mode);
+    const hasExplicitSoftFeedback = source.softFeedbackConfigured === true;
 
     if (hasConfigValue(source, "difficultyKey") || hasConfigValue(source, "difficulty") || hasConfigValue(source, "defaultDifficulty")) {
       if (!difficultyKey) {
@@ -2025,9 +2154,11 @@
       debugMode: readBooleanConfig(source, "debugMode", DEFAULT_RUN_CONFIG.debugMode),
       hintEnabled: readBooleanConfig(source, "hintEnabled", DEFAULT_RUN_CONFIG.hintEnabled),
       autoHintEnabled: readBooleanConfig(source, "autoHintEnabled", DEFAULT_RUN_CONFIG.autoHintEnabled),
-      softFeedback: readBooleanConfig(source, "softFeedback", DEFAULT_RUN_CONFIG.softFeedback),
+      softFeedback: hasExplicitSoftFeedback
+        ? readBooleanConfig(source, "softFeedback", getDefaultSoftFeedback(mode))
+        : getDefaultSoftFeedback(mode),
       resultLogLevel: typeof source.resultLogLevel === "string" && source.resultLogLevel ? source.resultLogLevel : DEFAULT_RUN_CONFIG.resultLogLevel,
-      mode: normalizeGameMode(source.mode),
+      mode,
       ui: normalizeUiConfig(source.ui),
       previousResult: source.previousResult && typeof source.previousResult === "object" ? source.previousResult : DEFAULT_RUN_CONFIG.previousResult,
       previousRecord: source.previousRecord && typeof source.previousRecord === "object" ? source.previousRecord : DEFAULT_RUN_CONFIG.previousRecord,
@@ -2035,6 +2166,10 @@
       schemaVersion: typeof source.schemaVersion === "string" && source.schemaVersion ? source.schemaVersion : DEFAULT_RUN_CONFIG.schemaVersion,
       difficulties
     };
+  }
+
+  function getDefaultSoftFeedback(mode) {
+    return mode !== "standard";
   }
 
   function applyMaxItemsToRemember(difficulties, maxItemsToRemember) {

@@ -3,7 +3,7 @@
   "difficulty": "easy",
   "config": {
     "show_timer": true,
-    "show_score": true,
+    "show_score": false,
     "show_difficulty_select": false,
     "show_settings": true,
     "show_how_to_play": true,

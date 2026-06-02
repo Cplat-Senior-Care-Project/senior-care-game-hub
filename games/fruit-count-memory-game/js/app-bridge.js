@@ -3,7 +3,6 @@
 
   const MOCK_SCHEMA_VERSION = "mock-v1";
   const DEFAULT_CONFIG_URL = "config/game.config.json";
-  const RUNTIME_CONFIG_STORAGE_KEY = "fruit-count-memory-game:runtime-config:v2";
 
   const DEFAULT_MOCK_CONFIG = Object.freeze({
     gameId: "fruit-count-memory-game",
@@ -26,7 +25,7 @@
     debugMode: false,
     hintEnabled: true,
     autoHintEnabled: true,
-    softFeedback: true,
+    softFeedback: null,
     resultLogLevel: "detailed",
     mode: "standard",
     previousResult: null,
@@ -183,6 +182,15 @@
     }
     if (hasConfigValue(settings, "soft_feedback")) {
       normalized.softFeedback = settings.soft_feedback;
+      normalized.softFeedbackConfigured = true;
+    } else if (hasConfigValue(config, "soft_feedback")) {
+      normalized.softFeedback = config.soft_feedback;
+      normalized.softFeedbackConfigured = true;
+    } else if (config.softFeedbackConfigured === true && hasConfigValue(config, "softFeedback")) {
+      normalized.softFeedbackConfigured = true;
+    } else {
+      delete normalized.softFeedback;
+      normalized.softFeedbackConfigured = false;
     }
     if (hasConfigValue(settings, "result_log_level")) {
       normalized.resultLogLevel = settings.result_log_level;
@@ -212,6 +220,11 @@
 
     const externalConfig = normalizeExternalConfig(config);
     const merged = deepMerge(DEFAULT_MOCK_CONFIG, externalConfig);
+    const mode = readString(merged, "mode", DEFAULT_MOCK_CONFIG.mode);
+    const hasExplicitSoftFeedback = externalConfig.softFeedbackConfigured === true;
+    const softFeedback = hasExplicitSoftFeedback
+      ? readBoolean(merged, "softFeedback", getDefaultSoftFeedback(mode))
+      : getDefaultSoftFeedback(mode);
     const normalized = {
       ...merged,
       gameId: readString(merged, "gameId", DEFAULT_MOCK_CONFIG.gameId),
@@ -232,13 +245,14 @@
       debugMode: readBoolean(merged, "debugMode", DEFAULT_MOCK_CONFIG.debugMode),
       hintEnabled: readBoolean(merged, "hintEnabled", DEFAULT_MOCK_CONFIG.hintEnabled),
       autoHintEnabled: readBoolean(merged, "autoHintEnabled", DEFAULT_MOCK_CONFIG.autoHintEnabled),
-      softFeedback: readBoolean(merged, "softFeedback", DEFAULT_MOCK_CONFIG.softFeedback),
+      softFeedback,
       resultLogLevel: readString(merged, "resultLogLevel", DEFAULT_MOCK_CONFIG.resultLogLevel),
-      mode: readString(merged, "mode", DEFAULT_MOCK_CONFIG.mode),
+      mode,
       previousResult: isPlainObject(merged.previousResult) ? merged.previousResult : DEFAULT_MOCK_CONFIG.previousResult,
       previousRecord: isPlainObject(merged.previousRecord) ? merged.previousRecord : DEFAULT_MOCK_CONFIG.previousRecord,
       lastResult: isPlainObject(merged.lastResult) ? merged.lastResult : DEFAULT_MOCK_CONFIG.lastResult,
       ui: isPlainObject(merged.ui) ? merged.ui : DEFAULT_MOCK_CONFIG.ui,
+      softFeedbackConfigured: hasExplicitSoftFeedback,
       schemaVersion: MOCK_SCHEMA_VERSION,
       receivedAt: new Date().toISOString()
     };
@@ -254,6 +268,17 @@
     }
 
     return normalized;
+  }
+
+  function getDefaultSoftFeedback(mode) {
+    return mode !== "standard";
+  }
+
+  function createConfigLoadError(configUrl) {
+    const error = new Error(`Runtime config file could not be loaded: ${configUrl}`);
+    error.code = "CONFIG_LOAD_FAILED";
+    error.detail = { configUrl };
+    return error;
   }
 
   async function loadConfigFile() {
@@ -299,38 +324,6 @@
     return null;
   }
 
-  function getStoredRuntimeConfig() {
-    if (!global.sessionStorage || typeof global.sessionStorage.getItem !== "function") {
-      return null;
-    }
-
-    try {
-      const rawConfig = global.sessionStorage.getItem(RUNTIME_CONFIG_STORAGE_KEY);
-      if (!rawConfig) {
-        return null;
-      }
-
-      const config = JSON.parse(rawConfig);
-      if (!isPlainObject(config)) {
-        return null;
-      }
-
-      const requestedMode = global.location && global.location.search
-        ? new URLSearchParams(global.location.search).get("mode")
-        : "";
-      if (requestedMode && config.mode && String(config.mode).toLowerCase() !== String(requestedMode).toLowerCase()) {
-        return null;
-      }
-
-      return config;
-    } catch (error) {
-      if (global.console) {
-        global.console.warn("[mock app bridge] failed to read stored runtime config", error);
-      }
-      return null;
-    }
-  }
-
   async function getRuntimeConfig() {
     // TODO: 내부 개발팀에서 확정한 postMessage 메시지명으로 교체
     const inlineConfig = getInlineConfig();
@@ -338,17 +331,15 @@
       return normalizeRuntimeConfig(inlineConfig);
     }
 
-    const storedConfig = getStoredRuntimeConfig();
-    if (storedConfig) {
-      return normalizeRuntimeConfig(storedConfig);
-    }
-
     const fileConfig = await loadConfigFile();
     if (fileConfig) {
       return normalizeRuntimeConfig(fileConfig);
     }
 
-    return normalizeRuntimeConfig(DEFAULT_MOCK_CONFIG);
+    const configUrl = typeof global.__GAME_CONFIG_URL__ === "string" && global.__GAME_CONFIG_URL__
+      ? global.__GAME_CONFIG_URL__
+      : DEFAULT_CONFIG_URL;
+    throw createConfigLoadError(configUrl);
   }
 
   function sendMockMessage(name, payload) {
