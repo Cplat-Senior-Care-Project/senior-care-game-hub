@@ -3811,3 +3811,226 @@
       object-fit: contain !important;
       transform: translateY(var(--bulb-fit-y, 0px)) !important;
     }
+
+    /* Tutorial readability pass. */
+    .tutorial-card .tutorial-box {
+      align-items: stretch;
+    }
+
+    .tutorial-card .tutorial-demo {
+      display: grid;
+      justify-items: center;
+      align-content: center;
+      gap: clamp(10px, 1vw, 16px);
+      background: transparent !important;
+      border: 0 !important;
+      box-shadow: none !important;
+      padding: 0 !important;
+    }
+
+    .tutorial-demo-board {
+      width: min(100%, 440px);
+      padding: clamp(10px, 1vw, 16px);
+      border-radius: 26px;
+      background:
+        radial-gradient(circle at 50% 30%, rgba(255, 255, 255, .28), transparent 46%),
+        linear-gradient(145deg, rgba(94, 158, 102, .92), rgba(132, 196, 144, .9));
+      border: 5px solid rgba(205, 246, 211, .98);
+      box-shadow:
+        inset 0 4px 10px rgba(255, 255, 255, .28),
+        inset 0 -10px 18px rgba(39, 98, 52, .16),
+        0 12px 0 rgba(54, 116, 65, .24),
+        0 18px 28px rgba(23, 73, 37, .18);
+    }
+
+    .tutorial-demo-caption {
+      width: min(100%, 440px);
+      margin: 0;
+      padding: 10px 14px;
+      border-radius: 16px;
+      background: rgba(255, 252, 234, .94);
+      border: 2px solid rgba(229, 205, 121, .86);
+      color: #10251a;
+      font-size: clamp(20px, 1.3vw, 27px);
+      font-weight: 1000;
+      line-height: 1.18;
+      text-align: center;
+      word-break: keep-all;
+      box-shadow: 0 8px 18px rgba(88, 111, 58, .12);
+    }
+
+    @media (min-width: 901px) {
+      .tutorial-card {
+        width: min(1380px, 92vw);
+      }
+
+      .tutorial-card .tutorial-box {
+        height: min(620px, calc(100dvh - 212px));
+        grid-template-columns: minmax(0, 1.15fr) minmax(340px, 460px);
+        grid-template-rows: auto minmax(0, 1fr) auto;
+        align-items: stretch;
+        padding: clamp(20px, 2vw, 34px);
+      }
+
+      .tutorial-page {
+        font-size: clamp(24px, 1.75vw, 34px);
+      }
+
+      .tutorial-title {
+        align-self: start;
+        font-size: clamp(40px, 3.05vw, 60px);
+        line-height: 1.14;
+      }
+
+      .tutorial-desc {
+        align-self: end;
+        padding-bottom: clamp(20px, 4vh, 64px);
+        font-size: clamp(27px, 1.9vw, 38px);
+        line-height: 1.28;
+      }
+
+      .tutorial-card .tutorial-demo {
+        width: min(100%, 460px, calc(100dvh - 286px));
+      }
+
+      .tutorial-demo-board {
+        width: 100%;
+      }
+    }
+
+    @media (max-width: 900px) {
+      .tutorial-page {
+        font-size: clamp(20px, 4.4vw, 28px);
+      }
+
+      .tutorial-title {
+        font-size: clamp(28px, 6.2vw, 40px);
+      }
+
+      .tutorial-desc {
+        font-size: clamp(21px, 4.8vw, 30px);
+      }
+
+      .tutorial-card .tutorial-demo {
+        width: min(100%, 360px);
+      }
+
+      .tutorial-demo-board,
+      .tutorial-demo-caption {
+        width: 100%;
+      }
+    }
+
+    @media (orientation: landscape) and (max-height: 520px) {
+      .tutorial-card .tutorial-box {
+        height: min(302px, calc(100dvh - 116px));
+        grid-template-columns: minmax(0, 1fr) minmax(220px, 320px);
+        grid-template-rows: auto minmax(0, 1fr) auto;
+        gap: 8px 12px;
+        padding: 10px 12px;
+      }
+
+      .tutorial-title {
+        font-size: clamp(22px, 6.2vh, 34px);
+      }
+
+      .tutorial-desc {
+        padding-bottom: 0;
+        font-size: clamp(16px, 4.2vh, 24px);
+      }
+
+      .tutorial-card .tutorial-demo {
+        width: min(100%, 300px, calc(100dvh - 126px));
+      }
+
+      .tutorial-demo-board {
+        padding: 8px;
+        border-width: 4px;
+      }
+
+      .tutorial-demo-grid {
+        gap: 6px;
+      }
+
+      .tutorial-demo-caption {
+        padding: 5px 8px;
+        font-size: clamp(14px, 3.5vh, 18px);
+      }
+    }
+
+    /* Keep tutorial captions visible on short landscape screens. */
+    @media (orientation: landscape) and (max-height: 520px) {
+      .tutorial-card {
+        width: min(96vw, 1080px) !important;
+        max-height: calc(100dvh - 8px) !important;
+        padding: clamp(8px, 2vh, 14px) clamp(10px, 2vw, 18px) !important;
+        overflow: hidden !important;
+      }
+
+      .tutorial-card h2 {
+        margin: 0 0 6px !important;
+        font-size: clamp(24px, 7.2vh, 38px) !important;
+        line-height: 1.05 !important;
+      }
+
+      .tutorial-card .tutorial-box {
+        height: min(300px, calc(100dvh - 112px)) !important;
+        min-height: 0 !important;
+        grid-template-columns: minmax(0, 1fr) minmax(210px, 30vw) !important;
+        gap: 6px 10px !important;
+        padding: 8px 10px !important;
+        overflow: hidden !important;
+      }
+
+      .tutorial-card .tutorial-demo {
+        align-self: center !important;
+        width: min(100%, 250px, calc(100dvh - 164px)) !important;
+        gap: 4px !important;
+      }
+
+      .tutorial-demo-board {
+        width: 100% !important;
+        padding: 6px !important;
+        border-width: 3px !important;
+        border-radius: 18px !important;
+        box-shadow:
+          inset 0 3px 7px rgba(255, 255, 255, .22),
+          inset 0 -6px 12px rgba(39, 98, 52, .14),
+          0 7px 0 rgba(54, 116, 65, .2),
+          0 10px 16px rgba(23, 73, 37, .14) !important;
+      }
+
+      .tutorial-demo-grid {
+        gap: 5px !important;
+      }
+
+      .tutorial-demo-cell {
+        border-width: 3px !important;
+        border-radius: 14px !important;
+      }
+
+      .tutorial-demo-cell img {
+        width: 82% !important;
+        height: 82% !important;
+      }
+
+      .tutorial-demo-caption {
+        width: 100% !important;
+        min-height: 26px !important;
+        padding: 4px 6px !important;
+        border-radius: 12px !important;
+        font-size: clamp(12px, 3.4vh, 16px) !important;
+        line-height: 1.1 !important;
+      }
+
+      .tutorial-card .modal-actions {
+        margin-top: 6px !important;
+        gap: 10px !important;
+      }
+
+      .tutorial-card .modal-actions button {
+        min-height: clamp(36px, 8.2vh, 46px) !important;
+        padding: 5px 12px !important;
+        font-size: clamp(18px, 5vh, 28px) !important;
+      }
+    }

@@ -520,7 +520,8 @@
     function normalizeVoiceText(text) {
       return String(text)
         .replace(/10\s*문제/g, "열 문제")
-        .replace(/10\s*번째/g, "열 번째");
+        .replace(/10\s*번째/g, "열 번째")
+        .replace(/갈게요/g, "갈께요");
     }
 
     function speakGuide(text, interrupt = true) {
@@ -1315,7 +1316,7 @@
         return `<span class="${classes}"><img src="${imageSrc}" alt=""></span>`;
       }).join("");
 
-      tutorialVisual.innerHTML = `<div class="tutorial-demo-grid">${cells}</div><span class="tutorial-demo-caption">${captions[mode] || captions.intro}</span>`;
+      tutorialVisual.innerHTML = `<div class="tutorial-demo-board"><div class="tutorial-demo-grid">${cells}</div></div><span class="tutorial-demo-caption">${captions[mode] || captions.intro}</span>`;
     }
 
     function renderTutorialStep() {
