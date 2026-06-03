@@ -1,5 +1,5 @@
     const IMAGES = {"off":"assets/images/image-02-6e6b97b5.png","yellow":"assets/images/image-03-b8c398ec.png","flower":"assets/images/image-04-5ed55c22.png"};
-    const TEXT = {"lang":"마다","title":"빛나는 전구를 찾아라","startIntro":"난이도를 고르면 곧바로 시작됩니다.","start":"시작하기","next":"다음 문제","reset":"홈으로","level":"난이도","high":"HARD","middle":"NORMAL","low":"EASY","choose":"골라주세요.","selecting":"선택","correct":"정답입니다.","wrong":"잘 찾아 보세요. 기억하실 수 있을 거예요.","done":"정말 잘하셨어요.","yellow":"빛나는 전구","offBulb":"불이 꺼진 전구","flower":"무궁화","objectBase":"등장 오브젝트: 불이 꺼진 전구, 빛나는 전구","objectOne":"6번째부터 무궁화가 나와요.","remaining":"남은 개수","round":"진행","time":"남은 시간","pause":"일시정지","resume":"계속하기","restart":"다시 시작하기","paused":"잠시 쉬는 중입니다.","timeUp":"괜찮아요. 다음 문제로 천천히 이어가볼게요.","final":"오늘은 기억력 훈련을 했어요. 끝까지 함께해 주셔서 감사합니다.","chooseDifficulty":"난이도를 골라주세요.","homeConfirm":"초기 화면으로 가시겠습니까?","yes":"네","no":"아니오","wrongLimit":"괜찮아요. 다음 문제로 천천히 넘어가볼게요.","wrongLimitFinal":"괜찮아요. 결과화면으로 넘어가겠습니다."};
+    const TEXT = {"lang":"마다","title":"빛나는 전구를 찾아라","startIntro":"난이도를 고르면 곧바로 시작됩니다.","start":"시작하기","next":"다음 문제","reset":"홈으로","level":"난이도","high":"HARD","middle":"NORMAL","low":"EASY","choose":"골라주세요.","selecting":"선택","correct":"정답입니다.","wrong":"잘 찾아 보세요. 기억하실 수 있을 거예요.","done":"정말 잘하셨어요.","yellow":"빛나는 전구","offBulb":"불이 꺼진 전구","flower":"무궁화","objectBase":"등장 오브젝트: 불이 꺼진 전구, 빛나는 전구","objectOne":"6번째부터 무궁화가 나와요.","remaining":"남은 개수","round":"진행","time":"남은 시간","pause":"일시정지","resume":"계속하기","restart":"다시 시작하기","paused":"잠시 쉬는 중입니다.","timeUp":"괜찮아요. 다음 문제로 천천히 이어가볼게요.","final":"오늘은 위치 기억활동을 했어요. 끝까지 함께해 주셔서 감사합니다.","chooseDifficulty":"난이도를 골라주세요.","homeConfirm":"초기 화면으로 가시겠습니까?","yes":"네","no":"아니오","wrongLimit":"괜찮아요. 다음 문제로 천천히 넘어가볼게요.","wrongLimitFinal":"괜찮아요. 결과화면으로 넘어가겠습니다."};
 
     const svgData = (svg) => `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
     const THEME_IMAGES = {
@@ -34,7 +34,50 @@
       low: { label: TEXT.low, gridSize: 2, targetCount: 2 },
     };
 
-    const defaultGameConfig = window.__GAME_CONFIG__ || {};
+    const mergeGameConfig = (baseConfig, fileConfig) => ({
+      ...baseConfig,
+      ...fileConfig,
+      config: {
+        ...(baseConfig.config || {}),
+        ...(fileConfig.config || {}),
+      },
+    });
+
+    function normalizeGameConfigFile(rawConfig) {
+      const runtimeConfig = rawConfig.runtimeConfig || {};
+      const directConfig = rawConfig.config || {};
+      const normalized = {
+        ...rawConfig,
+        config: {
+          ...directConfig,
+          ...runtimeConfig,
+        },
+      };
+      delete normalized.runtimeConfig;
+      delete normalized.runtimeConfigNote;
+      return normalized;
+    }
+
+    function loadGameConfig() {
+      const inlineConfig = window.__GAME_CONFIG__ || {};
+      try {
+        const request = new XMLHttpRequest();
+        request.open("GET", `config/game.config.json?v=${Date.now()}`, false);
+        request.overrideMimeType("application/json");
+        request.send(null);
+
+        const hasResponse = request.responseText && request.responseText.trim();
+        const isOk = (request.status >= 200 && request.status < 300) || (request.status === 0 && hasResponse);
+        if (!isOk || !hasResponse) return inlineConfig;
+
+        return mergeGameConfig(inlineConfig, normalizeGameConfigFile(JSON.parse(request.responseText)));
+      } catch (error) {
+        console.warn("Could not load config/game.config.json. Using inline game config.", error);
+        return inlineConfig;
+      }
+    }
+
+    const defaultGameConfig = loadGameConfig();
     const MODE_DEFAULTS = {
       standard: {
         difficulty: "easy",
@@ -49,6 +92,7 @@
         exposure_time_ms: 5000,
         round_time_limit_sec: 60,
         hint_enabled: true,
+        auto_hint_enabled: false,
         auto_start: false,
         auto_return: false,
         soft_feedback: false,
@@ -70,6 +114,7 @@
         exposure_time_ms: 5000,
         round_time_limit_sec: 60,
         hint_enabled: true,
+        auto_hint_enabled: false,
         auto_start: true,
         auto_return: true,
         soft_feedback: true,
@@ -153,7 +198,7 @@
     const tutorialSteps = [
       {
         title: "인지 훈련 게임입니다.",
-        text: "빛나는 위치를 기억하고 다시 찾는 기억력 훈련입니다.",
+        text: "빛나는 위치를 기억하고 다시 찾는 위치 기억활동입니다.",
         demo: "intro",
       },
       {
@@ -298,6 +343,10 @@
     const roundTimeLimit = Math.max(0, Number(appliedGameConfig.round_time_limit_sec) || 0);
     const totalTimeLimit = Math.max(0, Number(appliedGameConfig.total_time_limit_sec) || 0);
     const autoHintDelay = Math.max(0, Number(appliedGameConfig.auto_hint_delay_sec) || 0);
+    const configuredHubReturnUrl =
+      appliedGameConfig.return_url ||
+      appliedGameConfig.auto_return_url ||
+      "file:///C:/Users/juhye/OneDrive/Desktop/senior-care-game-hub/index.html";
     let totalTimeLeft = totalTimeLimit;
     const gameSchemaVersion = "1.0.0";
     let gameSessionId = defaultGameConfig.sessionId || `local-${Date.now()}`;
@@ -573,6 +622,25 @@
         }
       } catch (error) {
         console.log("[MOCK_GAME_MESSAGE_ERROR]", error);
+      }
+    }
+
+    function resolveHubReturnUrl() {
+      const marker = "/games/banditburi-game/";
+      const configuredUrl = String(configuredHubReturnUrl || "");
+      const isHostedPage = window.location.protocol === "http:" || window.location.protocol === "https:";
+      if (isHostedPage && configuredUrl.startsWith("file:") && window.location.pathname.includes(marker)) {
+        const hubPath = `${window.location.pathname.split(marker)[0]}/index.html`;
+        return `${window.location.origin}${hubPath}`;
+      }
+      return configuredUrl || "../../../../index.html";
+    }
+
+    function requestActivityReturn(reason) {
+      sendGameMessage({ type: "GAME_RETURN_REQUESTED", reason });
+      const hubReturnUrl = resolveHubReturnUrl();
+      if (hubReturnUrl) {
+        window.location.assign(hubReturnUrl);
       }
     }
 
@@ -1145,7 +1213,7 @@
       clearRoundTimer();
       timeLeft = roundTimeLimit;
       updateTimeDisplay();
-      if (!appliedGameConfig.show_timer || roundTimeLimit <= 0) return;
+      if (roundTimeLimit <= 0) return;
       roundTimer = setInterval(() => {
         if (currentPhase !== "playing" || isPaused || isPreviewing) return;
         timeLeft -= 1;
@@ -1337,9 +1405,7 @@
       const returnLabel = gameMode === "standard" ? "완료" : "효담콜로 돌아가기";
       board.innerHTML = `<div class="result-card"><p>${TEXT.final}</p><button id="activityReturnButton" class="primary" type="button">${returnLabel}</button></div>`;
       document.getElementById("activityReturnButton").addEventListener("click", () => {
-        sendGameMessage({ type: "GAME_RETURN_REQUESTED", reason: "user_tap" });
-        resetToHome();
-        showIntroScreen();
+        requestActivityReturn("user_tap");
       });
       if (appliedGameConfig.auto_return) {
         setTimeout(() => {
@@ -1948,11 +2014,7 @@
     });
     homeYesButton.addEventListener("click", () => {
       sendAbandonedResult("home_confirm");
-      sendGameMessage({ type: "GAME_RETURN_REQUESTED", reason: "manual_return" });
-      homeConfirmModal.classList.remove("open");
-      pauseModal.classList.remove("open");
-      resetToHome();
-      showIntroScreen();
+      requestActivityReturn("manual_return");
     });
     homeNoButton.addEventListener("click", closeHomeConfirm);
 

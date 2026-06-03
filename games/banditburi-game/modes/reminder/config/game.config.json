@@ -37,11 +37,15 @@
     "exposure_time_ms": 5000,
     "round_time_limit_sec": 60,
     "hint_enabled": true,
+    "auto_hint_enabled": false,
     "auto_start": true,
     "auto_return": true,
+    "auto_return_delay_ms": 3000,
+    "auto_return_url": "file:///C:/Users/juhye/OneDrive/Desktop/senior-care-game-hub/index.html",
     "soft_feedback": true,
     "voice_guide_enabled": true,
+    "high_contrast": false,
     "result_log_level": "summary"
   },
-  "runtimeConfigNote": "보호자/앱 알림에서 지정한 난이도로 바로 실행하는 모드입니다."
+  "runtimeConfigNote": "이 파일의 runtimeConfig 값을 수정하면 알림 모드 실행에 반영됩니다."
 }

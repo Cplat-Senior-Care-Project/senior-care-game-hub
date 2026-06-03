@@ -176,6 +176,7 @@
       font-size: clamp(22px, 1.45vw, 30px);
       font-weight: 1000;
       line-height: 1.1;
+      white-space: nowrap;
       box-shadow:
         inset 0 3px 0 rgba(255, 255, 255, .78),
         inset 0 -7px 12px rgba(53, 126, 67, .12),
@@ -797,6 +798,7 @@
       font-size: clamp(23px, 1.65vw, 32px);
       font-weight: 1000;
       line-height: 1.15;
+      white-space: nowrap;
       box-shadow:
         inset 0 3px 0 rgba(255, 255, 255, .76),
         inset 0 -8px 14px rgba(154, 105, 0, .12),
@@ -3084,7 +3086,7 @@
         border-color: rgba(255, 246, 166, .98);
         color: #5a4100;
         text-shadow: 0 2px 0 rgba(255, 246, 180, .72);
-        font-size: clamp(14px, 3.4vh, 20px);
+        font-size: clamp(12px, 2.9vh, 16px);
       }
 
       .message {
@@ -3460,4 +3462,352 @@
         --bulb-fit-height: 92%;
         --bulb-fit-y: -3px;
       }
+    }
+
+    /* Reminder result screen: show only the completion card before auto-return. */
+    body.mode-reminder .result-mode.board-wrap {
+      grid-template-rows: auto minmax(0, 1fr) !important;
+    }
+
+    body.mode-reminder .result-mode .message {
+      display: none !important;
+    }
+
+    body.mode-reminder .result-mode .board {
+      grid-row: 2 !important;
+      align-self: center !important;
+      justify-self: center !important;
+      width: min(100%, 1360px) !important;
+      height: min(calc(100dvh - clamp(92px, 14vh, 140px)), 760px) !important;
+      margin: 0 !important;
+      padding: clamp(22px, 2.5vw, 42px) !important;
+    }
+
+    body.mode-reminder .result-mode .result-card {
+      width: min(100%, 1180px);
+      min-height: min(100%, 620px);
+      margin: 0;
+      align-self: center;
+      justify-self: center;
+    }
+
+    body.mode-reminder .result-mode .result-card button {
+      display: none !important;
+    }
+
+    @media (max-width: 900px) {
+      body.mode-reminder .result-mode .board {
+        width: min(100%, 94vw) !important;
+        height: min(58dvh, 460px) !important;
+        padding: clamp(12px, 3vw, 18px) !important;
+      }
+
+      body.mode-reminder .result-mode .result-card {
+        min-height: min(100%, 360px);
+        padding: clamp(24px, 6vw, 36px);
+      }
+    }
+
+    @media (orientation: landscape) and (max-height: 520px) {
+      body.mode-reminder .result-mode.board-wrap {
+        grid-template-rows: clamp(56px, 17vh, 72px) minmax(0, 1fr) !important;
+      }
+
+      body.mode-reminder .result-mode .board {
+        grid-column: 2 !important;
+        grid-row: 2 !important;
+        width: min(calc(100dvh - clamp(56px, 17vh, 72px) - 24px), calc(100vw - clamp(128px, 20vw, 158px)), 520px) !important;
+        height: min(calc(100dvh - clamp(56px, 17vh, 72px) - 24px), calc(100vw - clamp(128px, 20vw, 158px)), 520px) !important;
+      }
+
+      body.mode-reminder .result-mode .result-card {
+        min-height: min(100%, 320px);
+        padding: clamp(18px, 4.6vh, 28px) clamp(20px, 4vw, 34px);
+        font-size: clamp(20px, 5.2vh, 29px);
+      }
+    }
+
+    /* Final shared board/layout pass aligned with standard mode. */
+    @media (orientation: landscape) {
+      body.mode-reminder .app {
+        position: relative;
+        display: grid !important;
+        grid-template-columns:
+          clamp(116px, 20vw, 390px)
+          minmax(0, 1fr)
+          clamp(170px, 22vw, 360px) !important;
+        grid-template-rows: auto auto auto minmax(0, 1fr) !important;
+        gap: clamp(6px, 1.1vw, 22px) !important;
+        width: 100vw !important;
+        height: 100dvh !important;
+        min-width: 0 !important;
+        min-height: 0 !important;
+        padding: clamp(6px, 1.1vw, 20px) !important;
+      }
+
+      body.mode-reminder .app::before {
+        content: "";
+        grid-column: 1;
+        grid-row: 1 / -1;
+        z-index: 0;
+        border-radius: clamp(16px, 1.5vw, 24px);
+        background:
+          linear-gradient(180deg, rgba(255, 255, 249, .96) 0%, rgba(238, 251, 238, .94) 100%),
+          radial-gradient(circle at 20% 10%, rgba(255, 232, 134, .14), transparent 38%);
+        border: clamp(2px, .35vw, 4px) solid rgba(218, 255, 220, .88);
+        box-shadow:
+          inset 0 2px 0 rgba(255, 255, 255, .8),
+          inset 0 -12px 24px rgba(74, 143, 82, .08),
+          0 12px 0 rgba(54, 126, 70, .1),
+          0 20px 30px rgba(16, 74, 34, .16);
+        pointer-events: none;
+      }
+
+      body.mode-reminder .app::after {
+        content: "";
+        grid-column: 2 / 4;
+        grid-row: 1 / -1;
+        z-index: 0;
+        margin-left: clamp(52px, 4.2vw, 88px);
+        border-radius: clamp(16px, 1.6vw, 30px);
+        background:
+          radial-gradient(circle at 14% 10%, rgba(255, 214, 226, .3), transparent 28%),
+          radial-gradient(circle at 86% 16%, rgba(255, 246, 185, .28), transparent 30%),
+          radial-gradient(circle at 76% 88%, rgba(205, 232, 217, .36), transparent 34%),
+          linear-gradient(145deg, rgba(255, 253, 239, .46) 0%, rgba(214, 235, 210, .42) 100%);
+        border: clamp(2px, .35vw, 4px) solid rgba(248, 255, 238, .78);
+        box-shadow:
+          inset 0 3px 0 rgba(255, 255, 255, .78),
+          inset 0 -18px 34px rgba(53, 125, 70, .12),
+          0 16px 0 rgba(56, 127, 70, .12),
+          0 30px 52px rgba(16, 74, 34, .18);
+        pointer-events: none;
+      }
+
+      body.mode-reminder .panel,
+      body.mode-reminder .board-wrap {
+        display: contents !important;
+      }
+
+      body.mode-reminder .play-training-label,
+      body.mode-reminder .stats,
+      body.mode-reminder .controls,
+      body.mode-reminder .panel-guide,
+      body.mode-reminder .message,
+      body.mode-reminder .board {
+        position: relative;
+        z-index: 1;
+      }
+
+      body.mode-reminder .play-training-label {
+        grid-column: 1 !important;
+        grid-row: 1 !important;
+        align-self: stretch !important;
+        justify-self: stretch !important;
+        width: auto !important;
+        min-height: clamp(30px, 9.5vh, 58px) !important;
+        margin: 0 !important;
+        padding: clamp(3px, 1vh, 8px) clamp(8px, 1.6vw, 24px) !important;
+        border-width: clamp(2px, .32vw, 3px) !important;
+        border-radius: 999px !important;
+        font-size: clamp(13px, 3.8vh, 28px) !important;
+      }
+
+      body.mode-reminder .stats {
+        grid-column: 1 !important;
+        grid-row: 2 !important;
+        align-self: start !important;
+        justify-self: stretch !important;
+        display: grid !important;
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        gap: clamp(4px, 1.2vh, 14px) !important;
+        width: 100% !important;
+      }
+
+      body.mode-reminder .stat {
+        min-height: clamp(38px, 11.5vh, 94px) !important;
+        border-width: clamp(2px, .32vw, 3px) !important;
+        border-radius: clamp(14px, 1.2vw, 22px) !important;
+        gap: 2px !important;
+      }
+
+      body.mode-reminder .stat span:first-child {
+        font-size: clamp(10px, 2.8vh, 21px) !important;
+        line-height: 1.05 !important;
+      }
+
+      body.mode-reminder .stat span:last-child {
+        font-size: clamp(16px, 4.8vh, 36px) !important;
+        line-height: 1.05 !important;
+      }
+
+      body.mode-reminder .controls {
+        grid-column: 1 !important;
+        grid-row: 3 !important;
+        align-self: start !important;
+        justify-self: stretch !important;
+        display: grid !important;
+        grid-template-columns: 1fr !important;
+        gap: clamp(5px, 1.4vh, 12px) !important;
+        width: 100% !important;
+      }
+
+      body.mode-reminder .controls button,
+      body.mode-reminder .controls button.primary,
+      body.mode-reminder .controls #resetButton {
+        min-height: clamp(36px, 10.5vh, 76px) !important;
+        padding: clamp(4px, 1vh, 8px) clamp(8px, 1.4vw, 22px) !important;
+        border-radius: 999px !important;
+        font-size: clamp(14px, 3.8vh, 25px) !important;
+      }
+
+      body.mode-reminder .panel-guide {
+        grid-column: 1 !important;
+        grid-row: 4 !important;
+        align-self: stretch !important;
+        justify-self: stretch !important;
+        display: flex !important;
+        min-height: 0 !important;
+        height: 100% !important;
+        padding: clamp(10px, 2.4vh, 24px) clamp(10px, 1.6vw, 24px) !important;
+        border-width: clamp(2px, .32vw, 3px) !important;
+        border-radius: clamp(16px, 1.3vw, 24px) !important;
+        gap: clamp(7px, 1.8vh, 14px) !important;
+        overflow: hidden !important;
+      }
+
+      body.mode-reminder .panel-guide strong {
+        font-size: clamp(15px, 3.8vh, 27px) !important;
+        line-height: 1.12 !important;
+      }
+
+      body.mode-reminder .panel-guide span {
+        font-size: clamp(12px, 3.1vh, 22px) !important;
+        line-height: 1.18 !important;
+      }
+
+      body.mode-reminder .message {
+        grid-column: 3 !important;
+        grid-row: 1 / -1 !important;
+        align-self: stretch !important;
+        justify-self: stretch !important;
+        width: auto !important;
+        height: auto !important;
+        min-height: 0 !important;
+        padding: clamp(12px, 3vh, 30px) clamp(10px, 1.8vw, 24px) !important;
+        border-width: clamp(2px, .32vw, 3px) !important;
+        border-radius: clamp(16px, 1.4vw, 24px) !important;
+        align-items: flex-start !important;
+        justify-content: flex-start !important;
+        text-align: left !important;
+        font-size: clamp(22px, 6.4vh, 48px) !important;
+        line-height: 1.12 !important;
+      }
+
+      body.mode-reminder .board {
+        grid-column: 2 !important;
+        grid-row: 1 / -1 !important;
+        align-self: center !important;
+        justify-self: center !important;
+        width: min(100%, calc(100dvh - clamp(16px, 3vh, 40px)), 920px) !important;
+        height: min(100%, calc(100dvh - clamp(16px, 3vh, 40px)), 920px) !important;
+        max-width: none !important;
+        max-height: none !important;
+        gap: clamp(8px, 1.45vw, 24px) !important;
+        padding: clamp(10px, 1.7vw, 28px) !important;
+        border-width: clamp(4px, .45vw, 6px) !important;
+        border-radius: clamp(20px, 1.7vw, 30px) !important;
+      }
+
+      body.mode-reminder .cell {
+        border-radius: clamp(13px, 2vw, 22px) !important;
+      }
+    }
+
+    body.mode-reminder .board {
+      position: relative;
+      isolation: isolate;
+      background:
+        radial-gradient(circle at 9% 9%, rgba(249, 255, 205, .62), transparent 23%),
+        radial-gradient(circle at 82% 14%, rgba(224, 246, 182, .44), transparent 28%),
+        radial-gradient(circle at 78% 86%, rgba(55, 126, 67, .18), transparent 36%),
+        linear-gradient(145deg, #cfeeaa 0%, #acd889 47%, #79bc76 100%) !important;
+      border-color: #20713b !important;
+      box-shadow:
+        inset 0 0 0 clamp(3px, .36vw, 5px) rgba(232, 252, 217, .72),
+        inset 0 18px 34px rgba(255, 255, 220, .18),
+        inset 0 -24px 36px rgba(29, 91, 43, .2),
+        0 8px 0 rgba(21, 91, 46, .32),
+        0 22px 34px rgba(23, 78, 40, .24) !important;
+    }
+
+    body.mode-reminder .board::before {
+      content: "";
+      position: absolute;
+      inset: clamp(10px, 1vw, 18px);
+      z-index: 0;
+      border-radius: inherit;
+      border: clamp(1px, .16vw, 2px) solid rgba(244, 255, 235, .74);
+      box-shadow: inset 0 2px 5px rgba(255, 255, 255, .28);
+      pointer-events: none;
+    }
+
+    body.mode-reminder .board > .cell {
+      z-index: 1;
+    }
+
+    body.mode-reminder .cell,
+    body.mode-reminder .cell.object-yellow:not(.preview-glow):not(.hint):not(.correct):not(.wrong) {
+      background:
+        radial-gradient(circle at 20% 14%, rgba(255, 255, 255, .95), transparent 30%),
+        linear-gradient(145deg, #fffffa 0%, #f8faee 56%, #eef3df 100%) !important;
+      border-color: #dbf4d0 !important;
+      box-shadow:
+        inset 0 0 0 clamp(2px, .28vw, 4px) rgba(255, 255, 255, .95),
+        inset 0 0 0 clamp(5px, .48vw, 8px) rgba(211, 239, 201, .78),
+        inset 0 -8px 0 rgba(67, 139, 75, .12),
+        0 clamp(4px, .5vw, 8px) 0 rgba(48, 116, 54, .38),
+        0 clamp(11px, 1.2vw, 20px) clamp(14px, 1.45vw, 24px) rgba(23, 86, 39, .2) !important;
+    }
+
+    body.mode-reminder .cell.object-yellow:not(.preview-glow):not(.hint):not(.correct):not(.wrong) {
+      outline: 0 !important;
+    }
+
+    body.mode-reminder .cell.preview-glow,
+    body.mode-reminder .cell.hint,
+    body.mode-reminder .cell.correct {
+      background:
+        radial-gradient(circle at 20% 14%, rgba(255, 255, 255, .62), transparent 30%),
+        linear-gradient(145deg, #fff67d 0%, #ffd43c 56%, #f0bd1e 100%) !important;
+    }
+
+    body.mode-reminder .theme-bulb .board,
+    body.mode-reminder.theme-bulb .board,
+    body.mode-reminder.theme-bird .board,
+    body.mode-reminder.theme-phone .board {
+      --bulb-fit-height: 92%;
+      --bulb-fit-y: 0px;
+    }
+
+    body.mode-reminder.theme-bulb .board[data-grid-size="4"],
+    body.mode-reminder.theme-bird .board[data-grid-size="4"],
+    body.mode-reminder.theme-phone .board[data-grid-size="4"] {
+      --bulb-fit-height: 90%;
+      --bulb-fit-y: -1px;
+    }
+
+    body.mode-reminder .board .cell.object-yellow .object-img,
+    body.mode-reminder .board .cell.object-off .object-img,
+    body.mode-reminder .board .cell.correct .object-img,
+    body.mode-reminder .board .cell.hint .object-img,
+    body.mode-reminder .board .cell.wrong .object-img,
+    body.mode-reminder .board .cell.object-flower .object-img,
+    body.mode-reminder .board .cell.preview-glow.object-flower .object-img {
+      width: auto !important;
+      height: var(--bulb-fit-height, 90%) !important;
+      max-width: 96% !important;
+      max-height: 96% !important;
+      object-fit: contain !important;
+      transform: translateY(var(--bulb-fit-y, 0px)) !important;
     }

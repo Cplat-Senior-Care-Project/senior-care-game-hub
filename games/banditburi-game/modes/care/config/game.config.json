@@ -33,21 +33,24 @@
     "show_how_to_play": false,
     "show_condition_check": false,
     "show_finish_check": false,
-    "question_count": 3,
+    "question_count": 4,
     "grid_rows": 2,
     "grid_cols": 2,
     "target_count": 1,
     "exposure_time_ms": 8000,
     "round_time_limit_sec": 0,
+    "total_time_limit_sec": 180,
     "hint_enabled": true,
     "auto_hint_enabled": true,
+    "auto_hint_delay_sec": 40,
     "auto_start": true,
     "auto_return": true,
+    "return_url": "file:///C:/Users/juhye/OneDrive/Desktop/senior-care-game-hub/index.html",
     "soft_feedback": true,
     "flash_effect_level": "low",
     "high_contrast": true,
     "voice_guide_enabled": true,
     "result_log_level": "detailed"
   },
-  "runtimeConfigNote": "요양원/돌봄기관용으로 쉬운 진행, UI 단순화, 상세 로그를 기본 적용합니다."
+  "runtimeConfigNote": "이 파일의 runtimeConfig 값을 수정하면 케어 모드 실행에 반영됩니다."
 }

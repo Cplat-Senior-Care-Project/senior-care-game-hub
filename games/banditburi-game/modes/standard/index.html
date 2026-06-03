@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>빛나는 전구를 찾아라</title>
-  <link rel="stylesheet" href="css/game.css">
+  <link rel="stylesheet" href="css/game.css?v=20260604-shared-board-layout-1">
 </head>
 <body>
   <div id="loadingScreen" class="loading-screen">
@@ -46,7 +46,7 @@
       </div>
     </section>
     <section class="board-wrap">
-      <div class="play-training-label">기억력</div>
+      <div class="play-training-label">위치 기억활동</div>
       <div id="message" class="message">난이도를 고르면 곧바로 시작됩니다.</div>
       <div id="board" class="board" aria-label="빛나는 전구를 찾아라"></div>
     </section>
@@ -86,7 +86,7 @@
       <h2 id="introTitle" aria-label="빛나는 전구를 찾아라">
         <span class="title-lit-letter" style="--delay: 0s">빛</span><span class="title-lit-letter" style="--delay: .34s">나</span><span class="title-lit-letter" style="--delay: .68s">는</span><span class="title-gap"></span><span class="title-lit-letter" style="--delay: 1.02s">전</span><span class="title-lit-letter" style="--delay: 1.36s">구</span><span class="title-rest">를 찾아라</span>
       </h2>
-      <div class="intro-training-badge">기억력 훈련</div>
+      <div class="intro-training-badge">위치 기억활동</div>
       <div class="intro-actions">
         <button id="introStartButton" class="primary" type="button">시작하기</button>
         <button id="introSettingsButton" type="button">설정하기</button>
@@ -288,14 +288,16 @@
         exposure_time_ms: 5000,
         round_time_limit_sec: 60,
         hint_enabled: true,
+        auto_hint_enabled: false,
         auto_start: false,
         auto_return: false,
         soft_feedback: false,
         voice_guide_enabled: true,
+        high_contrast: false,
         result_log_level: "standard"
       }
     };
   </script>
-  <script src="js/game.js?v=20260531-answer-sounds"></script>
+  <script src="js/game.js?v=20260602-common-config-1"></script>
 </body>
 </html>

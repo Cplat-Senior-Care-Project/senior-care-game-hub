@@ -37,11 +37,13 @@
     "exposure_time_ms": 5000,
     "round_time_limit_sec": 60,
     "hint_enabled": true,
+    "auto_hint_enabled": false,
     "auto_start": false,
     "auto_return": false,
     "soft_feedback": false,
     "voice_guide_enabled": true,
+    "high_contrast": false,
     "result_log_level": "standard"
   },
-  "runtimeConfigNote": "모드별 폴더에서 window.__GAME_CONFIG__와 같은 값으로 실행됩니다."
+  "runtimeConfigNote": "이 파일의 runtimeConfig 값을 수정하면 해당 모드 실행에 반영됩니다."
 }
