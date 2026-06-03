@@ -1,15 +1,15 @@
-{
-  "mode": "standard",
-  "difficulty": null,
+﻿{
+  "mode": "reminder",
+  "difficulty": "easy",
   "config": {
     "show_timer": true,
     "show_progress": true,
-    "show_score": true,
-    "show_difficulty_select": true,
-    "show_settings": true,
+    "show_score": false,
+    "show_difficulty_select": false,
+    "show_settings": false,
     "show_how_to_play": true,
-    "show_condition_check": true,
-    "show_finish_check": true,
+    "show_condition_check": false,
+    "show_finish_check": false,
     "duration_seconds": 120,
     "reveal_ms": 3000,
     "question_count": 10,
@@ -22,3 +22,5 @@
     "result_log_level": "detailed"
   }
 }
+
+

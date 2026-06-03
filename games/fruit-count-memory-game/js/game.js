@@ -10,9 +10,18 @@
   const FEEDBACK_TIME = 2400;
   const RETRY_FEEDBACK_TIME = 2200;
   const CARE_FEEDBACK_TIME = 4000;
+  const STANDARD_FINAL_WRONG_FEEDBACK_EXTRA_TIME = 1000;
   const AUTO_HINT_DELAY_MS = 10000;
   const MAX_WRONG_RETRIES = 2;
+  const VOICE_GUIDE_STAGE_DELAY_MS = 140;
+  const VOICE_GUIDE_FEEDBACK_DELAY_MS = 220;
+  const REMINDER_AUDIO_READY_STATE = 4;
   const STORAGE_KEY_PREFIX = "fruit_count_memory_game_last_result";
+  const EXTERNAL_INPUT_API_NAME = "FruitCountMemoryGameExternalInput";
+  const EXTERNAL_ANSWER_MESSAGE_TYPE = "FRUIT_COUNT_EXTERNAL_ANSWER";
+  const EXTERNAL_ANSWER_MESSAGE_TYPE_ALIAS = "EXTERNAL_ANSWER";
+  const EXTERNAL_ANSWER_RESULT_MESSAGE_TYPE = "FRUIT_COUNT_EXTERNAL_ANSWER_RESULT";
+  const EXTERNAL_ANSWER_RESULT_MESSAGE_TYPE_ALIAS = "EXTERNAL_ANSWER_RESULT";
   const RACE_POINTS = [16, 50, 84, 94];
   const MEMORY_LAYOUT_MIN_CARD = 38;
   const MEMORY_LAYOUT_CARD_SIZE = 162;
@@ -27,6 +36,8 @@
   const ASSET_LOAD_TIMEOUT = 6000;
   const DEFAULT_RUN_CONFIG = Object.freeze({
     gameId: "fruit-count-memory-game",
+    contentId: "cognitive_count_fruit_001",
+    gameKey: "counting_fruits",
     sessionId: null,
     userId: "",
     anonymousUserId: "",
@@ -48,6 +59,10 @@
     autoHintEnabled: true,
     softFeedback: null,
     resultLogLevel: "detailed",
+    externalInput: Object.freeze({
+      enabled: false,
+      source: "none"
+    }),
     mode: "standard",
     ui: Object.freeze({
       showTimer: true,
@@ -62,6 +77,7 @@
     previousResult: null,
     previousRecord: null,
     lastResult: null,
+    configSource: "unknown",
     schemaVersion: "mock-v1"
   });
   const ERROR_SCREEN_COPY = Object.freeze({
@@ -130,27 +146,33 @@
     "assets/images/new_backgroud2.png"
   ];
 
-  const AUDIO_SOURCES = Object.freeze({
-    button: "assets/audio/button-click.wav",
-    toggle: "assets/audio/toggle.wav",
-    countdown: "assets/audio/countdown-tick.wav",
-    start: "assets/audio/start.wav",
-    correct: "assets/audio/correct.wav",
-    retry: "assets/audio/retry.wav",
-    wrong: "assets/audio/wrong.wav",
-    complete: "assets/audio/complete.wav"
+  const AUDIO_CACHE_BUST = String(Date.now());
+  const AUDIO_TRACKS = Object.freeze({
+    button: { src: "assets/audio/button-click2.wav", volume: 0.22, poolSize: 3 },
+    toggle: { src: "assets/audio/button-click2.wav", volume: 0.22, poolSize: 3 },
+    countdown: { src: "assets/audio/countdown-tick.wav", volume: 0.68, poolSize: 3 },
+    start: { src: "assets/audio/start.wav", volume: 0.72, poolSize: 3 },
+    correct: { src: "assets/audio/correct2.wav", volume: 0.26, poolSize: 3 },
+    retry: { src: "assets/audio/retry2.wav", volume: 0.24, poolSize: 3 },
+    wrong: { src: "assets/audio/retry2.wav", volume: 0.24, poolSize: 3 },
+    complete: { src: "assets/audio/complete2.wav", volume: 0.26, poolSize: 3 },
+    voiceReady: { src: "assets/audio/voice-ready.wav", volume: 0.72, poolSize: 1, channel: "voice" },
+    voiceMemory: { src: "assets/audio/voice-memory.wav", volume: 0.72, poolSize: 1, channel: "voice" },
+    voiceQuestion: { src: "assets/audio/voice-question.wav", volume: 0.72, poolSize: 1, channel: "voice" },
+    voiceCorrect: { src: "assets/audio/voice-correct.wav", volume: 0.72, poolSize: 1, channel: "voice" },
+    voiceRetry: { src: "assets/audio/voice-retry.wav", volume: 0.72, poolSize: 1, channel: "voice" },
+    voiceRetry3: { src: "assets/audio/voice-retry3.wav", volume: 0.72, poolSize: 1, channel: "voice" },
+    voiceCareResult1: { src: "assets/audio/voice-care-result1.wav", volume: 0.72, poolSize: 1, channel: "voice" },
+    voiceCareResult2: { src: "assets/audio/voice-care-result2.wav", volume: 0.72, poolSize: 1, channel: "voice" },
+    voiceSoftFeedbackCorrect: { src: "assets/audio/voice-soft_feedback_correct.wav", volume: 0.72, poolSize: 1, channel: "voice" },
+    voiceSoftFeedbackMemory: { src: "assets/audio/voice-soft_feedback_memory.wav", volume: 0.72, poolSize: 1, channel: "voice" },
+    voiceSoftFeedbackQuestion: { src: "assets/audio/voice-soft_feedback_question.wav", volume: 0.72, poolSize: 1, channel: "voice" },
+    voiceSoftFeedbackRetry: { src: "assets/audio/voice-soft_feedback_retry.wav", volume: 0.72, poolSize: 1, channel: "voice" },
+    voiceSoftFeedbackRetry3: { src: "assets/audio/voice-soft_feedback_retry3.wav", volume: 0.72, poolSize: 1, channel: "voice" },
+    voiceSoftFeedbackThink: { src: "assets/audio/voice-soft_feedback_think.wav", volume: 0.72, poolSize: 1, channel: "voice" },
+    background: { src: "assets/audio/background.wav", volume: 0.22, menuVolume: 0.34, unlockVolume: 0.01, loop: false, poolSize: 2, channel: "background", crossfadeSeconds: 2.4 }
   });
-  const AUDIO_VOLUMES = Object.freeze({
-    button: 0.72,
-    toggle: 0.72,
-    countdown: 0.68,
-    start: 0.72,
-    correct: 0.72,
-    retry: 0.7,
-    wrong: 0.66,
-    complete: 0.72
-  });
-  const AUDIO_POOL_SIZE = 3;
+  window.__FRUIT_COUNT_AUDIO_TRACKS__ = AUDIO_TRACKS;
 
   FRUITS.forEach((fruit) => {
     const image = new Image();
@@ -305,6 +327,7 @@
     correctCount: 0,
     timeLeft: DIFFICULTY_TIME,
     currentQuestion: null,
+    currentHintMessage: null,
     hintStep: 0,
     lastMemoryTotalCount: 0,
     wrongAttempts: 0,
@@ -328,6 +351,7 @@
     conditionCheckShown: false,
     conditionMood: "good",
     conditionSleepIndex: 3,
+    postConditionCheckShown: false,
     postConditionChecked: false,
     postConditionStep: 0,
     postCondition: {
@@ -350,6 +374,13 @@
   const telemetryState = createEmptyTelemetryState();
   const audioPools = new Map();
   const audioPoolIndexes = new Map();
+  let backgroundAudio = null;
+  let backgroundAudioUnlocked = false;
+  let backgroundAudioIndex = 0;
+  let backgroundLoopFrameId = null;
+  let activeVoiceGuideAudio = null;
+  let voiceGuideTimerId = null;
+  let reminderAudioReadyPromise = null;
 
   function createEmptyTelemetryState() {
     return {
@@ -362,7 +393,9 @@
       questionResults: [],
       currentQuestionRecord: null,
       pauseCount: 0,
-      earlyExitQuestionIndex: null
+      earlyExitQuestionIndex: null,
+      resultSent: false,
+      lastBackgroundedAt: null
     };
   }
 
@@ -404,10 +437,28 @@
     return runtimeConfig.mode === "reminder" && !shouldShowConditionCheck();
   }
 
+  function shouldStartAfterConditionCheck() {
+    return runtimeConfig.mode === "reminder";
+  }
+
+  function startReminderAfterAudioReady() {
+    prepareReminderAutoStartAudio().then(() => {
+      if (!shouldAutoStartAfterLoading()) {
+        return;
+      }
+
+      if (els.startScreen) {
+        els.startScreen.classList.remove("is-loading");
+        els.startScreen.classList.add("is-loaded");
+      }
+      showDifficultySelect();
+    });
+  }
+
   function startIntroLoading() {
     if (!els.startScreen || !els.startLoadingFill || !els.startLoadingText) {
       if (shouldAutoStartAfterLoading()) {
-        showDifficultySelect();
+        startReminderAfterAudioReady();
       }
       return;
     }
@@ -437,14 +488,13 @@
 
       window.setTimeout(() => {
         if (shouldAutoStartAfterLoading()) {
-          els.startScreen.classList.remove("is-loading");
-          els.startScreen.classList.add("is-loaded");
-          showDifficultySelect();
+          startReminderAfterAudioReady();
           return;
         }
 
         els.startScreen.classList.remove("is-loading");
         els.startScreen.classList.add("is-loaded");
+        syncBackgroundMusic();
         els.startScreen.classList.add("is-intro-revealing");
         window.setTimeout(() => {
           els.startScreen.classList.remove("is-intro-revealing");
@@ -467,6 +517,7 @@
     resetState();
     state.phase = "difficulty";
     showOnly("difficulty");
+    syncBackgroundMusic();
   }
 
   function startGame(index) {
@@ -485,6 +536,7 @@
     state.correctCount = 0;
     state.timeLeft = runtimeConfig.durationSeconds;
     state.currentQuestion = null;
+    state.currentHintMessage = null;
     state.hintStep = 0;
     state.hintTimerId = null;
     state.lastMemoryTotalCount = 0;
@@ -511,6 +563,7 @@
     state.reachedDifficultyIndex = index;
     updateTopUi();
     updateCareHintButtonState();
+    syncBackgroundMusic();
 
     if (!els.gameCountdown || !els.gameCountdownTimer || !els.gameCountdownNumber) {
       startDifficulty(index);
@@ -530,6 +583,7 @@
     }
 
     els.gameCountdownMessage.textContent = "게임이 곧 시작돼요!";
+    playVoiceGuide("voiceReady", { delayMs: VOICE_GUIDE_STAGE_DELAY_MS });
     state.startCountdownIntroTimeoutId = window.setTimeout(() => {
       state.startCountdownIntroTimeoutId = null;
       beginReadyCountdown(index);
@@ -582,6 +636,7 @@
     state.isPaused = false;
     state.reachedDifficultyIndex = index;
     updateTopUi();
+    syncBackgroundMusic();
     playSound("start");
     startTelemetrySession(index);
     sendGameStarted();
@@ -599,6 +654,7 @@
     }
 
     state.currentQuestion = createQuestion();
+    state.currentHintMessage = null;
     recordQuestionCreated(state.currentQuestion);
     state.hintStep = 0;
     state.wrongAttempts = 0;
@@ -607,6 +663,11 @@
     updateTopUi();
     renderMemoryView(state.currentQuestion);
     recordMemoryStarted();
+    if (shouldUseDirectFeedback()) {
+      playVoiceGuide("voiceMemory", { delayMs: VOICE_GUIDE_STAGE_DELAY_MS });
+    } else {
+      playVoiceGuide("voiceSoftFeedbackMemory", { delayMs: VOICE_GUIDE_STAGE_DELAY_MS });
+    }
     startPhaseTimer(getMemoryRevealMs(), isCareMode() ? showCareRecallTransition : showQuestionView);
   }
 
@@ -618,6 +679,9 @@
     clearPhaseTimer();
     state.phase = "recall";
     renderCareRecallTransitionView();
+    if (!shouldUseDirectFeedback()) {
+      playVoiceGuide("voiceSoftFeedbackThink", { delayMs: VOICE_GUIDE_STAGE_DELAY_MS });
+    }
     startPhaseTimer(CARE_RECALL_TRANSITION_TIME, showQuestionView);
   }
 
@@ -630,10 +694,13 @@
     state.phase = "question";
     renderQuestionView(state.currentQuestion);
     recordQuestionShown(state.currentQuestion);
+    if (state.wrongAttempts === 0) {
+      playVoiceGuide(shouldUseDirectFeedback() ? "voiceQuestion" : "voiceSoftFeedbackQuestion", { delayMs: VOICE_GUIDE_STAGE_DELAY_MS });
+    }
     scheduleAutoHint();
   }
 
-  function answerQuestion(choice) {
+  function answerQuestion(choice, inputContext = null) {
     if (state.phase !== "question" && isQuestionViewVisible() && !state.isPaused && state.currentQuestion) {
       state.phase = "question";
       updateCareHintButtonState();
@@ -645,7 +712,7 @@
 
     clearQuestionHintTimers();
     const isCorrect = Number(choice) === state.currentQuestion.answer;
-    recordAnswerSelected(choice, isCorrect);
+    recordAnswerSelected(choice, isCorrect, inputContext);
     if (isCorrect) {
       state.correctCount += 1;
       playSound("correct");
@@ -666,6 +733,117 @@
     completeQuestion(false);
   }
 
+  function isExternalInputEnabled() {
+    return runtimeConfig.mode === "ai_assisted"
+      && runtimeConfig.externalInput
+      && runtimeConfig.externalInput.enabled !== false;
+  }
+
+  function getExternalInputStatus() {
+    const inputConfig = runtimeConfig.externalInput || DEFAULT_RUN_CONFIG.externalInput;
+    return {
+      enabled: isExternalInputEnabled(),
+      apiName: EXTERNAL_INPUT_API_NAME,
+      messageType: EXTERNAL_ANSWER_MESSAGE_TYPE,
+      messageTypes: [EXTERNAL_ANSWER_MESSAGE_TYPE, EXTERNAL_ANSWER_MESSAGE_TYPE_ALIAS],
+      resultMessageType: EXTERNAL_ANSWER_RESULT_MESSAGE_TYPE,
+      resultMessageTypes: [EXTERNAL_ANSWER_RESULT_MESSAGE_TYPE, EXTERNAL_ANSWER_RESULT_MESSAGE_TYPE_ALIAS],
+      acceptedPayloadFields: ["value", "answer", "choice", "selected_answer", "selectedAnswer"],
+      source: typeof inputConfig.source === "string" && inputConfig.source ? inputConfig.source : DEFAULT_RUN_CONFIG.externalInput.source
+    };
+  }
+
+  function createExternalInputResult(ok, code, detail) {
+    return {
+      ok,
+      code,
+      phase: state.phase,
+      detail: detail || null
+    };
+  }
+
+  function readExternalAnswerValue(input) {
+    const payload = input && typeof input === "object" ? input : { value: input };
+    const rawValue = hasConfigValue(payload, "value")
+      ? payload.value
+      : hasConfigValue(payload, "answer")
+        ? payload.answer
+        : hasConfigValue(payload, "choice")
+          ? payload.choice
+          : hasConfigValue(payload, "selected_answer")
+            ? payload.selected_answer
+            : payload.selectedAnswer;
+    const value = typeof rawValue === "string" ? Number(rawValue.trim()) : Number(rawValue);
+
+    if (!Number.isInteger(value) || value <= 0) {
+      return createExternalInputResult(false, "INVALID_ANSWER_VALUE", { value: rawValue });
+    }
+
+    return {
+      ok: true,
+      value,
+      requestId: payload.requestId || payload.request_id || null,
+      source: payload.source || payload.input_type || payload.inputType || null,
+      inputType: payload.input_type || payload.inputType || null,
+      rawTranscript: payload.raw_transcript || payload.rawTranscript || null,
+      confidence: hasConfigValue(payload, "confidence") ? Number(payload.confidence) : null
+    };
+  }
+
+  function validateExternalAnswer(input) {
+    if (!isExternalInputEnabled()) {
+      return createExternalInputResult(false, "EXTERNAL_INPUT_DISABLED");
+    }
+
+    if (state.phase !== "question" || !state.currentQuestion) {
+      return createExternalInputResult(false, "QUESTION_NOT_READY");
+    }
+
+    if (state.isPaused) {
+      return createExternalInputResult(false, "GAME_PAUSED");
+    }
+
+    const parsed = readExternalAnswerValue(input);
+    if (!parsed.ok) {
+      return parsed;
+    }
+
+    const options = Array.isArray(state.currentQuestion.options) ? state.currentQuestion.options : [];
+    if (options.length > 0 && !options.some((option) => Number(option) === parsed.value)) {
+      return createExternalInputResult(false, "ANSWER_NOT_IN_OPTIONS", {
+        value: parsed.value,
+        options
+      });
+    }
+
+    return parsed;
+  }
+
+  function submitExternalAnswer(input) {
+    const validation = validateExternalAnswer(input);
+    if (!validation.ok) {
+      return validation;
+    }
+
+    answerQuestion(validation.value, {
+      inputType: "external",
+      externalInput: {
+        request_id: validation.requestId,
+        source: validation.source,
+        raw_transcript: validation.rawTranscript,
+        confidence: validation.confidence
+      }
+    });
+    return createExternalInputResult(true, "ACCEPTED", {
+      value: validation.value,
+      requestId: validation.requestId,
+      source: validation.source,
+      inputType: validation.inputType,
+      rawTranscript: validation.rawTranscript,
+      confidence: validation.confidence
+    });
+  }
+
   function completeQuestion(isCorrect) {
     finalizeCurrentQuestion(isCorrect ? "correct" : "incorrect", isCorrect);
     state.questionInDifficulty += 1;
@@ -676,7 +854,7 @@
 
     state.phase = "feedback";
     renderFeedbackView(isCorrect, state.currentQuestion);
-    startPhaseTimer(getFeedbackTime(), showNextQuestion);
+    startPhaseTimer(getFeedbackTime(isCorrect), showNextQuestion);
   }
 
   function finishCareSessionWithoutFinalFeedback() {
@@ -735,8 +913,16 @@
     return isCareMode() ? runtimeConfig.revealMs : currentDifficulty().revealMs;
   }
 
-  function getFeedbackTime() {
-    return isCareMode() ? CARE_FEEDBACK_TIME : FEEDBACK_TIME;
+  function getFeedbackTime(isCorrect = true) {
+    if (isCareMode()) {
+      return CARE_FEEDBACK_TIME;
+    }
+
+    if (isStandardLikeMode() && !isCorrect) {
+      return FEEDBACK_TIME + STANDARD_FINAL_WRONG_FEEDBACK_EXTRA_TIME;
+    }
+
+    return FEEDBACK_TIME;
   }
 
   function getRetryFeedbackTime() {
@@ -967,6 +1153,11 @@
       maxHintLevel: 0,
       responseTimeMs: null,
       finalState: "pending",
+      inputType: "touch",
+      changedAnswerCount: 0,
+      wrongTapCount: 0,
+      touchMissCount: 0,
+      externalInput: null,
       internal: {
         memoryStartedAtMs: null,
         questionShownAtMs: null,
@@ -1017,7 +1208,7 @@
     record.internal.hintClickTimeMs.push(Math.max(0, now - baseTime));
   }
 
-  function recordAnswerSelected(choice, isCorrect) {
+  function recordAnswerSelected(choice, isCorrect, inputContext = null) {
     const record = telemetryState.currentQuestionRecord;
     if (!record || record.finalState !== "pending") {
       return;
@@ -1036,9 +1227,14 @@
     record.responseTimeMs = responseTimeMs;
     record.userFinalAnswer = selectedValue;
     record.attemptCount += 1;
+    if (inputContext && inputContext.inputType === "external") {
+      record.inputType = "external";
+      record.externalInput = inputContext.externalInput || null;
+    }
 
     if (!isCorrect) {
       record.internal.wrongAnswers.push(selectedValue);
+      record.wrongTapCount += 1;
       if (selectedValue < record.answerCount) {
         record.internal.underCountAnswer = true;
       }
@@ -1263,6 +1459,7 @@
     hintMessage.setAttribute("aria-live", "polite");
     hintMessage.textContent = "";
     hintMessage.classList.add("is-hidden");
+    state.currentHintMessage = hintMessage;
 
     const hintButton = document.createElement("button");
     hintButton.className = "game-button hint-button";
@@ -1277,16 +1474,8 @@
       }
 
       playSound("button");
-      clearHintTimer();
-      state.hintStep = Math.min(state.hintStep + 1, 2);
-      recordHintUsed(state.hintStep);
-      hintMessage.textContent = getHintMessage(question, state.hintStep);
-      hintMessage.classList.remove("is-hidden");
-      state.hintTimerId = window.setTimeout(() => {
-        hintMessage.textContent = "";
-        hintMessage.classList.add("is-hidden");
-        state.hintTimerId = null;
-      }, 3000);
+      clearAutoHintTimer();
+      showInlineHint(question, hintMessage);
     });
 
     if (shouldShowHintButton()) {
@@ -1331,39 +1520,45 @@
   }
 
   function getHintMessage(question, hintStep) {
+    const maxAnswerCount = getHintMaxAnswerCount(question);
     if (hintStep <= 1) {
-      return getFirstHintMessage(question.answer);
+      return getFirstHintMessage(question.answer, maxAnswerCount);
     }
 
-    return getSecondHintMessage(question.answer, question.totalCount);
+    return getSecondHintMessage(question.answer, maxAnswerCount);
   }
 
-  function getFirstHintMessage(answer) {
+  function getHintMaxAnswerCount(question) {
+    const configuredMax = Number(runtimeConfig.maxItemsToRemember);
+    if (Number.isInteger(configuredMax) && configuredMax > 0) {
+      return configuredMax;
+    }
+
+    return Math.max(1, Number(question.totalCount) || 1, Number(question.answer) || 1);
+  }
+
+  function getFirstHintMessage(answer, maxAnswerCount) {
     if (answer <= 1) {
-      return "아주 적게 있었어요!";
+      return "\uC801\uAC8C \uC788\uC5C8\uC5B4\uC694!";
     }
 
-    return `${answer - 1}개보다 많았어요!`;
+    if (answer >= maxAnswerCount) {
+      return "\uB9CE\uC774 \uC788\uC5C8\uC5B4\uC694!";
+    }
+
+    return String(answer - 1) + "\uAC1C\uBCF4\uB2E4 \uB9CE\uC544\uC694!";
   }
 
-  function getSecondHintMessage(answer, totalCount) {
-    const maxCount = Math.max(totalCount, answer);
-    let min = Math.max(1, answer - 1);
-    let max = Math.min(maxCount, answer + 1);
-
-    if (min === max) {
-      if (min > 1) {
-        min -= 1;
-      } else {
-        max = Math.min(maxCount, min + 1);
-      }
+  function getSecondHintMessage(answer, maxAnswerCount) {
+    if (answer <= 1) {
+      return "\uAC00\uC7A5 \uC801\uC740 \uAC1C\uC218\uC5D0\uC694!";
     }
 
-    if (min === max) {
-      return "아주 적게 있었어요!";
+    if (answer >= maxAnswerCount) {
+      return "\uAC00\uC7A5 \uB9CE\uC740 \uAC1C\uC218\uC5D0\uC694!";
     }
 
-    return `${min}~${max}개 사이였어요!`;
+    return String(answer - 1) + "~" + String(answer + 1) + "\uAC1C \uC0AC\uC774\uC608\uC694!";
   }
 
   function getTopicParticle(text) {
@@ -1416,7 +1611,7 @@
     if (shouldUseDirectFeedback()) {
       title.textContent = "다시 한 번 생각해보세요!";
     } else {
-      title.append("괜찮아요.", document.createElement("br"), "천천히 다시 같이 볼까요?");
+      title.append("괜찮아요.", document.createElement("br"), "천천히 다시 기억해 볼까요?");
     }
 
     const message = document.createElement("p");
@@ -1432,6 +1627,7 @@
     }
     els.playArea.appendChild(view);
     updateCareHintButtonState();
+    playVoiceGuide(getRetryVoiceGuideType(state.wrongAttempts), { delayMs: VOICE_GUIDE_FEEDBACK_DELAY_MS });
   }
 
   function renderFeedbackView(isCorrect, question) {
@@ -1470,12 +1666,15 @@
         ? "오늘도 차분히 집중해 주셨어요."
         : isCorrect
         ? "하나만 더 해볼까요? 힘드시면 쉬어도 괜찮아요."
-        : (isCareMode() ? "괜찮아요. 천천히 다시 같이 볼까요?" : "조금 헷갈릴 수 있어요. 하나만 더 연습해볼까요?");
+        : (isCareMode() ? "괜찮아요. 천천히 다시 같이 가볼까요?" : "조금 헷갈릴 수 있어요. 하나만 더 연습해볼까요?");
     }
 
     view.append(symbol, title, message);
     els.playArea.appendChild(view);
     updateCareHintButtonState();
+    if (!isFinalCareFeedback) {
+      playVoiceGuide(getFeedbackVoiceGuideType(isCorrect), { delayMs: VOICE_GUIDE_FEEDBACK_DELAY_MS });
+    }
   }
 
   function shouldUseDirectFeedback() {
@@ -1621,6 +1820,7 @@
     clearStartCountdown();
     clearQuestionHintTimers();
     clearResultAutoReturnTimer();
+    stopVoiceGuide();
   }
 
   function clearQuestionHintTimers() {
@@ -1667,6 +1867,7 @@
       state.hintTimerId = null;
     }
     hideCareHintMessage();
+    hideInlineHintMessage();
   }
 
   function hideCareHintMessage() {
@@ -1679,6 +1880,15 @@
     if (els.app) {
       els.app.classList.remove("is-care-hint-open");
     }
+  }
+
+  function hideInlineHintMessage() {
+    if (!state.currentHintMessage) {
+      return;
+    }
+
+    state.currentHintMessage.textContent = "";
+    state.currentHintMessage.classList.add("is-hidden");
   }
 
   function updateCareHintButtonState() {
@@ -1711,7 +1921,7 @@
   }
 
   function shouldUseAutoHint() {
-    return isCareMode() && runtimeConfig.autoHintEnabled !== false;
+    return shouldShowHintButton() && runtimeConfig.autoHintEnabled !== false;
   }
 
   function isQuestionViewVisible() {
@@ -1728,9 +1938,17 @@
     showCareHint();
   }
 
-  function showCareHint() {
+  function getNextHintStep() {
+    return Math.min(state.hintStep + 1, 2);
+  }
+
+  function normalizeHintStep(hintStep) {
+    return Math.max(1, Math.min(Number(hintStep) || 1, 2));
+  }
+
+  function showCareHint(hintStep = getNextHintStep()) {
     clearHintTimer();
-    state.hintStep = Math.min(state.hintStep + 1, 2);
+    state.hintStep = normalizeHintStep(hintStep);
     recordHintUsed(state.hintStep);
     if (els.careHintMessage) {
       els.careHintMessage.textContent = getHintMessage(state.currentQuestion, state.hintStep);
@@ -1745,9 +1963,25 @@
     }, 3000);
   }
 
+  function showInlineHint(question = state.currentQuestion, hintMessage = state.currentHintMessage, hintStep = getNextHintStep()) {
+    if (!question || !hintMessage) {
+      return;
+    }
+
+    clearHintTimer();
+    state.hintStep = normalizeHintStep(hintStep);
+    recordHintUsed(state.hintStep);
+    hintMessage.textContent = getHintMessage(question, state.hintStep);
+    hintMessage.classList.remove("is-hidden");
+    state.hintTimerId = window.setTimeout(() => {
+      hideInlineHintMessage();
+      state.hintTimerId = null;
+    }, 3000);
+  }
+
   function scheduleAutoHint() {
     clearAutoHintTimer();
-    if (!shouldUseAutoHint() || state.phase !== "question" || state.isPaused || !state.currentQuestion || state.hintStep > 0) {
+    if (!shouldUseAutoHint() || state.phase !== "question" || state.isPaused || !state.currentQuestion || state.hintStep !== 0) {
       return;
     }
 
@@ -1758,12 +1992,16 @@
   }
 
   function triggerAutoHint() {
-    if (!shouldUseAutoHint() || state.phase !== "question" || state.isPaused || !state.currentQuestion || state.hintStep > 0) {
+    if (!shouldUseAutoHint() || state.phase !== "question" || state.isPaused || !state.currentQuestion || state.hintStep !== 0) {
       return;
     }
 
     playSound("button");
-    showCareHint();
+    if (isCareMode()) {
+      showCareHint(1);
+    } else {
+      showInlineHint(state.currentQuestion, state.currentHintMessage, 1);
+    }
   }
 
   function pauseGame() {
@@ -1777,6 +2015,8 @@
     }
 
     state.isPaused = true;
+    syncBackgroundMusic();
+    stopVoiceGuide();
     recordQuestionPause();
     els.pauseButton.classList.add("is-paused");
     if (els.carePauseButton) {
@@ -1805,6 +2045,7 @@
     }
 
     state.isPaused = false;
+    syncBackgroundMusic();
     els.pauseButton.classList.remove("is-paused");
     if (els.carePauseButton) {
       els.carePauseButton.classList.remove("is-paused");
@@ -1826,6 +2067,7 @@
 
   function quitGame() {
     state.isPaused = false;
+    pauseBackgroundMusic(true);
     els.pauseButton.classList.remove("is-paused");
     if (els.carePauseButton) {
       els.carePauseButton.classList.remove("is-paused");
@@ -1841,6 +2083,7 @@
   function restartPausedGame() {
     const difficultyIndex = state.difficultyIndex;
     state.isPaused = false;
+    pauseBackgroundMusic(true);
     els.pauseButton.classList.remove("is-paused");
     if (els.carePauseButton) {
       els.carePauseButton.classList.remove("is-paused");
@@ -1861,6 +2104,7 @@
     resetState();
     els.startScreen.classList.remove("is-intro-revealing");
     showOnly("start");
+    syncBackgroundMusic();
   }
 
   function sleepIndexAt(offset) {
@@ -1920,11 +2164,22 @@
     runtimeDifficulties = normalizedConfig.difficulties;
     delete normalizedConfig.difficulties;
     Object.assign(runtimeConfig, normalizedConfig);
+    reminderAudioReadyPromise = null;
+    window.__FRUIT_COUNT_RUNTIME_CONFIG__ = runtimeConfig;
+    if (window.console && typeof window.console.info === "function") {
+      window.console.info("[game config]", {
+        mode: runtimeConfig.mode,
+        source: runtimeConfig.configSource,
+        totalQuestions: runtimeConfig.totalQuestions,
+        externalInput: runtimeConfig.externalInput
+      });
+    }
     state.timeLeft = runtimeConfig.durationSeconds;
     applyRuntimeAudioSettings();
     updateSettingClasses();
     applyModeUiSettings();
     applyModeExtension();
+    syncExternalInputInterface();
   }
 
   function normalizeGameMode(value) {
@@ -1956,17 +2211,20 @@
     document.documentElement.dataset.mode = mode;
     document.documentElement.dataset.resultStyle = showScore ? "standard" : "care";
     document.documentElement.dataset.showTimer = showTimer ? "true" : "false";
+    document.documentElement.dataset.showProgress = showProgress ? "true" : "false";
     document.documentElement.dataset.showScore = showScore ? "true" : "false";
     document.documentElement.dataset.showSettings = ui.showSettings === false ? "false" : "true";
     document.documentElement.dataset.showTutorial = ui.showTutorial === false ? "false" : "true";
     document.documentElement.dataset.showDifficultySelect = shouldShowDifficultySelect() ? "true" : "false";
     document.documentElement.dataset.showConditionCheck = shouldShowConditionCheck() ? "true" : "false";
     document.documentElement.dataset.showFinishCheck = shouldShowFinishCheck() ? "true" : "false";
+    document.documentElement.dataset.externalInput = isExternalInputEnabled() ? "true" : "false";
     document.body.dataset.mode = mode;
     if (els.app) {
       els.app.dataset.mode = mode;
       els.app.dataset.resultStyle = showScore ? "standard" : "care";
       els.app.dataset.showTimer = showTimer ? "true" : "false";
+      els.app.dataset.showProgress = showProgress ? "true" : "false";
       els.app.dataset.showScore = showScore ? "true" : "false";
     }
     if (els.settingsButton) {
@@ -1974,6 +2232,9 @@
     }
     if (els.tutorialButton) {
       els.tutorialButton.hidden = ui.showTutorial === false;
+    }
+    if (els.pauseHelpButton) {
+      els.pauseHelpButton.hidden = ui.showTutorial === false;
     }
     if (els.timerBox) {
       els.timerBox.hidden = !showTimer;
@@ -2005,6 +2266,58 @@
       state
     });
   }
+
+  function syncExternalInputInterface() {
+    if (!isExternalInputEnabled()) {
+      try {
+        delete window[EXTERNAL_INPUT_API_NAME];
+      } catch (error) {
+        window[EXTERNAL_INPUT_API_NAME] = undefined;
+      }
+      return;
+    }
+
+    window[EXTERNAL_INPUT_API_NAME] = {
+      submitAnswer: submitExternalAnswer,
+      getStatus: getExternalInputStatus
+    };
+  }
+
+  function isExternalAnswerMessageType(type) {
+    return type === EXTERNAL_ANSWER_MESSAGE_TYPE || type === EXTERNAL_ANSWER_MESSAGE_TYPE_ALIAS;
+  }
+
+  function getExternalAnswerResultMessageType(type) {
+    return type === EXTERNAL_ANSWER_MESSAGE_TYPE_ALIAS
+      ? EXTERNAL_ANSWER_RESULT_MESSAGE_TYPE_ALIAS
+      : EXTERNAL_ANSWER_RESULT_MESSAGE_TYPE;
+  }
+
+  function handleExternalInputMessage(event) {
+    const data = event && event.data;
+    if (!data || typeof data !== "object" || !isExternalAnswerMessageType(data.type)) {
+      return;
+    }
+
+    const payload = hasConfigValue(data, "payload") ? data.payload : data;
+    const result = submitExternalAnswer(payload);
+    const response = {
+      type: getExternalAnswerResultMessageType(data.type),
+      requestId: payload && typeof payload === "object" ? payload.requestId || payload.request_id || null : null,
+      payload: result
+    };
+
+    if (event.source && typeof event.source.postMessage === "function") {
+      try {
+        event.source.postMessage(response, "*");
+      } catch (error) {
+        if (window.console && typeof window.console.warn === "function") {
+          window.console.warn("[external input] failed to send result", error);
+        }
+      }
+    }
+  }
+
   function shouldShowTimer() {
     return !runtimeConfig.ui || runtimeConfig.ui.showTimer !== false;
   }
@@ -2031,77 +2344,12 @@
   }
 
   function normalizeExternalRunConfig(config) {
-    if (!config || typeof config !== "object") {
-      return config;
+    const normalizer = window.FruitCountMemoryGameConfigNormalizer;
+    if (!normalizer || typeof normalizer.normalizeExternalConfig !== "function") {
+      throw createGameError("CONFIG_INVALID", "Config normalizer is missing.");
     }
 
-    const settings = config.config && typeof config.config === "object" && !Array.isArray(config.config) ? config.config : {};
-    const normalized = { ...config };
-    delete normalized.config;
-
-    if (hasConfigValue(config, "difficulty") && !hasConfigValue(normalized, "difficultyKey")) {
-      normalized.difficultyKey = config.difficulty;
-    }
-    if (hasConfigValue(config, "external_input") && !hasConfigValue(normalized, "externalInput")) {
-      normalized.externalInput = config.external_input;
-    }
-    if (hasConfigValue(settings, "question_count")) {
-      normalized.totalQuestions = settings.question_count;
-    }
-    if (hasConfigValue(settings, "choice_count")) {
-      normalized.answerChoiceCount = settings.choice_count;
-    }
-    if (hasConfigValue(settings, "max_items_to_remember")) {
-      normalized.maxItemsToRemember = settings.max_items_to_remember;
-    }
-    if (hasConfigValue(settings, "duration_seconds")) {
-      normalized.durationSeconds = settings.duration_seconds;
-    }
-    if (hasConfigValue(settings, "reveal_ms")) {
-      normalized.revealMs = settings.reveal_ms;
-    }
-    if (hasConfigValue(settings, "voice_guide_enabled")) {
-      normalized.voiceGuideEnabled = settings.voice_guide_enabled;
-    }
-    if (hasConfigValue(settings, "hint_enabled")) {
-      normalized.hintEnabled = settings.hint_enabled;
-    }
-    if (hasConfigValue(settings, "auto_hint_enabled")) {
-      normalized.autoHintEnabled = settings.auto_hint_enabled;
-    }
-    if (hasConfigValue(settings, "soft_feedback")) {
-      normalized.softFeedback = settings.soft_feedback;
-      normalized.softFeedbackConfigured = true;
-    } else if (hasConfigValue(config, "soft_feedback")) {
-      normalized.softFeedback = config.soft_feedback;
-      normalized.softFeedbackConfigured = true;
-    } else if (config.softFeedbackConfigured === true && hasConfigValue(config, "softFeedback")) {
-      normalized.softFeedbackConfigured = true;
-    } else {
-      delete normalized.softFeedback;
-      normalized.softFeedbackConfigured = false;
-    }
-    if (hasConfigValue(settings, "result_log_level")) {
-      normalized.resultLogLevel = settings.result_log_level;
-    }
-    if (hasConfigValue(settings, "show_condition_check")) {
-      normalized.collectCondition = settings.show_condition_check;
-    }
-
-    normalized.ui = {
-      ...(normalized.ui && typeof normalized.ui === "object" ? normalized.ui : {}),
-      ...(hasConfigValue(settings, "show_timer") ? { showTimer: settings.show_timer } : {}),
-      ...(hasConfigValue(settings, "show_progress") ? { showProgress: settings.show_progress } : {}),
-      ...(!hasConfigValue(settings, "show_progress") && hasConfigValue(settings, "show_score") ? { showProgress: settings.show_score } : {}),
-      ...(hasConfigValue(settings, "show_score") ? { showScore: settings.show_score } : {}),
-      ...(hasConfigValue(settings, "show_difficulty_select") ? { showDifficultySelect: settings.show_difficulty_select } : {}),
-      ...(hasConfigValue(settings, "show_settings") ? { showSettings: settings.show_settings } : {}),
-      ...(hasConfigValue(settings, "show_how_to_play") ? { showTutorial: settings.show_how_to_play } : {}),
-      ...(hasConfigValue(settings, "show_condition_check") ? { showConditionCheck: settings.show_condition_check } : {}),
-      ...(hasConfigValue(settings, "show_finish_check") ? { showFinishCheck: settings.show_finish_check } : {})
-    };
-
-    return normalized;
+    return normalizer.normalizeExternalConfig(config);
   }
 
   function normalizeRunConfig(config) {
@@ -2135,6 +2383,8 @@
 
     return {
       gameId: typeof source.gameId === "string" && source.gameId ? source.gameId : DEFAULT_RUN_CONFIG.gameId,
+      contentId: typeof source.contentId === "string" && source.contentId ? source.contentId : DEFAULT_RUN_CONFIG.contentId,
+      gameKey: typeof source.gameKey === "string" && source.gameKey ? source.gameKey : DEFAULT_RUN_CONFIG.gameKey,
       sessionId: typeof source.sessionId === "string" && source.sessionId ? source.sessionId : DEFAULT_RUN_CONFIG.sessionId,
       userId: typeof source.userId === "string" ? source.userId : DEFAULT_RUN_CONFIG.userId,
       anonymousUserId: typeof source.anonymousUserId === "string" ? source.anonymousUserId : DEFAULT_RUN_CONFIG.anonymousUserId,
@@ -2158,11 +2408,13 @@
         ? readBooleanConfig(source, "softFeedback", getDefaultSoftFeedback(mode))
         : getDefaultSoftFeedback(mode),
       resultLogLevel: typeof source.resultLogLevel === "string" && source.resultLogLevel ? source.resultLogLevel : DEFAULT_RUN_CONFIG.resultLogLevel,
+      externalInput: normalizeExternalInputConfig(source.externalInput, mode),
       mode,
       ui: normalizeUiConfig(source.ui),
       previousResult: source.previousResult && typeof source.previousResult === "object" ? source.previousResult : DEFAULT_RUN_CONFIG.previousResult,
       previousRecord: source.previousRecord && typeof source.previousRecord === "object" ? source.previousRecord : DEFAULT_RUN_CONFIG.previousRecord,
       lastResult: source.lastResult && typeof source.lastResult === "object" ? source.lastResult : DEFAULT_RUN_CONFIG.lastResult,
+      configSource: typeof source.configSource === "string" && source.configSource ? source.configSource : DEFAULT_RUN_CONFIG.configSource,
       schemaVersion: typeof source.schemaVersion === "string" && source.schemaVersion ? source.schemaVersion : DEFAULT_RUN_CONFIG.schemaVersion,
       difficulties
     };
@@ -2170,6 +2422,29 @@
 
   function getDefaultSoftFeedback(mode) {
     return mode !== "standard";
+  }
+
+  function normalizeExternalInputConfig(source, mode) {
+    const base = DEFAULT_RUN_CONFIG.externalInput;
+    if (source === undefined || source === null || source === "") {
+      return {
+        enabled: false,
+        source: base.source
+      };
+    }
+
+    if (typeof source !== "object" || Array.isArray(source)) {
+      throw createGameError("CONFIG_INVALID", "Invalid externalInput config.", { externalInput: source });
+    }
+
+    const input = source;
+    const enabled = mode === "ai_assisted" ? readOptionalBoolean(input, "enabled", base.enabled) : false;
+    const sourceName = typeof input.source === "string" && input.source ? input.source : base.source;
+
+    return {
+      enabled,
+      source: sourceName
+    };
   }
 
   function applyMaxItemsToRemember(difficulties, maxItemsToRemember) {
@@ -2490,6 +2765,8 @@
         totalQuestions: runtimeConfig.totalQuestions,
         collectCondition: runtimeConfig.collectCondition,
         mode: runtimeConfig.mode,
+        configSource: runtimeConfig.configSource,
+        externalInput: getExternalInputStatus(),
         ui: runtimeConfig.ui
       }
     };
@@ -2518,6 +2795,7 @@
   }
 
   function sendGameComplete(result) {
+    telemetryState.resultSent = true;
     sendBridgeEvent(["sendGameCompleteResult", "sendComplete"], result, "COMPLETE_SEND_FAILED");
   }
 
@@ -2551,6 +2829,7 @@
     const bridge = getAppBridge();
     const payload = createErrorResult(code, error, detail);
     const sendErrorMethod = bridge && (bridge.sendGameErrorResult || bridge.sendError);
+    telemetryState.resultSent = true;
 
     if (window.console) {
       window.console.error("[game error]", code, error, detail || null);
@@ -2580,6 +2859,29 @@
   function handleFatalError(code, error, detail) {
     reportAppError(code, error, detail || (error && error.detail));
     showErrorScreen(code, detail || (error && error.detail));
+  }
+
+  function shouldSendAbandonedResult() {
+    return Boolean(
+      telemetryState.startedAt
+      && !telemetryState.resultSent
+      && state.phase !== "result"
+      && state.phase !== "error"
+    );
+  }
+
+  function sendAbandonedResult(reason) {
+    if (!shouldSendAbandonedResult()) {
+      return;
+    }
+
+    if (telemetryState.currentQuestionRecord && telemetryState.currentQuestionRecord.finalState === "pending") {
+      finalizeCurrentQuestion("quit", false);
+    }
+    endTelemetrySession(reason || "unknown");
+    sendGameComplete(createResultPayload("abandoned", {
+      abandonReason: getAbandonReason(reason || "unknown")
+    }));
   }
 
   function showErrorScreen(code, detail) {
@@ -2627,51 +2929,226 @@
   }
 
   function createErrorResult(code, error, detail) {
-    return {
-      eventType: "GAME_ERROR",
-      schemaVersion: runtimeConfig.schemaVersion,
-      gameId: runtimeConfig.gameId,
-      sessionId: runtimeConfig.sessionId,
-      occurredAt: new Date().toISOString(),
-      error: {
-        code,
-        message: error && error.message ? error.message : String(error || code),
-        phase: state.phase || "unknown",
-        recoverable: isRecoverableError(code)
-      }
-    };
+    const message = error && error.message ? error.message : String(error || code);
+    const payload = createResultPayload("error", {
+      errorCode: code,
+      errorMessage: message,
+      errorDetail: detail || (error && error.detail) || null
+    });
+    payload.error_detail = detail || (error && error.detail) || null;
+    payload.recoverable = isRecoverableError(code);
+    payload.phase = state.phase || "unknown";
+    return payload;
   }
 
   function isRecoverableError(code) {
     return code === "STORAGE_FAILED" || code === "COMPLETE_SEND_FAILED";
   }
 
-  function createCompleteResult(totalAnswered, rate) {
+  function createCompleteResult() {
     if (!telemetryState.endedAt) {
       endTelemetrySession(telemetryState.exitReason === "playing" ? "unknown" : telemetryState.exitReason);
     }
 
-    const questionResults = telemetryState.questionResults.map(createPublicQuestionResult);
-    const processData = telemetryState.questionResults.map(createPublicProcessData);
-    const summary = createSummary(questionResults, processData);
-    const resultId = createResultId();
-    const idempotencyKey = createIdempotencyKey();
+    const status = telemetryState.exitReason === "all_questions" ? "completed" : "abandoned";
+    return createResultPayload(status, {
+      abandonReason: status === "abandoned" ? getAbandonReason(telemetryState.exitReason) : null
+    });
+  }
+
+  function createResultPayload(status, options = {}) {
+    const finalStatus = ["completed", "abandoned", "error"].includes(status) ? status : "completed";
+    const nowMs = Date.now();
+    if (!telemetryState.startedAt) {
+      telemetryState.startedAtMs = nowMs;
+      telemetryState.startedAt = new Date(nowMs).toISOString();
+    }
+    if (!telemetryState.endedAt) {
+      telemetryState.endedAtMs = nowMs;
+      telemetryState.endedAt = new Date(nowMs).toISOString();
+    }
+
+    const detailed = runtimeConfig.resultLogLevel !== "summary";
+    const questionLogs = detailed ? telemetryState.questionResults.map(createQuestionLog) : [];
+    const totalQuestions = getTotalQuestions();
+    const completedQuestionCount = countCompletedQuestionRecords();
+    const correctCount = countCorrectQuestionRecords();
+    const wrongCount = countWrongQuestionRecords();
+    const hintCount = sumQuestionValue("hintCount");
+    const retryCount = telemetryState.questionResults.reduce((total, record) => {
+      return total + Math.max(0, Number(record.attemptCount) - 1);
+    }, 0);
+    const avgResponseTimeMs = averageNumber(
+      telemetryState.questionResults.map((record) => record.responseTimeMs)
+    );
 
     return {
-      eventType: "GAME_COMPLETED",
-      schemaVersion: runtimeConfig.schemaVersion,
-      gameId: runtimeConfig.gameId,
-      sessionId: runtimeConfig.sessionId,
-      resultId,
-      idempotencyKey,
-      userId: runtimeConfig.userId || runtimeConfig.anonymousUserId || "",
-      completedAt: telemetryState.endedAt,
-      session: createSessionResult(questionResults),
-      questionResults,
-      processData,
-      condition: createConditionResult(),
-      summary
+      session_id: runtimeConfig.sessionId || null,
+      content_id: runtimeConfig.contentId || DEFAULT_RUN_CONFIG.contentId,
+      game_key: runtimeConfig.gameKey || DEFAULT_RUN_CONFIG.gameKey,
+      mode: runtimeConfig.mode || DEFAULT_RUN_CONFIG.mode,
+      difficulty: getSelectedDifficultyKey(),
+      config_snapshot: createConfigSnapshot(),
+      status: finalStatus,
+      started_at: telemetryState.startedAt,
+      ended_at: telemetryState.endedAt,
+      duration_ms: getTotalPlayTimeMs(),
+      total_questions: totalQuestions,
+      correct_count: correctCount,
+      wrong_count: wrongCount,
+      hint_count: hintCount,
+      retry_count: retryCount,
+      pause_count: telemetryState.pauseCount,
+      interaction_count: createInteractionCount(),
+      avg_response_time_ms: avgResponseTimeMs,
+      completion_rate: createCompletionRate(completedQuestionCount, totalQuestions),
+      abandoned_at: finalStatus === "abandoned" ? telemetryState.endedAt : null,
+      abandon_reason: finalStatus === "abandoned" ? options.abandonReason || getAbandonReason(telemetryState.exitReason) : null,
+      error_code: finalStatus === "error" ? options.errorCode || null : null,
+      error_message: finalStatus === "error" ? options.errorMessage || null : null,
+      question_logs: questionLogs,
+      result_detail_json: detailed ? createResultDetailJson() : {}
     };
+  }
+
+  function createQuestionLog(record) {
+    return {
+      question_id: `q${record.questionIndex}`,
+      question_type: "count_choice",
+      cognitive_domain: "memory_activity",
+      difficulty: record.difficulty.key,
+      prompt_type: "image",
+      items_shown: record.totalFruitCount,
+      target_item: record.targetFruitId,
+      target_count: record.answerCount,
+      correct_answer: String(record.answerCount),
+      selected_answer: record.userFinalAnswer === null || record.userFinalAnswer === undefined ? null : String(record.userFinalAnswer),
+      is_correct: Boolean(record.isCorrect),
+      attempt_count: record.attemptCount,
+      hint_used: Boolean(record.hintUsed),
+      hint_count: record.hintCount,
+      replay_count: 0,
+      response_time_ms: record.responseTimeMs,
+      first_response_time_ms: record.internal.firstResponseTimeMs,
+      changed_answer_count: record.changedAnswerCount || 0,
+      wrong_tap_count: record.wrongTapCount || record.internal.wrongAnswers.length,
+      touch_miss_count: record.touchMissCount || 0,
+      input_type: record.inputType || "touch"
+    };
+  }
+
+  function createResultDetailJson() {
+    const detailRecord = getLastQuestionRecord();
+    return {
+      choice_count: getEffectiveChoiceCount(detailRecord),
+      max_items_to_remember: runtimeConfig.maxItemsToRemember || null,
+      auto_hint_enabled: runtimeConfig.autoHintEnabled !== false,
+      reveal_ms: getSelectedRevealMs(),
+      difficulty_downshifted: false,
+      total_touch_miss_count: sumQuestionValue("touchMissCount"),
+      external_input_used: telemetryState.questionResults.some((record) => record.inputType === "external")
+    };
+  }
+
+  function createConfigSnapshot() {
+    const ui = runtimeConfig.ui || DEFAULT_RUN_CONFIG.ui;
+    return {
+      show_timer: shouldShowTimer(),
+      show_score: shouldShowScoreResult(),
+      show_progress: ui.showProgress !== false,
+      show_difficulty_select: shouldShowDifficultySelect(),
+      show_settings: ui.showSettings !== false,
+      show_how_to_play: ui.showTutorial !== false,
+      show_condition_check: shouldShowConditionCheck(),
+      show_finish_check: shouldShowFinishCheck(),
+      question_count: getTotalQuestions(),
+      choice_count: runtimeConfig.answerChoiceCount,
+      max_items_to_remember: runtimeConfig.maxItemsToRemember || null,
+      reveal_ms: getSelectedRevealMs(),
+      hint_enabled: runtimeConfig.hintEnabled !== false,
+      auto_hint_enabled: runtimeConfig.autoHintEnabled !== false,
+      soft_feedback: runtimeConfig.softFeedback,
+      voice_guide_enabled: runtimeConfig.voiceGuideEnabled !== false,
+      result_log_level: runtimeConfig.resultLogLevel || DEFAULT_RUN_CONFIG.resultLogLevel
+    };
+  }
+
+  function getSelectedDifficultyKey() {
+    if (telemetryState.selectedDifficulty && telemetryState.selectedDifficulty.key) {
+      return telemetryState.selectedDifficulty.key;
+    }
+
+    const configuredIndex = getConfiguredDifficultyIndex();
+    const difficulty = getDifficulties()[configuredIndex === null ? state.difficultyIndex : configuredIndex] || currentDifficulty();
+    return difficulty ? difficulty.key : DEFAULT_RUN_CONFIG.difficultyKey;
+  }
+
+  function getSelectedRevealMs() {
+    const difficulty = getDifficulties().find((item) => item.key === getSelectedDifficultyKey()) || currentDifficulty();
+    return isCareMode() ? runtimeConfig.revealMs : difficulty.revealMs;
+  }
+
+  function getLastQuestionRecord() {
+    for (let index = telemetryState.questionResults.length - 1; index >= 0; index -= 1) {
+      const record = telemetryState.questionResults[index];
+      if (record) {
+        return record;
+      }
+    }
+
+    return null;
+  }
+
+  function getEffectiveChoiceCount(record) {
+    if (record && Array.isArray(record.answerOptions) && record.answerOptions.length > 0) {
+      return record.answerOptions.length;
+    }
+
+    return runtimeConfig.answerChoiceCount;
+  }
+
+  function countCompletedQuestionRecords() {
+    return telemetryState.questionResults.filter((record) => record.finalState === "correct" || record.finalState === "incorrect").length;
+  }
+
+  function countCorrectQuestionRecords() {
+    return telemetryState.questionResults.filter((record) => record.isCorrect).length;
+  }
+
+  function countWrongQuestionRecords() {
+    return telemetryState.questionResults.filter((record) => record.finalState === "incorrect").length;
+  }
+
+  function sumQuestionValue(key) {
+    return telemetryState.questionResults.reduce((total, record) => {
+      const value = Number(record[key]);
+      return total + (Number.isFinite(value) ? value : 0);
+    }, 0);
+  }
+
+  function createInteractionCount() {
+    return telemetryState.questionResults.reduce((total, record) => {
+      return total + record.attemptCount + record.hintCount + (record.touchMissCount || 0);
+    }, telemetryState.pauseCount);
+  }
+
+  function createCompletionRate(completedQuestionCount, totalQuestions) {
+    if (!totalQuestions) {
+      return 0;
+    }
+
+    return Number((completedQuestionCount / totalQuestions).toFixed(2));
+  }
+
+  function getAbandonReason(reason) {
+    const map = {
+      quit: "user_quit",
+      time_expired: "timeout",
+      app_background: "app_background",
+      webview_closed: "webview_closed",
+      unknown: "unknown"
+    };
+    return map[reason] || "unknown";
   }
 
   function createExitPayload(source) {
@@ -2922,6 +3399,7 @@
     state.conditionCheckShown = true;
     renderConditionSleepDial();
     els.conditionModal.classList.remove("is-hidden");
+    syncBackgroundMusic();
     if (els.conditionConfirmButton) {
       els.conditionConfirmButton.focus();
     }
@@ -2933,6 +3411,10 @@
     }
 
     els.conditionModal.classList.add("is-hidden");
+    syncBackgroundMusic();
+    if (shouldStartAfterConditionCheck()) {
+      showDifficultySelect();
+    }
   }
 
   function renderPostConditionStep() {
@@ -2946,13 +3428,15 @@
   }
 
   function openPostConditionCheck() {
-    if (!shouldShowFinishCheck() || !els.postConditionModal) {
+    if (!shouldShowFinishCheck() || !els.postConditionModal || state.postConditionCheckShown) {
       showResult();
       return;
     }
 
+    state.postConditionCheckShown = true;
     state.phase = "postCondition";
     state.isPaused = false;
+    syncBackgroundMusic();
     state.postConditionStep = 0;
     els.pauseModal.classList.add("is-hidden");
     els.pauseButton.classList.remove("is-paused");
@@ -3066,9 +3550,14 @@
       els.voiceGuideLabel.textContent = els.voiceGuideToggle.checked ? "안내음성 켬" : "안내음성 끔";
     }
 
+    if (els.voiceGuideToggle && !els.voiceGuideToggle.checked) {
+      stopVoiceGuide();
+    }
+
     updatePauseSoundButton(els.pauseBackgroundSoundButton, els.backgroundSoundToggle && els.backgroundSoundToggle.checked);
     updatePauseSoundButton(els.pauseSoundButton, els.soundToggle && els.soundToggle.checked);
     updatePauseSoundButton(els.pauseVoiceGuideButton, els.voiceGuideToggle && els.voiceGuideToggle.checked);
+    syncBackgroundMusic();
   }
 
   function updatePauseSoundButton(button, isOn) {
@@ -3093,6 +3582,10 @@
     const wasEffectSoundOn = els.soundToggle && els.soundToggle.checked;
     toggle.checked = !toggle.checked;
     updateSettingClasses();
+    if (toggle === els.backgroundSoundToggle && toggle.checked) {
+      unlockBackgroundMusicFromGesture();
+      syncBackgroundMusic();
+    }
     const shouldPlayToggleSound = toggle === els.soundToggle ? wasEffectSoundOn || toggle.checked : true;
     if (shouldPlayToggleSound) {
       playSound("toggle", { force: toggle === els.soundToggle && wasEffectSoundOn });
@@ -3102,20 +3595,30 @@
   function handleSettingToggleChange(toggle) {
     const shouldForce = toggle === els.soundToggle && !toggle.checked;
     updateSettingClasses();
+    if (toggle === els.backgroundSoundToggle && toggle.checked) {
+      unlockBackgroundMusicFromGesture();
+      syncBackgroundMusic();
+    }
     playSound("toggle", { force: shouldForce });
   }
 
+  function createAudioSource(src) {
+    return `${src}?v=${AUDIO_CACHE_BUST}`;
+  }
+
   function getAudioPool(type) {
-    const source = AUDIO_SOURCES[type];
-    if (!source || typeof Audio !== "function") {
+    const track = AUDIO_TRACKS[type];
+    if (!track || !track.src || typeof Audio !== "function") {
       return [];
     }
 
     if (!audioPools.has(type)) {
-      const pool = Array.from({ length: AUDIO_POOL_SIZE }, () => {
-        const audio = new Audio(source);
+      const poolSize = Math.max(1, Number(track.poolSize) || 1);
+      const pool = Array.from({ length: poolSize }, () => {
+        const audio = new Audio(createAudioSource(track.src));
+        audio.loop = track.loop === true;
         audio.preload = "auto";
-        audio.volume = AUDIO_VOLUMES[type] || 0.7;
+        audio.volume = track.channel === "background" ? 0 : track.volume || 0.7;
         return audio;
       });
       audioPools.set(type, pool);
@@ -3125,9 +3628,17 @@
     return audioPools.get(type);
   }
 
+  function getAudioElementsForTrack(type) {
+    if (type === "background") {
+      return getBackgroundAudioPool();
+    }
+
+    return getAudioPool(type);
+  }
+
   function preloadAudioAssets() {
-    Object.keys(AUDIO_SOURCES).forEach((type) => {
-      getAudioPool(type).forEach((audio) => {
+    Object.keys(AUDIO_TRACKS).forEach((type) => {
+      getAudioElementsForTrack(type).forEach((audio) => {
         try {
           audio.load();
         } catch (error) {
@@ -3137,7 +3648,98 @@
     });
   }
 
+  function prepareReminderAutoStartAudio() {
+    if (!shouldAutoStartAfterLoading()) {
+      return Promise.resolve();
+    }
+
+    if (!reminderAudioReadyPromise) {
+      const tracks = getReminderAutoStartAudioTracks();
+      reminderAudioReadyPromise = Promise.allSettled(
+        tracks.map(waitForAudioTrackReady)
+      ).then(() => undefined);
+    }
+
+    return reminderAudioReadyPromise;
+  }
+
+  function getReminderAutoStartAudioTracks() {
+    const stageVoiceTracks = shouldUseDirectFeedback()
+      ? ["voiceMemory", "voiceQuestion", "voiceCorrect", "voiceRetry", "voiceRetry3"]
+      : [
+        "voiceSoftFeedbackMemory",
+        "voiceSoftFeedbackQuestion",
+        "voiceSoftFeedbackThink",
+        "voiceSoftFeedbackCorrect",
+        "voiceSoftFeedbackRetry",
+        "voiceSoftFeedbackRetry3"
+      ];
+
+    return Array.from(new Set([
+      "background",
+      "start",
+      "countdown",
+      "correct",
+      "retry",
+      "wrong",
+      "complete",
+      "voiceReady",
+      ...stageVoiceTracks
+    ]));
+  }
+
+  function waitForAudioTrackReady(type) {
+    const elements = type === "background" ? [getBackgroundAudio()] : getAudioElementsForTrack(type);
+    return Promise.all(elements.map(waitForAudioElementReady));
+  }
+
+  function isAudioElementReady(audio) {
+    return !audio || audio.readyState >= REMINDER_AUDIO_READY_STATE || audio.error;
+  }
+
+  function waitForAudioElementReady(audio) {
+    if (isAudioElementReady(audio)) {
+      return Promise.resolve();
+    }
+
+    return new Promise((resolve) => {
+      const readyEvents = ["loadedmetadata", "loadeddata", "canplay", "canplaythrough", "progress", "error", "abort"];
+      const finish = () => {
+        readyEvents.forEach((eventName) => {
+          audio.removeEventListener(eventName, checkReady);
+        });
+        resolve();
+      };
+      const checkReady = () => {
+        if (isAudioElementReady(audio)) {
+          finish();
+        }
+      };
+
+      readyEvents.forEach((eventName) => {
+        audio.addEventListener(eventName, checkReady);
+      });
+
+      try {
+        audio.load();
+      } catch (error) {
+        finish();
+      }
+      checkReady();
+    });
+  }
+
   function playSound(type, options = {}) {
+    const track = AUDIO_TRACKS[type];
+    if (!track) {
+      return;
+    }
+
+    if (track.channel === "background") {
+      playBackgroundMusic();
+      return;
+    }
+
     if (!options.force && (!els.soundToggle || !els.soundToggle.checked)) {
       return;
     }
@@ -3152,12 +3754,362 @@
     audioPoolIndexes.set(type, (nextIndex + 1) % pool.length);
     audio.pause();
     audio.currentTime = 0;
-    audio.volume = AUDIO_VOLUMES[type] || 0.7;
+    audio.volume = track.volume || 0.7;
     const playPromise = audio.play();
     if (playPromise && typeof playPromise.catch === "function") {
       playPromise.catch(() => {});
     }
   }
+
+  function isVoiceGuideEnabled() {
+    return !els.voiceGuideToggle || els.voiceGuideToggle.checked;
+  }
+
+  function stopVoiceGuide() {
+    if (voiceGuideTimerId) {
+      window.clearTimeout(voiceGuideTimerId);
+      voiceGuideTimerId = null;
+    }
+
+    if (!activeVoiceGuideAudio) {
+      return;
+    }
+
+    activeVoiceGuideAudio.pause();
+    try {
+      activeVoiceGuideAudio.currentTime = 0;
+    } catch (error) {
+      // Some browsers can reject currentTime changes before metadata is ready.
+    }
+    activeVoiceGuideAudio = null;
+  }
+
+  function playVoiceGuide(type, options = {}) {
+    const track = AUDIO_TRACKS[type];
+    if (!track || track.channel !== "voice") {
+      return;
+    }
+
+    stopVoiceGuide();
+    const delayMs = Math.max(0, Number(options.delayMs) || 0);
+    if (delayMs > 0) {
+      voiceGuideTimerId = window.setTimeout(() => {
+        voiceGuideTimerId = null;
+        startVoiceGuide(type);
+      }, delayMs);
+      return;
+    }
+
+    startVoiceGuide(type);
+  }
+
+  function startVoiceGuide(type) {
+    const track = AUDIO_TRACKS[type];
+    if (!track || track.channel !== "voice" || !isVoiceGuideEnabled() || state.isPaused) {
+      return;
+    }
+
+    const pool = getAudioPool(type);
+    const audio = pool[0];
+    if (!audio) {
+      return;
+    }
+
+    audio.pause();
+    try {
+      audio.currentTime = 0;
+    } catch (error) {
+      // Best effort: voice guidance should never block the game flow.
+    }
+    audio.volume = track.volume || 0.7;
+    activeVoiceGuideAudio = audio;
+    audio.onended = () => {
+      if (activeVoiceGuideAudio === audio) {
+        activeVoiceGuideAudio = null;
+      }
+    };
+
+    const playPromise = audio.play();
+    if (playPromise && typeof playPromise.catch === "function") {
+      playPromise.catch(() => {
+        if (activeVoiceGuideAudio === audio) {
+          activeVoiceGuideAudio = null;
+        }
+      });
+    }
+  }
+
+  function getRetryVoiceGuideType(wrongAttempts) {
+    const isThirdWrong = wrongAttempts >= MAX_WRONG_RETRIES + 1;
+    if (shouldUseDirectFeedback()) {
+      return isThirdWrong ? "voiceRetry3" : "voiceRetry";
+    }
+
+    return isThirdWrong ? "voiceSoftFeedbackRetry3" : "voiceSoftFeedbackRetry";
+  }
+
+  function getFeedbackVoiceGuideType(isCorrect) {
+    if (isCorrect) {
+      return shouldUseDirectFeedback() ? "voiceCorrect" : "voiceSoftFeedbackCorrect";
+    }
+
+    return getRetryVoiceGuideType(state.wrongAttempts);
+  }
+
+  function getCareResultVoiceGuideType(resultMessage) {
+    if (shouldUseDirectFeedback() || !isCareResultMode() || !resultMessage) {
+      return null;
+    }
+
+    if (resultMessage.message === "편안한 때에 다시 이어가면 됩니다.") {
+      return "voiceCareResult1";
+    }
+
+    if (resultMessage.message === "오늘도 차분히 집중해 주셨어요.") {
+      return "voiceCareResult2";
+    }
+
+    return null;
+  }
+
+  function getBackgroundAudio() {
+    const track = AUDIO_TRACKS.background;
+    const element = document.getElementById("background-audio");
+    if (element) {
+      if (!element.dataset.audioManaged) {
+        element.src = createAudioSource(track.src);
+        element.loop = false;
+        element.preload = "auto";
+        element.volume = 0;
+        element.dataset.audioManaged = "true";
+      }
+      const pool = getAudioPool("background");
+      if (pool[0] !== element) {
+        pool[0] = element;
+      }
+      backgroundAudio = pool[backgroundAudioIndex] || element;
+      return backgroundAudio;
+    }
+
+    backgroundAudio = getAudioPool("background")[backgroundAudioIndex] || null;
+    return backgroundAudio;
+  }
+
+  function getBackgroundAudioPool() {
+    getBackgroundAudio();
+    return getAudioPool("background");
+  }
+
+  function isBackgroundSoundEnabled() {
+    return !els.backgroundSoundToggle || els.backgroundSoundToggle.checked;
+  }
+
+  function shouldPlayBackgroundMusic() {
+    const isStandardConditionCheck = runtimeConfig.mode === "standard"
+      && els.conditionModal
+      && !els.conditionModal.classList.contains("is-hidden");
+
+    return isBackgroundSoundEnabled()
+      && !state.isPaused
+      && (isStandardConditionCheck || ["start", "difficulty", "countdown", "ready", "memory", "recall", "question", "feedback"].includes(state.phase));
+  }
+
+  function getBackgroundMusicVolume() {
+    return state.phase === "start" || state.phase === "difficulty"
+      ? AUDIO_TRACKS.background.menuVolume
+      : AUDIO_TRACKS.background.volume;
+  }
+
+  function stopBackgroundLoopWatch() {
+    if (backgroundLoopFrameId) {
+      window.cancelAnimationFrame(backgroundLoopFrameId);
+      backgroundLoopFrameId = null;
+    }
+  }
+
+  function startBackgroundLoopWatch() {
+    stopBackgroundLoopWatch();
+
+    function watchLoop() {
+      if (!shouldPlayBackgroundMusic()) {
+        return;
+      }
+
+      const pool = getBackgroundAudioPool();
+      const current = pool[backgroundAudioIndex];
+      const nextIndex = (backgroundAudioIndex + 1) % pool.length;
+      const next = pool[nextIndex];
+      const fadeSeconds = AUDIO_TRACKS.background.crossfadeSeconds || 2;
+
+      if (
+        current &&
+        next &&
+        Number.isFinite(current.duration) &&
+        current.duration > fadeSeconds &&
+        current.duration - current.currentTime <= fadeSeconds &&
+        next.paused
+      ) {
+        crossfadeBackgroundAudio(current, next, nextIndex, fadeSeconds);
+        return;
+      }
+
+      backgroundLoopFrameId = window.requestAnimationFrame(watchLoop);
+    }
+
+    backgroundLoopFrameId = window.requestAnimationFrame(watchLoop);
+  }
+
+  function crossfadeBackgroundAudio(current, next, nextIndex, fadeSeconds) {
+    const targetVolume = getBackgroundMusicVolume();
+    const startedAt = performance.now();
+    next.currentTime = 0;
+    next.volume = 0;
+    const playPromise = next.play();
+    if (playPromise && typeof playPromise.catch === "function") {
+      playPromise.catch(() => {});
+    }
+
+    function step(now) {
+      if (!shouldPlayBackgroundMusic()) {
+        current.volume = 0;
+        next.volume = 0;
+        return;
+      }
+
+      const progress = Math.min(1, (now - startedAt) / (fadeSeconds * 1000));
+      current.volume = targetVolume * (1 - progress);
+      next.volume = targetVolume * progress;
+
+      if (progress < 1) {
+        backgroundLoopFrameId = window.requestAnimationFrame(step);
+        return;
+      }
+
+      current.pause();
+      current.currentTime = 0;
+      backgroundAudioIndex = nextIndex;
+      backgroundAudio = next;
+      next.volume = targetVolume;
+      startBackgroundLoopWatch();
+    }
+
+    backgroundLoopFrameId = window.requestAnimationFrame(step);
+  }
+
+  function playBackgroundMusic() {
+    if (!shouldPlayBackgroundMusic()) {
+      muteBackgroundMusic();
+      return;
+    }
+
+    const audio = getBackgroundAudio();
+    if (!audio) {
+      return;
+    }
+
+    audio.volume = getBackgroundMusicVolume();
+    const playPromise = audio.play();
+    if (playPromise && typeof playPromise.catch === "function") {
+      playPromise
+        .then(() => {
+          backgroundAudioUnlocked = true;
+          startBackgroundLoopWatch();
+        })
+        .catch(() => {});
+    }
+  }
+
+  function unlockBackgroundMusicFromGesture() {
+    const audio = getBackgroundAudio();
+    if (!audio || !isBackgroundSoundEnabled()) {
+      return;
+    }
+
+    audio.volume = state.phase === "start" || state.phase === "difficulty"
+      ? getBackgroundMusicVolume()
+      : AUDIO_TRACKS.background.unlockVolume || 0.01;
+    const playPromise = audio.play();
+    if (playPromise && typeof playPromise.then === "function") {
+      playPromise
+        .then(() => {
+          backgroundAudioUnlocked = true;
+          if (shouldPlayBackgroundMusic()) {
+            audio.volume = getBackgroundMusicVolume();
+            startBackgroundLoopWatch();
+            return;
+          }
+
+          audio.volume = 0;
+        })
+        .catch(() => {});
+      return;
+    }
+
+    backgroundAudioUnlocked = true;
+    audio.volume = shouldPlayBackgroundMusic() ? getBackgroundMusicVolume() : 0;
+    if (shouldPlayBackgroundMusic()) {
+      startBackgroundLoopWatch();
+    }
+  }
+
+  function handleAudioGesture() {
+    if (!shouldPlayBackgroundMusic()) {
+      return;
+    }
+
+    unlockBackgroundMusicFromGesture();
+  }
+
+  function muteBackgroundMusic() {
+    getBackgroundAudioPool().forEach((audio) => {
+      audio.volume = 0;
+    });
+  }
+
+  function pauseBackgroundMusic(reset = false) {
+    stopBackgroundLoopWatch();
+    getBackgroundAudioPool().forEach((audio) => {
+      audio.pause();
+      audio.volume = 0;
+      if (reset) {
+        audio.currentTime = 0;
+      }
+    });
+    backgroundAudio = getBackgroundAudioPool()[0] || null;
+    backgroundAudioIndex = 0;
+    backgroundAudioUnlocked = false;
+  }
+
+  function syncBackgroundMusic() {
+    if (!isBackgroundSoundEnabled()) {
+      pauseBackgroundMusic(true);
+      return;
+    }
+
+    if (shouldPlayBackgroundMusic()) {
+      playBackgroundMusic();
+      return;
+    }
+
+    if (backgroundAudioUnlocked) {
+      muteBackgroundMusic();
+      return;
+    }
+
+    pauseBackgroundMusic();
+  }
+
+  window.__FRUIT_COUNT_BACKGROUND_AUDIO_STATUS__ = function () {
+    return {
+      exists: Boolean(backgroundAudio),
+      paused: backgroundAudio ? backgroundAudio.paused : null,
+      volume: backgroundAudio ? backgroundAudio.volume : null,
+      currentTime: backgroundAudio ? backgroundAudio.currentTime : null,
+      unlocked: backgroundAudioUnlocked,
+      phase: state.phase,
+      shouldPlay: shouldPlayBackgroundMusic()
+    };
+  };
 
   function openTutorial() {
     state.tutorialIndex = 0;
@@ -3303,6 +4255,7 @@
   function showResult() {
     clearAllTimers();
     state.phase = "result";
+    pauseBackgroundMusic(true);
     closePostConditionCheck();
     els.pauseModal.classList.add("is-hidden");
     els.pauseButton.classList.remove("is-paused");
@@ -3318,6 +4271,7 @@
     renderResultMessage(resultMessage.message);
     updateStandardResultRecord(resultTotal, rate, previousRecord);
     playSound("complete");
+    playVoiceGuide(getCareResultVoiceGuideType(resultMessage), { delayMs: VOICE_GUIDE_FEEDBACK_DELAY_MS });
 
     try {
       saveRecord(rate, resultTotal);
@@ -3718,6 +4672,9 @@
     els.postConditionBackButton.addEventListener("click", withButtonSound(showPreviousPostConditionStep));
     els.postConditionConfirmButton.addEventListener("click", withButtonSound(submitPostConditionCheck));
 
+    document.addEventListener("pointerdown", handleAudioGesture, true);
+    document.addEventListener("keydown", handleAudioGesture, true);
+
     document.addEventListener("keydown", (event) => {
       if (els.postConditionModal && !els.postConditionModal.classList.contains("is-hidden")) {
         return;
@@ -3739,6 +4696,18 @@
         } else {
           pauseGame();
         }
+      }
+    });
+    window.addEventListener("message", handleExternalInputMessage);
+    window.addEventListener("pagehide", () => {
+      sendAbandonedResult("webview_closed");
+    });
+    window.addEventListener("beforeunload", () => {
+      sendAbandonedResult("webview_closed");
+    });
+    document.addEventListener("visibilitychange", () => {
+      if (document.visibilityState === "hidden") {
+        telemetryState.lastBackgroundedAt = new Date().toISOString();
       }
     });
 
@@ -3777,6 +4746,7 @@
   function runAfterStartPress(button, action, delay = 180) {
     return (event) => {
       event.preventDefault();
+      unlockBackgroundMusicFromGesture();
       playSound("button");
       button.classList.remove("is-pressed");
       void button.offsetWidth;
@@ -3808,6 +4778,7 @@
     if (!didLoadConfig) {
       return;
     }
+    prepareReminderAutoStartAudio();
     if (showDebugErrorIfRequested()) {
       return;
     }
@@ -3819,6 +4790,7 @@
     }
     sendGameReady();
     updateTimerUi();
+    syncBackgroundMusic();
     startIntroLoading();
   }
 

@@ -1,5 +1,5 @@
-{
-  "mode": "ai_assisted",
+﻿{
+  "mode": "care",
   "difficulty": "easy",
   "difficultyKey": "easy",
   "config": {
@@ -21,9 +21,6 @@
     "soft_feedback": true,
     "voice_guide_enabled": true,
     "result_log_level": "detailed"
-  },
-  "external_input": {
-    "enabled": true,
-    "source": "app_or_ai"
   }
 }
+

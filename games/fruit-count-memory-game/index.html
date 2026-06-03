@@ -3,6 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
   <title>쏙쏙 개수 찾기</title>
   <script>
     (function () {
@@ -17,7 +20,7 @@
       document.documentElement.style.setProperty("--game-viewport-top-gutter", String(Math.min(verticalGutter, 120)) + "px");
     })();
   </script>
-  <link rel="stylesheet" href="css/base.css?v=direct-20260528">
+  <link rel="stylesheet" href="css/base.css?v=config-source-20260602">
   <link rel="stylesheet" href="css/start.css?v=direct-20260528">
   <link rel="stylesheet" href="css/difficulty.css?v=direct-20260528">
   <link rel="stylesheet" href="css/game-screen.css?v=direct-20260528">
@@ -548,14 +551,17 @@
       };
       var params = new URLSearchParams(window.location.search);
       var requestedMode = String(params.get("mode") || "standard").trim().toLowerCase();
+      var requestedConfigUrl = String(params.get("configUrl") || "").trim();
       var mode = Object.prototype.hasOwnProperty.call(modeMap, requestedMode) ? requestedMode : "standard";
-      var assetVersion = "config-ui-complete-20260602";
+      var assetVersion = "ai-external-input-config-fix-20260602";
       window.__FRUIT_COUNT_GAME_MODE__ = mode;
       window.__FRUIT_COUNT_MODE_ASSETS__ = {
         css: "css/modes/" + mode + ".css",
         js: "js/modes/" + mode + ".js"
       };
-      if (!window.__GAME_CONFIG_URL__) {
+      if (requestedConfigUrl) {
+        window.__GAME_CONFIG_URL__ = requestedConfigUrl;
+      } else if (!window.__GAME_CONFIG_URL__) {
         window.__GAME_CONFIG_URL__ = "config/" + modeMap[mode];
       }
       document.documentElement.dataset.mode = mode;
@@ -564,7 +570,9 @@
       document.write('<script src="' + window.__FRUIT_COUNT_MODE_ASSETS__.js + '?v=' + assetVersion + '"><\/script>');
     })();
   </script>
-  <script src="js/app-bridge.js?v=config-ui-complete-20260602"></script>
-  <script src="js/game.js?v=config-ui-complete-20260602"></script>
+  <script src="js/config-normalizer.js?v=ai-external-input-config-fix-20260602"></script>
+  <script src="js/app-bridge.js?v=ai-external-input-config-fix-20260602"></script>
+  <audio id="background-audio" src="assets/audio/background.wav" preload="auto" loop></audio>
+  <script src="js/game.js?v=ai-external-answer-alias-20260603-1645"></script>
 </body>
 </html>

@@ -257,10 +257,10 @@
           <p class="card-copy">과일 개수를 보고 기억한 뒤 정답을 고르는 기억 활동입니다.</p>
         </div>
         <div class="mode-grid" aria-label="쏙쏙개수찾기 모드">
-          <a class="mode-link standard" href="games/fruit-count-memory-game/index.html?mode=standard" data-game-key="fruit-count-memory-game" data-mode="standard">표준 모드</a>
-          <a class="mode-link reminder" href="games/fruit-count-memory-game/index.html?mode=reminder" data-game-key="fruit-count-memory-game" data-mode="reminder">알림 모드</a>
-          <a class="mode-link care" href="games/fruit-count-memory-game/index.html?mode=care" data-game-key="fruit-count-memory-game" data-mode="care">케어 모드</a>
-          <a class="mode-link ai_assisted" href="games/fruit-count-memory-game/index.html?mode=ai_assisted" data-game-key="fruit-count-memory-game" data-mode="ai_assisted">AI 연동 모드</a>
+          <a class="mode-link standard" href="games/fruit-count-memory-game/index.html?mode=standard&configUrl=../../config/fruit-count-memory-game.standard.json" data-game-key="fruit-count-memory-game" data-mode="standard" data-config-url="config/fruit-count-memory-game.standard.json">표준 모드</a>
+          <a class="mode-link reminder" href="games/fruit-count-memory-game/index.html?mode=reminder&configUrl=../../config/fruit-count-memory-game.reminder.json" data-game-key="fruit-count-memory-game" data-mode="reminder" data-config-url="config/fruit-count-memory-game.reminder.json">알림 모드</a>
+          <a class="mode-link care" href="games/fruit-count-memory-game/index.html?mode=care&configUrl=../../config/fruit-count-memory-game.care.json" data-game-key="fruit-count-memory-game" data-mode="care" data-config-url="config/fruit-count-memory-game.care.json">케어 모드</a>
+          <a class="mode-link ai_assisted" href="games/fruit-count-memory-game/index.html?mode=ai_assisted&configUrl=../../config/fruit-count-memory-game.ai_assisted.json" data-game-key="fruit-count-memory-game" data-mode="ai_assisted" data-config-url="config/fruit-count-memory-game.ai_assisted.json">AI 연동 모드</a>
         </div>
       </article>
 
@@ -297,5 +297,54 @@
       새 게임은 <strong>games/게임폴더명/</strong> 안에 추가하고, 허브의 버튼 링크만 해당 경로로 연결하면 됩니다.
     </p>
   </main>
+  <script id="fruit-count-runtime-config-loader">
+    (function () {
+      "use strict";
+
+      var runtimeConfigStorageKeys = {
+        "fruit-count-memory-game": "fruit-count-memory-game:runtime-config:v2"
+      };
+
+      function fetchRuntimeConfig(configUrl) {
+        return window.fetch(configUrl, { cache: "no-store" }).then(function (response) {
+          if (!response.ok) {
+            throw new Error("Runtime config could not be loaded: " + configUrl);
+          }
+          return response.json();
+        });
+      }
+
+      function clearRuntimeConfig(storageKey) {
+        try {
+          window.sessionStorage.removeItem(storageKey);
+        } catch (error) {}
+      }
+
+      document.querySelectorAll("[data-game-key][data-mode][data-config-url]").forEach(function (link) {
+        link.addEventListener("click", function (event) {
+          var storageKey = runtimeConfigStorageKeys[link.dataset.gameKey];
+          var configUrl = link.dataset.configUrl;
+          if (!storageKey || !configUrl || !window.sessionStorage || !window.fetch) {
+            return;
+          }
+
+          event.preventDefault();
+          fetchRuntimeConfig(configUrl)
+            .then(function (config) {
+              window.sessionStorage.setItem(storageKey, JSON.stringify(config));
+            })
+            .catch(function (error) {
+              clearRuntimeConfig(storageKey);
+              if (window.console) {
+                window.console.warn("[hub] failed to prepare runtime config", error);
+              }
+            })
+            .then(function () {
+              window.location.href = link.href;
+            });
+        });
+      });
+    })();
+  </script>
 </body>
 </html>

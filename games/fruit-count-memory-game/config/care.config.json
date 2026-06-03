@@ -4,6 +4,7 @@
   "difficultyKey": "easy",
   "config": {
     "show_timer": false,
+    "show_progress": false,
     "show_score": false,
     "show_difficulty_select": false,
     "show_settings": false,

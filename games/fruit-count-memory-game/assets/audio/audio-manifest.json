@@ -11,13 +11,13 @@
   ],
   "files": [
     {
-      "file": "button-click.wav",
+      "file": "button-click2.wav",
       "durationSeconds": 0.14,
       "usage": "General button press",
       "description": "Gentle wooden pop: cute, short, low-stress, without sharp high frequencies."
     },
     {
-      "file": "toggle.wav",
+      "file": "button-click2.wav",
       "durationSeconds": 0.22,
       "usage": "Sound on/off toggles",
       "description": "Soft two-step toggle cue with a rounded switch feeling."
@@ -35,28 +35,104 @@
       "description": "Warm three-note start cue that feels inviting and unhurried."
     },
     {
-      "file": "correct.wav",
+      "file": "correct2.wav",
       "durationSeconds": 0.58,
       "usage": "Correct answer",
       "description": "Positive soft chime, encouraging without being loud or piercing."
     },
     {
-      "file": "retry.wav",
+      "file": "retry2.wav",
       "durationSeconds": 0.46,
       "usage": "Retry hint after wrong answer",
       "description": "Kind prompt sound that suggests another try, not failure."
     },
     {
-      "file": "wrong.wav",
+      "file": "button-click2.wav",
       "durationSeconds": 0.44,
       "usage": "Final incorrect answer",
       "description": "Low supportive cue with no buzzer quality, designed to avoid discouragement."
     },
     {
-      "file": "complete.wav",
+      "file": "complete2.wav",
       "durationSeconds": 0.9,
       "usage": "Result screen / game complete",
       "description": "Gentle completion flourish with a warm, celebratory but calm finish."
+    },
+    {
+      "file": "voice-ready.wav",
+      "usage": "Voice guide shown on the ready countdown intro",
+      "description": "Plays with the '게임이 곧 시작돼요!' screen."
+    },
+    {
+      "file": "voice-memory.wav",
+      "usage": "Voice guide for the memory stage when soft_feedback is false",
+      "description": "Plays when the memory screen is shown."
+    },
+    {
+      "file": "voice-question.wav",
+      "usage": "Voice guide for the question stage when soft_feedback is false",
+      "description": "Plays when the answer selection screen is shown."
+    },
+    {
+      "file": "voice-correct.wav",
+      "usage": "Voice guide for correct feedback when soft_feedback is false",
+      "description": "Plays on the correct feedback screen."
+    },
+    {
+      "file": "voice-retry.wav",
+      "usage": "Voice guide for first and second wrong answers when soft_feedback is false",
+      "description": "Plays on retry feedback after wrong answer attempts 1 and 2."
+    },
+    {
+      "file": "voice-retry3.wav",
+      "usage": "Voice guide for the third wrong answer when soft_feedback is false",
+      "description": "Plays on the final incorrect feedback screen."
+    },
+    {
+      "file": "voice-care-result1.wav",
+      "usage": "Care result voice guide when soft_feedback is true and no answer was completed",
+      "description": "Plays with '편안한 때에 다시 이어가면 됩니다.'"
+    },
+    {
+      "file": "voice-care-result2.wav",
+      "usage": "Care result voice guide when soft_feedback is true and at least one answer was completed",
+      "description": "Plays with '오늘도 차분히 집중해 주셨어요.'"
+    },
+    {
+      "file": "voice-soft_feedback_correct.wav",
+      "usage": "Voice guide for correct feedback when soft_feedback is true",
+      "description": "Plays on the soft correct feedback screen."
+    },
+    {
+      "file": "voice-soft_feedback_memory.wav",
+      "usage": "Voice guide for the memory stage when soft_feedback is true",
+      "description": "Plays when the memory screen is shown with soft feedback."
+    },
+    {
+      "file": "voice-soft_feedback_question.wav",
+      "usage": "Voice guide for the question stage when soft_feedback is true",
+      "description": "Plays when the answer selection screen is first shown with soft feedback."
+    },
+    {
+      "file": "voice-soft_feedback_think.wav",
+      "usage": "Voice guide for the care recall transition when soft_feedback is true",
+      "description": "Plays with the '좋아요. 이제 한 번 떠올려볼까요?' screen in care and AI-assisted modes."
+    },
+    {
+      "file": "voice-soft_feedback_retry.wav",
+      "usage": "Voice guide for first and second wrong answers when soft_feedback is true",
+      "description": "Plays on soft retry feedback after wrong answer attempts 1 and 2."
+    },
+    {
+      "file": "voice-soft_feedback_retry3.wav",
+      "usage": "Voice guide for the third wrong answer when soft_feedback is true",
+      "description": "Plays on the soft final incorrect feedback screen."
+    },
+    {
+      "file": "background.wav",
+      "durationSeconds": 30,
+      "usage": "Looped game background music",
+      "description": "Background audio used during active gameplay, controlled by the background sound toggle."
     }
   ]
 }

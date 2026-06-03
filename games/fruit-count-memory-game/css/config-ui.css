@@ -10,6 +10,11 @@ html[data-mode="ai_assisted"][data-show-tutorial="true"] #tutorial-button {
   display: inline-flex !important;
 }
 
+html[data-mode="care"][data-show-tutorial="true"] #pause-help-button:not([hidden]),
+html[data-mode="ai_assisted"][data-show-tutorial="true"] #pause-help-button:not([hidden]) {
+  display: inline-flex !important;
+}
+
 html[data-mode="care"][data-show-condition-check="true"] #condition-modal:not(.is-hidden),
 html[data-mode="ai_assisted"][data-show-condition-check="true"] #condition-modal:not(.is-hidden) {
   display: grid !important;
@@ -21,24 +26,24 @@ html[data-mode="ai_assisted"][data-show-finish-check="true"] #post-condition-mod
 }
 
 html[data-mode="care"][data-show-timer="true"] .game-screen,
-html[data-mode="care"][data-show-score="true"] .game-screen,
+html[data-mode="care"][data-show-progress="true"] .game-screen,
 html[data-mode="ai_assisted"][data-show-timer="true"] .game-screen,
-html[data-mode="ai_assisted"][data-show-score="true"] .game-screen {
+html[data-mode="ai_assisted"][data-show-progress="true"] .game-screen {
   grid-template-rows: var(--game-hud-zone) minmax(0, 1fr);
   padding: 12px 48px 18px;
 }
 
 html[data-mode="care"][data-show-timer="true"] .game-header,
-html[data-mode="care"][data-show-score="true"] .game-header,
+html[data-mode="care"][data-show-progress="true"] .game-header,
 html[data-mode="ai_assisted"][data-show-timer="true"] .game-header,
-html[data-mode="ai_assisted"][data-show-score="true"] .game-header {
+html[data-mode="ai_assisted"][data-show-progress="true"] .game-header {
   display: grid !important;
 }
 
 html[data-mode="care"][data-show-timer="true"] .play-area,
-html[data-mode="care"][data-show-score="true"] .play-area,
+html[data-mode="care"][data-show-progress="true"] .play-area,
 html[data-mode="ai_assisted"][data-show-timer="true"] .play-area,
-html[data-mode="ai_assisted"][data-show-score="true"] .play-area {
+html[data-mode="ai_assisted"][data-show-progress="true"] .play-area {
   grid-row: 2;
 }
 
@@ -47,8 +52,8 @@ html[data-mode="ai_assisted"][data-show-timer="true"] #timer-box {
   display: flex !important;
 }
 
-html[data-mode="care"][data-show-score="true"] .race-wrap:not([hidden]),
-html[data-mode="ai_assisted"][data-show-score="true"] .race-wrap:not([hidden]) {
+html[data-mode="care"][data-show-progress="true"] .race-wrap:not([hidden]),
+html[data-mode="ai_assisted"][data-show-progress="true"] .race-wrap:not([hidden]) {
   display: block !important;
 }
 

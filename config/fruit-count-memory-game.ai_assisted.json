@@ -1,4 +1,4 @@
-{
+﻿{
   "mode": "ai_assisted",
   "difficulty": "easy",
   "difficultyKey": "easy",
@@ -27,3 +27,4 @@
     "source": "app_or_ai"
   }
 }
+
