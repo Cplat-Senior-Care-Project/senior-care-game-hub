@@ -313,6 +313,7 @@
     let previewTimer = null;
     let previewCountdownTimer = null;
     let hintTimer = null;
+    let sleepDefaultGuideTimer = null;
     let hintCountdownTimer = null;
     let roundTimer = null;
     let betweenTimer = null;
@@ -365,7 +366,9 @@
       tutorialChoose: "assets/audio/voice/tutorial-choose.mp3",
       tutorialHint: "assets/audio/voice/tutorial-hint.mp3",
       tutorialTotal: "assets/audio/voice/tutorial-total.mp3",
+      skipTutorial: "assets/audio/voice/skip-tutorial.mp3",
       preCheckin: "assets/audio/voice/pre-checkin.mp3",
+      skipPreCheckin: "assets/audio/voice/skip-pre-checkin.mp3",
       pause: "assets/audio/voice/pause.mp3",
       difficultySelect: "assets/audio/voice/difficulty-select.mp3",
       resume: "assets/audio/voice/resume.mp3",
@@ -374,6 +377,45 @@
       correct: "assets/audio/voice/correct.mp3",
       encourage: "assets/audio/voice/encourage.mp3",
       nextRound: "assets/audio/voice/next-round.mp3",
+      resultScreen: "assets/audio/voice/result-screen.mp3",
+      finishStatusSelect: "assets/audio/voice/finish-status-select.mp3",
+      postHelpQuestion: "assets/audio/voice/post-help-question.mp3",
+      postMoodGood: "assets/audio/voice/post-mood-good.mp3",
+      postMoodNormal: "assets/audio/voice/post-mood-normal.mp3",
+      postMoodBad: "assets/audio/voice/post-mood-bad.mp3",
+      postDifficultyEasy: "assets/audio/voice/post-difficulty-easy.mp3",
+      postDifficultyNormal: "assets/audio/voice/post-difficulty-normal.mp3",
+      postDifficultyHard: "assets/audio/voice/post-difficulty-hard.mp3",
+      postFatigueGood: "assets/audio/voice/post-fatigue-good.mp3",
+      postFatigueTired: "assets/audio/voice/post-fatigue-tired.mp3",
+      postFatigueVeryTired: "assets/audio/voice/post-fatigue-very-tired.mp3",
+      postHelpNo: "assets/audio/voice/post-help-no.mp3",
+      postHelpYes: "assets/audio/voice/post-help-yes.mp3",
+      postReplayYes: "assets/audio/voice/post-replay-yes.mp3",
+      postReplayNo: "assets/audio/voice/post-replay-no.mp3",
+      skipPostCheckin: "assets/audio/voice/skip-post-checkin.mp3",
+      finishThanks: "assets/audio/voice/finish-thanks.mp3",
+      moodBad: "assets/audio/voice/mood-bad.mp3",
+      moodNormal: "assets/audio/voice/mood-normal.mp3",
+      moodGood: "assets/audio/voice/mood-good.mp3",
+      scoreScreen: "assets/audio/voice/score-screen.mp3",
+      sleep4: "assets/audio/voice/sleep-4-hours.mp3",
+      sleep5: "assets/audio/voice/sleep-5-hours.mp3",
+      sleep6: "assets/audio/voice/sleep-6-hours.mp3",
+      sleep7: "assets/audio/voice/sleep-7-hours.mp3",
+      sleep8: "assets/audio/voice/sleep-8-hours.mp3",
+      sleep9: "assets/audio/voice/sleep-9-hours.mp3",
+      sleep10: "assets/audio/voice/sleep-10-hours.mp3",
+      sleep11: "assets/audio/voice/sleep-11-hours.mp3",
+      sleep12: "assets/audio/voice/sleep-12-hours.mp3",
+      targetBulbRemember: "assets/audio/voice/target-bulb-remember.mp3",
+      targetBulbChoose: "assets/audio/voice/target-bulb-choose.mp3",
+      targetBirdRemember: "assets/audio/voice/target-bird-remember.mp3",
+      targetBirdChoose: "assets/audio/voice/target-bird-choose.mp3",
+      targetPhoneRemember: "assets/audio/voice/target-phone-remember.mp3",
+      targetPhoneChoose: "assets/audio/voice/target-phone-choose.mp3",
+      targetFlowerRemember: "assets/audio/voice/target-flower-remember.mp3",
+      targetFlowerChoose: "assets/audio/voice/target-flower-choose.mp3",
     };
     const buttonClickSound = new Audio(BUTTON_CLICK_SOUND_SRC);
     buttonClickSound.preload = "auto";
@@ -519,6 +561,49 @@
       renderPostGamePage();
     }
 
+    function playPostMoodVoice(value) {
+      const voiceKey = {
+        "좋음": "postMoodGood",
+        "보통": "postMoodNormal",
+        "나쁨": "postMoodBad",
+      }[value];
+      if (voiceKey) playVoiceClip(voiceKey);
+    }
+
+    function playPostDifficultyVoice(value) {
+      const voiceKey = {
+        "쉬웠어요": "postDifficultyEasy",
+        "적당했어요": "postDifficultyNormal",
+        "어려웠어요": "postDifficultyHard",
+      }[value];
+      if (voiceKey) playVoiceClip(voiceKey);
+    }
+
+    function playPostFatigueVoice(value) {
+      const voiceKey = {
+        "괜찮아요": "postFatigueGood",
+        "조금 피곤해요": "postFatigueTired",
+        "많이 피곤해요": "postFatigueVeryTired",
+      }[value];
+      if (voiceKey) playVoiceClip(voiceKey);
+    }
+
+    function playPostHelpVoice(value) {
+      const voiceKey = {
+        "아니오": "postHelpNo",
+        "네": "postHelpYes",
+      }[value];
+      if (voiceKey) playVoiceClip(voiceKey);
+    }
+
+    function playPostReplayVoice(value) {
+      const voiceKey = {
+        "네": "postReplayYes",
+        "아니오": "postReplayNo",
+      }[value];
+      if (voiceKey) playVoiceClip(voiceKey);
+    }
+
     function renderPostGamePage() {
       if (postGamePageOne) postGamePageOne.classList.toggle("is-hidden", postGamePage !== 1);
       if (postGamePageTwo) postGamePageTwo.classList.toggle("is-hidden", postGamePage !== 2);
@@ -563,6 +648,32 @@
       }
     }
 
+    function playVoiceClipThen(voiceKey, callback, fallbackDelayMs = 4500) {
+      if (!voiceEnabled || !VOICE_CLIPS[voiceKey]) {
+        callback();
+        return;
+      }
+      let completed = false;
+      let fallbackTimer = null;
+      const finish = () => {
+        if (completed) return;
+        completed = true;
+        voiceClipAudio.removeEventListener("ended", finish);
+        if (fallbackTimer) clearTimeout(fallbackTimer);
+        callback();
+      };
+      voiceClipAudio.addEventListener("ended", finish, { once: true });
+      fallbackTimer = setTimeout(finish, fallbackDelayMs);
+      playVoiceClip(voiceKey);
+    }
+
+    function targetVoiceObjectKey() {
+      if (targetType === "flower") return "Flower";
+      if (currentTheme === "bird") return "Bird";
+      if (currentTheme === "phone") return "Phone";
+      return "Bulb";
+    }
+
     function getVoiceClipKey(text) {
       const value = String(text || "");
       if (value.includes("설정 화면입니다")) return "settings";
@@ -580,7 +691,26 @@
       if (value.includes("힌트입니다")) return "hint";
       if (value.includes("정답입니다") || value.includes("좋아요. 천천히")) return "correct";
       if (value.includes("잘 찾아") || value.includes("기억하실 수 있을 거예요")) return "encourage";
+      if (value.includes("결과 화면으로 갈") || value.includes("결과 화면으로 이동") || value.includes("결과화면으로 넘어")) return "resultScreen";
+      if (value.includes("마무리 상태를 선택")) return "finishStatusSelect";
+      if (value.includes("마지막으로 도움이 필요")) return "postHelpQuestion";
+      if (value.includes("수고하셨습니다")) return "finishThanks";
+      if (value.includes("점수 화면입니다") || value.includes("점수화면입니다")) return "scoreScreen";
+      if (value.includes("수면시간")) {
+        const sleepHourMatch = value.match(/(\d+)\s*시간/);
+        if (sleepHourMatch) {
+          const sleepVoiceKey = `sleep${sleepHourMatch[1]}`;
+          if (VOICE_CLIPS[sleepVoiceKey]) return sleepVoiceKey;
+        }
+      }
+      if (value.includes("오늘 기분은")) {
+        if (value.includes("좋음")) return "moodGood";
+        if (value.includes("보통")) return "moodNormal";
+        if (value.includes("나쁨")) return "moodBad";
+      }
       if (value.includes("다음 문제로 갈") || value.includes("다음 문제로 넘어갑니다") || value.includes("다음 문제로 천천히")) return "nextRound";
+      if (value.includes("위치를 기억") || value.includes("위치의 기억")) return `target${targetVoiceObjectKey()}Remember`;
+      if ((value.includes("위치를") || value.includes("위치가") || value.includes("위치")) && value.includes("골라주세요")) return `target${targetVoiceObjectKey()}Choose`;
       return "";
     }
 
@@ -1395,7 +1525,7 @@
         <div class="result-card score-card">
           <h3>점수 확인</h3>
           <div class="score-grid" aria-label="점수 결과">
-            <div class="score-item"><span>정답수</span><strong>${score.correct} / ${score.total}</strong></div>
+            <div class="score-item"><span>정답수</span><strong>${score.correct}/${score.total}</strong></div>
             <div class="score-item"><span>오답수</span><strong>${score.wrong}</strong></div>
             <div class="score-item"><span>정답률</span><strong>${score.accuracy}%</strong></div>
           </div>
@@ -1987,6 +2117,13 @@
         todayMood = button.dataset.mood;
         updateCheckinButtons();
         speakGuide(`오늘 기분은 ${todayMood}으로 선택했습니다.`);
+        if (sleepDefaultGuideTimer) clearTimeout(sleepDefaultGuideTimer);
+        sleepDefaultGuideTimer = setTimeout(() => {
+          sleepDefaultGuideTimer = null;
+          if (checkinModal.classList.contains("open") && todayMood && sleepTime) {
+            speakGuide(`수면시간은 ${sleepTime}으로 선택했습니다.`);
+          }
+        }, 1800);
       });
     });
     if (sleepUpButton) {
@@ -1998,8 +2135,7 @@
     if (checkinSkipButton) {
       checkinSkipButton.addEventListener("click", () => {
         checkinModal.classList.remove("open");
-        speakGuide("컨디션 체크를 건너뛰고 시작합니다.");
-        showDifficultyScreen();
+        playVoiceClipThen("skipPreCheckin", showDifficultyScreen);
       });
     }
     checkinNextButton.addEventListener("click", () => {
@@ -2010,36 +2146,40 @@
       button.addEventListener("click", () => {
         postMood = button.dataset.postMood;
         updatePostGameButtons();
+        playPostMoodVoice(postMood);
       });
     });
     postDifficultyButtons.forEach((button) => {
       button.addEventListener("click", () => {
         postDifficulty = button.dataset.postDifficulty;
         updatePostGameButtons();
+        playPostDifficultyVoice(postDifficulty);
       });
     });
     postFatigueButtons.forEach((button) => {
       button.addEventListener("click", () => {
         postFatigue = button.dataset.postFatigue;
         updatePostGameButtons();
+        playPostFatigueVoice(postFatigue);
       });
     });
     postHelpButtons.forEach((button) => {
       button.addEventListener("click", () => {
         postHelpNeeded = button.dataset.postHelp;
         updatePostGameButtons();
+        playPostHelpVoice(postHelpNeeded);
       });
     });
     postReplayButtons.forEach((button) => {
       button.addEventListener("click", () => {
         postReplayWanted = button.dataset.postReplay;
         updatePostGameButtons();
+        playPostReplayVoice(postReplayWanted);
       });
     });
     if (postGameSkipButton) {
       postGameSkipButton.addEventListener("click", () => {
-        speakGuide("마무리 컨디션 체크를 건너뜁니다.");
-        completePostGameAndExit();
+        playVoiceClipThen("skipPostCheckin", completePostGameAndExit);
       });
     }
     postGameNextButton.addEventListener("click", () => {
@@ -2054,6 +2194,7 @@
     });
     skipTutorialButton.addEventListener("click", () => {
       closeTutorial();
+      playVoiceClip("skipTutorial");
     });
     tutorialNextButton.addEventListener("click", nextTutorialStep);
     howToButton.addEventListener("click", () => {

@@ -357,9 +357,21 @@
     const BOARD_SELECT_SOUND_SRC = "assets/audio/board-select.mp3";
     const INTRO_MUSIC_SRC = "assets/audio/audio-02-7642c099.mp3";
     const PLAY_MUSIC_SRC = "assets/audio/audio-03-e0e7d5be.mp3";
+    const VOICE_CLIPS = {
+      gameStartCountdown: "assets/audio/voice/game-start-countdown.mp3",
+      softRetry: "assets/audio/voice/soft-retry.mp3",
+      chooseLitPlace: "assets/audio/voice/choose-lit-place.mp3",
+      watchLitPlace: "assets/audio/voice/watch-lit-place.mp3",
+      finishThanks: "assets/audio/voice/finish-thanks.mp3",
+      resultTransition: "assets/audio/voice/result-transition.mp3",
+      nextRound: "assets/audio/voice/next-round.mp3",
+    };
     const buttonClickSound = new Audio(BUTTON_CLICK_SOUND_SRC);
     buttonClickSound.preload = "auto";
     buttonClickSound.volume = 1;
+    const voiceClipAudio = new Audio();
+    voiceClipAudio.preload = "auto";
+    voiceClipAudio.volume = 1;
     const introMusic = new Audio(INTRO_MUSIC_SRC);
     introMusic.preload = "auto";
     introMusic.loop = true;
@@ -524,8 +536,44 @@
         .replace(/갈게요/g, "갈께요");
     }
 
+    function getVoiceClipKey(text) {
+      const value = String(text || "");
+      if (value.includes("3초 후 게임이 시작됩니다") || value.includes("3초후 게임이 시작됩니다")) return "gameStartCountdown";
+      if (value.includes("불이 켜진 곳을 천천히 봐주세요")) return "watchLitPlace";
+      if (value.includes("방금 불이 켜졌던 곳을 눌러주세요")) return "chooseLitPlace";
+      if (value.includes("조금 헷갈릴 수 있어요") || value.includes("조금 헷갈릴수 있어요")) return "softRetry";
+      if (value.includes("수고하셨습니다")) return "finishThanks";
+      if (value.includes("결과 화면으로 갈") || value.includes("결과화면으로 갈") || value.includes("결과 화면으로 이동") || value.includes("결과화면으로 넘어")) return "resultTransition";
+      if (value.includes("다음 문제로 갈") || value.includes("다음문제로 갈") || value.includes("다음 문제로 넘어") || value.includes("다음문제로 넘어")) return "nextRound";
+      return "";
+    }
+
+    function playVoiceClip(voiceKey, fallbackText = "", interrupt = true) {
+      if (!voiceEnabled) return;
+      const src = VOICE_CLIPS[voiceKey];
+      if (!src) {
+        if (fallbackText) speakGuide(fallbackText, interrupt);
+        return;
+      }
+      try {
+        if (interrupt) stopVoiceGuide();
+        voiceClipAudio.pause();
+        voiceClipAudio.currentTime = 0;
+        voiceClipAudio.src = src;
+        voiceClipAudio.play().catch(() => {});
+      } catch (error) {
+        if (fallbackText) speakGuide(fallbackText, interrupt);
+      }
+    }
+
     function speakGuide(text, interrupt = true) {
-      if (!voiceEnabled || !("speechSynthesis" in window) || !text) return;
+      if (!voiceEnabled || !text) return;
+      const voiceKey = getVoiceClipKey(text);
+      if (voiceKey) {
+        playVoiceClip(voiceKey, "", interrupt);
+        return;
+      }
+      if (!("speechSynthesis" in window)) return;
       const cleanText = normalizeVoiceText(text).replace(/[_<>]/g, "").replace(/\s+/g, " ").trim();
       if (!cleanText) return;
       if (interrupt) window.speechSynthesis.cancel();
@@ -539,15 +587,14 @@
 
     function roundTransitionVoice(doneMessage) {
       const isFinalRound = currentRound >= maxRounds;
-      const isSuccess = doneMessage === TEXT.done || doneMessage === "좋습니다. 잘 보셨어요.";
-      if (isSuccess && isFinalRound) return appliedGameConfig.soft_feedback ? "좋습니다. 결과 화면으로 갈게요." : "잘하셨어요. 결과 화면으로 갈게요.";
-      if (isSuccess) return appliedGameConfig.soft_feedback ? "좋습니다. 다음 문제로 갈게요." : "잘하셨어요. 다음 문제로 갈게요.";
-      if (isFinalRound) return "괜찮아요. 결과 화면으로 갈게요.";
-      return "괜찮아요. 다음 문제로 갈게요.";
+      if (isFinalRound) return "좋습니다. 결과화면으로 갈께요.";
+      return "좋습니다. 다음문제로 갈께요.";
     }
 
     function stopVoiceGuide() {
       if ("speechSynthesis" in window) window.speechSynthesis.cancel();
+      voiceClipAudio.pause();
+      voiceClipAudio.currentTime = 0;
     }
 
     function playEffectSound(src) {
@@ -1394,8 +1441,8 @@
       currentPhase = "result";
       currentMusicMode = "intro";
       refreshBackgroundMusic();
-      message.textContent = "수고하셨습니다. >_<";
-      speakGuide("수고하셨습니다. 오늘도 차분하게 잘 집중해 주셨어요.");
+      message.textContent = "수고하셨습니다.";
+      speakGuide("수고하셨습니다.");
       startButton.textContent = TEXT.restart;
       startButton.classList.add("is-hidden");
       startButton.disabled = true;
@@ -1488,7 +1535,7 @@
         message.textContent = "불이 켜진 곳을 천천히 봐주세요.";
       };
       updatePreviewMessage();
-      speakGuide("불이 켜지는 곳을 같이 볼까요? 불이 켜진 곳을 천천히 봐주세요.");
+      speakGuide("불이 켜진 곳을 천천히 봐주세요.");
       previewCountdownTimer = setInterval(() => {
         if (isPaused) return;
         previewSecondsLeft -= 1;
@@ -1613,7 +1660,7 @@
         finishRound(limitText, "wrong_limit");
         return;
       }
-      const wrongText = "조금 헷갈릴 수 있어요. 다시 한 번 같이 볼까요?";
+      const wrongText = "조금 헷갈릴 수 있어요.";
       message.textContent = wrongText;
       speakGuide(wrongText);
     }

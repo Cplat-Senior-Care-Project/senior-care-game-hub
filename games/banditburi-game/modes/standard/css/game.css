@@ -4452,3 +4452,143 @@
         font-size: clamp(21px, 5.8vw, 28px) !important;
       }
     }
+
+    /* Final score layout: stack stats so values like 10/10 never overflow. */
+    body[data-mode="standard"] .score-card {
+      width: min(88%, 560px) !important;
+      padding: clamp(24px, 3vw, 48px) !important;
+      gap: clamp(12px, 1.8vw, 20px) !important;
+    }
+
+    body[data-mode="standard"] .score-grid {
+      display: grid !important;
+      grid-template-columns: 1fr !important;
+      width: min(100%, 430px) !important;
+      margin: 0 auto !important;
+      gap: clamp(10px, 1.3vw, 16px) !important;
+    }
+
+    body[data-mode="standard"] .score-item {
+      display: flex !important;
+      align-items: center !important;
+      justify-content: space-between !important;
+      min-height: clamp(66px, 9vh, 92px) !important;
+      padding: clamp(10px, 1.5vw, 18px) clamp(18px, 2vw, 26px) !important;
+      gap: clamp(12px, 2vw, 22px) !important;
+    }
+
+    body[data-mode="standard"] .score-item span {
+      flex: 0 0 auto !important;
+      font-size: clamp(20px, 2.1vw, 32px) !important;
+      line-height: 1.05 !important;
+      word-break: keep-all !important;
+    }
+
+    body[data-mode="standard"] .score-item strong {
+      flex: 0 0 auto !important;
+      font-size: clamp(30px, 3.6vw, 54px) !important;
+      line-height: 1 !important;
+      white-space: nowrap !important;
+      word-break: keep-all !important;
+      font-variant-numeric: tabular-nums !important;
+    }
+
+    @media (orientation: landscape) and (max-height: 560px) {
+      body[data-mode="standard"] .score-card {
+        width: min(88%, 430px) !important;
+        padding: clamp(10px, 2.5vh, 16px) !important;
+        gap: clamp(6px, 1.5vh, 10px) !important;
+      }
+
+      body[data-mode="standard"] .score-card h3 {
+        font-size: clamp(24px, 6vh, 32px) !important;
+      }
+
+      body[data-mode="standard"] .score-grid {
+        width: min(100%, 330px) !important;
+        gap: clamp(5px, 1.2vh, 8px) !important;
+      }
+
+      body[data-mode="standard"] .score-item {
+        min-height: clamp(46px, 13vh, 62px) !important;
+        padding: clamp(6px, 1.5vh, 9px) clamp(12px, 1.7vw, 18px) !important;
+      }
+
+      body[data-mode="standard"] .score-item span {
+        font-size: clamp(15px, 3.5vh, 20px) !important;
+      }
+
+      body[data-mode="standard"] .score-item strong {
+        font-size: clamp(23px, 5.6vh, 32px) !important;
+      }
+    }
+
+    @media (max-width: 720px) and (orientation: portrait) {
+      body[data-mode="standard"] .score-card {
+        width: min(90%, 330px) !important;
+        padding: clamp(13px, 3.4vw, 18px) !important;
+        gap: clamp(7px, 1.3vh, 10px) !important;
+      }
+
+      body[data-mode="standard"] .score-grid {
+        width: 100% !important;
+        gap: clamp(7px, 1.2vh, 10px) !important;
+      }
+
+      body[data-mode="standard"] .score-item {
+        min-height: clamp(56px, 8.2vh, 72px) !important;
+        padding: 8px 16px !important;
+      }
+
+      body[data-mode="standard"] .score-item span {
+        font-size: clamp(16px, 4.2vw, 20px) !important;
+      }
+
+      body[data-mode="standard"] .score-item strong {
+        font-size: clamp(26px, 7vw, 34px) !important;
+      }
+    }
+
+    /* Final tutorial fit: keep navigation buttons inside the modal. */
+    .tutorial-card {
+      display: flex !important;
+      flex-direction: column !important;
+      max-height: calc(100dvh - 24px) !important;
+      box-sizing: border-box !important;
+      overflow: hidden !important;
+    }
+
+    .tutorial-card .tutorial-box {
+      flex: 1 1 auto !important;
+      min-height: 0 !important;
+      overflow: hidden !important;
+    }
+
+    .tutorial-card .modal-actions {
+      flex: 0 0 auto !important;
+      margin-top: clamp(8px, 1.4vh, 16px) !important;
+    }
+
+    @media (min-width: 901px) {
+      .tutorial-card .tutorial-box {
+        height: min(600px, calc(100dvh - 238px)) !important;
+      }
+    }
+
+    @media (orientation: landscape) and (max-height: 520px) {
+      .tutorial-card {
+        max-height: calc(100dvh - 8px) !important;
+      }
+
+      .tutorial-card .tutorial-box {
+        height: min(260px, calc(100dvh - 116px)) !important;
+      }
+
+      .tutorial-card .modal-actions {
+        margin-top: 4px !important;
+      }
+
+      .tutorial-card .modal-actions button {
+        min-height: clamp(34px, 8vh, 44px) !important;
+      }
+    }
