@@ -1,0 +1,17 @@
+.result-screen { display: grid; place-items: center; }
+.result-content { display: grid; justify-items: center; width: min(1040px, calc(100% - 40px)); padding: 30px 42px 34px; border: 3px solid #cda964; border-radius: 34px; background: rgba(255, 252, 238, 0.95); box-shadow: 0 18px 42px rgba(92,58,23,0.2), inset 0 0 0 1px rgba(255,255,255,0.62); text-align: center; }
+.result-icon { font-size: 74px; line-height: 1; filter: drop-shadow(0 8px 10px rgba(124,75,16,0.2)); }
+.result-content h2 { width: 100%; padding-bottom: 14px; border-bottom: 3px solid rgba(142,98,44,0.24); color: #2f1a0b; font-size: 54px; }
+.result-message { margin: 18px 0 12px; color: #5f351a; font-size: 29px; font-weight: 900; line-height: 1.32; word-break: keep-all; }
+.result-record { display: grid; grid-template-columns: 1.2fr 0.8fr 0.8fr; gap: 14px; width: 100%; margin-top: 8px; }
+.result-score, .result-detail { display: flex; align-items: center; justify-content: center; gap: 14px; min-height: 96px; border: 3px solid #f0c661; border-radius: 24px; background: linear-gradient(180deg, rgba(255,252,239,0.9), rgba(255,243,208,0.9)); color: #2f1a0b; font-size: 34px; font-weight: 1000; }
+.result-score strong { color: #e86f0a; font-size: 62px; line-height: 1; }
+.result-score em { font-style: normal; font-size: 28px; }
+.result-detail { flex-direction: column; gap: 4px; font-size: 24px; }
+.result-detail strong { color: #3f7e1f; font-size: 38px; }
+.result-actions { display: flex; gap: 16px; margin-top: 24px; }
+.result-actions .game-button { min-width: 220px; }
+.error-screen { display: grid; place-items: center; }
+.error-content { display: grid; justify-items: center; gap: 18px; width: min(780px, 100%); padding: 44px; border: 3px solid #cda964; border-radius: 34px; background: rgba(255, 252, 238, 0.96); text-align: center; }
+.error-symbol { display: grid; place-items: center; width: 84px; height: 84px; border-radius: 50%; background: #b3483f; color: white; font-size: 52px; font-weight: 1000; }
+#error-message { margin: 0; font-size: 28px; font-weight: 800; color: #765032; }

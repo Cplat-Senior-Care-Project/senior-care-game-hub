@@ -1,0 +1,146 @@
+html[data-mode="standard"] .start-screen {
+  --start-primary-font-base: 62px;
+  --start-primary-height-base: 112px;
+  --start-primary-width-base: 300px;
+  --start-primary-pad-y-base: 28px;
+  --start-primary-pad-x-base: 44px;
+  --start-side-font-base: 50px;
+  --start-side-height-base: 102px;
+  --start-side-width-base: 320px;
+  --start-side-pad-y-base: 18px;
+  --start-side-pad-x-base: 34px;
+}
+
+html[data-mode="standard"] .start-screen .subtitle {
+  background: #fde9a5;
+}
+
+html[data-mode="standard"] .start-actions {
+  display: grid;
+  grid-template-columns: var(--start-side-width-base) auto var(--start-side-width-base);
+  grid-template-areas: "settings primary tutorial";
+  align-items: center;
+  justify-content: center;
+  justify-self: center;
+  width: max-content;
+  max-width: 100%;
+  gap: clamp(22px, 38px, 42px);
+  margin-top: 14px;
+}
+
+html[data-mode="standard"] #settings-button {
+  grid-area: settings;
+}
+
+html[data-mode="standard"] #start-button {
+  grid-area: primary;
+}
+
+html[data-mode="standard"] #tutorial-button {
+  grid-area: tutorial;
+}
+
+html[data-mode="standard"] #start-exit-button {
+  display: none !important;
+}
+
+html[data-mode="standard"] .start-screen .primary-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  min-width: var(--start-primary-width-base);
+  min-height: var(--start-primary-height-base);
+  margin-bottom: clamp(7px, 8.64px, 10px);
+  border: 3px solid #fde9a5;
+  border-radius: clamp(28px, 64px, 54px);
+  padding-block: var(--start-primary-pad-y-base);
+  padding-inline: var(--start-primary-pad-x-base);
+  color: #fffdf3;
+  background:
+    linear-gradient(315deg, rgba(54, 109, 24, 0.2) 0%, rgba(120, 173, 52, 0.04) 46%, rgba(184, 219, 88, 0.22) 100%),
+    #78ad34;
+  box-shadow:
+    0 clamp(5px, 7.2px, 9px) clamp(12px, 15.84px, 22px) rgba(47, 65, 21, 0.22),
+    0 0 0 1px #245312,
+    inset 0 0 0 1px #245312,
+    inset 0 clamp(2px, 3.24px, 4px) 0 rgba(255, 255, 244, 0.42),
+    inset 0 clamp(-6px, -7.2px, -4px) 0 rgba(43, 79, 18, 0.38);
+  font-size: clamp(30px, min(64px, 63.36px), var(--start-primary-font-base));
+  font-weight: 1000;
+  line-height: 1;
+  text-align: center;
+  text-shadow: none;
+  -webkit-text-stroke: 3.7px currentColor;
+  paint-order: stroke fill;
+}
+
+html[data-mode="standard"] .start-screen .primary-button:active,
+html[data-mode="standard"] .start-screen .primary-button.is-pressed {
+  transform: translateY(3px) scale(0.98);
+  box-shadow:
+    0 3px 9px rgba(47, 65, 21, 0.2),
+    0 0 0 1px #245312,
+    inset 0 0 0 1px #245312,
+    inset 0 2px 0 rgba(255, 255, 244, 0.34),
+    inset 0 -3px 0 rgba(43, 79, 18, 0.34);
+}
+
+html[data-mode="standard"] #start-button,
+html[data-mode="standard"] #start-button > span:first-child {
+  font-weight: 1000;
+  -webkit-text-stroke: 0;
+  paint-order: normal;
+}
+
+html[data-mode="standard"] .start-side-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(5px, 10.24px, 10px);
+  width: var(--start-side-width-base);
+  min-width: var(--start-side-width-base);
+  max-width: var(--start-side-width-base);
+  min-height: var(--start-side-height-base);
+  border-radius: clamp(18px, 33.28px, 28px);
+  padding-block: clamp(calc(var(--start-side-pad-y-base) * 0.72), 12.96px, var(--start-side-pad-y-base));
+  padding-inline: clamp(calc(var(--start-side-pad-x-base) * 0.72), 38.4px, var(--start-side-pad-x-base));
+  color: #5f351a;
+  background:
+    linear-gradient(180deg, rgba(255, 247, 217, 0.98), rgba(255, 241, 196, 0.97)),
+    radial-gradient(circle at 50% 12%, rgba(255, 255, 255, 0.82), rgba(255, 255, 255, 0) 48%);
+  box-shadow:
+    inset 0 0 0 1px #f5c84b,
+    inset 0 3px 0 rgba(255, 255, 244, 0.48),
+    inset 0 -4px 0 rgba(204, 157, 52, 0.2);
+  font-size: var(--start-side-font-base);
+  font-weight: 900;
+  line-height: 1;
+  text-align: center;
+  text-shadow: 0 2px 0 rgba(255, 255, 244, 0.62);
+}
+
+html[data-mode="standard"] #tutorial-button.start-side-button {
+  position: relative;
+}
+
+html[data-mode="standard"] #settings-button.start-side-button > span {
+  position: relative !important;
+  left: 0 !important;
+}
+
+html[data-mode="standard"] #settings-button.start-side-button > span:last-child {
+  top: 0 !important;
+}
+
+html[data-mode="standard"] .settings-gear {
+  display: inline-grid;
+  place-items: center;
+  width: 1em;
+  height: 1em;
+  font-family: "Apple Color Emoji", "Segoe UI Symbol", "Segoe UI Emoji", sans-serif;
+  font-size: 1.05em;
+  line-height: 1;
+  text-shadow: none;
+  transform: translate3d(0, 0, 0);
+}

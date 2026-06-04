@@ -264,17 +264,17 @@
         </div>
       </article>
 
-      <article class="game-card is-pending">
+      <article class="game-card">
         <div class="card-head">
-          <div class="card-kicker"><span class="status-dot" aria-hidden="true"></span>준비 중</div>
-          <h2>장바구니 기억게임</h2>
-          <p class="card-copy">팀원이 게임 폴더를 추가하면 같은 모드 구조로 연결됩니다.</p>
+          <div class="card-kicker"><span class="status-dot" aria-hidden="true"></span>연결됨</div>
+          <h2>장바구니에 담기</h2>
+          <p class="card-copy">잠깐 본 장보기 물건을 기억한 뒤 같은 물건을 장바구니에 담는 기억 활동입니다.</p>
         </div>
-        <div class="mode-grid" aria-label="장바구니 기억게임 모드">
-          <button class="mode-button" type="button" disabled>표준 모드</button>
-          <button class="mode-button" type="button" disabled>알림 모드</button>
-          <button class="mode-button" type="button" disabled>케어 모드</button>
-          <button class="mode-button" type="button" disabled>AI 연동 모드</button>
+        <div class="mode-grid" aria-label="장바구니에 담기 모드">
+          <a class="mode-link standard" href="games/shop-quest-memory-game/index.html?mode=standard&configUrl=../../config/shop-quest-memory-game.standard.json" data-game-key="shop-quest-memory-game" data-mode="standard" data-config-url="config/shop-quest-memory-game.standard.json">표준 모드</a>
+          <a class="mode-link reminder" href="games/shop-quest-memory-game/index.html?mode=reminder&configUrl=../../config/shop-quest-memory-game.reminder.json" data-game-key="shop-quest-memory-game" data-mode="reminder" data-config-url="config/shop-quest-memory-game.reminder.json">알림 모드</a>
+          <a class="mode-link care" href="games/shop-quest-memory-game/index.html?mode=care&configUrl=../../config/shop-quest-memory-game.care.json" data-game-key="shop-quest-memory-game" data-mode="care" data-config-url="config/shop-quest-memory-game.care.json">케어 모드</a>
+          <a class="mode-link ai_assisted" href="games/shop-quest-memory-game/index.html?mode=ai_assisted&configUrl=../../config/shop-quest-memory-game.ai_assisted.json" data-game-key="shop-quest-memory-game" data-mode="ai_assisted" data-config-url="config/shop-quest-memory-game.ai_assisted.json">AI 연동 모드</a>
         </div>
       </article>
 
@@ -302,7 +302,8 @@
       "use strict";
 
       var runtimeConfigStorageKeys = {
-        "fruit-count-memory-game": "fruit-count-memory-game:runtime-config:v2"
+        "fruit-count-memory-game": "fruit-count-memory-game:runtime-config:v2",
+        "shop-quest-memory-game": "shop-quest-memory-game:runtime-config:v1"
       };
 
       function fetchRuntimeConfig(configUrl) {

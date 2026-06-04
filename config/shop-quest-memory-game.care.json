@@ -11,11 +11,14 @@
     "show_how_to_play": false,
     "show_condition_check": false,
     "show_finish_check": false,
-    "duration_seconds": 60,
+    "duration_seconds": 90,
     "reveal_ms": 5000,
     "question_count": 5,
+    "memory_item_count": 1,
     "choice_count": 2,
-    "max_items_to_remember": 4,
+    "max_items_to_remember": 1,
+    "use_drag": false,
+    "auto_add_to_cart": true,
     "hint_enabled": true,
     "auto_hint_enabled": true,
     "soft_feedback": true,
@@ -23,4 +26,3 @@
     "result_log_level": "detailed"
   }
 }
-

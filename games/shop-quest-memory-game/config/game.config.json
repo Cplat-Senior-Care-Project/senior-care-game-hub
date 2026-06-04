@@ -1,0 +1,29 @@
+{
+  "gameId": "shop-quest-memory-game",
+  "contentId": "cognitive_shopping_cart_001",
+  "gameKey": "shopping_cart_memory",
+  "sessionId": "",
+  "anonymousUserId": "mock-user",
+  "deviceId": "mock-device",
+  "appVersion": "mock-app",
+  "gameVersion": "1.0.0",
+  "title": "장바구니에 담기",
+  "description": "잠깐 본 장보기 물건을 기억한 뒤 같은 물건을 장바구니에 담는 기억 활동 게임",
+  "durationSeconds": 120,
+  "totalQuestions": 10,
+  "revealMs": 3600,
+  "defaultDifficulty": null,
+  "soundEnabled": true,
+  "voiceGuideEnabled": true,
+  "collectCondition": true,
+  "debugMode": false,
+  "hintEnabled": true,
+  "autoHintEnabled": false,
+  "useDrag": true,
+  "autoAddToCart": true,
+  "difficulties": {
+    "easy": { "label": "쉬움", "memoryItemCount": 1, "answerChoiceCount": 2, "revealMs": 4200 },
+    "normal": { "label": "보통", "memoryItemCount": 2, "answerChoiceCount": 4, "revealMs": 3600 },
+    "hard": { "label": "어려움", "memoryItemCount": 3, "answerChoiceCount": 6, "revealMs": 3200 }
+  }
+}

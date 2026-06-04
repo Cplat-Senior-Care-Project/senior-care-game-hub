@@ -1,0 +1,15 @@
+html[data-show-settings="false"] #settings-button,
+html[data-show-tutorial="false"] #tutorial-button,
+html[data-show-timer="false"] #timer-box,
+html[data-show-progress="false"] #progress-box,
+html[data-show-score="false"] #score-box {
+  display: none !important;
+}
+html[data-mode="care"] .game-header {
+  grid-template-columns: auto;
+  justify-content: end;
+}
+html[data-mode="care"] .play-hint-button {
+  right: 72px;
+  bottom: 42px;
+}
