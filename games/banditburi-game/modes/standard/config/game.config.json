@@ -38,6 +38,7 @@
     "round_time_limit_sec": 60,
     "hint_enabled": true,
     "auto_hint_enabled": false,
+    "show_score_screen": true,
     "auto_start": false,
     "auto_return": false,
     "soft_feedback": false,

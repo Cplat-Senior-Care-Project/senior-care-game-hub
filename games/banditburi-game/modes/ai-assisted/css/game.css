@@ -4679,6 +4679,55 @@
       }
     }
 
+    /* Tutorial landscape fit pass for wider mobile viewports. */
+    @media (orientation: landscape) {
+      .tutorial-card {
+        max-height: calc(100dvh - 10px) !important;
+        overflow: hidden !important;
+      }
+
+      .tutorial-card h2 {
+        margin-bottom: clamp(4px, 1.2vh, 10px) !important;
+        line-height: 1.05 !important;
+      }
+
+      .tutorial-card .tutorial-box {
+        height: min(620px, calc(100dvh - 122px)) !important;
+        min-height: 0 !important;
+        grid-template-columns: minmax(0, 1fr) minmax(180px, 320px) !important;
+        gap: clamp(6px, 1.2vh, 12px) clamp(10px, 1.4vw, 18px) !important;
+        overflow: hidden !important;
+      }
+
+      .tutorial-card .tutorial-demo {
+        align-self: center !important;
+        width: min(100%, 320px, calc(100dvh - 172px)) !important;
+        gap: clamp(4px, .9vh, 8px) !important;
+      }
+
+      .tutorial-demo-board {
+        width: 100% !important;
+        padding: clamp(5px, 1vh, 9px) !important;
+        border-width: clamp(3px, .8vh, 5px) !important;
+      }
+
+      .tutorial-demo-grid {
+        gap: clamp(4px, .9vh, 8px) !important;
+      }
+
+      .tutorial-demo-caption {
+        width: 100% !important;
+        min-height: clamp(22px, 4.8vh, 34px) !important;
+        padding: clamp(3px, .8vh, 6px) 8px !important;
+        font-size: clamp(12px, 3vh, 18px) !important;
+        line-height: 1.08 !important;
+      }
+
+      .tutorial-card .modal-actions {
+        margin-top: clamp(4px, 1vh, 8px) !important;
+      }
+    }
+
     /* AI assisted mode return button placement by viewport. */
     @media (min-width: 741px) and (min-height: 521px) {
       body.mode-ai-assisted .return-button {

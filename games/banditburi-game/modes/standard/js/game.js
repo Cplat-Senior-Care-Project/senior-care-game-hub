@@ -93,6 +93,7 @@
         round_time_limit_sec: 60,
         hint_enabled: true,
         auto_hint_enabled: false,
+        show_score_screen: true,
         auto_start: false,
         auto_return: false,
         soft_feedback: false,
@@ -197,29 +198,34 @@
 
     const tutorialSteps = [
       {
-        title: "인지 훈련 게임입니다.",
-        text: "빛나는 위치를 기억하고 다시 찾는 위치 기억활동입니다.",
+        title: "위치 기억활동 게임입니다.",
+        text: "빛나는 전구의 위치를 기억하고 다시 찾는 위치기억활동 게임입니다.",
         demo: "intro",
+        voiceKey: "tutorialIntro",
       },
       {
         title: "위치를 기억해요.",
         text: "처음 5초 동안 빛나는 위치를 보여줍니다.",
         demo: "preview",
+        voiceKey: "tutorialPreview",
       },
       {
         title: "같은 위치를 골라요.",
-        text: "보기가 사라지면 같은 위치를 눌러주세요.",
+        text: "보기가 사라지면 같은 위치를 골라주세요.",
         demo: "choose",
+        voiceKey: "tutorialChoose",
       },
       {
         title: "필요하면 힌트를 눌러요.",
-        text: "힌트를 누르면 정답 위치가 잠깐 깜박입니다.",
+        text: "필요하시면 힌트를 누르세요.",
         demo: "hint",
+        voiceKey: "tutorialHint",
       },
       {
-        title: "차분히 끝까지 해봐요.",
-        text: "총 10문제를 차분히 진행합니다.",
+        title: "총 10문제를 진행합니다.",
+        text: "총 10문제를 진행합니다.",
         demo: "done",
+        voiceKey: "tutorialTotal",
       },
     ];
 
@@ -244,6 +250,7 @@
     const musicToggleButton = document.getElementById("musicToggleButton");
     const effectToggleButton = document.getElementById("effectToggleButton");
     const voiceToggleButton = document.getElementById("voiceToggleButton");
+    const scoreScreenToggleButton = document.getElementById("scoreScreenToggleButton");
     const settingsBackButton = document.getElementById("settingsBackButton");
     const themeBackButton = document.getElementById("themeBackButton");
     const themeOptionButtons = [...document.querySelectorAll("[data-theme-option]")];
@@ -254,12 +261,14 @@
     const sleepNextValue = document.getElementById("sleepNextValue");
     const sleepUpButton = document.getElementById("sleepUpButton");
     const sleepDownButton = document.getElementById("sleepDownButton");
+    const checkinSkipButton = document.getElementById("checkinSkipButton");
     const checkinNextButton = document.getElementById("checkinNextButton");
     const postMoodButtons = [...document.querySelectorAll("[data-post-mood]")];
     const postDifficultyButtons = [...document.querySelectorAll("[data-post-difficulty]")];
     const postFatigueButtons = [...document.querySelectorAll("[data-post-fatigue]")];
     const postHelpButtons = [...document.querySelectorAll("[data-post-help]")];
     const postReplayButtons = [...document.querySelectorAll("[data-post-replay]")];
+    const postGameSkipButton = document.getElementById("postGameSkipButton");
     const postGameNextButton = document.getElementById("postGameNextButton");
     const postGamePageOne = document.getElementById("postGamePageOne");
     const postGamePageTwo = document.getElementById("postGamePageTwo");
@@ -316,6 +325,7 @@
     let musicEnabled = true;
     let soundEnabled = true;
     let voiceEnabled = appliedGameConfig.voice_guide_enabled !== false;
+    let scoreScreenEnabled = appliedGameConfig.show_score_screen !== false;
     const sleepHourOptions = [4, 5, 6, 7, 8, 9, 10, 11, 12];
     let todayMood = "";
     let sleepHourIndex = 4;
@@ -344,9 +354,33 @@
     const BOARD_SELECT_SOUND_SRC = "assets/audio/board-select.mp3";
     const INTRO_MUSIC_SRC = "assets/audio/audio-02-7642c099.mp3";
     const PLAY_MUSIC_SRC = "assets/audio/audio-03-e0e7d5be.mp3";
+    const VOICE_CLIPS = {
+      settings: "assets/audio/voice/settings.mp3",
+      themeSelect: "assets/audio/voice/theme-select.mp3",
+      themeBulb: "assets/audio/voice/theme-bulb.mp3",
+      themeBird: "assets/audio/voice/theme-bird.mp3",
+      themePhone: "assets/audio/voice/theme-phone.mp3",
+      tutorialIntro: "assets/audio/voice/tutorial-intro.mp3",
+      tutorialPreview: "assets/audio/voice/tutorial-preview.mp3",
+      tutorialChoose: "assets/audio/voice/tutorial-choose.mp3",
+      tutorialHint: "assets/audio/voice/tutorial-hint.mp3",
+      tutorialTotal: "assets/audio/voice/tutorial-total.mp3",
+      preCheckin: "assets/audio/voice/pre-checkin.mp3",
+      pause: "assets/audio/voice/pause.mp3",
+      difficultySelect: "assets/audio/voice/difficulty-select.mp3",
+      resume: "assets/audio/voice/resume.mp3",
+      gameStartCountdown: "assets/audio/voice/game-start-countdown.mp3",
+      hint: "assets/audio/voice/hint.mp3",
+      correct: "assets/audio/voice/correct.mp3",
+      encourage: "assets/audio/voice/encourage.mp3",
+      nextRound: "assets/audio/voice/next-round.mp3",
+    };
     const buttonClickSound = new Audio(BUTTON_CLICK_SOUND_SRC);
     buttonClickSound.preload = "auto";
     buttonClickSound.volume = 1;
+    const voiceClipAudio = new Audio();
+    voiceClipAudio.preload = "auto";
+    voiceClipAudio.volume = 1;
     const introMusic = new Audio(INTRO_MUSIC_SRC);
     introMusic.preload = "auto";
     introMusic.loop = true;
@@ -511,11 +545,56 @@
         .replace(/갈게요/g, "갈께요");
     }
 
+    function playVoiceClip(voiceKey, fallbackText = "", interrupt = true) {
+      if (!voiceEnabled) return;
+      const src = VOICE_CLIPS[voiceKey];
+      if (!src) {
+        if (fallbackText) speakGuide(fallbackText, interrupt);
+        return;
+      }
+      try {
+        if (interrupt) stopVoiceGuide();
+        voiceClipAudio.pause();
+        voiceClipAudio.currentTime = 0;
+        voiceClipAudio.src = src;
+        voiceClipAudio.play().catch(() => {});
+      } catch (error) {
+        if (fallbackText) speakGuide(fallbackText, interrupt);
+      }
+    }
+
+    function getVoiceClipKey(text) {
+      const value = String(text || "");
+      if (value.includes("설정 화면입니다")) return "settings";
+      if (value.includes("테마를 골라주세요")) return "themeSelect";
+      if (value.includes("테마로 바꾸었습니다")) {
+        if (currentTheme === "bird") return "themeBird";
+        if (currentTheme === "phone") return "themePhone";
+        return "themeBulb";
+      }
+      if (value.includes("게임을 시작하기 전에 오늘의 기분과 수면시간")) return "preCheckin";
+      if (value.includes("난이도를 골라주세요")) return "difficultySelect";
+      if (value.includes("잠시 쉬는 중입니다") || value.includes("일시정지 화면입니다")) return "pause";
+      if (value.includes("계속합니다")) return "resume";
+      if (value.includes("3초 후 게임이 시작됩니다") || value.includes("3초후 게임이 시작됩니다")) return "gameStartCountdown";
+      if (value.includes("힌트입니다")) return "hint";
+      if (value.includes("정답입니다") || value.includes("좋아요. 천천히")) return "correct";
+      if (value.includes("잘 찾아") || value.includes("기억하실 수 있을 거예요")) return "encourage";
+      if (value.includes("다음 문제로 갈") || value.includes("다음 문제로 넘어갑니다") || value.includes("다음 문제로 천천히")) return "nextRound";
+      return "";
+    }
+
     function speakGuide(text, interrupt = true) {
-      if (!voiceEnabled || !("speechSynthesis" in window) || !text) return;
+      if (!voiceEnabled || !text) return;
+      const voiceKey = getVoiceClipKey(text);
+      if (voiceKey) {
+        playVoiceClip(voiceKey, "", interrupt);
+        return;
+      }
+      if (!("speechSynthesis" in window)) return;
       const cleanText = normalizeVoiceText(text).replace(/[_<>]/g, "").replace(/\s+/g, " ").trim();
       if (!cleanText) return;
-      if (interrupt) window.speechSynthesis.cancel();
+      if (interrupt) stopVoiceGuide();
       const utterance = new SpeechSynthesisUtterance(cleanText);
       utterance.lang = "ko-KR";
       utterance.rate = 0.86;
@@ -535,6 +614,12 @@
 
     function stopVoiceGuide() {
       if ("speechSynthesis" in window) window.speechSynthesis.cancel();
+      try {
+        voiceClipAudio.pause();
+        voiceClipAudio.currentTime = 0;
+      } catch (error) {
+        // Ignore audio cleanup failures in restricted WebViews.
+      }
     }
 
     function playEffectSound(src) {
@@ -866,6 +951,10 @@
       pauseEffectButton.textContent = soundEnabled ? "효과음 On" : "효과음 Off";
       voiceToggleButton.textContent = voiceEnabled ? "음성안내 On" : "음성안내 Off";
       pauseVoiceButton.textContent = voiceEnabled ? "음성안내 On" : "음성안내 Off";
+      if (scoreScreenToggleButton) {
+        scoreScreenToggleButton.textContent = scoreScreenEnabled ? "점수화면 On" : "점수화면 Off";
+        scoreScreenToggleButton.setAttribute("aria-pressed", String(scoreScreenEnabled));
+      }
     }
 
     function setElementVisible(element, visible) {
@@ -892,6 +981,7 @@
       setElementVisible(musicToggleButton, appliedGameConfig.show_settings);
       setElementVisible(effectToggleButton, appliedGameConfig.show_settings);
       setElementVisible(voiceToggleButton, appliedGameConfig.show_settings);
+      setElementVisible(scoreScreenToggleButton, appliedGameConfig.show_settings);
       setElementVisible(pauseMusicButton, appliedGameConfig.show_settings);
       setElementVisible(pauseEffectButton, appliedGameConfig.show_settings);
       setElementVisible(pauseVoiceButton, appliedGameConfig.show_settings);
@@ -1159,11 +1249,11 @@
       const showAllObjects = mode === "intro";
       const showPreview = mode === "preview" || mode === "hint" || mode === "done";
       const captions = {
-        intro: "게임판에서 빛난 자리를 기억해요.",
-        preview: "보기: 빛나는 위치를 5초 동안 봅니다.",
-        choose: "선택: 사라진 뒤 같은 자리를 눌러요.",
-        hint: "힌트: 남은 정답 위치가 깜박입니다.",
-        done: "정답을 모두 찾으면 다음 문제로 넘어갑니다.",
+        intro: "위치기억활동 게임입니다.",
+        preview: "처음 5초 동안 빛나는 위치를 보여줍니다.",
+        choose: "보기가 사라지면 같은 위치를 골라주세요.",
+        hint: "필요하시면 힌트를 누르세요.",
+        done: "총 10문제를 진행합니다.",
       };
 
       const cells = Array.from({ length: 9 }, (_, index) => {
@@ -1196,7 +1286,7 @@
       tutorialStepText.textContent = step.text;
       renderTutorialVisual(step.demo);
       tutorialNextButton.textContent = tutorialStepIndex >= tutorialSteps.length - 1 ? "완료" : "다음";
-      speakGuide(`${step.title}. ${step.text}`);
+      playVoiceClip(step.voiceKey, `${step.title}. ${step.text}`);
     }
 
     function openTutorial(returnTarget) {
@@ -1230,6 +1320,96 @@
       }
       tutorialStepIndex += 1;
       renderTutorialStep();
+    }
+
+    function getScoreSummary() {
+      const telemetry = ensureTelemetry();
+      const total = Math.max(1, telemetry.roundTotal || maxRounds);
+      const correct = Math.max(0, telemetry.correctRoundCount || 0);
+      const wrong = Math.max(0, total - correct);
+      const accuracy = Math.round((correct / total) * 100);
+      return { total, correct, wrong, accuracy };
+    }
+
+    function showFinishActionScreen() {
+      clearPreviewTimer();
+      clearHintTimer();
+      clearRoundTimer();
+      clearBetweenTimer();
+      postGameModal.classList.remove("open");
+      roundActive = false;
+      isPaused = false;
+      currentPhase = "finish";
+      currentMusicMode = "intro";
+      refreshBackgroundMusic();
+      hintButton.disabled = true;
+      setPauseReady(false);
+      remainText.textContent = "-";
+      message.textContent = "수고하셨습니다. >_<";
+      speakGuide("수고하셨습니다. 오늘도 차분하게 잘 집중해 주셨어요.");
+      board.parentElement.classList.add("result-mode");
+
+      const buttonLabel = scoreScreenEnabled
+        ? "점수확인"
+        : (appliedGameConfig.show_finish_check ? "컨디션 체크" : "완료");
+
+      board.innerHTML = `
+        <div class="result-card finish-card">
+          <p>${TEXT.final}</p>
+          <button id="finishActionButton" class="primary" type="button">${buttonLabel}</button>
+        </div>
+      `;
+
+      document.getElementById("finishActionButton").addEventListener("click", () => {
+        if (scoreScreenEnabled) {
+          showScoreScreen();
+          return;
+        }
+        if (appliedGameConfig.show_finish_check) {
+          showPostGameScreen();
+          return;
+        }
+        showResultScreen();
+      });
+    }
+
+    function showScoreScreen() {
+      clearPreviewTimer();
+      clearHintTimer();
+      clearRoundTimer();
+      clearBetweenTimer();
+      postGameModal.classList.remove("open");
+      const score = getScoreSummary();
+      roundActive = false;
+      isPaused = false;
+      currentPhase = "score";
+      hintButton.disabled = true;
+      setPauseReady(false);
+      remainText.textContent = "-";
+      message.textContent = "점수를 확인해 주세요.";
+      speakGuide(`점수 화면입니다. 정답 ${score.correct}개, 오답 ${score.wrong}개, 정답률 ${score.accuracy}퍼센트입니다.`);
+      board.parentElement.classList.add("result-mode");
+
+      const nextLabel = appliedGameConfig.show_finish_check ? "컨디션 체크" : "완료";
+      board.innerHTML = `
+        <div class="result-card score-card">
+          <h3>점수 확인</h3>
+          <div class="score-grid" aria-label="점수 결과">
+            <div class="score-item"><span>정답수</span><strong>${score.correct} / ${score.total}</strong></div>
+            <div class="score-item"><span>오답수</span><strong>${score.wrong}</strong></div>
+            <div class="score-item"><span>정답률</span><strong>${score.accuracy}%</strong></div>
+          </div>
+          <button id="scoreNextButton" class="primary" type="button">${nextLabel}</button>
+        </div>
+      `;
+
+      document.getElementById("scoreNextButton").addEventListener("click", () => {
+        if (appliedGameConfig.show_finish_check) {
+          showPostGameScreen();
+          return;
+        }
+        showResultScreen();
+      });
     }
 
     function showPostGameScreen() {
@@ -1330,7 +1510,7 @@
         }
         clearBetweenTimer();
         if (currentRound >= maxRounds) {
-          showPostGameScreen();
+          showFinishActionScreen();
           return;
         }
         startRound();
@@ -1786,6 +1966,14 @@
       syncAudioButtons();
       speakGuide(voiceEnabled ? "음성 안내를 켰습니다." : "");
     });
+    if (scoreScreenToggleButton) {
+      scoreScreenToggleButton.addEventListener("click", () => {
+        scoreScreenEnabled = !scoreScreenEnabled;
+        appliedGameConfig.show_score_screen = scoreScreenEnabled;
+        syncAudioButtons();
+        speakGuide(scoreScreenEnabled ? "점수화면을 켰습니다." : "점수화면을 껐습니다.");
+      });
+    }
     themeOptionButtons.forEach((button) => {
       button.addEventListener("click", () => {
         applyTheme(button.dataset.themeOption);
@@ -1806,6 +1994,13 @@
     }
     if (sleepDownButton) {
       sleepDownButton.addEventListener("click", () => changeSleepHour(-1));
+    }
+    if (checkinSkipButton) {
+      checkinSkipButton.addEventListener("click", () => {
+        checkinModal.classList.remove("open");
+        speakGuide("컨디션 체크를 건너뛰고 시작합니다.");
+        showDifficultyScreen();
+      });
     }
     checkinNextButton.addEventListener("click", () => {
       if (!todayMood || !sleepTime) return;
@@ -1841,6 +2036,12 @@
         updatePostGameButtons();
       });
     });
+    if (postGameSkipButton) {
+      postGameSkipButton.addEventListener("click", () => {
+        speakGuide("마무리 컨디션 체크를 건너뜁니다.");
+        completePostGameAndExit();
+      });
+    }
     postGameNextButton.addEventListener("click", () => {
       if (postGameNextButton.disabled) return;
       if (postGamePage === 1) {

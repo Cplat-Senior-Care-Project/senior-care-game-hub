@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>빛나는 전구를 찾아라</title>
-  <link rel="stylesheet" href="css/game.css?v=20260604-tutorial-return-fit-1">
+  <link rel="stylesheet" href="css/game.css?v=20260604-standard-voice-clips-2">
 </head>
 <body>
   <div id="loadingScreen" class="loading-screen">
@@ -104,6 +104,7 @@
         <button id="musicToggleButton" type="button">음악 On</button>
         <button id="effectToggleButton" type="button">효과음 On</button>
         <button id="voiceToggleButton" type="button">음성안내 On</button>
+        <button id="scoreScreenToggleButton" type="button">점수화면 On</button>
         <button id="settingsBackButton" type="button">돌아가기</button>
       </div>
     </div>
@@ -149,7 +150,8 @@
           </div>
         </div>
       </div>
-      <div class="modal-actions single-action">
+      <div class="modal-actions checkin-actions">
+        <button id="checkinSkipButton" type="button">건너뛰기</button>
         <button id="checkinNextButton" class="primary" type="button" disabled>다음</button>
       </div>
     </div>
@@ -201,7 +203,8 @@
         </div>
       </div>
       </div>
-      <div class="modal-actions single-action">
+      <div class="modal-actions checkin-actions">
+        <button id="postGameSkipButton" type="button">건너뛰기</button>
         <button id="postGameNextButton" class="primary" type="button" disabled>다음</button>
       </div>
     </div>
@@ -289,6 +292,7 @@
         round_time_limit_sec: 60,
         hint_enabled: true,
         auto_hint_enabled: false,
+        show_score_screen: true,
         auto_start: false,
         auto_return: false,
         soft_feedback: false,
@@ -298,6 +302,6 @@
       }
     };
   </script>
-  <script src="js/game.js?v=20260604-tutorial-return-fit-1"></script>
+  <script src="js/game.js?v=20260604-standard-voice-clips-2"></script>
 </body>
 </html>

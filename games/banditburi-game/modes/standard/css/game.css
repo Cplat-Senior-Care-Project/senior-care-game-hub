@@ -1455,6 +1455,56 @@
       word-break: keep-all;
     }
 
+    .finish-card {
+      gap: clamp(22px, 3vw, 42px);
+    }
+
+    .score-card {
+      gap: clamp(22px, 2.8vw, 36px);
+    }
+
+    .score-card h3 {
+      margin: 0;
+      font-size: clamp(38px, 3.4vw, 66px);
+      line-height: 1.08;
+      color: #053421;
+    }
+
+    .score-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      width: 100%;
+      gap: clamp(14px, 1.6vw, 24px);
+    }
+
+    .score-item {
+      display: grid;
+      align-content: center;
+      gap: 12px;
+      min-height: clamp(150px, 16vh, 210px);
+      padding: clamp(22px, 2.2vw, 34px);
+      border-radius: 26px;
+      background:
+        radial-gradient(circle at 24% 14%, rgba(255, 255, 255, .68), transparent 34%),
+        linear-gradient(180deg, #f7fff3 0%, #d8f2d7 100%);
+      border: 4px solid #a7dfac;
+      box-shadow:
+        inset 0 2px 0 rgba(255, 255, 255, .8),
+        0 10px 0 rgba(90, 135, 78, .18);
+    }
+
+    .score-item span {
+      font-size: clamp(24px, 2vw, 34px);
+      font-weight: 800;
+      color: #496a57;
+    }
+
+    .score-item strong {
+      font-size: clamp(44px, 4vw, 72px);
+      line-height: 1;
+      color: #007239;
+    }
+
     .result-badge {
       display: inline-flex;
       align-items: center;
@@ -4183,5 +4233,222 @@
         min-height: clamp(36px, 8.2vh, 46px) !important;
         padding: 5px 12px !important;
         font-size: clamp(18px, 5vh, 28px) !important;
+      }
+    }
+
+    /* Tutorial landscape fit pass for wider mobile viewports. */
+    @media (orientation: landscape) {
+      .tutorial-card {
+        max-height: calc(100dvh - 10px) !important;
+        overflow: hidden !important;
+      }
+
+      .tutorial-card h2 {
+        margin-bottom: clamp(4px, 1.2vh, 10px) !important;
+        line-height: 1.05 !important;
+      }
+
+      .tutorial-card .tutorial-box {
+        height: min(620px, calc(100dvh - 122px)) !important;
+        min-height: 0 !important;
+        grid-template-columns: minmax(0, 1fr) minmax(180px, 320px) !important;
+        gap: clamp(6px, 1.2vh, 12px) clamp(10px, 1.4vw, 18px) !important;
+        overflow: hidden !important;
+      }
+
+      .tutorial-card .tutorial-demo {
+        align-self: center !important;
+        width: min(100%, 320px, calc(100dvh - 172px)) !important;
+        gap: clamp(4px, .9vh, 8px) !important;
+      }
+
+      .tutorial-demo-board {
+        width: 100% !important;
+        padding: clamp(5px, 1vh, 9px) !important;
+        border-width: clamp(3px, .8vh, 5px) !important;
+      }
+
+      .tutorial-demo-grid {
+        gap: clamp(4px, .9vh, 8px) !important;
+      }
+
+      .tutorial-demo-caption {
+        width: 100% !important;
+        min-height: clamp(22px, 4.8vh, 34px) !important;
+        padding: clamp(3px, .8vh, 6px) 8px !important;
+        font-size: clamp(12px, 3vh, 18px) !important;
+        line-height: 1.08 !important;
+      }
+
+      .tutorial-card .modal-actions {
+        margin-top: clamp(4px, 1vh, 8px) !important;
+      }
+    }
+
+    @media (max-width: 720px) and (orientation: portrait) {
+      .score-card {
+        gap: clamp(14px, 3vh, 22px) !important;
+      }
+
+      .score-card h3 {
+        font-size: clamp(28px, 7vw, 38px) !important;
+      }
+
+      .score-grid {
+        grid-template-columns: 1fr !important;
+        gap: 10px !important;
+      }
+
+      .score-item {
+        min-height: clamp(72px, 11vh, 100px) !important;
+        padding: 12px 16px !important;
+        border-radius: 18px !important;
+      }
+
+      .score-item span {
+        font-size: clamp(17px, 4.8vw, 22px) !important;
+      }
+
+      .score-item strong {
+        font-size: clamp(30px, 8vw, 42px) !important;
+      }
+    }
+
+    @media (orientation: landscape) and (max-height: 560px) {
+      .score-card {
+        gap: clamp(10px, 2.2vh, 18px) !important;
+        padding: clamp(18px, 4vh, 32px) !important;
+      }
+
+      .score-card h3 {
+        font-size: clamp(24px, 6vh, 38px) !important;
+      }
+
+      .score-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+        gap: clamp(8px, 1.6vw, 14px) !important;
+      }
+
+      .score-item {
+        min-height: clamp(62px, 20vh, 104px) !important;
+        padding: clamp(8px, 2vh, 14px) !important;
+        border-radius: 18px !important;
+      }
+
+      .score-item span {
+        font-size: clamp(14px, 3.4vh, 19px) !important;
+      }
+
+      .score-item strong {
+        font-size: clamp(24px, 6vh, 38px) !important;
+      }
+    }
+
+    /* Score screen fit pass: keep counts readable across web/mobile layouts. */
+    .score-item strong {
+      white-space: nowrap;
+      word-break: keep-all;
+    }
+
+    body[data-mode="standard"] .score-card {
+      width: min(92%, 760px);
+      max-height: calc(100% - 28px);
+      padding: clamp(34px, 4vw, 70px);
+    }
+
+    body[data-mode="standard"] .score-grid {
+      grid-template-columns: repeat(3, minmax(150px, 1fr));
+    }
+
+    body[data-mode="standard"] .score-item {
+      min-width: 0;
+    }
+
+    @media (orientation: landscape) {
+      body[data-mode="standard"] .result-mode .message {
+        font-size: clamp(24px, 5.4vh, 42px) !important;
+        line-height: 1.1 !important;
+      }
+
+      body[data-mode="standard"] .score-card {
+        width: min(88%, 720px) !important;
+        max-height: calc(100% - 30px) !important;
+      }
+    }
+
+    @media (orientation: landscape) and (max-height: 560px) {
+      body[data-mode="standard"] .score-card {
+        width: min(92%, 390px) !important;
+        padding: clamp(12px, 3.2vh, 20px) !important;
+        gap: clamp(8px, 2vh, 14px) !important;
+      }
+
+      body[data-mode="standard"] .score-card h3 {
+        font-size: clamp(24px, 6.2vh, 34px) !important;
+      }
+
+      body[data-mode="standard"] .score-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+        gap: clamp(8px, 1.4vw, 12px) !important;
+      }
+
+      body[data-mode="standard"] .score-item {
+        min-height: clamp(72px, 22vh, 98px) !important;
+        padding: clamp(8px, 2vh, 12px) !important;
+      }
+
+      body[data-mode="standard"] .score-item span {
+        font-size: clamp(13px, 3.2vh, 17px) !important;
+      }
+
+      body[data-mode="standard"] .score-item strong {
+        font-size: clamp(22px, 5.6vh, 32px) !important;
+      }
+    }
+
+    @media (max-width: 720px) and (orientation: portrait) {
+      body[data-mode="standard"] .result-mode .board {
+        place-self: center !important;
+        width: min(92vw, calc(100dvh - 405px), 360px) !important;
+        height: min(92vw, calc(100dvh - 405px), 360px) !important;
+        min-height: 300px !important;
+      }
+
+      body[data-mode="standard"] .score-card {
+        width: min(92%, 320px) !important;
+        max-height: calc(100% - 18px) !important;
+        padding: clamp(16px, 4vw, 22px) !important;
+        gap: clamp(8px, 1.7vh, 12px) !important;
+        border-radius: 24px !important;
+      }
+
+      body[data-mode="standard"] .score-card h3 {
+        font-size: clamp(26px, 7vw, 34px) !important;
+        line-height: 1.05 !important;
+      }
+
+      body[data-mode="standard"] .score-grid {
+        grid-template-columns: 1fr !important;
+        gap: clamp(7px, 1.5vh, 10px) !important;
+      }
+
+      body[data-mode="standard"] .score-item {
+        min-height: clamp(60px, 9vh, 78px) !important;
+        padding: 9px 16px !important;
+        align-content: center !important;
+        gap: 3px !important;
+      }
+
+      body[data-mode="standard"] .score-item span {
+        font-size: clamp(15px, 4.1vw, 18px) !important;
+      }
+
+      body[data-mode="standard"] .score-item strong {
+        font-size: clamp(27px, 7vw, 34px) !important;
+      }
+
+      body[data-mode="standard"] .score-card button.primary {
+        min-height: clamp(50px, 8vh, 62px) !important;
+        font-size: clamp(21px, 5.8vw, 28px) !important;
       }
     }
