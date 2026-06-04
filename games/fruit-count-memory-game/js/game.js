@@ -311,11 +311,13 @@
     conditionSleepRows: document.getElementById("condition-sleep-rows"),
     conditionSleepUpButton: document.getElementById("condition-sleep-up-button"),
     conditionSleepDownButton: document.getElementById("condition-sleep-down-button"),
+    conditionSkipButton: document.getElementById("condition-skip-button"),
     conditionConfirmButton: document.getElementById("condition-confirm-button"),
     postConditionModal: document.getElementById("post-condition-modal"),
     postConditionPages: Array.from(document.querySelectorAll(".post-condition-page")),
     postConditionDots: Array.from(document.querySelectorAll(".post-condition-dot")),
     postConditionOptions: Array.from(document.querySelectorAll(".post-condition-option")),
+    postConditionSkipButton: document.getElementById("post-condition-skip-button"),
     postConditionNextButton: document.getElementById("post-condition-next-button"),
     postConditionBackButton: document.getElementById("post-condition-back-button"),
     postConditionConfirmButton: document.getElementById("post-condition-confirm-button")
@@ -349,10 +351,12 @@
     reachedQuestion: 0,
     tutorialIndex: 0,
     conditionCheckShown: false,
+    conditionCheckSkipped: false,
     conditionMood: "good",
     conditionSleepIndex: 3,
     postConditionCheckShown: false,
     postConditionChecked: false,
+    postConditionSkipped: false,
     postConditionStep: 0,
     postCondition: {
       moodAfter: "good",
@@ -548,6 +552,7 @@
     state.reachedDifficultyIndex = 0;
     state.reachedQuestion = 0;
     state.postConditionChecked = false;
+    state.postConditionSkipped = false;
     els.pauseModal.classList.add("is-hidden");
     if (els.postConditionModal) {
       els.postConditionModal.classList.add("is-hidden");
@@ -2795,8 +2800,17 @@
   }
 
   function sendGameComplete(result) {
+    const completeMethods = ["sendGameCompleteResult", "sendComplete"];
+    const bridge = getAppBridge();
+    const hasCompleteMethod = bridge && completeMethods.some((name) => typeof bridge[name] === "function");
     telemetryState.resultSent = true;
-    sendBridgeEvent(["sendGameCompleteResult", "sendComplete"], result, "COMPLETE_SEND_FAILED");
+    const sent = sendBridgeEvent(completeMethods, result, "COMPLETE_SEND_FAILED");
+    if (!sent && !hasCompleteMethod) {
+      reportAppError("COMPLETE_SEND_FAILED", createGameError(
+        "COMPLETE_SEND_FAILED",
+        "Failed to send complete result to app bridge."
+      ));
+    }
   }
 
   function sendGameExit(payload) {
@@ -2930,14 +2944,15 @@
 
   function createErrorResult(code, error, detail) {
     const message = error && error.message ? error.message : String(error || code);
+    const errorDetail = detail || (error && error.detail) || null;
     const payload = createResultPayload("error", {
       errorCode: code,
       errorMessage: message,
-      errorDetail: detail || (error && error.detail) || null
+      errorDetail,
+      errorPhase: state.phase || "unknown"
     });
-    payload.error_detail = detail || (error && error.detail) || null;
+    payload.error_detail = errorDetail;
     payload.recoverable = isRecoverableError(code);
-    payload.phase = state.phase || "unknown";
     return payload;
   }
 
@@ -2982,7 +2997,7 @@
       telemetryState.questionResults.map((record) => record.responseTimeMs)
     );
 
-    return {
+    const payload = {
       session_id: runtimeConfig.sessionId || null,
       content_id: runtimeConfig.contentId || DEFAULT_RUN_CONFIG.contentId,
       game_key: runtimeConfig.gameKey || DEFAULT_RUN_CONFIG.gameKey,
@@ -3004,12 +3019,49 @@
       completion_rate: createCompletionRate(completedQuestionCount, totalQuestions),
       abandoned_at: finalStatus === "abandoned" ? telemetryState.endedAt : null,
       abandon_reason: finalStatus === "abandoned" ? options.abandonReason || getAbandonReason(telemetryState.exitReason) : null,
-      error_code: finalStatus === "error" ? options.errorCode || null : null,
-      error_message: finalStatus === "error" ? options.errorMessage || null : null,
       question_logs: questionLogs,
       result_detail_json: detailed ? createResultDetailJson() : {}
     };
+
+    return Object.assign(payload, createResultErrorFields(finalStatus, options));
   }
+
+  function createResultErrorFields(status, options = {}) {
+    const isError = status === "error";
+    const errorCode = isError ? options.errorCode || null : null;
+    return {
+      error_code: errorCode,
+      error_message: isError ? options.errorMessage || null : null,
+      error_phase: isError ? options.errorPhase || null : null,
+      complete_send_failed: errorCode === "COMPLETE_SEND_FAILED"
+    };
+  }
+
+  function logResultPayloadExamples() {
+    const examples = {
+      completed: Object.assign({ status: "completed" }, createResultErrorFields("completed")),
+      runtime_error: Object.assign({ status: "error" }, createResultErrorFields("error", {
+        errorCode: "GAME_RUNTIME_ERROR",
+        errorMessage: "Cannot read properties of null",
+        errorPhase: "question"
+      })),
+      complete_send_failed: Object.assign({ status: "error" }, createResultErrorFields("error", {
+        errorCode: "COMPLETE_SEND_FAILED",
+        errorMessage: "결과를 앱에 전달하지 못했습니다.",
+        errorPhase: "result"
+      }))
+    };
+
+    if (window.console) {
+      window.console.log("[result payload example] completed", examples.completed);
+      window.console.log("[result payload example] runtime_error", examples.runtime_error);
+      window.console.log("[result payload example] complete_send_failed", examples.complete_send_failed);
+    }
+
+    return examples;
+  }
+
+  window.__FRUIT_COUNT_LOG_PAYLOAD_EXAMPLES__ = logResultPayloadExamples;
 
   function createQuestionLog(record) {
     return {
@@ -3247,13 +3299,13 @@
 
   function createConditionResult() {
     return {
-      moodBefore: state.conditionMood,
-      sleepHours: CONDITION_SLEEP_HOURS[state.conditionSleepIndex],
-      moodAfter: state.postCondition.moodAfter,
-      fatigue: state.postCondition.fatigue,
-      perceivedDifficulty: state.postCondition.perceivedDifficulty,
-      neededHelp: state.postCondition.neededHelp,
-      replayIntent: state.postCondition.replayIntent
+      moodBefore: state.conditionCheckSkipped ? null : state.conditionMood,
+      sleepHours: state.conditionCheckSkipped ? null : CONDITION_SLEEP_HOURS[state.conditionSleepIndex],
+      moodAfter: state.postConditionSkipped ? null : state.postCondition.moodAfter,
+      fatigue: state.postConditionSkipped ? null : state.postCondition.fatigue,
+      perceivedDifficulty: state.postConditionSkipped ? null : state.postCondition.perceivedDifficulty,
+      neededHelp: state.postConditionSkipped ? null : state.postCondition.neededHelp,
+      replayIntent: state.postConditionSkipped ? null : state.postCondition.replayIntent
     };
   }
 
@@ -3417,6 +3469,11 @@
     }
   }
 
+  function skipConditionCheck() {
+    state.conditionCheckSkipped = true;
+    closeConditionCheck();
+  }
+
   function renderPostConditionStep() {
     els.postConditionPages.forEach((page, index) => {
       page.hidden = index !== state.postConditionStep;
@@ -3494,6 +3551,11 @@
     state.postConditionChecked = true;
     closePostConditionCheck();
     showResult();
+  }
+
+  function skipPostConditionCheck() {
+    state.postConditionSkipped = true;
+    submitPostConditionCheck();
   }
 
   function openSettings() {
@@ -4661,6 +4723,9 @@
       els.conditionSleepDial.addEventListener("pointercancel", endConditionSleepDrag);
       els.conditionSleepDial.addEventListener("lostpointercapture", endConditionSleepDrag);
     }
+    if (els.conditionSkipButton) {
+      els.conditionSkipButton.addEventListener("click", withButtonSound(skipConditionCheck));
+    }
     els.conditionConfirmButton.addEventListener("click", withButtonSound(closeConditionCheck));
     els.postConditionOptions.forEach((button) => {
       button.addEventListener("click", () => {
@@ -4668,6 +4733,9 @@
         selectPostConditionOption(button);
       });
     });
+    if (els.postConditionSkipButton) {
+      els.postConditionSkipButton.addEventListener("click", withButtonSound(skipPostConditionCheck));
+    }
     els.postConditionNextButton.addEventListener("click", withButtonSound(showNextPostConditionStep));
     els.postConditionBackButton.addEventListener("click", withButtonSound(showPreviousPostConditionStep));
     els.postConditionConfirmButton.addEventListener("click", withButtonSound(submitPostConditionCheck));
