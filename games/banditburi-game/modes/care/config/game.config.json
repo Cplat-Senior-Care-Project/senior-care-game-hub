@@ -43,7 +43,7 @@
     "hint_enabled": true,
     "auto_hint_enabled": true,
     "auto_hint_delay_sec": 40,
-    "auto_start": true,
+    "auto_start": false,
     "auto_return": true,
     "return_url": "file:///C:/Users/juhye/OneDrive/Desktop/senior-care-game-hub/index.html",
     "soft_feedback": true,

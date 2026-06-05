@@ -29,9 +29,9 @@
 
 
     const difficultySettings = {
-      high: { label: TEXT.high, gridSize: 4, targetCount: 4 },
-      medium: { label: TEXT.middle, gridSize: 3, targetCount: 3 },
-      low: { label: TEXT.low, gridSize: 2, targetCount: 2 },
+      high: { label: TEXT.high, gridSize: 4, targetCount: 4, totalTimeLimitSec: 360 },
+      medium: { label: TEXT.middle, gridSize: 3, targetCount: 3, totalTimeLimitSec: 480 },
+      low: { label: TEXT.low, gridSize: 2, targetCount: 2, totalTimeLimitSec: 600 },
     };
 
     const mergeGameConfig = (baseConfig, fileConfig) => ({
@@ -91,6 +91,7 @@
         question_count: 10,
         exposure_time_ms: 5000,
         round_time_limit_sec: 60,
+        total_time_limit_sec: 600,
         hint_enabled: true,
         auto_hint_enabled: false,
         show_score_screen: true,
@@ -143,7 +144,7 @@
         hint_enabled: true,
         auto_hint_enabled: true,
         auto_hint_delay_sec: 40,
-        auto_start: true,
+        auto_start: false,
         auto_return: true,
         soft_feedback: true,
         voice_guide_enabled: true,
@@ -170,7 +171,7 @@
         auto_hint_enabled: true,
         auto_hint_delay_sec: 40,
         total_time_limit_sec: 180,
-        auto_start: true,
+        auto_start: false,
         auto_return: true,
         soft_feedback: true,
         voice_guide_enabled: true,
@@ -246,6 +247,7 @@
     const introStartButton = document.getElementById("introStartButton");
     const introSettingsButton = document.getElementById("introSettingsButton");
     const introHowToButton = document.getElementById("introHowToButton");
+    const introExitButton = document.getElementById("introExitButton");
     const themeOpenButton = document.getElementById("themeOpenButton");
     const musicToggleButton = document.getElementById("musicToggleButton");
     const effectToggleButton = document.getElementById("effectToggleButton");
@@ -309,6 +311,7 @@
     let targetIndexes = new Set();
     let chosenCorrect = new Set();
     let chosenWrong = new Set();
+    let chosenWrongTypes = new Map();
     let roundActive = false;
     let previewTimer = null;
     let previewCountdownTimer = null;
@@ -316,6 +319,8 @@
     let sleepDefaultGuideTimer = null;
     let hintCountdownTimer = null;
     let roundTimer = null;
+    let totalTimer = null;
+    let totalTimeLeft = 0;
     let betweenTimer = null;
     let isPreviewing = false;
     let isHinting = false;
@@ -346,6 +351,7 @@
     let hintSecondsLeft = 5;
     const maxRounds = Math.max(1, Number(appliedGameConfig.question_count) || 10);
     const roundTimeLimit = Math.max(0, Number(appliedGameConfig.round_time_limit_sec) || 0);
+    const hubReturnUrl = appliedGameConfig.auto_return_url || "file:///C:/Users/juhye/OneDrive/Desktop/senior-care-game-hub/index.html";
     const gameSchemaVersion = "1.0.0";
     let gameSessionId = defaultGameConfig.sessionId || `local-${Date.now()}`;
     let gameTelemetry = null;
@@ -356,66 +362,66 @@
     const INTRO_MUSIC_SRC = "assets/audio/audio-02-7642c099.mp3";
     const PLAY_MUSIC_SRC = "assets/audio/audio-03-e0e7d5be.mp3";
     const VOICE_CLIPS = {
-      settings: "assets/audio/voice/settings.mp3",
-      themeSelect: "assets/audio/voice/theme-select.mp3",
-      themeBulb: "assets/audio/voice/theme-bulb.mp3",
-      themeBird: "assets/audio/voice/theme-bird.mp3",
-      themePhone: "assets/audio/voice/theme-phone.mp3",
-      tutorialIntro: "assets/audio/voice/tutorial-intro.mp3",
-      tutorialPreview: "assets/audio/voice/tutorial-preview.mp3",
-      tutorialChoose: "assets/audio/voice/tutorial-choose.mp3",
-      tutorialHint: "assets/audio/voice/tutorial-hint.mp3",
-      tutorialTotal: "assets/audio/voice/tutorial-total.mp3",
-      skipTutorial: "assets/audio/voice/skip-tutorial.mp3",
-      preCheckin: "assets/audio/voice/pre-checkin.mp3",
-      skipPreCheckin: "assets/audio/voice/skip-pre-checkin.mp3",
-      pause: "assets/audio/voice/pause.mp3",
-      difficultySelect: "assets/audio/voice/difficulty-select.mp3",
-      resume: "assets/audio/voice/resume.mp3",
-      gameStartCountdown: "assets/audio/voice/game-start-countdown.mp3",
-      hint: "assets/audio/voice/hint.mp3",
-      correct: "assets/audio/voice/correct.mp3",
-      encourage: "assets/audio/voice/encourage.mp3",
-      nextRound: "assets/audio/voice/next-round.mp3",
-      resultScreen: "assets/audio/voice/result-screen.mp3",
-      finishStatusSelect: "assets/audio/voice/finish-status-select.mp3",
-      postHelpQuestion: "assets/audio/voice/post-help-question.mp3",
-      postMoodGood: "assets/audio/voice/post-mood-good.mp3",
-      postMoodNormal: "assets/audio/voice/post-mood-normal.mp3",
-      postMoodBad: "assets/audio/voice/post-mood-bad.mp3",
-      postDifficultyEasy: "assets/audio/voice/post-difficulty-easy.mp3",
-      postDifficultyNormal: "assets/audio/voice/post-difficulty-normal.mp3",
-      postDifficultyHard: "assets/audio/voice/post-difficulty-hard.mp3",
-      postFatigueGood: "assets/audio/voice/post-fatigue-good.mp3",
-      postFatigueTired: "assets/audio/voice/post-fatigue-tired.mp3",
-      postFatigueVeryTired: "assets/audio/voice/post-fatigue-very-tired.mp3",
-      postHelpNo: "assets/audio/voice/post-help-no.mp3",
-      postHelpYes: "assets/audio/voice/post-help-yes.mp3",
-      postReplayYes: "assets/audio/voice/post-replay-yes.mp3",
-      postReplayNo: "assets/audio/voice/post-replay-no.mp3",
-      skipPostCheckin: "assets/audio/voice/skip-post-checkin.mp3",
-      finishThanks: "assets/audio/voice/finish-thanks.mp3",
-      moodBad: "assets/audio/voice/mood-bad.mp3",
-      moodNormal: "assets/audio/voice/mood-normal.mp3",
-      moodGood: "assets/audio/voice/mood-good.mp3",
-      scoreScreen: "assets/audio/voice/score-screen.mp3",
-      sleep4: "assets/audio/voice/sleep-4-hours.mp3",
-      sleep5: "assets/audio/voice/sleep-5-hours.mp3",
-      sleep6: "assets/audio/voice/sleep-6-hours.mp3",
-      sleep7: "assets/audio/voice/sleep-7-hours.mp3",
-      sleep8: "assets/audio/voice/sleep-8-hours.mp3",
-      sleep9: "assets/audio/voice/sleep-9-hours.mp3",
-      sleep10: "assets/audio/voice/sleep-10-hours.mp3",
-      sleep11: "assets/audio/voice/sleep-11-hours.mp3",
-      sleep12: "assets/audio/voice/sleep-12-hours.mp3",
-      targetBulbRemember: "assets/audio/voice/target-bulb-remember.mp3",
-      targetBulbChoose: "assets/audio/voice/target-bulb-choose.mp3",
-      targetBirdRemember: "assets/audio/voice/target-bird-remember.mp3",
-      targetBirdChoose: "assets/audio/voice/target-bird-choose.mp3",
-      targetPhoneRemember: "assets/audio/voice/target-phone-remember.mp3",
-      targetPhoneChoose: "assets/audio/voice/target-phone-choose.mp3",
-      targetFlowerRemember: "assets/audio/voice/target-flower-remember.mp3",
-      targetFlowerChoose: "assets/audio/voice/target-flower-choose.mp3",
+      settings: "../../assets/audio/voice/standard/settings.mp3",
+      themeSelect: "../../assets/audio/voice/standard/theme-select.mp3",
+      themeBulb: "../../assets/audio/voice/standard/theme-bulb.mp3",
+      themeBird: "../../assets/audio/voice/standard/theme-bird.mp3",
+      themePhone: "../../assets/audio/voice/standard/theme-phone.mp3",
+      tutorialIntro: "../../assets/audio/voice/standard/tutorial-intro.mp3",
+      tutorialPreview: "../../assets/audio/voice/standard/tutorial-preview.mp3",
+      tutorialChoose: "../../assets/audio/voice/standard/tutorial-choose.mp3",
+      tutorialHint: "../../assets/audio/voice/standard/tutorial-hint.mp3",
+      tutorialTotal: "../../assets/audio/voice/standard/tutorial-total.mp3",
+      skipTutorial: "../../assets/audio/voice/standard/skip-tutorial.mp3",
+      preCheckin: "../../assets/audio/voice/standard/pre-checkin.mp3",
+      skipPreCheckin: "../../assets/audio/voice/standard/skip-pre-checkin.mp3",
+      pause: "../../assets/audio/voice/standard/pause.mp3",
+      difficultySelect: "../../assets/audio/voice/standard/difficulty-select.mp3",
+      resume: "../../assets/audio/voice/standard/resume.mp3",
+      gameStartCountdown: "../../assets/audio/voice/standard/game-start-countdown.mp3",
+      hint: "../../assets/audio/voice/standard/hint.mp3",
+      correct: "../../assets/audio/voice/standard/correct.mp3",
+      encourage: "../../assets/audio/voice/standard/encourage.mp3",
+      nextRound: "../../assets/audio/voice/standard/next-round.mp3",
+      resultScreen: "../../assets/audio/voice/standard/result-screen.mp3",
+      finishStatusSelect: "../../assets/audio/voice/standard/finish-status-select.mp3",
+      postHelpQuestion: "../../assets/audio/voice/standard/post-help-question.mp3",
+      postMoodGood: "../../assets/audio/voice/standard/post-mood-good.mp3",
+      postMoodNormal: "../../assets/audio/voice/standard/post-mood-normal.mp3",
+      postMoodBad: "../../assets/audio/voice/standard/post-mood-bad.mp3",
+      postDifficultyEasy: "../../assets/audio/voice/standard/post-difficulty-easy.mp3",
+      postDifficultyNormal: "../../assets/audio/voice/standard/post-difficulty-normal.mp3",
+      postDifficultyHard: "../../assets/audio/voice/standard/post-difficulty-hard.mp3",
+      postFatigueGood: "../../assets/audio/voice/standard/post-fatigue-good.mp3",
+      postFatigueTired: "../../assets/audio/voice/standard/post-fatigue-tired.mp3",
+      postFatigueVeryTired: "../../assets/audio/voice/standard/post-fatigue-very-tired.mp3",
+      postHelpNo: "../../assets/audio/voice/standard/post-help-no.mp3",
+      postHelpYes: "../../assets/audio/voice/standard/post-help-yes.mp3",
+      postReplayYes: "../../assets/audio/voice/standard/post-replay-yes.mp3",
+      postReplayNo: "../../assets/audio/voice/standard/post-replay-no.mp3",
+      skipPostCheckin: "../../assets/audio/voice/standard/skip-post-checkin.mp3",
+      finishThanks: "../../assets/audio/voice/standard/finish-thanks.mp3",
+      moodBad: "../../assets/audio/voice/standard/mood-bad.mp3",
+      moodNormal: "../../assets/audio/voice/standard/mood-normal.mp3",
+      moodGood: "../../assets/audio/voice/standard/mood-good.mp3",
+      scoreScreen: "../../assets/audio/voice/standard/score-screen.mp3",
+      sleep4: "../../assets/audio/voice/standard/sleep-4-hours.mp3",
+      sleep5: "../../assets/audio/voice/standard/sleep-5-hours.mp3",
+      sleep6: "../../assets/audio/voice/standard/sleep-6-hours.mp3",
+      sleep7: "../../assets/audio/voice/standard/sleep-7-hours.mp3",
+      sleep8: "../../assets/audio/voice/standard/sleep-8-hours.mp3",
+      sleep9: "../../assets/audio/voice/standard/sleep-9-hours.mp3",
+      sleep10: "../../assets/audio/voice/standard/sleep-10-hours.mp3",
+      sleep11: "../../assets/audio/voice/standard/sleep-11-hours.mp3",
+      sleep12: "../../assets/audio/voice/standard/sleep-12-hours.mp3",
+      targetBulbRemember: "../../assets/audio/voice/standard/target-bulb-remember.mp3",
+      targetBulbChoose: "../../assets/audio/voice/standard/target-bulb-choose.mp3",
+      targetBirdRemember: "../../assets/audio/voice/standard/target-bird-remember.mp3",
+      targetBirdChoose: "../../assets/audio/voice/standard/target-bird-choose.mp3",
+      targetPhoneRemember: "../../assets/audio/voice/standard/target-phone-remember.mp3",
+      targetPhoneChoose: "../../assets/audio/voice/standard/target-phone-choose.mp3",
+      targetFlowerRemember: "../../assets/audio/voice/standard/target-flower-remember.mp3",
+      targetFlowerChoose: "../../assets/audio/voice/standard/target-flower-choose.mp3",
     };
     const buttonClickSound = new Audio(BUTTON_CLICK_SOUND_SRC);
     buttonClickSound.preload = "auto";
@@ -469,10 +475,10 @@
       const setting = difficultySettings[currentDifficulty];
       guideTitle.textContent = "안내";
       if (currentDifficulty === "high") {
-        guideText.textContent = `4 x 4, ${setting.targetCount}개 찾기. ${TEXT.objectOne}`;
+        guideText.textContent = `4 x 4 격자에서\n${setting.targetCount}개를 찾아요.\n\n${TEXT.objectOne}`;
         return;
       }
-      guideText.textContent = `${setting.gridSize} x ${setting.gridSize}, ${objectTypes.yellow.label} ${setting.targetCount}개 찾기.`;
+      guideText.textContent = `${setting.gridSize} x ${setting.gridSize} 격자에서\n${objectTypes.yellow.label} ${setting.targetCount}개를 찾아요.`;
     }
 
     function targetPhrase(count) {
@@ -529,7 +535,6 @@
       if (nextIndex === sleepHourIndex) return;
       sleepHourIndex = nextIndex;
       updateCheckinButtons();
-      speakGuide(`수면시간은 ${sleepTime}으로 선택했습니다.`);
     }
 
     function updatePostGameButtons() {
@@ -561,53 +566,11 @@
       renderPostGamePage();
     }
 
-    function playPostMoodVoice(value) {
-      const voiceKey = {
-        "좋음": "postMoodGood",
-        "보통": "postMoodNormal",
-        "나쁨": "postMoodBad",
-      }[value];
-      if (voiceKey) playVoiceClip(voiceKey);
-    }
-
-    function playPostDifficultyVoice(value) {
-      const voiceKey = {
-        "쉬웠어요": "postDifficultyEasy",
-        "적당했어요": "postDifficultyNormal",
-        "어려웠어요": "postDifficultyHard",
-      }[value];
-      if (voiceKey) playVoiceClip(voiceKey);
-    }
-
-    function playPostFatigueVoice(value) {
-      const voiceKey = {
-        "괜찮아요": "postFatigueGood",
-        "조금 피곤해요": "postFatigueTired",
-        "많이 피곤해요": "postFatigueVeryTired",
-      }[value];
-      if (voiceKey) playVoiceClip(voiceKey);
-    }
-
-    function playPostHelpVoice(value) {
-      const voiceKey = {
-        "아니오": "postHelpNo",
-        "네": "postHelpYes",
-      }[value];
-      if (voiceKey) playVoiceClip(voiceKey);
-    }
-
-    function playPostReplayVoice(value) {
-      const voiceKey = {
-        "네": "postReplayYes",
-        "아니오": "postReplayNo",
-      }[value];
-      if (voiceKey) playVoiceClip(voiceKey);
-    }
-
     function renderPostGamePage() {
       if (postGamePageOne) postGamePageOne.classList.toggle("is-hidden", postGamePage !== 1);
       if (postGamePageTwo) postGamePageTwo.classList.toggle("is-hidden", postGamePage !== 2);
-      postGameNextButton.textContent = postGamePage === 1 ? "다음" : "나가기";
+      if (postGameSkipButton) postGameSkipButton.textContent = postGamePage === 1 ? "건너뛰기" : "이전";
+      postGameNextButton.textContent = postGamePage === 1 ? "다음" : "완료";
       postGameNextButton.disabled = postGamePage === 1
         ? !(postMood && postDifficulty && postFatigue)
         : !(postHelpNeeded && postReplayWanted);
@@ -678,11 +641,6 @@
       const value = String(text || "");
       if (value.includes("설정 화면입니다")) return "settings";
       if (value.includes("테마를 골라주세요")) return "themeSelect";
-      if (value.includes("테마로 바꾸었습니다")) {
-        if (currentTheme === "bird") return "themeBird";
-        if (currentTheme === "phone") return "themePhone";
-        return "themeBulb";
-      }
       if (value.includes("게임을 시작하기 전에 오늘의 기분과 수면시간")) return "preCheckin";
       if (value.includes("난이도를 골라주세요")) return "difficultySelect";
       if (value.includes("잠시 쉬는 중입니다") || value.includes("일시정지 화면입니다")) return "pause";
@@ -696,18 +654,6 @@
       if (value.includes("마지막으로 도움이 필요")) return "postHelpQuestion";
       if (value.includes("수고하셨습니다")) return "finishThanks";
       if (value.includes("점수 화면입니다") || value.includes("점수화면입니다")) return "scoreScreen";
-      if (value.includes("수면시간")) {
-        const sleepHourMatch = value.match(/(\d+)\s*시간/);
-        if (sleepHourMatch) {
-          const sleepVoiceKey = `sleep${sleepHourMatch[1]}`;
-          if (VOICE_CLIPS[sleepVoiceKey]) return sleepVoiceKey;
-        }
-      }
-      if (value.includes("오늘 기분은")) {
-        if (value.includes("좋음")) return "moodGood";
-        if (value.includes("보통")) return "moodNormal";
-        if (value.includes("나쁨")) return "moodBad";
-      }
       if (value.includes("다음 문제로 갈") || value.includes("다음 문제로 넘어갑니다") || value.includes("다음 문제로 천천히")) return "nextRound";
       if (value.includes("위치를 기억") || value.includes("위치의 기억")) return `target${targetVoiceObjectKey()}Remember`;
       if ((value.includes("위치를") || value.includes("위치가") || value.includes("위치")) && value.includes("골라주세요")) return `target${targetVoiceObjectKey()}Choose`;
@@ -826,6 +772,11 @@
       } catch (error) {
         console.log("[MOCK_GAME_MESSAGE_ERROR]", error);
       }
+    }
+
+    function returnToHub(reason = "user_tap") {
+      sendGameMessage({ type: "GAME_RETURN_REQUESTED", reason });
+      window.location.href = hubReturnUrl;
     }
 
     function startTelemetrySession() {
@@ -1176,7 +1127,7 @@
         if (mode !== "hint" || (!cell.classList.contains("correct") && !cell.classList.contains("wrong"))) {
           cell.className = "cell";
         }
-        if (isWrongChoice) type = "off";
+        if (isWrongChoice) type = chosenWrongTypes.get(index) || boardItems[index] || targetType;
         cell.classList.toggle("empty", !type);
         cell.classList.toggle("hint", mode === "hint" && isUnchosenTarget && !isWrongChoice);
         cell.classList.toggle("preview-glow", mode === "preview" && targetIndexes.has(index) && type === targetType && type !== "off");
@@ -1223,8 +1174,13 @@
       return `${Math.max(0, seconds)}초`;
     }
 
+    function getTotalTimeLimit() {
+      const setting = difficultySettings[currentDifficulty] || difficultySettings.low;
+      return Math.max(0, Number(setting.totalTimeLimitSec) || Number(appliedGameConfig.total_time_limit_sec) || 0);
+    }
+
     function updateTimeDisplay() {
-      timeText.textContent = formatTime(timeLeft);
+      timeText.textContent = formatTime(totalTimer ? totalTimeLeft : timeLeft);
     }
 
     function updateRoundDisplay() {
@@ -1269,6 +1225,56 @@
       }
     }
 
+    function clearTotalTimer() {
+      if (totalTimer) {
+        clearInterval(totalTimer);
+        totalTimer = null;
+      }
+    }
+
+    function handleTotalTimeUp() {
+      clearTotalTimer();
+      clearPreviewTimer();
+      clearHintTimer();
+      clearRoundTimer();
+      clearBetweenTimer();
+      if (roundTelemetry && !roundClosed) {
+        closeRoundTelemetry("total_timeout");
+      }
+      roundActive = false;
+      isPreviewing = false;
+      isHinting = false;
+      isPaused = false;
+      currentPhase = "between";
+      remainText.textContent = "-";
+      updateRoundDisplay();
+      updateTimeDisplay();
+      message.textContent = "전체 시간이 끝났습니다. 결과 화면으로 이동합니다.";
+      speakGuide("결과 화면으로 넘어갑니다.");
+      startButton.classList.add("is-hidden");
+      startButton.disabled = true;
+      hintButton.disabled = true;
+      setPauseReady(false);
+      setTimeout(showFinishActionScreen, 900);
+    }
+
+    function startTotalTimer() {
+      clearTotalTimer();
+      totalTimeLeft = getTotalTimeLimit();
+      updateTimeDisplay();
+      if (totalTimeLeft <= 0) return;
+      totalTimer = setInterval(() => {
+        if (["home", "countdown", "finish", "score", "postgame", "result"].includes(currentPhase) || isPaused) {
+          return;
+        }
+        totalTimeLeft = Math.max(0, totalTimeLeft - 1);
+        updateTimeDisplay();
+        if (totalTimeLeft <= 0) {
+          handleTotalTimeUp();
+        }
+      }, 1000);
+    }
+
     function setPauseReady(enabled) {
       pauseButton.disabled = !enabled;
       pauseButton.textContent = isPaused ? TEXT.resume : TEXT.pause;
@@ -1285,6 +1291,7 @@
       clearPreviewTimer();
       clearHintTimer();
       clearRoundTimer();
+      clearTotalTimer();
       clearBetweenTimer();
       currentRound = 0;
       timeLeft = roundTimeLimit;
@@ -1318,13 +1325,19 @@
     function showIntroScreen() {
       currentMusicMode = "intro";
       refreshBackgroundMusic();
-      introModal.classList.add("open");
       difficultyModal.classList.remove("open");
       checkinModal.classList.remove("open");
       postGameModal.classList.remove("open");
       tutorialModal.classList.remove("open");
       settingsModal.classList.remove("open");
       themeModal.classList.remove("open");
+      if (gameMode === "reminder" && appliedGameConfig.auto_start && !autoStartConsumed) {
+        autoStartConsumed = true;
+        introModal.classList.remove("open");
+        startModeFlow();
+        return;
+      }
+      introModal.classList.add("open");
       if (appliedGameConfig.auto_start && !autoStartConsumed) {
         autoStartConsumed = true;
         setTimeout(startModeFlow, 600);
@@ -1415,6 +1428,7 @@
       tutorialStepTitle.textContent = step.title;
       tutorialStepText.textContent = step.text;
       renderTutorialVisual(step.demo);
+      skipTutorialButton.textContent = tutorialStepIndex === 0 ? "건너뛰기" : "이전";
       tutorialNextButton.textContent = tutorialStepIndex >= tutorialSteps.length - 1 ? "완료" : "다음";
       playVoiceClip(step.voiceKey, `${step.title}. ${step.text}`);
     }
@@ -1452,6 +1466,15 @@
       renderTutorialStep();
     }
 
+    function previousTutorialStep() {
+      if (tutorialStepIndex <= 0) {
+        closeTutorial();
+        return;
+      }
+      tutorialStepIndex -= 1;
+      renderTutorialStep();
+    }
+
     function getScoreSummary() {
       const telemetry = ensureTelemetry();
       const total = Math.max(1, telemetry.roundTotal || maxRounds);
@@ -1465,6 +1488,7 @@
       clearPreviewTimer();
       clearHintTimer();
       clearRoundTimer();
+      clearTotalTimer();
       clearBetweenTimer();
       postGameModal.classList.remove("open");
       roundActive = false;
@@ -1507,6 +1531,7 @@
       clearPreviewTimer();
       clearHintTimer();
       clearRoundTimer();
+      clearTotalTimer();
       clearBetweenTimer();
       postGameModal.classList.remove("open");
       const score = getScoreSummary();
@@ -1546,6 +1571,7 @@
       clearPreviewTimer();
       clearHintTimer();
       clearRoundTimer();
+      clearTotalTimer();
       clearBetweenTimer();
       if (!appliedGameConfig.show_finish_check) {
         showResultScreen();
@@ -1565,6 +1591,7 @@
       clearPreviewTimer();
       clearHintTimer();
       clearRoundTimer();
+      clearTotalTimer();
       clearBetweenTimer();
       sendCompletedResult();
       postGameModal.classList.remove("open");
@@ -1585,13 +1612,16 @@
       const returnLabel = gameMode === "standard" ? "완료" : "효담콜로 돌아가기";
       board.innerHTML = `<div class="result-card"><p>${TEXT.final}</p><button id="activityReturnButton" class="primary" type="button">${returnLabel}</button></div>`;
       document.getElementById("activityReturnButton").addEventListener("click", () => {
-        sendGameMessage({ type: "GAME_RETURN_REQUESTED", reason: "user_tap" });
-        resetToHome();
-        showIntroScreen();
+        if (gameMode === "standard") {
+          resetToHome();
+          showIntroScreen();
+          return;
+        }
+        returnToHub("user_tap");
       });
-      if (appliedGameConfig.auto_return) {
+      if (gameMode !== "standard" && appliedGameConfig.auto_return) {
         setTimeout(() => {
-          sendGameMessage({ type: "GAME_RETURN_REQUESTED", reason: "auto_return" });
+          returnToHub("auto_return");
         }, 2500);
       }
     }
@@ -1600,11 +1630,16 @@
       clearPreviewTimer();
       clearHintTimer();
       clearRoundTimer();
+      clearTotalTimer();
       clearBetweenTimer();
       sendCompletedResult();
       postGameModal.classList.remove("open");
-      resetToHome();
-      showIntroScreen();
+      if (gameMode === "standard") {
+        resetToHome();
+        showIntroScreen();
+        return;
+      }
+      returnToHub("postgame_complete");
     }
 
     function finishRound(doneMessage, reason = "unknown") {
@@ -1627,6 +1662,10 @@
 
       let secondsLeft = 3;
       const updateBetweenMessage = () => {
+        if (currentRound >= maxRounds) {
+          message.textContent = `${doneMessage} ${secondsLeft}초`;
+          return;
+        }
         const nextText = currentRound >= maxRounds ? "결과 화면으로 이동합니다." : "다음 문제로 넘어갑니다.";
         message.textContent = `${doneMessage} ${secondsLeft}초 후 ${nextText}`;
       };
@@ -1656,7 +1695,7 @@
       startButton.disabled = true;
       hintButton.disabled = false;
       setPauseReady(true);
-      message.textContent = `${targetPhrase(targetIndexes.size)}가 있었던 위치를 골라주세요.`;
+      message.textContent = `${targetPhrase(targetIndexes.size)}가 있었던 위치를\n골라주세요.`;
       speakGuide(`${targetPhrase(targetIndexes.size)}가 있었던 위치를 골라주세요.`);
       renderBoard("hidden");
       startRoundTimer();
@@ -1664,7 +1703,7 @@
 
     function startPreviewCountdown() {
       const updatePreviewMessage = () => {
-        message.textContent = `${targetPhrase(targetIndexes.size)}의 위치를 기억하세요. ${previewSecondsLeft}초`;
+        message.textContent = `${targetPhrase(targetIndexes.size)}의 위치를\n기억하세요. ${previewSecondsLeft}초`;
       };
       updatePreviewMessage();
       speakGuide(`${targetPhrase(targetIndexes.size)}의 위치를 기억하세요.`);
@@ -1700,6 +1739,7 @@
       targetIndexes = new Set(positions.slice(0, targetCount));
       chosenCorrect.clear();
       chosenWrong.clear();
+      chosenWrongTypes.clear();
       const distractors = distractorPool(nextRound);
       boardItems = Array.from({ length: total }, (_, index) => {
         if (targetIndexes.has(index)) return targetType;
@@ -1752,6 +1792,7 @@
         if (roundTelemetry) roundTelemetry.correctClickCount += 1;
         playCorrectSound();
         cell.classList.remove("empty", "hint");
+        cell.classList.add(`object-${targetType}`);
         cell.classList.add("correct", "just-correct");
         setTimeout(() => cell.classList.remove("just-correct"), 520);
         const image = cell.querySelector("img");
@@ -1774,6 +1815,8 @@
       }
 
       chosenWrong.add(index);
+      const wrongType = boardItems[index] || "off";
+      chosenWrongTypes.set(index, wrongType);
       const telemetry = ensureTelemetry();
       telemetry.wrongClickCount += 1;
       if (roundTelemetry) roundTelemetry.wrongClickCount += 1;
@@ -1781,9 +1824,9 @@
       cell.classList.remove("empty", "hint");
       cell.classList.add("wrong");
       const wrongImage = cell.querySelector("img");
-      wrongImage.src = objectTypes.off.src;
-      wrongImage.alt = objectTypes.off.label;
-      cell.setAttribute("aria-label", objectTypes.off.label);
+      wrongImage.src = objectTypes[wrongType].src;
+      wrongImage.alt = objectTypes[wrongType].label;
+      cell.setAttribute("aria-label", objectTypes[wrongType].label);
       if (chosenWrong.size >= 3) {
         const limitText = appliedGameConfig.soft_feedback
           ? "괜찮아요. 하나만 더 같이 해볼까요?"
@@ -1806,6 +1849,7 @@
       hintButton.disabled = true;
       chosenCorrect.clear();
       chosenWrong.clear();
+      chosenWrongTypes.clear();
       targetIndexes.clear();
       updateDifficultyButtons();
       clearBoard();
@@ -1842,6 +1886,7 @@
       clearPreviewTimer();
       clearHintTimer();
       clearRoundTimer();
+      clearTotalTimer();
       currentPhase = "countdown";
       roundActive = false;
       isPreviewing = false;
@@ -1852,6 +1897,7 @@
       hintButton.disabled = true;
       setPauseReady(false);
       updateRoundDisplay();
+      startTotalTimer();
       updateTimeDisplay();
       clearBoard(false);
 
@@ -1933,7 +1979,7 @@
         hintButton.disabled = false;
         setPauseReady(true);
         const remaining = targetIndexes.size - chosenCorrect.size;
-        message.textContent = `${objectTypes[targetType].label} ${remaining}개가 있던 위치를 골라주세요.`;
+        message.textContent = `${objectTypes[targetType].label} ${remaining}개가 있던 위치를\n골라주세요.`;
         speakGuide(`${objectTypes[targetType].label} ${remaining}개가 있던 위치를 골라주세요.`);
         renderBoard("hidden");
       }, 1000);
@@ -1948,7 +1994,7 @@
       if (currentPhase === "preview") {
         isPreviewing = true;
         renderBoard("preview");
-        message.textContent = `${objectTypes[targetType].label} ${targetIndexes.size}개의 위치를 기억하세요. ${previewSecondsLeft}초`;
+        message.textContent = `${objectTypes[targetType].label} ${targetIndexes.size}개의 위치를\n기억하세요. ${previewSecondsLeft}초`;
         speakGuide("계속합니다. 위치를 기억해 주세요.");
         return;
       }
@@ -1974,7 +2020,7 @@
       startButton.disabled = true;
       hintButton.disabled = false;
       const remaining = targetIndexes.size - chosenCorrect.size;
-      message.textContent = `${objectTypes[targetType].label} ${remaining}개가 있던 위치를 골라주세요.`;
+      message.textContent = `${objectTypes[targetType].label} ${remaining}개가 있던 위치를\n골라주세요.`;
       speakGuide("계속합니다. 기억나는 위치를 골라주세요.");
       renderBoard("hidden");
     }
@@ -2066,6 +2112,10 @@
     introHowToButton.addEventListener("click", () => {
       openTutorial("intro");
     });
+    introExitButton?.addEventListener("click", () => {
+      sendAbandonedResult("intro_exit");
+      returnToHub("intro_exit");
+    });
     themeOpenButton.addEventListener("click", () => {
       settingsModal.classList.remove("open");
       themeModal.classList.add("open");
@@ -2094,14 +2144,12 @@
         stopVoiceGuide();
       }
       syncAudioButtons();
-      speakGuide(voiceEnabled ? "음성 안내를 켰습니다." : "");
     });
     if (scoreScreenToggleButton) {
       scoreScreenToggleButton.addEventListener("click", () => {
         scoreScreenEnabled = !scoreScreenEnabled;
         appliedGameConfig.show_score_screen = scoreScreenEnabled;
         syncAudioButtons();
-        speakGuide(scoreScreenEnabled ? "점수화면을 켰습니다." : "점수화면을 껐습니다.");
       });
     }
     themeOptionButtons.forEach((button) => {
@@ -2109,21 +2157,14 @@
         applyTheme(button.dataset.themeOption);
         themeModal.classList.remove("open");
         settingsModal.classList.add("open");
-        speakGuide(`${objectTypes.yellow.label} 테마로 바꾸었습니다.`);
       });
     });
     moodButtons.forEach((button) => {
       button.addEventListener("click", () => {
         todayMood = button.dataset.mood;
         updateCheckinButtons();
-        speakGuide(`오늘 기분은 ${todayMood}으로 선택했습니다.`);
         if (sleepDefaultGuideTimer) clearTimeout(sleepDefaultGuideTimer);
-        sleepDefaultGuideTimer = setTimeout(() => {
-          sleepDefaultGuideTimer = null;
-          if (checkinModal.classList.contains("open") && todayMood && sleepTime) {
-            speakGuide(`수면시간은 ${sleepTime}으로 선택했습니다.`);
-          }
-        }, 1800);
+        sleepDefaultGuideTimer = null;
       });
     });
     if (sleepUpButton) {
@@ -2135,7 +2176,7 @@
     if (checkinSkipButton) {
       checkinSkipButton.addEventListener("click", () => {
         checkinModal.classList.remove("open");
-        playVoiceClipThen("skipPreCheckin", showDifficultyScreen);
+        showDifficultyScreen();
       });
     }
     checkinNextButton.addEventListener("click", () => {
@@ -2146,40 +2187,42 @@
       button.addEventListener("click", () => {
         postMood = button.dataset.postMood;
         updatePostGameButtons();
-        playPostMoodVoice(postMood);
       });
     });
     postDifficultyButtons.forEach((button) => {
       button.addEventListener("click", () => {
         postDifficulty = button.dataset.postDifficulty;
         updatePostGameButtons();
-        playPostDifficultyVoice(postDifficulty);
       });
     });
     postFatigueButtons.forEach((button) => {
       button.addEventListener("click", () => {
         postFatigue = button.dataset.postFatigue;
         updatePostGameButtons();
-        playPostFatigueVoice(postFatigue);
       });
     });
     postHelpButtons.forEach((button) => {
       button.addEventListener("click", () => {
         postHelpNeeded = button.dataset.postHelp;
         updatePostGameButtons();
-        playPostHelpVoice(postHelpNeeded);
       });
     });
     postReplayButtons.forEach((button) => {
       button.addEventListener("click", () => {
         postReplayWanted = button.dataset.postReplay;
         updatePostGameButtons();
-        playPostReplayVoice(postReplayWanted);
       });
     });
     if (postGameSkipButton) {
       postGameSkipButton.addEventListener("click", () => {
-        playVoiceClipThen("skipPostCheckin", completePostGameAndExit);
+        if (postGamePage === 2) {
+          postGamePage = 1;
+          updatePostGameButtons();
+          speakGuide("마무리 상태를 선택해 주세요.");
+          return;
+        }
+        stopVoiceGuide();
+        completePostGameAndExit();
       });
     }
     postGameNextButton.addEventListener("click", () => {
@@ -2193,8 +2236,7 @@
       completePostGameAndExit();
     });
     skipTutorialButton.addEventListener("click", () => {
-      closeTutorial();
-      playVoiceClip("skipTutorial");
+      previousTutorialStep();
     });
     tutorialNextButton.addEventListener("click", nextTutorialStep);
     howToButton.addEventListener("click", () => {
@@ -2204,8 +2246,7 @@
     exitButton.addEventListener("click", () => {
       sendAbandonedResult("user_exit");
       pauseModal.classList.remove("open");
-      resetToHome();
-      showIntroScreen();
+      returnToHub("user_exit");
     });
     pauseMusicButton.addEventListener("click", () => {
       musicEnabled = !musicEnabled;
@@ -2223,7 +2264,6 @@
         stopVoiceGuide();
       }
       syncAudioButtons();
-      speakGuide(voiceEnabled ? "음성 안내를 켰습니다." : "");
     });
     startDifficultyButtons.forEach((button) => {
       button.addEventListener("click", () => chooseDifficulty(button.dataset.startDifficulty));
@@ -2231,8 +2271,7 @@
     homeYesButton.addEventListener("click", () => {
       sendAbandonedResult("home_confirm");
       homeConfirmModal.classList.remove("open");
-      resetToHome();
-      showIntroScreen();
+      returnToHub("home_confirm");
     });
     homeNoButton.addEventListener("click", closeHomeConfirm);
 

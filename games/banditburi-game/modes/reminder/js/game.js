@@ -29,9 +29,9 @@
 
 
     const difficultySettings = {
-      high: { label: TEXT.high, gridSize: 4, targetCount: 4 },
-      medium: { label: TEXT.middle, gridSize: 3, targetCount: 3 },
-      low: { label: TEXT.low, gridSize: 2, targetCount: 2 },
+      high: { label: TEXT.high, gridSize: 4, targetCount: 4, totalTimeLimitSec: 360 },
+      medium: { label: TEXT.middle, gridSize: 3, targetCount: 3, totalTimeLimitSec: 480 },
+      low: { label: TEXT.low, gridSize: 2, targetCount: 2, totalTimeLimitSec: 600 },
     };
 
     const mergeGameConfig = (baseConfig, fileConfig) => ({
@@ -113,11 +113,12 @@
         question_count: 5,
         exposure_time_ms: 5000,
         round_time_limit_sec: 60,
+        total_time_limit_sec: 480,
         hint_enabled: true,
         auto_hint_enabled: false,
         auto_start: true,
         auto_return: true,
-        soft_feedback: true,
+        soft_feedback: false,
         voice_guide_enabled: true,
         flash_effect_level: "standard",
         high_contrast: false,
@@ -142,7 +143,7 @@
         hint_enabled: true,
         auto_hint_enabled: true,
         auto_hint_delay_sec: 40,
-        auto_start: true,
+        auto_start: false,
         auto_return: true,
         soft_feedback: true,
         voice_guide_enabled: true,
@@ -169,7 +170,7 @@
         auto_hint_enabled: true,
         auto_hint_delay_sec: 40,
         total_time_limit_sec: 180,
-        auto_start: true,
+        auto_start: false,
         auto_return: true,
         soft_feedback: true,
         voice_guide_enabled: true,
@@ -240,6 +241,7 @@
     const introStartButton = document.getElementById("introStartButton");
     const introSettingsButton = document.getElementById("introSettingsButton");
     const introHowToButton = document.getElementById("introHowToButton");
+    const introExitButton = document.getElementById("introExitButton");
     const themeOpenButton = document.getElementById("themeOpenButton");
     const musicToggleButton = document.getElementById("musicToggleButton");
     const effectToggleButton = document.getElementById("effectToggleButton");
@@ -260,6 +262,7 @@
     const postFatigueButtons = [...document.querySelectorAll("[data-post-fatigue]")];
     const postHelpButtons = [...document.querySelectorAll("[data-post-help]")];
     const postReplayButtons = [...document.querySelectorAll("[data-post-replay]")];
+    const postGameSkipButton = document.getElementById("postGameSkipButton");
     const postGameNextButton = document.getElementById("postGameNextButton");
     const postGamePageOne = document.getElementById("postGamePageOne");
     const postGamePageTwo = document.getElementById("postGamePageTwo");
@@ -300,12 +303,15 @@
     let targetIndexes = new Set();
     let chosenCorrect = new Set();
     let chosenWrong = new Set();
+    let chosenWrongTypes = new Map();
     let roundActive = false;
     let previewTimer = null;
     let previewCountdownTimer = null;
     let hintTimer = null;
     let hintCountdownTimer = null;
     let roundTimer = null;
+    let totalTimer = null;
+    let totalTimeLeft = 0;
     let betweenTimer = null;
     let autoReturnTimer = null;
     let isPreviewing = false;
@@ -347,6 +353,40 @@
     const BOARD_SELECT_SOUND_SRC = "assets/audio/board-select.mp3";
     const INTRO_MUSIC_SRC = "assets/audio/audio-02-7642c099.mp3";
     const PLAY_MUSIC_SRC = "assets/audio/audio-03-e0e7d5be.mp3";
+    const STANDARD_VOICE_BASE = "../../assets/audio/voice/standard/";
+    const VOICE_CLIPS = {
+      settings: `${STANDARD_VOICE_BASE}settings.mp3`,
+      themeSelect: `${STANDARD_VOICE_BASE}theme-select.mp3`,
+      themeBulb: `${STANDARD_VOICE_BASE}theme-bulb.mp3`,
+      themeBird: `${STANDARD_VOICE_BASE}theme-bird.mp3`,
+      themePhone: `${STANDARD_VOICE_BASE}theme-phone.mp3`,
+      tutorialIntro: `${STANDARD_VOICE_BASE}tutorial-intro.mp3`,
+      tutorialPreview: `${STANDARD_VOICE_BASE}tutorial-preview.mp3`,
+      tutorialChoose: `${STANDARD_VOICE_BASE}tutorial-choose.mp3`,
+      tutorialHint: `${STANDARD_VOICE_BASE}tutorial-hint.mp3`,
+      tutorialTotal: `${STANDARD_VOICE_BASE}tutorial-total.mp3`,
+      skipTutorial: `${STANDARD_VOICE_BASE}skip-tutorial.mp3`,
+      preCheckin: `${STANDARD_VOICE_BASE}pre-checkin.mp3`,
+      skipPreCheckin: `${STANDARD_VOICE_BASE}skip-pre-checkin.mp3`,
+      pause: `${STANDARD_VOICE_BASE}pause.mp3`,
+      difficultySelect: `${STANDARD_VOICE_BASE}difficulty-select.mp3`,
+      resume: `${STANDARD_VOICE_BASE}resume.mp3`,
+      gameStartCountdown: `${STANDARD_VOICE_BASE}game-start-countdown.mp3`,
+      hint: `${STANDARD_VOICE_BASE}hint.mp3`,
+      correct: `${STANDARD_VOICE_BASE}correct.mp3`,
+      encourage: `${STANDARD_VOICE_BASE}encourage.mp3`,
+      nextRound: `${STANDARD_VOICE_BASE}next-round.mp3`,
+      resultScreen: `${STANDARD_VOICE_BASE}result-screen.mp3`,
+      finishThanks: `${STANDARD_VOICE_BASE}finish-thanks.mp3`,
+      targetBulbRemember: `${STANDARD_VOICE_BASE}target-bulb-remember.mp3`,
+      targetBulbChoose: `${STANDARD_VOICE_BASE}target-bulb-choose.mp3`,
+      targetBirdRemember: `${STANDARD_VOICE_BASE}target-bird-remember.mp3`,
+      targetBirdChoose: `${STANDARD_VOICE_BASE}target-bird-choose.mp3`,
+      targetPhoneRemember: `${STANDARD_VOICE_BASE}target-phone-remember.mp3`,
+      targetPhoneChoose: `${STANDARD_VOICE_BASE}target-phone-choose.mp3`,
+      targetFlowerRemember: `${STANDARD_VOICE_BASE}target-flower-remember.mp3`,
+      targetFlowerChoose: `${STANDARD_VOICE_BASE}target-flower-choose.mp3`,
+    };
     const buttonClickSound = new Audio(BUTTON_CLICK_SOUND_SRC);
     buttonClickSound.preload = "auto";
     buttonClickSound.volume = 1;
@@ -358,6 +398,9 @@
     playMusic.preload = "auto";
     playMusic.loop = false;
     playMusic.volume = 0.72;
+    const voiceClipAudio = new Audio();
+    voiceClipAudio.preload = "auto";
+    voiceClipAudio.volume = 1;
     let currentMusicMode = "";
     let autoStartConsumed = false;
 
@@ -396,10 +439,10 @@
       const setting = difficultySettings[currentDifficulty];
       guideTitle.textContent = "안내";
       if (currentDifficulty === "high") {
-        guideText.textContent = `4 x 4, ${setting.targetCount}개 찾기. ${TEXT.objectOne}`;
+        guideText.textContent = `4 x 4 격자에서\n${setting.targetCount}개를 찾아요.\n\n${TEXT.objectOne}`;
         return;
       }
-      guideText.textContent = `${setting.gridSize} x ${setting.gridSize}, ${objectTypes.yellow.label} ${setting.targetCount}개 찾기.`;
+      guideText.textContent = `${setting.gridSize} x ${setting.gridSize} 격자에서\n${objectTypes.yellow.label} ${setting.targetCount}개를 찾아요.`;
     }
 
     function targetPhrase(count) {
@@ -456,7 +499,6 @@
       if (nextIndex === sleepHourIndex) return;
       sleepHourIndex = nextIndex;
       updateCheckinButtons();
-      speakGuide(`수면시간은 ${sleepTime}으로 선택했습니다.`);
     }
 
     function updatePostGameButtons() {
@@ -491,7 +533,8 @@
     function renderPostGamePage() {
       if (postGamePageOne) postGamePageOne.classList.toggle("is-hidden", postGamePage !== 1);
       if (postGamePageTwo) postGamePageTwo.classList.toggle("is-hidden", postGamePage !== 2);
-      postGameNextButton.textContent = postGamePage === 1 ? "다음" : "나가기";
+      if (postGameSkipButton) postGameSkipButton.textContent = postGamePage === 1 ? "건너뛰기" : "이전";
+      postGameNextButton.textContent = postGamePage === 1 ? "다음" : "완료";
       postGameNextButton.disabled = postGamePage === 1
         ? !(postMood && postDifficulty && postFatigue)
         : !(postHelpNeeded && postReplayWanted);
@@ -514,11 +557,62 @@
         .replace(/갈게요/g, "갈께요");
     }
 
+    function playVoiceClip(voiceKey, fallbackText = "", interrupt = true) {
+      if (!voiceEnabled) return;
+      const src = VOICE_CLIPS[voiceKey];
+      if (!src) {
+        if (fallbackText) speakGuide(fallbackText, interrupt);
+        return;
+      }
+      try {
+        if (interrupt) stopVoiceGuide();
+        voiceClipAudio.pause();
+        voiceClipAudio.currentTime = 0;
+        voiceClipAudio.src = src;
+        voiceClipAudio.play().catch(() => {});
+      } catch (error) {
+        if (fallbackText) speakGuide(fallbackText, interrupt);
+      }
+    }
+
+    function targetVoiceObjectKey() {
+      if (targetType === "flower") return "Flower";
+      if (currentTheme === "bird") return "Bird";
+      if (currentTheme === "phone") return "Phone";
+      return "Bulb";
+    }
+
+    function getVoiceClipKey(text) {
+      const value = String(text || "");
+      if (value.includes("설정 화면입니다")) return "settings";
+      if (value.includes("테마를 골라주세요")) return "themeSelect";
+      if (value.includes("게임을 시작하기 전에 오늘의 기분과 수면시간")) return "preCheckin";
+      if (value.includes("난이도를 골라주세요")) return "difficultySelect";
+      if (value.includes("잠시 쉬는 중입니다") || value.includes("일시정지 화면입니다")) return "pause";
+      if (value.includes("계속합니다")) return "resume";
+      if (value.includes("3초 후 게임이 시작됩니다") || value.includes("3초후 게임이 시작됩니다")) return "gameStartCountdown";
+      if (value.includes("힌트입니다")) return "hint";
+      if (value.includes("정답입니다") || value.includes("좋아요. 천천히")) return "correct";
+      if (value.includes("잘 찾아") || value.includes("기억하실 수 있을 거예요")) return "encourage";
+      if (value.includes("결과 화면으로 갈") || value.includes("결과 화면으로 이동") || value.includes("결과화면으로 넘어")) return "resultScreen";
+      if (value.includes("수고하셨습니다")) return "finishThanks";
+      if (value.includes("다음 문제로 갈") || value.includes("다음 문제로 넘어갑니다") || value.includes("다음 문제로 천천히")) return "nextRound";
+      if (value.includes("위치를 기억") || value.includes("위치의 기억")) return `target${targetVoiceObjectKey()}Remember`;
+      if ((value.includes("위치를") || value.includes("위치가") || value.includes("위치")) && value.includes("골라주세요")) return `target${targetVoiceObjectKey()}Choose`;
+      return "";
+    }
+
     function speakGuide(text, interrupt = true) {
-      if (!voiceEnabled || !("speechSynthesis" in window) || !text) return;
+      if (!voiceEnabled || !text) return;
+      const voiceKey = getVoiceClipKey(text);
+      if (voiceKey) {
+        playVoiceClip(voiceKey, "", interrupt);
+        return;
+      }
+      if (!("speechSynthesis" in window)) return;
       const cleanText = normalizeVoiceText(text).replace(/[_<>]/g, "").replace(/\s+/g, " ").trim();
       if (!cleanText) return;
-      if (interrupt) window.speechSynthesis.cancel();
+      if (interrupt) stopVoiceGuide();
       const utterance = new SpeechSynthesisUtterance(cleanText);
       utterance.lang = "ko-KR";
       utterance.rate = 0.86;
@@ -538,6 +632,12 @@
 
     function stopVoiceGuide() {
       if ("speechSynthesis" in window) window.speechSynthesis.cancel();
+      try {
+        voiceClipAudio.pause();
+        voiceClipAudio.currentTime = 0;
+      } catch (error) {
+        // Ignore audio cleanup failures in restricted WebViews.
+      }
     }
 
     function playEffectSound(src) {
@@ -959,7 +1059,7 @@
         if (mode !== "hint" || (!cell.classList.contains("correct") && !cell.classList.contains("wrong"))) {
           cell.className = "cell";
         }
-        if (isWrongChoice) type = "off";
+        if (isWrongChoice) type = chosenWrongTypes.get(index) || boardItems[index] || targetType;
         cell.classList.toggle("empty", !type);
         cell.classList.toggle("hint", mode === "hint" && isUnchosenTarget && !isWrongChoice);
         cell.classList.toggle("preview-glow", mode === "preview" && targetIndexes.has(index) && type === targetType && type !== "off");
@@ -1006,8 +1106,13 @@
       return `${Math.max(0, seconds)}초`;
     }
 
+    function getTotalTimeLimit() {
+      const setting = difficultySettings[currentDifficulty] || difficultySettings.low;
+      return Math.max(0, Number(setting.totalTimeLimitSec) || Number(appliedGameConfig.total_time_limit_sec) || 0);
+    }
+
     function updateTimeDisplay() {
-      timeText.textContent = formatTime(timeLeft);
+      timeText.textContent = formatTime(totalTimer ? totalTimeLeft : timeLeft);
     }
 
     function updateRoundDisplay() {
@@ -1052,6 +1157,58 @@
       }
     }
 
+    function clearTotalTimer() {
+      if (totalTimer) {
+        clearInterval(totalTimer);
+        totalTimer = null;
+      }
+    }
+
+    function handleTotalTimeUp() {
+      clearTotalTimer();
+      clearPreviewTimer();
+      clearHintTimer();
+      clearRoundTimer();
+      clearBetweenTimer();
+      if (roundTelemetry && !roundClosed) {
+        closeRoundTelemetry("total_timeout");
+      }
+      roundActive = false;
+      isPreviewing = false;
+      isHinting = false;
+      isPaused = false;
+      currentPhase = "between";
+      totalTimeLeft = 0;
+      timeLeft = 0;
+      remainText.textContent = "-";
+      updateRoundDisplay();
+      updateTimeDisplay();
+      message.textContent = "전체 시간이 끝났습니다. 결과 화면으로 이동합니다.";
+      speakGuide("결과 화면으로 넘어갑니다.");
+      startButton.classList.add("is-hidden");
+      startButton.disabled = true;
+      hintButton.disabled = true;
+      setPauseReady(false);
+      setTimeout(showResultScreen, 900);
+    }
+
+    function startTotalTimer() {
+      clearTotalTimer();
+      totalTimeLeft = getTotalTimeLimit();
+      updateTimeDisplay();
+      if (totalTimeLeft <= 0) return;
+      totalTimer = setInterval(() => {
+        if (["home", "countdown", "postgame", "result"].includes(currentPhase) || isPaused) {
+          return;
+        }
+        totalTimeLeft = Math.max(0, totalTimeLeft - 1);
+        updateTimeDisplay();
+        if (totalTimeLeft <= 0) {
+          handleTotalTimeUp();
+        }
+      }, 1000);
+    }
+
     function setPauseReady(enabled) {
       pauseButton.disabled = !enabled;
       pauseButton.textContent = isPaused ? TEXT.resume : TEXT.pause;
@@ -1082,6 +1239,7 @@
       clearPreviewTimer();
       clearHintTimer();
       clearRoundTimer();
+      clearTotalTimer();
       clearBetweenTimer();
       clearAutoReturnTimer();
       currentRound = 0;
@@ -1116,13 +1274,19 @@
     function showIntroScreen() {
       currentMusicMode = "intro";
       refreshBackgroundMusic();
-      introModal.classList.add("open");
       difficultyModal.classList.remove("open");
       checkinModal.classList.remove("open");
       postGameModal.classList.remove("open");
       tutorialModal.classList.remove("open");
       settingsModal.classList.remove("open");
       themeModal.classList.remove("open");
+      if (gameMode === "reminder" && appliedGameConfig.auto_start && !autoStartConsumed) {
+        autoStartConsumed = true;
+        introModal.classList.remove("open");
+        startModeFlow();
+        return;
+      }
+      introModal.classList.add("open");
       if (appliedGameConfig.auto_start && !autoStartConsumed) {
         autoStartConsumed = true;
         setTimeout(startModeFlow, 600);
@@ -1213,6 +1377,7 @@
       tutorialStepTitle.textContent = step.title;
       tutorialStepText.textContent = step.text;
       renderTutorialVisual(step.demo);
+      skipTutorialButton.textContent = tutorialStepIndex === 0 ? "건너뛰기" : "이전";
       tutorialNextButton.textContent = tutorialStepIndex >= tutorialSteps.length - 1 ? "완료" : "다음";
       speakGuide(`${step.title}. ${step.text}`);
     }
@@ -1250,10 +1415,20 @@
       renderTutorialStep();
     }
 
+    function previousTutorialStep() {
+      if (tutorialStepIndex <= 0) {
+        closeTutorial();
+        return;
+      }
+      tutorialStepIndex -= 1;
+      renderTutorialStep();
+    }
+
     function showPostGameScreen() {
       clearPreviewTimer();
       clearHintTimer();
       clearRoundTimer();
+      clearTotalTimer();
       clearBetweenTimer();
       if (!appliedGameConfig.show_finish_check) {
         showResultScreen();
@@ -1273,6 +1448,7 @@
       clearPreviewTimer();
       clearHintTimer();
       clearRoundTimer();
+      clearTotalTimer();
       clearBetweenTimer();
       sendCompletedResult();
       postGameModal.classList.remove("open");
@@ -1303,6 +1479,7 @@
       clearPreviewTimer();
       clearHintTimer();
       clearRoundTimer();
+      clearTotalTimer();
       clearBetweenTimer();
       sendCompletedResult();
       postGameModal.classList.remove("open");
@@ -1330,6 +1507,10 @@
 
       let secondsLeft = 3;
       const updateBetweenMessage = () => {
+        if (currentRound >= maxRounds) {
+          message.textContent = `${doneMessage} ${secondsLeft}초`;
+          return;
+        }
         const nextText = currentRound >= maxRounds ? "결과 화면으로 이동합니다." : "다음 문제로 넘어갑니다.";
         message.textContent = `${doneMessage} ${secondsLeft}초 후 ${nextText}`;
       };
@@ -1359,7 +1540,7 @@
       startButton.disabled = true;
       hintButton.disabled = false;
       setPauseReady(true);
-      message.textContent = `${targetPhrase(targetIndexes.size)}가 있었던 위치를 골라주세요.`;
+      message.textContent = `${targetPhrase(targetIndexes.size)}가 있었던 위치를\n골라주세요.`;
       speakGuide(`${targetPhrase(targetIndexes.size)}가 있었던 위치를 골라주세요.`);
       renderBoard("hidden");
       startRoundTimer();
@@ -1367,7 +1548,7 @@
 
     function startPreviewCountdown() {
       const updatePreviewMessage = () => {
-        message.textContent = `${targetPhrase(targetIndexes.size)}의 위치를 기억하세요. ${previewSecondsLeft}초`;
+        message.textContent = `${targetPhrase(targetIndexes.size)}의 위치를\n기억하세요. ${previewSecondsLeft}초`;
       };
       updatePreviewMessage();
       speakGuide(`${targetPhrase(targetIndexes.size)}의 위치를 기억하세요.`);
@@ -1403,6 +1584,7 @@
       targetIndexes = new Set(positions.slice(0, targetCount));
       chosenCorrect.clear();
       chosenWrong.clear();
+      chosenWrongTypes.clear();
       const distractors = distractorPool(nextRound);
       boardItems = Array.from({ length: total }, (_, index) => {
         if (targetIndexes.has(index)) return targetType;
@@ -1455,6 +1637,7 @@
         if (roundTelemetry) roundTelemetry.correctClickCount += 1;
         playCorrectSound();
         cell.classList.remove("empty", "hint");
+        cell.classList.add(`object-${targetType}`);
         cell.classList.add("correct", "just-correct");
         setTimeout(() => cell.classList.remove("just-correct"), 520);
         const image = cell.querySelector("img");
@@ -1477,6 +1660,8 @@
       }
 
       chosenWrong.add(index);
+      const wrongType = boardItems[index] || "off";
+      chosenWrongTypes.set(index, wrongType);
       const telemetry = ensureTelemetry();
       telemetry.wrongClickCount += 1;
       if (roundTelemetry) roundTelemetry.wrongClickCount += 1;
@@ -1484,9 +1669,9 @@
       cell.classList.remove("empty", "hint");
       cell.classList.add("wrong");
       const wrongImage = cell.querySelector("img");
-      wrongImage.src = objectTypes.off.src;
-      wrongImage.alt = objectTypes.off.label;
-      cell.setAttribute("aria-label", objectTypes.off.label);
+      wrongImage.src = objectTypes[wrongType].src;
+      wrongImage.alt = objectTypes[wrongType].label;
+      cell.setAttribute("aria-label", objectTypes[wrongType].label);
       if (chosenWrong.size >= 3) {
         const limitText = appliedGameConfig.soft_feedback
           ? "괜찮아요. 하나만 더 같이 해볼까요?"
@@ -1509,6 +1694,7 @@
       hintButton.disabled = true;
       chosenCorrect.clear();
       chosenWrong.clear();
+      chosenWrongTypes.clear();
       targetIndexes.clear();
       updateDifficultyButtons();
       clearBoard();
@@ -1545,6 +1731,7 @@
       clearPreviewTimer();
       clearHintTimer();
       clearRoundTimer();
+      clearTotalTimer();
       currentPhase = "countdown";
       roundActive = false;
       isPreviewing = false;
@@ -1555,6 +1742,7 @@
       hintButton.disabled = true;
       setPauseReady(false);
       updateRoundDisplay();
+      startTotalTimer();
       updateTimeDisplay();
       clearBoard(false);
 
@@ -1636,7 +1824,7 @@
         hintButton.disabled = false;
         setPauseReady(true);
         const remaining = targetIndexes.size - chosenCorrect.size;
-        message.textContent = `${objectTypes[targetType].label} ${remaining}개가 있던 위치를 골라주세요.`;
+        message.textContent = `${objectTypes[targetType].label} ${remaining}개가 있던 위치를\n골라주세요.`;
         speakGuide(`${objectTypes[targetType].label} ${remaining}개가 있던 위치를 골라주세요.`);
         renderBoard("hidden");
       }, 1000);
@@ -1651,7 +1839,7 @@
       if (currentPhase === "preview") {
         isPreviewing = true;
         renderBoard("preview");
-        message.textContent = `${objectTypes[targetType].label} ${targetIndexes.size}개의 위치를 기억하세요. ${previewSecondsLeft}초`;
+        message.textContent = `${objectTypes[targetType].label} ${targetIndexes.size}개의 위치를\n기억하세요. ${previewSecondsLeft}초`;
         speakGuide("계속합니다. 위치를 기억해 주세요.");
         return;
       }
@@ -1677,7 +1865,7 @@
       startButton.disabled = true;
       hintButton.disabled = false;
       const remaining = targetIndexes.size - chosenCorrect.size;
-      message.textContent = `${objectTypes[targetType].label} ${remaining}개가 있던 위치를 골라주세요.`;
+      message.textContent = `${objectTypes[targetType].label} ${remaining}개가 있던 위치를\n골라주세요.`;
       speakGuide("계속합니다. 기억나는 위치를 골라주세요.");
       renderBoard("hidden");
     }
@@ -1769,6 +1957,10 @@
     introHowToButton.addEventListener("click", () => {
       openTutorial("intro");
     });
+    introExitButton?.addEventListener("click", () => {
+      sendAbandonedResult("intro_exit");
+      requestActivityReturn("intro_exit");
+    });
     themeOpenButton.addEventListener("click", () => {
       settingsModal.classList.remove("open");
       themeModal.classList.add("open");
@@ -1797,21 +1989,18 @@
         stopVoiceGuide();
       }
       syncAudioButtons();
-      speakGuide(voiceEnabled ? "음성 안내를 켰습니다." : "");
     });
     themeOptionButtons.forEach((button) => {
       button.addEventListener("click", () => {
         applyTheme(button.dataset.themeOption);
         themeModal.classList.remove("open");
         settingsModal.classList.add("open");
-        speakGuide(`${objectTypes.yellow.label} 테마로 바꾸었습니다.`);
       });
     });
     moodButtons.forEach((button) => {
       button.addEventListener("click", () => {
         todayMood = button.dataset.mood;
         updateCheckinButtons();
-        speakGuide(`오늘 기분은 ${todayMood}으로 선택했습니다.`);
       });
     });
     if (sleepUpButton) {
@@ -1854,6 +2043,17 @@
         updatePostGameButtons();
       });
     });
+    if (postGameSkipButton) {
+      postGameSkipButton.addEventListener("click", () => {
+        if (postGamePage === 2) {
+          postGamePage = 1;
+          updatePostGameButtons();
+          speakGuide("마무리 상태를 선택해 주세요.");
+          return;
+        }
+        completePostGameAndExit();
+      });
+    }
     postGameNextButton.addEventListener("click", () => {
       if (postGameNextButton.disabled) return;
       if (postGamePage === 1) {
@@ -1865,7 +2065,7 @@
       completePostGameAndExit();
     });
     skipTutorialButton.addEventListener("click", () => {
-      closeTutorial();
+      previousTutorialStep();
     });
     tutorialNextButton.addEventListener("click", nextTutorialStep);
     howToButton.addEventListener("click", () => {
@@ -1889,7 +2089,6 @@
         stopVoiceGuide();
       }
       syncAudioButtons();
-      speakGuide(voiceEnabled ? "음성 안내를 켰습니다." : "");
     });
     startDifficultyButtons.forEach((button) => {
       button.addEventListener("click", () => chooseDifficulty(button.dataset.startDifficulty));

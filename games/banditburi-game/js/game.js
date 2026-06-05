@@ -29,9 +29,9 @@
 
 
     const difficultySettings = {
-      high: { label: TEXT.high, gridSize: 4, targetCount: 4 },
-      medium: { label: TEXT.middle, gridSize: 3, targetCount: 3 },
-      low: { label: TEXT.low, gridSize: 2, targetCount: 2 },
+      high: { label: TEXT.high, gridSize: 4, targetCount: 4, totalTimeLimitSec: 360 },
+      medium: { label: TEXT.middle, gridSize: 3, targetCount: 3, totalTimeLimitSec: 480 },
+      low: { label: TEXT.low, gridSize: 2, targetCount: 2, totalTimeLimitSec: 600 },
     };
 
     const tutorialSteps = [
@@ -79,6 +79,7 @@
     const introStartButton = document.getElementById("introStartButton");
     const introSettingsButton = document.getElementById("introSettingsButton");
     const introHowToButton = document.getElementById("introHowToButton");
+    const introExitButton = document.getElementById("introExitButton");
     const themeOpenButton = document.getElementById("themeOpenButton");
     const musicToggleButton = document.getElementById("musicToggleButton");
     const effectToggleButton = document.getElementById("effectToggleButton");
@@ -93,12 +94,14 @@
     const sleepNextValue = document.getElementById("sleepNextValue");
     const sleepUpButton = document.getElementById("sleepUpButton");
     const sleepDownButton = document.getElementById("sleepDownButton");
+    const checkinSkipButton = document.getElementById("checkinSkipButton");
     const checkinNextButton = document.getElementById("checkinNextButton");
     const postMoodButtons = [...document.querySelectorAll("[data-post-mood]")];
     const postDifficultyButtons = [...document.querySelectorAll("[data-post-difficulty]")];
     const postFatigueButtons = [...document.querySelectorAll("[data-post-fatigue]")];
     const postHelpButtons = [...document.querySelectorAll("[data-post-help]")];
     const postReplayButtons = [...document.querySelectorAll("[data-post-replay]")];
+    const postGameSkipButton = document.getElementById("postGameSkipButton");
     const postGameNextButton = document.getElementById("postGameNextButton");
     const postGamePageOne = document.getElementById("postGamePageOne");
     const postGamePageTwo = document.getElementById("postGamePageTwo");
@@ -139,12 +142,15 @@
     let targetIndexes = new Set();
     let chosenCorrect = new Set();
     let chosenWrong = new Set();
+    let chosenWrongTypes = new Map();
     let roundActive = false;
     let previewTimer = null;
     let previewCountdownTimer = null;
     let hintTimer = null;
     let hintCountdownTimer = null;
     let roundTimer = null;
+    let totalTimer = null;
+    let totalTimeLeft = 0;
     let betweenTimer = null;
     let isPreviewing = false;
     let isHinting = false;
@@ -174,8 +180,9 @@
     let hintSecondsLeft = 5;
     const maxRounds = 10;
     const roundTimeLimit = 60;
-    const gameSchemaVersion = "1.0.0";
     const defaultGameConfig = window.__GAME_CONFIG__ || {};
+    const hubReturnUrl = defaultGameConfig.config?.auto_return_url || defaultGameConfig.auto_return_url || "file:///C:/Users/juhye/OneDrive/Desktop/senior-care-game-hub/index.html";
+    const gameSchemaVersion = "1.0.0";
     let gameSessionId = defaultGameConfig.sessionId || `local-${Date.now()}`;
     let gameTelemetry = null;
     let roundTelemetry = null;
@@ -233,10 +240,10 @@
       const setting = difficultySettings[currentDifficulty];
       guideTitle.textContent = "안내";
       if (currentDifficulty === "high") {
-        guideText.textContent = `4 x 4, ${setting.targetCount}개 찾기. ${TEXT.objectOne}`;
+        guideText.textContent = `4 x 4 격자에서\n${setting.targetCount}개를 찾아요.\n\n${TEXT.objectOne}`;
         return;
       }
-      guideText.textContent = `${setting.gridSize} x ${setting.gridSize}, ${objectTypes.yellow.label} ${setting.targetCount}개 찾기.`;
+      guideText.textContent = `${setting.gridSize} x ${setting.gridSize} 격자에서\n${objectTypes.yellow.label} ${setting.targetCount}개를 찾아요.`;
     }
 
     function targetPhrase(count) {
@@ -293,7 +300,6 @@
       if (nextIndex === sleepHourIndex) return;
       sleepHourIndex = nextIndex;
       updateCheckinButtons();
-      speakGuide(`수면시간은 ${sleepTime}으로 선택했습니다.`);
     }
 
     function updatePostGameButtons() {
@@ -328,7 +334,8 @@
     function renderPostGamePage() {
       if (postGamePageOne) postGamePageOne.classList.toggle("is-hidden", postGamePage !== 1);
       if (postGamePageTwo) postGamePageTwo.classList.toggle("is-hidden", postGamePage !== 2);
-      postGameNextButton.textContent = postGamePage === 1 ? "다음" : "나가기";
+      if (postGameSkipButton) postGameSkipButton.textContent = postGamePage === 1 ? "건너뛰기" : "이전";
+      postGameNextButton.textContent = postGamePage === 1 ? "다음" : "완료";
       postGameNextButton.disabled = postGamePage === 1
         ? !(postMood && postDifficulty && postFatigue)
         : !(postHelpNeeded && postReplayWanted);
@@ -447,6 +454,23 @@
       } catch (error) {
         console.log("[MOCK_GAME_MESSAGE_ERROR]", error);
       }
+    }
+
+    function resolveHubReturnUrl() {
+      const marker = "/games/banditburi-game/";
+      const configuredUrl = String(hubReturnUrl || "");
+      const isHostedPage = window.location.protocol === "http:" || window.location.protocol === "https:";
+      if (isHostedPage && configuredUrl.startsWith("file:") && window.location.pathname.includes(marker)) {
+        const hubPath = `${window.location.pathname.split(marker)[0]}/index.html`;
+        return `${window.location.origin}${hubPath}`;
+      }
+      return configuredUrl || "../../index.html";
+    }
+
+    function returnToHub(reason = "user_tap") {
+      sendGameMessage({ type: "GAME_RETURN_REQUESTED", reason });
+      const targetUrl = resolveHubReturnUrl();
+      if (targetUrl) window.location.assign(targetUrl);
     }
 
     function startTelemetrySession() {
@@ -700,7 +724,7 @@
         if (mode !== "hint" || (!cell.classList.contains("correct") && !cell.classList.contains("wrong"))) {
           cell.className = "cell";
         }
-        if (isWrongChoice) type = "off";
+        if (isWrongChoice) type = chosenWrongTypes.get(index) || boardItems[index] || targetType;
         cell.classList.toggle("empty", !type);
         cell.classList.toggle("hint", mode === "hint" && isUnchosenTarget && !isWrongChoice);
         cell.classList.toggle("preview-glow", mode === "preview" && targetIndexes.has(index) && type === targetType && type !== "off");
@@ -747,7 +771,7 @@
     }
 
     function updateTimeDisplay() {
-      timeText.textContent = formatTime(timeLeft);
+      timeText.textContent = formatTime(totalTimer ? totalTimeLeft : timeLeft);
     }
 
     function updateRoundDisplay() {
@@ -792,6 +816,61 @@
       }
     }
 
+    function clearTotalTimer() {
+      if (totalTimer) {
+        clearInterval(totalTimer);
+        totalTimer = null;
+      }
+    }
+
+    function getTotalTimeLimit() {
+      const setting = difficultySettings[currentDifficulty] || difficultySettings.low;
+      return Math.max(0, Number(setting.totalTimeLimitSec) || 0);
+    }
+
+    function handleTotalTimeUp() {
+      clearTotalTimer();
+      clearPreviewTimer();
+      clearHintTimer();
+      clearRoundTimer();
+      clearBetweenTimer();
+      if (roundTelemetry && !roundClosed) {
+        closeRoundTelemetry("total_timeout");
+      }
+      roundActive = false;
+      isPreviewing = false;
+      isHinting = false;
+      isPaused = false;
+      currentPhase = "between";
+      remainText.textContent = "-";
+      updateRoundDisplay();
+      updateTimeDisplay();
+      message.textContent = "전체 시간이 끝났습니다. 결과 화면으로 이동합니다.";
+      speakGuide("결과 화면으로 넘어갑니다.");
+      startButton.classList.add("is-hidden");
+      startButton.disabled = true;
+      hintButton.disabled = true;
+      setPauseReady(false);
+      setTimeout(showPostGameScreen, 900);
+    }
+
+    function startTotalTimer() {
+      clearTotalTimer();
+      totalTimeLeft = getTotalTimeLimit();
+      updateTimeDisplay();
+      if (totalTimeLeft <= 0) return;
+      totalTimer = setInterval(() => {
+        if (["home", "countdown", "postgame", "result"].includes(currentPhase) || isPaused) {
+          return;
+        }
+        totalTimeLeft = Math.max(0, totalTimeLeft - 1);
+        updateTimeDisplay();
+        if (totalTimeLeft <= 0) {
+          handleTotalTimeUp();
+        }
+      }, 1000);
+    }
+
     function setPauseReady(enabled) {
       pauseButton.disabled = !enabled;
       pauseButton.textContent = isPaused ? TEXT.resume : TEXT.pause;
@@ -808,6 +887,7 @@
       clearPreviewTimer();
       clearHintTimer();
       clearRoundTimer();
+      clearTotalTimer();
       clearBetweenTimer();
       currentRound = 0;
       timeLeft = roundTimeLimit;
@@ -920,6 +1000,7 @@
       tutorialStepTitle.textContent = step.title;
       tutorialStepText.textContent = step.text;
       renderTutorialVisual(step.demo);
+      skipTutorialButton.textContent = tutorialStepIndex === 0 ? "건너뛰기" : "이전";
       tutorialNextButton.textContent = tutorialStepIndex >= tutorialSteps.length - 1 ? "완료" : "다음";
       speakGuide(`${step.title}. ${step.text}`);
     }
@@ -957,10 +1038,20 @@
       renderTutorialStep();
     }
 
+    function previousTutorialStep() {
+      if (tutorialStepIndex <= 0) {
+        closeTutorial();
+        return;
+      }
+      tutorialStepIndex -= 1;
+      renderTutorialStep();
+    }
+
     function showPostGameScreen() {
       clearPreviewTimer();
       clearHintTimer();
       clearRoundTimer();
+      clearTotalTimer();
       clearBetweenTimer();
       roundActive = false;
       isPaused = false;
@@ -976,6 +1067,7 @@
       clearPreviewTimer();
       clearHintTimer();
       clearRoundTimer();
+      clearTotalTimer();
       clearBetweenTimer();
       sendCompletedResult();
       postGameModal.classList.remove("open");
@@ -1004,6 +1096,7 @@
       clearPreviewTimer();
       clearHintTimer();
       clearRoundTimer();
+      clearTotalTimer();
       clearBetweenTimer();
       sendCompletedResult();
       postGameModal.classList.remove("open");
@@ -1031,6 +1124,10 @@
 
       let secondsLeft = 3;
       const updateBetweenMessage = () => {
+        if (currentRound >= maxRounds) {
+          message.textContent = `${doneMessage} ${secondsLeft}초`;
+          return;
+        }
         const nextText = currentRound >= maxRounds ? "결과 화면으로 이동합니다." : "다음 문제로 넘어갑니다.";
         message.textContent = `${doneMessage} ${secondsLeft}초 후 ${nextText}`;
       };
@@ -1060,7 +1157,7 @@
       startButton.disabled = true;
       hintButton.disabled = false;
       setPauseReady(true);
-      message.textContent = `${targetPhrase(targetIndexes.size)}가 있었던 위치를 골라주세요.`;
+      message.textContent = `${targetPhrase(targetIndexes.size)}가 있었던 위치를\n골라주세요.`;
       speakGuide(`${targetPhrase(targetIndexes.size)}가 있었던 위치를 골라주세요.`);
       renderBoard("hidden");
       startRoundTimer();
@@ -1068,7 +1165,7 @@
 
     function startPreviewCountdown() {
       const updatePreviewMessage = () => {
-        message.textContent = `${targetPhrase(targetIndexes.size)}의 위치를 기억하세요. ${previewSecondsLeft}초`;
+        message.textContent = `${targetPhrase(targetIndexes.size)}의 위치를\n기억하세요. ${previewSecondsLeft}초`;
       };
       updatePreviewMessage();
       speakGuide(`${targetPhrase(targetIndexes.size)}의 위치를 기억하세요.`);
@@ -1104,6 +1201,7 @@
       targetIndexes = new Set(positions.slice(0, targetCount));
       chosenCorrect.clear();
       chosenWrong.clear();
+      chosenWrongTypes.clear();
       const distractors = distractorPool(nextRound);
       boardItems = Array.from({ length: total }, (_, index) => {
         if (targetIndexes.has(index)) return targetType;
@@ -1148,6 +1246,7 @@
         if (roundTelemetry) roundTelemetry.correctClickCount += 1;
         playCorrectSound();
         cell.classList.remove("empty", "hint");
+        cell.classList.add(`object-${targetType}`);
         cell.classList.add("correct", "just-correct");
         setTimeout(() => cell.classList.remove("just-correct"), 520);
         const image = cell.querySelector("img");
@@ -1170,6 +1269,8 @@
       }
 
       chosenWrong.add(index);
+      const wrongType = boardItems[index] || "off";
+      chosenWrongTypes.set(index, wrongType);
       const telemetry = ensureTelemetry();
       telemetry.wrongClickCount += 1;
       if (roundTelemetry) roundTelemetry.wrongClickCount += 1;
@@ -1177,9 +1278,9 @@
       cell.classList.remove("empty", "hint");
       cell.classList.add("wrong");
       const wrongImage = cell.querySelector("img");
-      wrongImage.src = objectTypes.off.src;
-      wrongImage.alt = objectTypes.off.label;
-      cell.setAttribute("aria-label", objectTypes.off.label);
+      wrongImage.src = objectTypes[wrongType].src;
+      wrongImage.alt = objectTypes[wrongType].label;
+      cell.setAttribute("aria-label", objectTypes[wrongType].label);
       if (chosenWrong.size >= 3) {
         finishRound(currentRound >= maxRounds ? TEXT.wrongLimitFinal : TEXT.wrongLimit, "wrong_limit");
         return;
@@ -1196,6 +1297,7 @@
       hintButton.disabled = true;
       chosenCorrect.clear();
       chosenWrong.clear();
+      chosenWrongTypes.clear();
       targetIndexes.clear();
       updateDifficultyButtons();
       clearBoard();
@@ -1242,6 +1344,7 @@
       hintButton.disabled = true;
       setPauseReady(false);
       updateRoundDisplay();
+      startTotalTimer();
       updateTimeDisplay();
       clearBoard(false);
 
@@ -1323,7 +1426,7 @@
         hintButton.disabled = false;
         setPauseReady(true);
         const remaining = targetIndexes.size - chosenCorrect.size;
-        message.textContent = `${objectTypes[targetType].label} ${remaining}개가 있던 위치를 골라주세요.`;
+        message.textContent = `${objectTypes[targetType].label} ${remaining}개가 있던 위치를\n골라주세요.`;
         speakGuide(`${objectTypes[targetType].label} ${remaining}개가 있던 위치를 골라주세요.`);
         renderBoard("hidden");
       }, 1000);
@@ -1338,7 +1441,7 @@
       if (currentPhase === "preview") {
         isPreviewing = true;
         renderBoard("preview");
-        message.textContent = `${objectTypes[targetType].label} ${targetIndexes.size}개의 위치를 기억하세요. ${previewSecondsLeft}초`;
+        message.textContent = `${objectTypes[targetType].label} ${targetIndexes.size}개의 위치를\n기억하세요. ${previewSecondsLeft}초`;
         speakGuide("계속합니다. 위치를 기억해 주세요.");
         return;
       }
@@ -1364,7 +1467,7 @@
       startButton.disabled = true;
       hintButton.disabled = false;
       const remaining = targetIndexes.size - chosenCorrect.size;
-      message.textContent = `${objectTypes[targetType].label} ${remaining}개가 있던 위치를 골라주세요.`;
+      message.textContent = `${objectTypes[targetType].label} ${remaining}개가 있던 위치를\n골라주세요.`;
       speakGuide("계속합니다. 기억나는 위치를 골라주세요.");
       renderBoard("hidden");
     }
@@ -1418,6 +1521,10 @@
     introHowToButton.addEventListener("click", () => {
       openTutorial("intro");
     });
+    introExitButton?.addEventListener("click", () => {
+      sendAbandonedResult("intro_exit");
+      returnToHub("intro_exit");
+    });
     themeOpenButton.addEventListener("click", () => {
       settingsModal.classList.remove("open");
       themeModal.classList.add("open");
@@ -1446,21 +1553,18 @@
         stopVoiceGuide();
       }
       syncAudioButtons();
-      speakGuide(voiceEnabled ? "음성 안내를 켰습니다." : "");
     });
     themeOptionButtons.forEach((button) => {
       button.addEventListener("click", () => {
         applyTheme(button.dataset.themeOption);
         themeModal.classList.remove("open");
         settingsModal.classList.add("open");
-        speakGuide(`${objectTypes.yellow.label} 테마로 바꾸었습니다.`);
       });
     });
     moodButtons.forEach((button) => {
       button.addEventListener("click", () => {
         todayMood = button.dataset.mood;
         updateCheckinButtons();
-        speakGuide(`오늘 기분은 ${todayMood}으로 선택했습니다.`);
       });
     });
     if (sleepUpButton) {
@@ -1468,6 +1572,13 @@
     }
     if (sleepDownButton) {
       sleepDownButton.addEventListener("click", () => changeSleepHour(-1));
+    }
+    if (checkinSkipButton) {
+      checkinSkipButton.addEventListener("click", () => {
+        checkinModal.classList.remove("open");
+        speakGuide("컨디션 체크를 건너뛰고 난이도를 선택합니다.");
+        showDifficultyScreen();
+      });
     }
     checkinNextButton.addEventListener("click", () => {
       if (!todayMood || !sleepTime) return;
@@ -1503,6 +1614,17 @@
         updatePostGameButtons();
       });
     });
+    if (postGameSkipButton) {
+      postGameSkipButton.addEventListener("click", () => {
+        if (postGamePage === 2) {
+          postGamePage = 1;
+          updatePostGameButtons();
+          speakGuide("마무리 상태를 선택해 주세요.");
+          return;
+        }
+        completePostGameAndExit();
+      });
+    }
     postGameNextButton.addEventListener("click", () => {
       if (postGameNextButton.disabled) return;
       if (postGamePage === 1) {
@@ -1514,7 +1636,7 @@
       completePostGameAndExit();
     });
     skipTutorialButton.addEventListener("click", () => {
-      closeTutorial();
+      previousTutorialStep();
     });
     tutorialNextButton.addEventListener("click", nextTutorialStep);
     howToButton.addEventListener("click", () => {
@@ -1524,8 +1646,7 @@
     exitButton.addEventListener("click", () => {
       sendAbandonedResult("user_exit");
       pauseModal.classList.remove("open");
-      resetToHome();
-      showIntroScreen();
+      returnToHub("user_exit");
     });
     pauseMusicButton.addEventListener("click", () => {
       musicEnabled = !musicEnabled;
@@ -1543,7 +1664,6 @@
         stopVoiceGuide();
       }
       syncAudioButtons();
-      speakGuide(voiceEnabled ? "음성 안내를 켰습니다." : "");
     });
     startDifficultyButtons.forEach((button) => {
       button.addEventListener("click", () => chooseDifficulty(button.dataset.startDifficulty));
@@ -1551,8 +1671,7 @@
     homeYesButton.addEventListener("click", () => {
       sendAbandonedResult("home_confirm");
       homeConfirmModal.classList.remove("open");
-      resetToHome();
-      showIntroScreen();
+      returnToHub("home_confirm");
     });
     homeNoButton.addEventListener("click", closeHomeConfirm);
 

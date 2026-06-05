@@ -9,19 +9,22 @@
       "gridSize": 2,
       "targetCount": 2,
       "roundCount": 10,
-      "timeLimitSec": 60
+      "timeLimitSec": 60,
+      "totalTimeLimitSec": 600
     },
     "NORMAL": {
       "gridSize": 3,
       "targetCount": 3,
       "roundCount": 10,
-      "timeLimitSec": 60
+      "timeLimitSec": 60,
+      "totalTimeLimitSec": 480
     },
     "HARD": {
       "gridSize": 4,
       "targetCount": 4,
       "roundCount": 10,
       "timeLimitSec": 60,
+      "totalTimeLimitSec": 360,
       "flowerStartsFromRound": 6
     }
   },
@@ -36,6 +39,7 @@
     "question_count": 10,
     "exposure_time_ms": 5000,
     "round_time_limit_sec": 60,
+    "total_time_limit_sec": 600,
     "hint_enabled": true,
     "auto_hint_enabled": false,
     "show_score_screen": true,
