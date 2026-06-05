@@ -386,6 +386,7 @@
   let activeVoiceGuideAudio = null;
   let voiceGuideTimerId = null;
   let reminderAudioReadyPromise = null;
+  let fullscreenRequestAttempted = false;
 
   function createEmptyTelemetryState() {
     return {
@@ -2160,21 +2161,54 @@
     return window.FruitCountMemoryGameAppBridge || null;
   }
 
+  function getInjectedRunConfig() {
+    const candidates = [
+      window.__GAME_CONFIG__,
+      window.GAME_CONFIG,
+      window.__FRUIT_COUNT_MEMORY_GAME_CONFIG__,
+      window.FRUIT_COUNT_MEMORY_GAME_CONFIG,
+      window.__FRUIT_COUNT_MEMORY_GAME_MOCK_CONFIG__,
+      window.FRUIT_COUNT_MEMORY_GAME_MOCK_CONFIG
+    ];
+
+    return candidates.find((config) => config && typeof config === "object") || null;
+  }
+
+  function tagInjectedRunConfig(config) {
+    if (!config || typeof config !== "object" || config.configSource) {
+      return config;
+    }
+
+    return Object.assign({}, config, { configSource: "inline" });
+  }
+
   async function loadRunConfig() {
     const bridge = getAppBridge();
     const getConfig = bridge && (bridge.getRuntimeConfig || bridge.getRunConfig);
-    if (typeof getConfig !== "function") {
-      return true;
+
+    if (typeof getConfig === "function") {
+      try {
+        const config = await getConfig.call(bridge);
+        applyRunConfig(config);
+        return true;
+      } catch (error) {
+        handleFatalError(error.code || "CONFIG_LOAD_FAILED", error, error.detail);
+        return false;
+      }
     }
 
-    try {
-      const config = await getConfig.call(bridge);
-      applyRunConfig(config);
-      return true;
-    } catch (error) {
-      handleFatalError(error.code || "CONFIG_LOAD_FAILED", error, error.detail);
-      return false;
+    const injectedConfig = getInjectedRunConfig();
+    if (injectedConfig) {
+      try {
+        applyRunConfig(tagInjectedRunConfig(injectedConfig));
+        return true;
+      } catch (error) {
+        handleFatalError(error.code || "CONFIG_INVALID", error, error.detail);
+        return false;
+      }
     }
+
+    return true;
   }
 
   function applyRunConfig(config) {
@@ -4135,6 +4169,47 @@
     unlockBackgroundMusicFromGesture();
   }
 
+  function isFullscreenActive() {
+    return Boolean(
+      document.fullscreenElement
+      || document.webkitFullscreenElement
+      || document.mozFullScreenElement
+      || document.msFullscreenElement
+    );
+  }
+
+  function requestFullscreenFromGesture() {
+    if (fullscreenRequestAttempted || isFullscreenActive()) {
+      return;
+    }
+
+    fullscreenRequestAttempted = true;
+    const element = document.documentElement;
+    const requestFullscreen = element.requestFullscreen
+      || element.webkitRequestFullscreen
+      || element.mozRequestFullScreen
+      || element.msRequestFullscreen;
+
+    if (typeof requestFullscreen !== "function") {
+      return;
+    }
+
+    try {
+      const request = requestFullscreen.call(element);
+      if (request && typeof request.catch === "function") {
+        request.catch(() => {});
+      }
+    } catch (error) {
+      // Fullscreen support varies by mobile browser and WebView.
+    }
+  }
+
+  function handleFirstFullscreenGesture() {
+    document.removeEventListener("pointerdown", handleFirstFullscreenGesture, true);
+    document.removeEventListener("touchstart", handleFirstFullscreenGesture, true);
+    requestFullscreenFromGesture();
+  }
+
   function muteBackgroundMusic() {
     getBackgroundAudioPool().forEach((audio) => {
       audio.volume = 0;
@@ -4753,6 +4828,8 @@
     els.postConditionBackButton.addEventListener("click", withButtonSound(showPreviousPostConditionStep));
     els.postConditionConfirmButton.addEventListener("click", withButtonSound(submitPostConditionCheck));
 
+    document.addEventListener("pointerdown", handleFirstFullscreenGesture, true);
+    document.addEventListener("touchstart", handleFirstFullscreenGesture, true);
     document.addEventListener("pointerdown", handleAudioGesture, true);
     document.addEventListener("keydown", handleAudioGesture, true);
 

@@ -1,6 +1,14 @@
 (function (global) {
   "use strict";
 
+  const existingBridge = global.FruitCountMemoryGameAppBridge;
+  if (existingBridge && typeof existingBridge === "object" && existingBridge.__isFruitCountMockBridge !== true) {
+    if (global.console && typeof global.console.info === "function") {
+      global.console.info("[app bridge] using host app bridge");
+    }
+    return;
+  }
+
   const MOCK_SCHEMA_VERSION = "mock-v1";
   const DEFAULT_CONFIG_URL = "config/game.config.json";
   const RUNTIME_CONFIG_STORAGE_KEY = "fruit-count-memory-game:runtime-config:v2";
@@ -387,6 +395,7 @@
   }
 
   const bridge = {
+    __isFruitCountMockBridge: true,
     schemaVersion: MOCK_SCHEMA_VERSION,
     getRuntimeConfig,
     normalizeRuntimeConfig,
