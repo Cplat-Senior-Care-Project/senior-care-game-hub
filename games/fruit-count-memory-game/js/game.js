@@ -386,7 +386,7 @@
   let activeVoiceGuideAudio = null;
   let voiceGuideTimerId = null;
   let reminderAudioReadyPromise = null;
-  let fullscreenRequestAttempted = false;
+  let fullscreenRequestInProgress = false;
 
   function createEmptyTelemetryState() {
     return {
@@ -3505,6 +3505,8 @@
   }
 
   function closeConditionCheck() {
+    requestAppFullscreen();
+
     if (!els.conditionModal) {
       return;
     }
@@ -4169,45 +4171,110 @@
     unlockBackgroundMusicFromGesture();
   }
 
+  function isMobileDevice() {
+    return /Android|iPhone|iPad|iPod/i.test(navigator.userAgent || "");
+  }
+
+  function isMobileLandscape() {
+    const viewport = window.visualViewport;
+    const width = viewport && viewport.width ? viewport.width : window.innerWidth || document.documentElement.clientWidth || STAGE_WIDTH;
+    const height = viewport && viewport.height ? viewport.height : window.innerHeight || document.documentElement.clientHeight || STAGE_HEIGHT;
+    return isMobileDevice() && width > height;
+  }
+
   function isFullscreenActive() {
     return Boolean(
       document.fullscreenElement
       || document.webkitFullscreenElement
-      || document.mozFullScreenElement
-      || document.msFullscreenElement
     );
   }
 
-  function requestFullscreenFromGesture() {
-    if (fullscreenRequestAttempted || isFullscreenActive()) {
+  function removeTapToFullscreenListeners() {
+    window.removeEventListener("click", handleFirstFullscreenGesture);
+  }
+
+  function updateScaleAfterFullscreenAttempt() {
+    fullscreenRequestInProgress = false;
+    updateGameScale();
+    window.setTimeout(updateGameScale, 250);
+
+    if (isFullscreenActive()) {
+      removeTapToFullscreenListeners();
+    }
+  }
+
+  function warnFullscreenFailure(error) {
+    if (window.console && typeof window.console.warn === "function") {
+      window.console.warn("Fullscreen request failed:", error);
+    }
+  }
+
+  function requestAppFullscreen() {
+    if (!isMobileLandscape()) {
+      updateGameScale();
       return;
     }
 
-    fullscreenRequestAttempted = true;
-    const element = document.documentElement;
-    const requestFullscreen = element.requestFullscreen
-      || element.webkitRequestFullscreen
-      || element.mozRequestFullScreen
-      || element.msRequestFullscreen;
+    if (fullscreenRequestInProgress) {
+      return;
+    }
 
-    if (typeof requestFullscreen !== "function") {
+    if (isFullscreenActive()) {
+      removeTapToFullscreenListeners();
+      updateGameScale();
+      return;
+    }
+
+    const target = document.documentElement;
+    const request = target.requestFullscreen || target.webkitRequestFullscreen;
+
+    if (typeof request !== "function") {
+      updateGameScale();
       return;
     }
 
     try {
-      const request = requestFullscreen.call(element);
-      if (request && typeof request.catch === "function") {
-        request.catch(() => {});
+      fullscreenRequestInProgress = true;
+      const requestResult = request.call(target, { navigationUI: "hide" });
+
+      if (requestResult && typeof requestResult.then === "function") {
+        requestResult
+          .then(updateScaleAfterFullscreenAttempt)
+          .catch((error) => {
+            fullscreenRequestInProgress = false;
+            warnFullscreenFailure(error);
+            updateGameScale();
+          });
+        return;
       }
+
+      updateScaleAfterFullscreenAttempt();
     } catch (error) {
-      // Fullscreen support varies by mobile browser and WebView.
+      fullscreenRequestInProgress = false;
+      warnFullscreenFailure(error);
+      updateGameScale();
     }
   }
 
   function handleFirstFullscreenGesture() {
-    document.removeEventListener("pointerdown", handleFirstFullscreenGesture, true);
-    document.removeEventListener("touchstart", handleFirstFullscreenGesture, true);
-    requestFullscreenFromGesture();
+    requestAppFullscreen();
+  }
+
+  function setupTapToFullscreen() {
+    if (!isMobileDevice()) {
+      return;
+    }
+
+    window.addEventListener("click", handleFirstFullscreenGesture);
+  }
+
+  function handleFullscreenChange() {
+    if (isFullscreenActive()) {
+      removeTapToFullscreenListeners();
+    }
+
+    fullscreenRequestInProgress = false;
+    updateGameScale();
   }
 
   function muteBackgroundMusic() {
@@ -4828,8 +4895,7 @@
     els.postConditionBackButton.addEventListener("click", withButtonSound(showPreviousPostConditionStep));
     els.postConditionConfirmButton.addEventListener("click", withButtonSound(submitPostConditionCheck));
 
-    document.addEventListener("pointerdown", handleFirstFullscreenGesture, true);
-    document.addEventListener("touchstart", handleFirstFullscreenGesture, true);
+    setupTapToFullscreen();
     document.addEventListener("pointerdown", handleAudioGesture, true);
     document.addEventListener("keydown", handleAudioGesture, true);
 
@@ -4857,6 +4923,8 @@
       }
     });
     window.addEventListener("message", handleExternalInputMessage);
+    document.addEventListener("fullscreenchange", handleFullscreenChange);
+    document.addEventListener("webkitfullscreenchange", handleFullscreenChange);
     window.addEventListener("pagehide", () => {
       sendAbandonedResult("webview_closed");
     });
@@ -4903,6 +4971,7 @@
 
   function runAfterStartPress(button, action, delay = 180) {
     return (event) => {
+      requestAppFullscreen();
       event.preventDefault();
       unlockBackgroundMusicFromGesture();
       playSound("button");
