@@ -116,6 +116,79 @@ button {
   transform-origin: center center;
 }
 
+.orientation-guard {
+  position: fixed;
+  inset: 0;
+  z-index: 20000;
+  display: none;
+  place-items: center;
+  padding: max(24px, var(--safe-top)) max(24px, var(--safe-right)) max(24px, var(--safe-bottom)) max(24px, var(--safe-left));
+  color: var(--brown-dark);
+  background:
+    linear-gradient(180deg, rgba(255, 248, 226, 0.96), rgba(241, 231, 207, 0.98)),
+    url("../assets/images/new_backgroud2.png") center center / cover no-repeat;
+}
+
+.orientation-guard-card {
+  display: grid;
+  justify-items: center;
+  gap: 18px;
+  width: min(520px, 100%);
+  border: 6px solid #f5c84b;
+  border-radius: 8px;
+  padding: 32px 26px 30px;
+  background: rgba(255, 250, 234, 0.96);
+  box-shadow: 0 18px 34px rgba(92, 62, 25, 0.16);
+  text-align: center;
+}
+
+.orientation-guard-card strong {
+  font-size: 34px;
+  font-weight: 1000;
+  line-height: 1.18;
+}
+
+.orientation-guard-card span {
+  color: var(--ink-muted);
+  font-size: 22px;
+  font-weight: 800;
+  line-height: 1.35;
+}
+
+.orientation-phone {
+  position: relative;
+  width: 106px;
+  height: 66px;
+  border: 7px solid var(--sage-dark);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.72);
+  box-shadow:
+    inset 0 0 0 3px rgba(97, 121, 70, 0.14),
+    0 10px 20px rgba(72, 55, 31, 0.12);
+}
+
+.orientation-phone::after {
+  content: "";
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  width: 8px;
+  height: 18px;
+  border-radius: 999px;
+  background: var(--sage-dark);
+  transform: translateY(-50%);
+}
+
+body.is-portrait-orientation .orientation-guard {
+  display: grid;
+}
+
+body.is-portrait-orientation .app,
+body.is-portrait-orientation .game-countdown-layer,
+body.is-portrait-orientation .care-play-controls {
+  pointer-events: none;
+}
+
 .screen {
   position: relative;
   z-index: 2;

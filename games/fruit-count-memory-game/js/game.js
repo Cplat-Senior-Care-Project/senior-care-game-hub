@@ -230,6 +230,7 @@
 
   const els = {
     app: document.querySelector(".app"),
+    orientationGuard: document.getElementById("orientation-guard"),
     startScreen: document.getElementById("start-screen"),
     startLoading: document.getElementById("start-loading"),
     startLoadingFill: document.getElementById("start-loading-fill"),
@@ -426,7 +427,19 @@
     const verticalGutter = Math.max(0, (viewportHeight - (STAGE_HEIGHT * scale)) / (2 * scale));
     document.documentElement.style.setProperty("--game-scale", String(scale));
     document.documentElement.style.setProperty("--game-viewport-top-gutter", `${Math.min(verticalGutter, 120)}px`);
+    updateOrientationGuard(viewportWidth, viewportHeight);
     return scale;
+  }
+
+  function updateOrientationGuard(viewportWidth, viewportHeight) {
+    const width = Number(viewportWidth) || window.innerWidth || document.documentElement.clientWidth || STAGE_WIDTH;
+    const height = Number(viewportHeight) || window.innerHeight || document.documentElement.clientHeight || STAGE_HEIGHT;
+    const isPortrait = height > width;
+
+    document.body.classList.toggle("is-portrait-orientation", isPortrait);
+    if (els.orientationGuard) {
+      els.orientationGuard.setAttribute("aria-hidden", isPortrait ? "false" : "true");
+    }
   }
 
   function mountCareControlsOverlay() {

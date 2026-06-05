@@ -44,6 +44,7 @@
   ]);
 
   const CONDITION_SLEEP_HOURS = Object.freeze([4, 5, 6, 7, 8, 9, 10, 11, 12]);
+  const CONDITION_SLEEP_DRAG_STEP_PX = 42;
 
   const $ = (id) => document.getElementById(id);
   const els = {
@@ -53,7 +54,7 @@
     pauseButton: $("pause-button"), pauseModal: $("pause-modal"), resumeButton: $("resume-button"), pauseRestartButton: $("pause-restart-button"), pauseQuitButton: $("pause-quit-button"),
     roundLabel: $("round-label"), timeLeft: $("time-left"), scoreLabel: $("score-label"), resultTitle: $("result-title"), resultMessage: $("result-message"), resultCorrect: $("result-correct"), resultTotal: $("result-total"), resultHintCount: $("result-hint-count"), resultRate: $("result-rate"),
     restartButton: $("restart-button"), resultStartButton: $("result-start-button"), resultHomeButton: $("result-home-button"), errorHomeButton: $("error-home-button"),
-    conditionModal: $("condition-modal"), conditionButtons: Array.from(document.querySelectorAll("[data-mood]")), conditionSleepRows: $("condition-sleep-rows"), conditionSleepUpButton: $("condition-sleep-up-button"), conditionSleepDownButton: $("condition-sleep-down-button"), conditionSkipButton: $("condition-skip-button"), conditionConfirmButton: $("condition-confirm-button"),
+    conditionModal: $("condition-modal"), conditionButtons: Array.from(document.querySelectorAll("[data-mood]")), conditionSleepDial: document.querySelector(".condition-sleep-dial"), conditionSleepRows: $("condition-sleep-rows"), conditionSleepUpButton: $("condition-sleep-up-button"), conditionSleepDownButton: $("condition-sleep-down-button"), conditionSkipButton: $("condition-skip-button"), conditionConfirmButton: $("condition-confirm-button"),
     postConditionModal: $("post-condition-modal"), postConditionPages: Array.from(document.querySelectorAll(".post-condition-page")), postConditionDots: Array.from(document.querySelectorAll(".post-condition-dot")), postConditionOptions: Array.from(document.querySelectorAll(".post-condition-option")), postConditionSkipButton: $("post-condition-skip-button"), postConditionNextButton: $("post-condition-next-button"), postConditionBackButton: $("post-condition-back-button"), postConditionConfirmButton: $("post-condition-confirm-button"),
     settingsModal: $("settings-modal"), settingsCloseButton: $("settings-close-button"), settingsExitButton: $("settings-exit-button"), backgroundSoundToggle: $("background-sound-toggle"), soundToggle: $("sound-toggle"), voiceGuideToggle: $("voice-guide-toggle"),
     tutorialModal: $("tutorial-modal"), tutorialMessage: $("tutorial-message"), tutorialPreview: $("tutorial-preview"), tutorialDetail: $("tutorial-detail"), tutorialCloseButton: $("tutorial-close-button"), tutorialNextButton: $("tutorial-next-button")
@@ -68,8 +69,10 @@
   const state = {
     phase: "start", difficultyKey: "easy", questionIndex: 0, question: null, selectedIds: [], wrongSelectedIds: [], collectedItems: [], correctCount: 0, wrongCount: 0, hintCount: 0, retryCount: 0, pauseCount: 0, interactionCount: 0, questionLogs: [],
     startedAt: null, endedAt: null, remainingSeconds: 0, revealRemaining: 0, questionStartedAt: null, firstResponseAt: null, status: "completed", abandonReason: null, externalInputUsed: false,
-    condition: { completed: false, skipped: false, mood: "good", sleepHours: 8 },
+    condition: { completed: false, skipped: false, mood: "good", sleepHours: 7 },
+    conditionSleepIndex: 3,
     postCondition: { completed: false, skipped: false, step: 0, moodAfter: "good", fatigue: "low", perceivedDifficulty: "justRight", neededHelp: "none", replayIntent: "yes" },
+    sleepDrag: { pointerId: null, lastStepY: 0 },
     settings: { soundEnabled: true, voiceGuideEnabled: true, useDrag: true }
   };
 
@@ -257,7 +260,7 @@
   }
 
   function startFlow() {
-    if (shouldShowConditionCheck() && !state.condition.completed) { pendingStart = true; els.conditionModal.classList.remove("is-hidden"); return; }
+    if (shouldShowConditionCheck() && !state.condition.completed) { pendingStart = true; renderConditionSleepRows(); els.conditionModal.classList.remove("is-hidden"); return; }
     if (shouldShowDifficultySelect()) { clearAllTimers(); state.phase = "difficulty"; setScreen("difficulty"); return; }
     startGame(runtimeConfig.difficultyKey || "easy");
   }
@@ -489,26 +492,81 @@
     setScreen("start");
     els.hintButton.classList.add("is-hidden");
   }
+  function sleepIndexAt(offset) {
+    const length = CONDITION_SLEEP_HOURS.length;
+    return (state.conditionSleepIndex + offset + length) % length;
+  }
+
+  function syncConditionSleepHours() {
+    state.condition.sleepHours = CONDITION_SLEEP_HOURS[state.conditionSleepIndex];
+  }
+
   function renderConditionSleepRows() {
     if (!els.conditionSleepRows) return;
-    const selectedIndex = Math.max(0, CONDITION_SLEEP_HOURS.indexOf(state.condition.sleepHours));
-    const startIndex = Math.max(0, Math.min(selectedIndex - 1, CONDITION_SLEEP_HOURS.length - 3));
-    els.conditionSleepRows.innerHTML = CONDITION_SLEEP_HOURS.slice(startIndex, startIndex + 3).map((hour) => {
-      const className = hour === state.condition.sleepHours ? "condition-sleep-row is-selected" : "condition-sleep-row is-muted";
-      return `<div class="${className}"><span class="condition-sleep-number">${hour}</span><span class="condition-sleep-unit">\uC2DC\uAC04</span></div>`;
-    }).join("");
+    syncConditionSleepHours();
+    els.conditionSleepRows.replaceChildren();
+    [-1, 0, 1].forEach((offset) => {
+      const hour = CONDITION_SLEEP_HOURS[sleepIndexAt(offset)];
+      const row = document.createElement("span");
+      const number = document.createElement("span");
+      const unit = document.createElement("span");
+
+      row.className = offset === 0 ? "condition-sleep-row is-selected" : "condition-sleep-row is-muted";
+      number.className = "condition-sleep-number";
+      number.textContent = String(hour);
+      unit.className = "condition-sleep-unit";
+      unit.textContent = "\uC2DC\uAC04";
+      row.append(number, unit);
+      els.conditionSleepRows.appendChild(row);
+    });
   }
 
   function changeConditionSleep(delta) {
-    const selectedIndex = Math.max(0, CONDITION_SLEEP_HOURS.indexOf(state.condition.sleepHours));
-    const nextIndex = Math.max(0, Math.min(CONDITION_SLEEP_HOURS.length - 1, selectedIndex + delta));
-    state.condition.sleepHours = CONDITION_SLEEP_HOURS[nextIndex];
+    const length = CONDITION_SLEEP_HOURS.length;
+    state.conditionSleepIndex = (state.conditionSleepIndex + delta + length) % length;
     renderConditionSleepRows();
+  }
+
+  function startConditionSleepDrag(event) {
+    if (!els.conditionSleepDial || event.button > 0) return;
+    event.preventDefault();
+    state.sleepDrag.pointerId = event.pointerId;
+    state.sleepDrag.lastStepY = event.clientY;
+    els.conditionSleepDial.classList.add("is-dragging");
+    if (typeof els.conditionSleepDial.setPointerCapture === "function") {
+      els.conditionSleepDial.setPointerCapture(event.pointerId);
+    }
+  }
+
+  function dragConditionSleep(event) {
+    if (state.sleepDrag.pointerId !== event.pointerId) return;
+    event.preventDefault();
+    const deltaY = event.clientY - state.sleepDrag.lastStepY;
+    const steps = Math.trunc(Math.abs(deltaY) / CONDITION_SLEEP_DRAG_STEP_PX);
+    if (steps < 1) return;
+    const direction = deltaY > 0 ? -1 : 1;
+    state.sleepDrag.lastStepY += direction * -steps * CONDITION_SLEEP_DRAG_STEP_PX;
+    changeConditionSleep(direction * steps);
+  }
+
+  function endConditionSleepDrag(event) {
+    if (state.sleepDrag.pointerId !== event.pointerId) return;
+    if (
+      els.conditionSleepDial &&
+      typeof els.conditionSleepDial.releasePointerCapture === "function" &&
+      els.conditionSleepDial.hasPointerCapture(event.pointerId)
+    ) {
+      els.conditionSleepDial.releasePointerCapture(event.pointerId);
+    }
+    state.sleepDrag.pointerId = null;
+    state.sleepDrag.lastStepY = 0;
+    if (els.conditionSleepDial) els.conditionSleepDial.classList.remove("is-dragging");
   }
 
   function completeConditionCheck(skipped) {
     state.condition.completed = true;
     state.condition.skipped = Boolean(skipped);
+    syncConditionSleepHours();
     els.conditionModal.classList.add("is-hidden");
     if (pendingStart) {
       pendingStart = false;
@@ -705,6 +763,13 @@
     }));
     els.conditionSleepUpButton.addEventListener("click", () => changeConditionSleep(-1));
     els.conditionSleepDownButton.addEventListener("click", () => changeConditionSleep(1));
+    if (els.conditionSleepDial) {
+      els.conditionSleepDial.addEventListener("pointerdown", startConditionSleepDrag);
+      els.conditionSleepDial.addEventListener("pointermove", dragConditionSleep);
+      els.conditionSleepDial.addEventListener("pointerup", endConditionSleepDrag);
+      els.conditionSleepDial.addEventListener("pointercancel", endConditionSleepDrag);
+      els.conditionSleepDial.addEventListener("lostpointercapture", endConditionSleepDrag);
+    }
     els.conditionSkipButton.addEventListener("click", () => completeConditionCheck(true));
     els.conditionConfirmButton.addEventListener("click", () => completeConditionCheck(false));
     els.postConditionOptions.forEach((button) => button.addEventListener("click", () => selectPostConditionOption(button)));
