@@ -5181,3 +5181,456 @@ body.mode-ai-assisted .board button.cell.wrong:focus-visible {
   transform: scaleX(.76) !important;
   transform-origin: center !important;
 }
+
+.hero-board {
+  box-sizing: border-box !important;
+  grid-template-rows: repeat(4, minmax(0, 1fr)) !important;
+  overflow: hidden !important;
+}
+
+.hero-tile {
+  min-width: 0 !important;
+  min-height: 0 !important;
+  overflow: hidden !important;
+}
+
+.hero-object-img {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: contain !important;
+}
+
+/* Keep the intro illustration fully inside the visible card on every viewport. */
+@media (min-width: 901px) and (min-height: 621px) {
+  .intro-hero-scene::before {
+    right: max(clamp(80px, 7vw, 150px), env(safe-area-inset-right)) !important;
+    width: min(620px, 32vw, calc(100dvh - 96px)) !important;
+  }
+
+  .hero-board {
+    right: max(clamp(86px, 7.4vw, 158px), env(safe-area-inset-right)) !important;
+    width: min(600px, 31vw, calc(100dvh - 104px)) !important;
+  }
+
+  .hero-bulb-img {
+    right: max(clamp(124px, 11vw, 220px), env(safe-area-inset-right)) !important;
+    width: min(250px, 13vw, 28dvh) !important;
+  }
+}
+
+@media (max-width: 900px), (max-height: 620px) {
+  .intro-card,
+  .intro-hero-scene {
+    overflow: visible !important;
+  }
+
+  .intro-hero-scene::before {
+    width: min(78vw, 300px, calc(100dvh - 96px)) !important;
+  }
+
+  .hero-board {
+    width: min(66vw, 274px, calc(100dvh - 106px)) !important;
+  }
+
+  .hero-bulb-img {
+    right: max(13%, 22px) !important;
+    width: min(22vw, 96px, 28dvh) !important;
+  }
+}
+
+@media (orientation: landscape) and (max-height: 520px) {
+  .intro-card {
+    grid-template-columns: minmax(0, 1fr) minmax(240px, 40%) !important;
+  }
+
+  .intro-hero-scene {
+    height: min(calc(100dvh - 40px), 300px) !important;
+  }
+
+  .intro-hero-scene::before {
+    width: min(30vw, 238px, calc(100dvh - 56px)) !important;
+  }
+
+  .hero-board {
+    width: min(27vw, 220px, calc(100dvh - 66px)) !important;
+  }
+
+  .hero-bulb-img {
+    right: max(9%, 18px) !important;
+    width: min(10vw, 78px, 21dvh) !important;
+  }
+}
+
+@media (orientation: portrait) and (max-width: 900px) {
+  .intro-card {
+    justify-content: flex-start !important;
+    gap: clamp(7px, 1.2vh, 11px) !important;
+    overflow: hidden !important;
+    padding: clamp(32px, 5vh, 48px) clamp(16px, 4vw, 22px) clamp(14px, 2vh, 20px) !important;
+  }
+
+  .intro-card h2 {
+    order: 0 !important;
+    max-width: 100% !important;
+    margin-bottom: 0 !important;
+    font-size: clamp(30px, 7vw, 38px) !important;
+    white-space: normal !important;
+    overflow-wrap: break-word !important;
+  }
+
+  .intro-training-badge {
+    order: 1 !important;
+    margin-bottom: 0 !important;
+  }
+
+  .intro-actions {
+    order: 2 !important;
+    gap: clamp(7px, 1.2vh, 10px) !important;
+    position: relative !important;
+    z-index: 2 !important;
+  }
+
+  .intro-actions button,
+  .intro-actions .primary {
+    min-height: clamp(47px, 6.8vh, 56px) !important;
+    font-size: clamp(19px, 5vw, 24px) !important;
+  }
+
+  .intro-hero-scene {
+    position: relative !important;
+    order: 3 !important;
+    inset: auto !important;
+    z-index: 0 !important;
+    width: min(100%, 340px) !important;
+    align-self: center !important;
+    height: clamp(246px, 38dvh, 330px) !important;
+    margin: clamp(14px, 2vh, 18px) 0 0 !important;
+    overflow: hidden !important;
+  }
+
+  .intro-hero-scene::before {
+    width: min(66vw, 250px, calc(100% - 22px)) !important;
+  }
+
+  .hero-board {
+    width: min(50vw, 198px, calc(100% - 44px)) !important;
+    gap: 6px !important;
+    padding: 10px !important;
+  }
+
+  .hero-object-img {
+    width: 100% !important;
+    height: 100% !important;
+  }
+
+  .hero-bulb-img {
+    right: max(23%, 62px) !important;
+    top: 38% !important;
+    width: min(15vw, 60px, 18dvh) !important;
+  }
+}
+
+/* Compact web windows use a contained two-column intro so controls never overlap the illustration. */
+@media (min-width: 781px) and (max-width: 1280px), (min-width: 781px) and (max-width: 1360px) and (max-height: 760px) {
+  #introModal {
+    padding: 14px !important;
+    overflow: auto !important;
+  }
+
+  .intro-card {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) minmax(min(260px, 34vw), 36%) !important;
+    grid-template-rows: auto auto auto !important;
+    align-content: center !important;
+    align-items: center !important;
+    column-gap: clamp(18px, 3vw, 34px) !important;
+    row-gap: clamp(12px, 1.8vh, 18px) !important;
+    width: min(calc(100vw - 28px), 1060px) !important;
+    height: auto !important;
+    min-height: min(calc(100dvh - 28px), 760px) !important;
+    max-height: calc(100dvh - 28px) !important;
+    margin: auto !important;
+    padding: clamp(26px, 4.2vw, 58px) clamp(26px, 5vw, 64px) !important;
+    border: 6px solid rgba(31, 107, 59, .74) !important;
+    border-radius: 28px !important;
+    overflow: hidden !important;
+  }
+
+  .intro-card > *:not(.intro-hero-scene) {
+    grid-column: 1 !important;
+    max-width: none !important;
+    width: 100% !important;
+  }
+
+  .intro-card h2 {
+    margin: 0 !important;
+    font-size: clamp(42px, 5.2vw, 60px) !important;
+    line-height: 1.08 !important;
+    white-space: normal !important;
+    overflow-wrap: break-word !important;
+  }
+
+  .intro-training-badge {
+    justify-self: start !important;
+    min-height: clamp(42px, 5.8vh, 52px) !important;
+    margin: 0 !important;
+    padding: 8px 22px !important;
+    font-size: clamp(21px, 2.8vw, 29px) !important;
+  }
+
+  .intro-actions {
+    width: 100% !important;
+    gap: clamp(10px, 1.6vh, 14px) !important;
+  }
+
+  .intro-actions button,
+  .intro-actions .primary {
+    min-height: clamp(56px, 7.2vh, 70px) !important;
+    font-size: clamp(22px, 2.8vw, 30px) !important;
+  }
+
+  .intro-hero-scene {
+    position: relative !important;
+    grid-column: 2 !important;
+    grid-row: 1 / 4 !important;
+    inset: auto !important;
+    width: 100% !important;
+    height: min(58dvh, 500px) !important;
+    min-height: 360px !important;
+    margin: 0 !important;
+    border-radius: 28px !important;
+    overflow: hidden !important;
+  }
+
+  .intro-hero-scene::before {
+    right: 50% !important;
+    top: 50% !important;
+    width: min(94%, 360px, calc(100dvh - 128px)) !important;
+    transform: translate(50%, -50%) !important;
+    border-radius: 34px !important;
+  }
+
+  .hero-board {
+    right: 50% !important;
+    top: 50% !important;
+    width: min(84%, 330px, calc(100dvh - 158px)) !important;
+    gap: 8px !important;
+    padding: 14px !important;
+    border-width: 6px !important;
+    border-radius: 30px !important;
+    transform: translate(50%, -50%) !important;
+  }
+
+  .hero-bulb-img {
+    right: 7% !important;
+    top: 34% !important;
+    width: min(30%, 112px, 18dvh) !important;
+  }
+
+  .hero-light,
+  .hero-spark {
+    display: none !important;
+  }
+
+  @keyframes heroBoardFloat {
+    0%, 100% { transform: translate(50%, -50%); }
+    50% { transform: translate(calc(50% - 5px), calc(-50% - 8px)); }
+  }
+}
+
+/* Preview-priority intro layout for medium web windows. */
+@media (min-width: 641px) and (max-width: 1240px) and (min-height: 720px) {
+  .intro-card {
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: flex-start !important;
+    gap: clamp(6px, .85vh, 10px) !important;
+    padding: clamp(28px, 4.2vh, 46px) clamp(26px, 5vw, 52px) clamp(14px, 1.8vh, 20px) !important;
+  }
+
+  .intro-card > *:not(.intro-hero-scene) {
+    max-width: 100% !important;
+    width: 100% !important;
+  }
+
+  .intro-card h2 {
+    order: 0 !important;
+    align-self: center !important;
+    margin: 0 !important;
+    font-size: clamp(44px, 5.1vw, 62px) !important;
+    line-height: 1.05 !important;
+    white-space: nowrap !important;
+  }
+
+  .intro-training-badge {
+    order: 1 !important;
+    align-self: flex-start !important;
+    min-height: clamp(36px, 4.4vh, 48px) !important;
+    margin: 0 !important;
+    padding: 6px 20px !important;
+    font-size: clamp(20px, 2.2vw, 28px) !important;
+  }
+
+  .intro-actions {
+    order: 2 !important;
+    width: 100% !important;
+    gap: clamp(6px, 1vh, 9px) !important;
+    position: relative !important;
+    z-index: 2 !important;
+    flex: 0 0 auto !important;
+  }
+
+  .intro-actions button,
+  .intro-actions .primary {
+    min-height: clamp(44px, 4.2vh, 56px) !important;
+    font-size: clamp(20px, 2.1vw, 25px) !important;
+  }
+
+  .intro-hero-scene {
+    position: relative !important;
+    order: 3 !important;
+    inset: auto !important;
+    grid-column: auto !important;
+    grid-row: auto !important;
+    z-index: 0 !important;
+    isolation: isolate !important;
+    flex: 1 1 clamp(300px, 42dvh, 430px) !important;
+    width: min(100%, 680px) !important;
+    height: clamp(300px, 42dvh, 430px) !important;
+    min-height: min(42dvh, 430px) !important;
+    max-height: min(44dvh, 430px) !important;
+    align-self: center !important;
+    margin: clamp(8px, 1.2vh, 16px) 0 0 !important;
+    border-radius: 28px !important;
+    overflow: hidden !important;
+  }
+
+  .intro-hero-scene::before {
+    right: 50% !important;
+    top: 50% !important;
+    width: min(74%, 340px, calc(100% - 32px)) !important;
+    transform: translate(50%, -50%) !important;
+  }
+
+  .hero-board {
+    right: 50% !important;
+    top: 50% !important;
+    width: min(56%, 310px, calc(100% - 58px)) !important;
+    gap: 7px !important;
+    padding: 10px !important;
+    border-width: 5px !important;
+    transform: translate(50%, -50%) !important;
+  }
+
+  .hero-bulb-img {
+    right: max(13%, 60px) !important;
+    top: 42% !important;
+    width: min(13%, 82px, 12dvh) !important;
+  }
+}
+
+/* Wide intro layout: use the extra horizontal room instead of stacking everything vertically. */
+@media (min-width: 1241px) and (min-height: 720px) {
+  .intro-card {
+    display: grid !important;
+    grid-template-columns: minmax(500px, .92fr) minmax(420px, .78fr) !important;
+    grid-template-rows: auto auto minmax(0, 1fr) !important;
+    align-content: center !important;
+    align-items: start !important;
+    column-gap: clamp(42px, 4.8vw, 86px) !important;
+    row-gap: clamp(12px, 1.6vh, 22px) !important;
+    padding: clamp(48px, 5.4vh, 82px) clamp(72px, 7vw, 132px) !important;
+  }
+
+  .intro-card > *:not(.intro-hero-scene) {
+    grid-column: 1 !important;
+    max-width: none !important;
+    width: 100% !important;
+  }
+
+  .intro-card h2 {
+    grid-column: 1 / -1 !important;
+    grid-row: 1 !important;
+    justify-self: center !important;
+    margin: 0 !important;
+    font-size: clamp(58px, 4.7vw, 86px) !important;
+    line-height: 1.04 !important;
+    white-space: nowrap !important;
+    text-align: center !important;
+  }
+
+  .intro-training-badge {
+    grid-column: 1 !important;
+    grid-row: 2 !important;
+    justify-self: stretch !important;
+    width: 100% !important;
+    min-height: clamp(48px, 5.8vh, 64px) !important;
+    margin: 0 !important;
+    font-size: clamp(24px, 2.1vw, 34px) !important;
+  }
+
+  .intro-actions {
+    grid-column: 1 !important;
+    grid-row: 3 !important;
+    align-self: start !important;
+    width: 100% !important;
+    gap: clamp(12px, 1.6vh, 18px) !important;
+  }
+
+  .intro-actions button,
+  .intro-actions .primary {
+    min-height: clamp(64px, 7.4vh, 86px) !important;
+    font-size: clamp(25px, 2.2vw, 36px) !important;
+  }
+
+  .intro-hero-scene {
+    position: relative !important;
+    grid-column: 2 !important;
+    grid-row: 2 / 4 !important;
+    inset: auto !important;
+    align-self: stretch !important;
+    justify-self: stretch !important;
+    width: 100% !important;
+    height: auto !important;
+    min-height: clamp(430px, 62dvh, 620px) !important;
+    margin: 0 !important;
+    border-radius: 32px !important;
+    overflow: hidden !important;
+    isolation: isolate !important;
+  }
+
+  .intro-hero-scene::before {
+    right: 50% !important;
+    top: 50% !important;
+    width: min(78%, 430px, calc(100% - 36px), calc(100dvh - 160px)) !important;
+    transform: translate(50%, -50%) !important;
+    border-radius: 38px !important;
+  }
+
+  .hero-board {
+    right: 50% !important;
+    top: 50% !important;
+    width: min(66%, 390px, calc(100% - 78px), calc(100dvh - 210px)) !important;
+    gap: clamp(7px, .7vw, 10px) !important;
+    padding: clamp(10px, .9vw, 14px) !important;
+    border-width: 6px !important;
+    border-radius: 32px !important;
+    transform: translate(50%, -50%) !important;
+  }
+
+  .hero-bulb-img {
+    right: max(8%, 34px) !important;
+    top: 43% !important;
+    width: min(22%, 116px, 15dvh) !important;
+  }
+
+  .hero-light,
+  .hero-spark {
+    display: none !important;
+  }
+
+  @keyframes heroBoardFloat {
+    0%, 100% { transform: translate(50%, -50%); }
+    50% { transform: translate(calc(50% - 5px), calc(-50% - 8px)); }
+  }
+}
