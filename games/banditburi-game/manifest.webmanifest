@@ -1,0 +1,20 @@
+{
+  "name": "Light Memory Game",
+  "short_name": "Light Memory",
+  "description": "A memory training game for finding the lit place.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "fullscreen",
+  "display_override": ["fullscreen", "standalone"],
+  "orientation": "any",
+  "background_color": "#1f6b3b",
+  "theme_color": "#1f6b3b",
+  "icons": [
+    {
+      "src": "assets/images/image-01-c44771d0.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}

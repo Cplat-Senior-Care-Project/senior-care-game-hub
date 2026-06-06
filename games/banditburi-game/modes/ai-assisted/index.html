@@ -3,13 +3,20 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="theme-color" content="#1f6b3b">
+  <link rel="manifest" href="../../manifest.webmanifest">
+  <link rel="apple-touch-icon" href="../../assets/images/image-01-c44771d0.png">
   <title>빛나는 전구를 찾아라</title>
   <link rel="stylesheet" href="css/game.css?v=20260604-care-ai-voice-clips-2">
+  <link rel="stylesheet" href="../../css/mobile-fullscreen.css">
 </head>
 <body>
   <div id="loadingScreen" class="loading-screen">
     <div class="loading-card">
-      <img id="loadingImage" class="loading-image" src="assets/images/image-01-c44771d0.png" alt="잠시만 기다려 주세요.">
+      <img id="loadingImage" class="loading-image" src="../../assets/images/image-01-c44771d0.png" alt="잠시만 기다려 주세요.">
       <div class="loading-bar" aria-hidden="true"><span></span></div>
     </div>
   </div>
@@ -314,6 +321,7 @@
       }
     };
   </script>
+  <script src="../../js/mobile-fullscreen.js"></script>
   <script src="js/game.js?v=20260605-shared-voice-assets-1"></script>
 </body>
 </html>

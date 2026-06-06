@@ -1,0 +1,32 @@
+html {
+  background: #1f6b3b;
+  overscroll-behavior: none;
+  touch-action: manipulation;
+}
+
+body {
+  min-height: var(--app-height, 100dvh);
+}
+
+html.mobile-fullscreen-active,
+html.mobile-standalone,
+html.mobile-fullscreen-active body,
+html.mobile-standalone body {
+  width: 100%;
+  height: var(--app-height, 100dvh) !important;
+  min-height: var(--app-height, 100dvh) !important;
+  overflow: hidden !important;
+}
+
+html.mobile-fullscreen-active .app,
+html.mobile-standalone .app {
+  min-height: var(--app-height, 100dvh) !important;
+}
+
+@supports (-webkit-touch-callout: none) {
+  html.mobile-standalone,
+  html.mobile-standalone body {
+    height: -webkit-fill-available !important;
+    min-height: -webkit-fill-available !important;
+  }
+}

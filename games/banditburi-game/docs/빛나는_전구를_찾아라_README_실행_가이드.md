@@ -19,6 +19,13 @@
 banditburi-game/
 ├─ index.html
 ├─ assets/
+│  ├─ audio/
+│  │  └─ voice/
+│  │     ├─ standard/
+│  │     └─ assist/
+│  ├─ images/
+│  ├─ data/
+│  └─ masks/
 ├─ config/
 ├─ css/
 ├─ docs/
@@ -29,29 +36,25 @@ banditburi-game/
 │  │  ├─ config/
 │  │  │  └─ game.config.json
 │  │  ├─ css/
-│  │  ├─ js/
-│  │  └─ assets/
+│  │  └─ js/
 │  ├─ reminder/
 │  │  ├─ index.html
 │  │  ├─ config/
 │  │  │  └─ game.config.json
 │  │  ├─ css/
-│  │  ├─ js/
-│  │  └─ assets/
+│  │  └─ js/
 │  ├─ care/
 │  │  ├─ index.html
 │  │  ├─ config/
 │  │  │  └─ game.config.json
 │  │  ├─ css/
-│  │  ├─ js/
-│  │  └─ assets/
+│  │  └─ js/
 │  └─ ai-assisted/
 │     ├─ index.html
 │     ├─ config/
 │     │  └─ game.config.json
 │     ├─ css/
-│     ├─ js/
-│     └─ assets/
+│     └─ js/
 └─ tools/
 ```
 

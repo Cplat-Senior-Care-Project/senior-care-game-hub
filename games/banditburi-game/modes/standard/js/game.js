@@ -1,4 +1,4 @@
-    const IMAGES = {"off":"assets/images/image-02-6e6b97b5.png","yellow":"assets/images/image-03-b8c398ec.png","flower":"assets/images/image-04-5ed55c22.png"};
+    const IMAGES = {"off":"../../assets/images/image-02-6e6b97b5.png","yellow":"../../assets/images/image-03-b8c398ec.png","flower":"../../assets/images/image-04-5ed55c22.png"};
     const TEXT = {"lang":"마다","title":"빛나는 전구를 찾아라","startIntro":"난이도를 고르면 곧바로 시작됩니다.","start":"시작하기","next":"다음 문제","reset":"홈으로","level":"난이도","high":"HARD","middle":"NORMAL","low":"EASY","choose":"골라주세요.","selecting":"선택","correct":"정답입니다.","wrong":"잘 찾아 보세요. 기억하실 수 있을 거예요.","done":"정말 잘하셨어요.","yellow":"빛나는 전구","offBulb":"불이 꺼진 전구","flower":"무궁화","objectBase":"등장 오브젝트: 불이 꺼진 전구, 빛나는 전구","objectOne":"6번째부터 무궁화가 나와요.","remaining":"남은 개수","round":"진행","time":"남은 시간","pause":"일시정지","resume":"계속하기","restart":"다시 시작하기","paused":"잠시 쉬는 중입니다.","timeUp":"괜찮아요. 다음 문제로 천천히 이어가볼게요.","final":"오늘은 위치 기억활동을 했어요. 끝까지 함께해 주셔서 감사합니다.","chooseDifficulty":"난이도를 골라주세요.","homeConfirm":"초기 화면으로 가시겠습니까?","yes":"네","no":"아니오","wrongLimit":"괜찮아요. 다음 문제로 천천히 넘어가볼게요.","wrongLimitFinal":"괜찮아요. 결과화면으로 넘어가겠습니다."};
 
     const svgData = (svg) => `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
@@ -6,8 +6,8 @@
       bulb: {
         label: TEXT.yellow,
         offLabel: TEXT.offBulb,
-        on: "assets/images/bulb-on-fit.png",
-        off: "assets/images/bulb-off-fit.png",
+        on: "../../assets/images/bulb-on-fit.png",
+        off: "../../assets/images/bulb-off-fit.png",
       },
       bird: {
         label: "새",
@@ -23,7 +23,7 @@
       },
     };
     // BEGIN custom bird theme image
-    THEME_IMAGES.bird.on = "assets/images/image-05-5aebd85a.png";
+    THEME_IMAGES.bird.on = "../../assets/images/image-05-5aebd85a.png";
     THEME_IMAGES.bird.off = THEME_IMAGES.bird.on;
     // END custom bird theme image
 
@@ -357,16 +357,13 @@
     let gameTelemetry = null;
     let roundTelemetry = null;
     let roundClosed = false;
-    const BUTTON_CLICK_SOUND_SRC = "assets/audio/audio-01-7e204aa7.mp3";
-    const BOARD_SELECT_SOUND_SRC = "assets/audio/board-select.mp3";
-    const INTRO_MUSIC_SRC = "assets/audio/audio-02-7642c099.mp3";
-    const PLAY_MUSIC_SRC = "assets/audio/audio-03-e0e7d5be.mp3";
+    const BUTTON_CLICK_SOUND_SRC = "../../assets/audio/audio-01-7e204aa7.mp3";
+    const BOARD_SELECT_SOUND_SRC = "../../assets/audio/board-select.mp3";
+    const INTRO_MUSIC_SRC = "../../assets/audio/audio-02-7642c099.mp3";
+    const PLAY_MUSIC_SRC = "../../assets/audio/audio-03-e0e7d5be.mp3";
     const VOICE_CLIPS = {
       settings: "../../assets/audio/voice/standard/settings.mp3",
       themeSelect: "../../assets/audio/voice/standard/theme-select.mp3",
-      themeBulb: "../../assets/audio/voice/standard/theme-bulb.mp3",
-      themeBird: "../../assets/audio/voice/standard/theme-bird.mp3",
-      themePhone: "../../assets/audio/voice/standard/theme-phone.mp3",
       tutorialIntro: "../../assets/audio/voice/standard/tutorial-intro.mp3",
       tutorialPreview: "../../assets/audio/voice/standard/tutorial-preview.mp3",
       tutorialChoose: "../../assets/audio/voice/standard/tutorial-choose.mp3",
@@ -386,34 +383,8 @@
       resultScreen: "../../assets/audio/voice/standard/result-screen.mp3",
       finishStatusSelect: "../../assets/audio/voice/standard/finish-status-select.mp3",
       postHelpQuestion: "../../assets/audio/voice/standard/post-help-question.mp3",
-      postMoodGood: "../../assets/audio/voice/standard/post-mood-good.mp3",
-      postMoodNormal: "../../assets/audio/voice/standard/post-mood-normal.mp3",
-      postMoodBad: "../../assets/audio/voice/standard/post-mood-bad.mp3",
-      postDifficultyEasy: "../../assets/audio/voice/standard/post-difficulty-easy.mp3",
-      postDifficultyNormal: "../../assets/audio/voice/standard/post-difficulty-normal.mp3",
-      postDifficultyHard: "../../assets/audio/voice/standard/post-difficulty-hard.mp3",
-      postFatigueGood: "../../assets/audio/voice/standard/post-fatigue-good.mp3",
-      postFatigueTired: "../../assets/audio/voice/standard/post-fatigue-tired.mp3",
-      postFatigueVeryTired: "../../assets/audio/voice/standard/post-fatigue-very-tired.mp3",
-      postHelpNo: "../../assets/audio/voice/standard/post-help-no.mp3",
-      postHelpYes: "../../assets/audio/voice/standard/post-help-yes.mp3",
-      postReplayYes: "../../assets/audio/voice/standard/post-replay-yes.mp3",
-      postReplayNo: "../../assets/audio/voice/standard/post-replay-no.mp3",
-      skipPostCheckin: "../../assets/audio/voice/standard/skip-post-checkin.mp3",
       finishThanks: "../../assets/audio/voice/standard/finish-thanks.mp3",
-      moodBad: "../../assets/audio/voice/standard/mood-bad.mp3",
-      moodNormal: "../../assets/audio/voice/standard/mood-normal.mp3",
-      moodGood: "../../assets/audio/voice/standard/mood-good.mp3",
       scoreScreen: "../../assets/audio/voice/standard/score-screen.mp3",
-      sleep4: "../../assets/audio/voice/standard/sleep-4-hours.mp3",
-      sleep5: "../../assets/audio/voice/standard/sleep-5-hours.mp3",
-      sleep6: "../../assets/audio/voice/standard/sleep-6-hours.mp3",
-      sleep7: "../../assets/audio/voice/standard/sleep-7-hours.mp3",
-      sleep8: "../../assets/audio/voice/standard/sleep-8-hours.mp3",
-      sleep9: "../../assets/audio/voice/standard/sleep-9-hours.mp3",
-      sleep10: "../../assets/audio/voice/standard/sleep-10-hours.mp3",
-      sleep11: "../../assets/audio/voice/standard/sleep-11-hours.mp3",
-      sleep12: "../../assets/audio/voice/standard/sleep-12-hours.mp3",
       targetBulbRemember: "../../assets/audio/voice/standard/target-bulb-remember.mp3",
       targetBulbChoose: "../../assets/audio/voice/standard/target-bulb-choose.mp3",
       targetBirdRemember: "../../assets/audio/voice/standard/target-bird-remember.mp3",
