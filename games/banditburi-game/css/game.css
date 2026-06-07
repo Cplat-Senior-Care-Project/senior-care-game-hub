@@ -1479,6 +1479,73 @@
       grid-column: auto;
     }
 
+    .audio-volume-controls {
+      display: grid;
+      gap: 14px;
+      margin-top: 18px;
+      padding: clamp(14px, 2vw, 22px);
+      border-radius: 18px;
+      background:
+        radial-gradient(circle at 16% 8%, rgba(255, 255, 255, .8), transparent 30%),
+        linear-gradient(180deg, rgba(249, 255, 246, .96) 0%, rgba(230, 246, 224, .92) 100%);
+      border: 3px solid rgba(205, 240, 199, .92);
+      box-shadow:
+        inset 0 3px 0 rgba(255, 255, 255, .7),
+        0 8px 0 rgba(67, 132, 74, .12),
+        0 16px 24px rgba(30, 82, 42, .1);
+    }
+
+    .pause-volume-controls {
+      margin-top: clamp(10px, 1.5vh, 16px);
+    }
+
+    .volume-control {
+      display: grid;
+      grid-template-columns: minmax(120px, .48fr) minmax(160px, 1fr) minmax(68px, auto);
+      align-items: center;
+      gap: 14px;
+      color: #174326;
+      font-weight: 900;
+      font-size: clamp(19px, 1.6vw, 27px);
+      line-height: 1.15;
+      word-break: keep-all;
+    }
+
+    .volume-control input[type="range"] {
+      width: 100%;
+      min-width: 0;
+      height: 44px;
+      accent-color: #23783f;
+      cursor: pointer;
+    }
+
+    .volume-control strong {
+      justify-self: end;
+      min-width: 68px;
+      color: #12652f;
+      font-size: clamp(20px, 1.7vw, 29px);
+      text-align: right;
+    }
+
+    @media (max-width: 780px) {
+      .audio-volume-controls {
+        gap: 12px;
+        margin-top: 14px;
+        padding: 14px;
+      }
+
+      .volume-control {
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 8px 12px;
+        font-size: clamp(17px, 4.6vw, 22px);
+      }
+
+      .volume-control input[type="range"] {
+        grid-column: 1 / -1;
+        height: 40px;
+      }
+    }
+
     .theme-actions {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
@@ -1503,6 +1570,47 @@
 
     .pause-actions {
       grid-template-columns: 1fr;
+      gap: clamp(10px, 1.5vh, 16px);
+    }
+
+    #pauseModal {
+      align-items: center;
+      padding: clamp(10px, 2vh, 24px);
+    }
+
+    #pauseModal .modal-card {
+      width: min(760px, calc(100vw - 24px));
+      max-height: calc(100dvh - clamp(20px, 4vh, 48px));
+      overflow-y: auto;
+      padding: clamp(18px, 2.6vh, 34px) clamp(28px, 4vw, 48px);
+      overscroll-behavior: contain;
+    }
+
+    #pauseModal .modal-card h2 {
+      margin-bottom: clamp(14px, 2vh, 24px);
+      font-size: clamp(30px, 3.4vw, 48px);
+    }
+
+    #pauseModal .modal-actions button {
+      min-height: clamp(62px, 8vh, 82px);
+      font-size: clamp(26px, 2.7vw, 40px);
+    }
+
+    #pauseModal .audio-volume-controls {
+      gap: clamp(8px, 1.1vh, 12px);
+      padding: clamp(10px, 1.5vh, 16px) clamp(14px, 2vw, 20px);
+    }
+
+    #pauseModal .volume-control {
+      font-size: clamp(18px, 1.45vw, 24px);
+    }
+
+    #pauseModal .volume-control input[type="range"] {
+      height: clamp(28px, 4vh, 38px);
+    }
+
+    #pauseModal .volume-control strong {
+      font-size: clamp(18px, 1.5vw, 25px);
     }
 
     .modal-actions button {

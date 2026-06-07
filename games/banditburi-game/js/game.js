@@ -84,6 +84,20 @@
     const musicToggleButton = document.getElementById("musicToggleButton");
     const effectToggleButton = document.getElementById("effectToggleButton");
     const voiceToggleButton = document.getElementById("voiceToggleButton");
+    const settingsVolumeControls = document.getElementById("settingsVolumeControls");
+    const pauseVolumeControls = document.getElementById("pauseVolumeControls");
+    const musicVolumeSlider = document.getElementById("musicVolumeSlider");
+    const effectVolumeSlider = document.getElementById("effectVolumeSlider");
+    const voiceVolumeSlider = document.getElementById("voiceVolumeSlider");
+    const pauseMusicVolumeSlider = document.getElementById("pauseMusicVolumeSlider");
+    const pauseEffectVolumeSlider = document.getElementById("pauseEffectVolumeSlider");
+    const pauseVoiceVolumeSlider = document.getElementById("pauseVoiceVolumeSlider");
+    const musicVolumeValue = document.getElementById("musicVolumeValue");
+    const effectVolumeValue = document.getElementById("effectVolumeValue");
+    const voiceVolumeValue = document.getElementById("voiceVolumeValue");
+    const pauseMusicVolumeValue = document.getElementById("pauseMusicVolumeValue");
+    const pauseEffectVolumeValue = document.getElementById("pauseEffectVolumeValue");
+    const pauseVoiceVolumeValue = document.getElementById("pauseVoiceVolumeValue");
     const settingsBackButton = document.getElementById("settingsBackButton");
     const themeBackButton = document.getElementById("themeBackButton");
     const themeOptionButtons = [...document.querySelectorAll("[data-theme-option]")];
@@ -161,6 +175,9 @@
     let musicEnabled = true;
     let soundEnabled = true;
     let voiceEnabled = true;
+    let musicVolume = 0.72;
+    let soundVolume = 1;
+    let voiceVolume = 1;
     const sleepHourOptions = [4, 5, 6, 7, 8, 9, 10, 11, 12];
     let todayMood = "";
     let sleepHourIndex = 4;
@@ -194,16 +211,23 @@
     const PLAY_MUSIC_SRC = "assets/audio/audio-03-e0e7d5be.mp3";
     const buttonClickSound = new Audio(BUTTON_CLICK_SOUND_SRC);
     buttonClickSound.preload = "auto";
-    buttonClickSound.volume = 1;
+    buttonClickSound.volume = soundVolume;
     const introMusic = new Audio(INTRO_MUSIC_SRC);
     introMusic.preload = "auto";
     introMusic.loop = true;
-    introMusic.volume = 0.72;
+    introMusic.volume = musicVolume;
     const playMusic = new Audio(PLAY_MUSIC_SRC);
     playMusic.preload = "auto";
     playMusic.loop = false;
-    playMusic.volume = 0.72;
+    playMusic.volume = musicVolume;
     let currentMusicMode = "";
+
+    function normalizeVolume(value, fallback = 1) {
+      const parsed = Number(value);
+      if (!Number.isFinite(parsed)) return Math.min(1, Math.max(0, fallback));
+      const normalized = parsed > 1 ? parsed / 100 : parsed;
+      return Math.min(1, Math.max(0, normalized));
+    }
 
     function shuffle(items) {
       const copy = [...items];
@@ -366,7 +390,7 @@
       utterance.lang = "ko-KR";
       utterance.rate = 0.86;
       utterance.pitch = 1;
-      utterance.volume = 1;
+      utterance.volume = voiceVolume;
       window.speechSynthesis.speak(utterance);
     }
 
@@ -387,7 +411,7 @@
       if (!soundEnabled) return;
       try {
         const sound = new Audio(src);
-        sound.volume = 1;
+        sound.volume = soundVolume;
         sound.play().catch(() => {});
       } catch (error) {
         // Some WebViews block audio until the first user gesture.
@@ -471,6 +495,13 @@
       sendGameMessage({ type: "GAME_RETURN_REQUESTED", reason });
       const targetUrl = resolveHubReturnUrl();
       if (targetUrl) window.location.assign(targetUrl);
+    }
+
+    function returnToInitialScreen() {
+      pauseModal.classList.remove("open");
+      homeConfirmModal.classList.remove("open");
+      resetToHome();
+      showIntroScreen();
     }
 
     function startTelemetrySession() {
@@ -618,9 +649,15 @@
       playMusic.pause();
     }
 
+    function applyAudioVolumes() {
+      buttonClickSound.volume = soundVolume;
+      introMusic.volume = musicVolume;
+      playMusic.volume = musicVolume;
+    }
+
     function startAudioTrack(track, startAt = 0) {
       if (!musicEnabled) return;
-      track.volume = 0.72;
+      track.volume = musicVolume;
       if (track.paused) {
         try {
           track.currentTime = startAt;
@@ -657,6 +694,39 @@
       }
     }
 
+    function syncVolumeControls() {
+      const groups = [
+        {
+          volume: musicVolume,
+          sliders: [musicVolumeSlider, pauseMusicVolumeSlider],
+          values: [musicVolumeValue, pauseMusicVolumeValue],
+        },
+        {
+          volume: soundVolume,
+          sliders: [effectVolumeSlider, pauseEffectVolumeSlider],
+          values: [effectVolumeValue, pauseEffectVolumeValue],
+        },
+        {
+          volume: voiceVolume,
+          sliders: [voiceVolumeSlider, pauseVoiceVolumeSlider],
+          values: [voiceVolumeValue, pauseVoiceVolumeValue],
+        },
+      ];
+
+      groups.forEach(({ volume, sliders, values }) => {
+        const percentNumber = Math.round(normalizeVolume(volume) * 100);
+        const percentText = `${percentNumber}%`;
+        sliders.forEach((slider) => {
+          if (!slider) return;
+          slider.value = String(percentNumber);
+          slider.setAttribute("aria-valuetext", percentText);
+        });
+        values.forEach((valueElement) => {
+          if (valueElement) valueElement.textContent = percentText;
+        });
+      });
+    }
+
     function syncAudioButtons() {
       musicToggleButton.textContent = musicEnabled ? "음악 On" : "음악 Off";
       pauseMusicButton.textContent = musicEnabled ? "음악 On" : "음악 Off";
@@ -664,6 +734,13 @@
       pauseEffectButton.textContent = soundEnabled ? "효과음 On" : "효과음 Off";
       voiceToggleButton.textContent = voiceEnabled ? "음성안내 On" : "음성안내 Off";
       pauseVoiceButton.textContent = voiceEnabled ? "음성안내 On" : "음성안내 Off";
+      musicToggleButton.setAttribute("aria-pressed", String(musicEnabled));
+      pauseMusicButton.setAttribute("aria-pressed", String(musicEnabled));
+      effectToggleButton.setAttribute("aria-pressed", String(soundEnabled));
+      pauseEffectButton.setAttribute("aria-pressed", String(soundEnabled));
+      voiceToggleButton.setAttribute("aria-pressed", String(voiceEnabled));
+      pauseVoiceButton.setAttribute("aria-pressed", String(voiceEnabled));
+      syncVolumeControls();
     }
 
     function applyTheme(theme) {
@@ -873,7 +950,7 @@
 
     function setPauseReady(enabled) {
       pauseButton.disabled = !enabled;
-      pauseButton.textContent = isPaused ? TEXT.resume : TEXT.pause;
+      pauseButton.textContent = TEXT.pause;
     }
 
     function clearBetweenTimer() {
@@ -1491,6 +1568,17 @@
       resumeGame();
     }
 
+    function bindVolumeSliders(sliders, updateVolume) {
+      sliders.forEach((slider) => {
+        if (!slider) return;
+        slider.addEventListener("input", () => {
+          updateVolume(normalizeVolume(slider.value));
+          applyAudioVolumes();
+          syncVolumeControls();
+        });
+      });
+    }
+
     document.addEventListener("click", (event) => {
       const button = event.target.closest("button");
       if (!button || button.disabled) return;
@@ -1646,7 +1734,7 @@
     exitButton.addEventListener("click", () => {
       sendAbandonedResult("user_exit");
       pauseModal.classList.remove("open");
-      returnToHub("user_exit");
+      returnToInitialScreen();
     });
     pauseMusicButton.addEventListener("click", () => {
       musicEnabled = !musicEnabled;
@@ -1674,8 +1762,18 @@
       returnToHub("home_confirm");
     });
     homeNoButton.addEventListener("click", closeHomeConfirm);
+    bindVolumeSliders([musicVolumeSlider, pauseMusicVolumeSlider], (volume) => {
+      musicVolume = volume;
+    });
+    bindVolumeSliders([effectVolumeSlider, pauseEffectVolumeSlider], (volume) => {
+      soundVolume = volume;
+    });
+    bindVolumeSliders([voiceVolumeSlider, pauseVoiceVolumeSlider], (volume) => {
+      voiceVolume = volume;
+    });
 
     applyTheme(currentTheme);
+    applyAudioVolumes();
     syncAudioButtons();
     setDifficulty(currentDifficulty);
     difficultyModal.classList.remove("open");

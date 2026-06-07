@@ -23,6 +23,20 @@ html.mobile-standalone .app {
   min-height: var(--app-height, 100dvh) !important;
 }
 
+.mobile-fullscreen-button {
+  width: 100%;
+}
+
+.mobile-fullscreen-button:focus-visible {
+  outline: 4px solid #ffe37a;
+  outline-offset: 3px;
+}
+
+.mobile-fullscreen-button[hidden],
+html.mobile-standalone .mobile-fullscreen-button {
+  display: none !important;
+}
+
 @supports (-webkit-touch-callout: none) {
   html.mobile-standalone,
   html.mobile-standalone body {

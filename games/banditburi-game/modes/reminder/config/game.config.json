@@ -30,10 +30,10 @@
   },
   "runtimeConfig": {
     "show_timer": true,
-    "show_score": false,
+    "show_score": true,
     "show_difficulty_select": false,
-    "show_settings": false,
-    "show_how_to_play": false,
+    "show_settings": true,
+    "show_how_to_play": true,
     "show_condition_check": false,
     "show_finish_check": false,
     "question_count": 5,
@@ -48,6 +48,9 @@
     "auto_return_url": "file:///C:/Users/juhye/OneDrive/Desktop/senior-care-game-hub/index.html",
     "soft_feedback": false,
     "voice_guide_enabled": true,
+    "music_volume": 70,
+    "effect_volume": 100,
+    "voice_volume": 100,
     "high_contrast": false,
     "result_log_level": "summary"
   },

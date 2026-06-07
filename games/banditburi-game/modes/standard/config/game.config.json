@@ -47,6 +47,9 @@
     "auto_return": false,
     "soft_feedback": false,
     "voice_guide_enabled": true,
+    "music_volume": 70,
+    "effect_volume": 100,
+    "voice_volume": 100,
     "high_contrast": false,
     "result_log_level": "standard"
   },

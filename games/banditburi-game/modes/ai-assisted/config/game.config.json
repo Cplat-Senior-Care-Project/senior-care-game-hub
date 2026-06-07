@@ -29,7 +29,7 @@
     "show_timer": false,
     "show_score": false,
     "show_difficulty_select": false,
-    "show_settings": false,
+    "show_settings": true,
     "show_how_to_play": false,
     "show_condition_check": false,
     "show_finish_check": false,
@@ -50,6 +50,9 @@
     "flash_effect_level": "low",
     "high_contrast": true,
     "voice_guide_enabled": true,
+    "music_volume": 70,
+    "effect_volume": 100,
+    "voice_volume": 100,
     "result_log_level": "detailed"
   },
   "runtimeConfigNote": "이 파일의 runtimeConfig 값을 수정하면 AI 연동 모드 실행에 반영됩니다."
