@@ -21,10 +21,12 @@
   const ITEM_GLOW_ASSET_VERSION = "20260607-strong-glow";
   const STATIC_IMAGE_ASSETS = Object.freeze([
     "assets/images/background2.webp",
+    "assets/images/play_background.webp",
     "assets/images/title2.webp",
     "assets/images/ui-touch2.webp",
     "assets/images/ui-drag2.webp",
-    "assets/images/basket.webp"
+    "assets/images/stand2.webp",
+    "assets/images/basket2.webp"
   ]);
   const HUD_DIFFICULTIES = Object.freeze({
     easy: { index: 0, label: "\uC26C\uC6C0", runner: "\uD83D\uDE42" },
@@ -33,18 +35,16 @@
   });
 
   const SHOPPING_ITEMS = Object.freeze([
-    { id: "apple", name: "사과", image: `assets/images/item-cutout-apple-glow.webp?v=${ITEM_GLOW_ASSET_VERSION}`, category: "fruit", shape: "round", color: "red" },
-    { id: "banana", name: "바나나", image: `assets/images/item-cutout-banana-glow.webp?v=${ITEM_GLOW_ASSET_VERSION}`, category: "fruit", shape: "long", color: "yellow" },
-    { id: "orange", name: "오렌지", image: `assets/images/item-cutout-orange-glow.webp?v=${ITEM_GLOW_ASSET_VERSION}`, category: "fruit", shape: "round", color: "orange" },
-    { id: "watermelon", name: "수박", image: `assets/images/item-cutout-watermelon-glow.webp?v=${ITEM_GLOW_ASSET_VERSION}`, category: "fruit", shape: "round", color: "green" },
-    { id: "milk", name: "우유", image: `assets/images/item-cutout-milk-glow.webp?v=${ITEM_GLOW_ASSET_VERSION}`, category: "drink", shape: "box", color: "white" },
-    { id: "bread", name: "빵", image: `assets/images/item-cutout-bread-glow.webp?v=${ITEM_GLOW_ASSET_VERSION}`, category: "food", shape: "box", color: "brown" },
-    { id: "egg", name: "달걀", image: `assets/images/item-cutout-egg-glow.webp?v=${ITEM_GLOW_ASSET_VERSION}`, category: "food", shape: "round", color: "white" },
-    { id: "cheese", name: "치즈", image: `assets/images/item-cutout-cheese-glow.webp?v=${ITEM_GLOW_ASSET_VERSION}`, category: "food", shape: "box", color: "yellow" },
-    { id: "carrot", name: "당근", image: `assets/images/item-cutout-carrot-glow.webp?v=${ITEM_GLOW_ASSET_VERSION}`, category: "vegetable", shape: "long", color: "orange" },
-    { id: "vegetable", name: "채소", image: `assets/images/item-cutout-vegetable-glow.webp?v=${ITEM_GLOW_ASSET_VERSION}`, category: "vegetable", shape: "leaf", color: "green" },
-    { id: "fish", name: "생선", image: `assets/images/item-cutout-fish-glow.webp?v=${ITEM_GLOW_ASSET_VERSION}`, category: "meat", shape: "long", color: "blue" },
-    { id: "meat", name: "고기", image: `assets/images/item-cutout-meat-glow.webp?v=${ITEM_GLOW_ASSET_VERSION}`, category: "meat", shape: "box", color: "red" }
+    { id: "apple", name: "사과", image: `assets/images/item-cutout-apple-glow.webp?v=${ITEM_GLOW_ASSET_VERSION}`, choiceImage: "assets/images/apple.webp", category: "fruit", shape: "round", color: "red" },
+    { id: "banana", name: "바나나", image: `assets/images/item-cutout-banana-glow.webp?v=${ITEM_GLOW_ASSET_VERSION}`, choiceImage: "assets/images/banana.webp", category: "fruit", shape: "long", color: "yellow" },
+    { id: "orange", name: "오렌지", image: `assets/images/item-cutout-orange-glow.webp?v=${ITEM_GLOW_ASSET_VERSION}`, choiceImage: "assets/images/orange.webp", category: "fruit", shape: "round", color: "orange" },
+    { id: "watermelon", name: "수박", image: `assets/images/item-cutout-watermelon-glow.webp?v=${ITEM_GLOW_ASSET_VERSION}`, choiceImage: "assets/images/watermelon.webp", category: "fruit", shape: "round", color: "green" },
+    { id: "bread", name: "빵", image: `assets/images/item-cutout-bread-glow.webp?v=${ITEM_GLOW_ASSET_VERSION}`, choiceImage: "assets/images/bread.webp", category: "food", shape: "box", color: "brown" },
+    { id: "cheese", name: "치즈", image: `assets/images/item-cutout-cheese-glow.webp?v=${ITEM_GLOW_ASSET_VERSION}`, choiceImage: "assets/images/cheese.webp", category: "food", shape: "box", color: "yellow" },
+    { id: "carrot", name: "당근", image: `assets/images/item-cutout-carrot-glow.webp?v=${ITEM_GLOW_ASSET_VERSION}`, choiceImage: "assets/images/carrot.webp", category: "vegetable", shape: "long", color: "orange" },
+    { id: "vegetable", name: "채소", image: `assets/images/item-cutout-vegetable-glow.webp?v=${ITEM_GLOW_ASSET_VERSION}`, choiceImage: "assets/images/baechu.webp", category: "vegetable", shape: "leaf", color: "green" },
+    { id: "fish", name: "생선", image: `assets/images/item-cutout-fish-glow.webp?v=${ITEM_GLOW_ASSET_VERSION}`, choiceImage: "assets/images/fish.webp", category: "meat", shape: "long", color: "blue" },
+    { id: "meat", name: "고기", image: `assets/images/item-cutout-meat-glow.webp?v=${ITEM_GLOW_ASSET_VERSION}`, choiceImage: "assets/images/meat.webp", category: "meat", shape: "box", color: "red" }
   ]);
 
   const DEFAULT_DIFFICULTIES = Object.freeze({
@@ -73,8 +73,8 @@
   });
 
   const TUTORIAL_STEPS = Object.freeze([
-    { message: "잠깐 보여주는 물건을 기억해주세요.", previewIds: ["apple", "milk", "bread"] },
-    { message: "물건이 사라지면 같은 물건을 찾아 장바구니에 담아주세요.", previewIds: ["banana", "carrot", "egg"] },
+    { message: "잠깐 보여주는 물건을 기억해주세요.", previewIds: ["apple", "orange", "bread"] },
+    { message: "물건이 사라지면 같은 물건을 찾아 장바구니에 담아주세요.", previewIds: ["banana", "carrot", "vegetable"] },
     { message: "힌트가 필요하면 힌트 버튼을 눌러 천천히 확인할 수 있어요.", previewIds: ["cheese", "fish", "meat"] }
   ]);
 
@@ -87,7 +87,7 @@
     errorTitle: $("error-title"), errorMessage: $("error-message"), startButton: $("start-button"), startExitButton: $("start-exit-button"), settingsButton: $("settings-button"), tutorialButton: $("tutorial-button"),
     difficultyButtons: Array.from(document.querySelectorAll("[data-difficulty], [data-difficulty-index]")), difficultyBackButton: $("difficulty-back-button"), playArea: $("play-area"), hintButton: $("hint-button"), dragGhost: $("drag-ghost"),
     pauseButton: $("pause-button"), pauseModal: $("pause-modal"), resumeButton: $("resume-button"), pauseRestartButton: $("pause-restart-button"), pauseQuitButton: $("home-button"), pauseHelpButton: $("pause-help-button"),
-    roundLabel: $("round-label"), timeLeft: $("time-left"), timerBox: $("timer-box"), scoreLabel: $("score-label"), difficultyLabel: $("difficulty-label"), stageLabel: $("stage-label"), raceWrap: document.querySelector(".race-wrap"), raceMarker: $("race-marker"), raceSteps: Array.from(document.querySelectorAll(".race-step")), resultEmoji: $("result-emoji"), resultTitle: $("result-title"), resultMessage: $("result-message"), resultCorrect: $("result-correct"), resultTotal: $("result-total"), resultHintCount: $("result-hint-count"), resultRate: $("result-rate"), resultCompare: $("result-compare"),
+    roundLabel: $("round-label"), timeLeft: $("time-left"), timerBox: $("timer-box"), scoreLabel: $("score-label"), hudLevelLabel: $("hud-level-label"), difficultyLabel: $("difficulty-label"), stageLabel: $("stage-label"), raceWrap: document.querySelector(".race-wrap"), raceMarker: $("race-marker"), raceSteps: Array.from(document.querySelectorAll(".race-step")), resultEmoji: $("result-emoji"), resultTitle: $("result-title"), resultMessage: $("result-message"), resultCorrect: $("result-correct"), resultTotal: $("result-total"), resultHintCount: $("result-hint-count"), resultRate: $("result-rate"), resultCompare: $("result-compare"),
     restartButton: $("restart-button"), resultStartButton: $("result-start-button"), resultHomeButton: $("result-home-button"), errorHomeButton: $("error-home-button"),
     conditionModal: $("condition-modal"), conditionButtons: Array.from(document.querySelectorAll("[data-mood]")), conditionSleepDial: document.querySelector(".condition-sleep-dial"), conditionSleepRows: $("condition-sleep-rows"), conditionSleepUpButton: $("condition-sleep-up-button"), conditionSleepDownButton: $("condition-sleep-down-button"), conditionSkipButton: $("condition-skip-button"), conditionConfirmButton: $("condition-confirm-button"),
     postConditionModal: $("post-condition-modal"), postConditionPages: Array.from(document.querySelectorAll(".post-condition-page")), postConditionDots: Array.from(document.querySelectorAll(".post-condition-dot")), postConditionOptions: Array.from(document.querySelectorAll(".post-condition-option")), postConditionSkipButton: $("post-condition-skip-button"), postConditionNextButton: $("post-condition-next-button"), postConditionBackButton: $("post-condition-back-button"), postConditionConfirmButton: $("post-condition-confirm-button"),
@@ -131,8 +131,8 @@
     const verticalGutter = Math.max(0, (viewportHeight - (STAGE_HEIGHT * scale)) / (2 * scale));
     const horizontalGutter = Math.max(0, (viewportWidth - (STAGE_WIDTH * scale)) / (2 * scale));
     document.documentElement.style.setProperty("--game-scale", String(scale));
-    document.documentElement.style.setProperty("--game-viewport-top-gutter", `${Math.min(verticalGutter, 120)}px`);
-    document.documentElement.style.setProperty("--game-viewport-side-gutter", `${Math.min(horizontalGutter, 120)}px`);
+    document.documentElement.style.setProperty("--game-viewport-top-gutter", `${verticalGutter}px`);
+    document.documentElement.style.setProperty("--game-viewport-side-gutter", `${horizontalGutter}px`);
   }
 
   function uniqueValues(values) {
@@ -179,7 +179,7 @@
     if (!preloadGameAssetsPromise) {
       preloadGameAssetsPromise = preloadImages([
         ...STATIC_IMAGE_ASSETS,
-        ...SHOPPING_ITEMS.map((item) => item.image)
+        ...SHOPPING_ITEMS.flatMap((item) => [item.image, item.choiceImage])
       ]);
     }
     return preloadGameAssetsPromise;
@@ -188,9 +188,10 @@
   function warmQuestionAssets(question) {
     if (!question) return preloadGameAssets();
     return preloadImages([
-      "assets/images/basket.webp",
-      ...question.targetItems.map((item) => item.image),
-      ...question.choiceItems.map((item) => item.image)
+      "assets/images/stand2.webp",
+      "assets/images/basket2.webp",
+      ...question.targetItems.flatMap((item) => [item.image, item.choiceImage]),
+      ...question.choiceItems.flatMap((item) => [item.image, item.choiceImage])
     ]);
   }
 
@@ -303,6 +304,7 @@
     if (name === "result") els.resultScreen.classList.remove("is-hidden");
     if (name === "error") els.errorScreen.classList.remove("is-hidden");
     document.body.dataset.screen = name;
+    if (name !== "game") delete document.body.dataset.gamePhase;
     if (els.app) els.app.dataset.screen = name;
   }
 
@@ -312,6 +314,7 @@
   function getTotalQuestions() { return Math.max(1, runtimeConfig ? runtimeConfig.totalQuestions : 10); }
   function escapeHtml(value) { return String(value).replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;"); }
   function findItem(id) { return SHOPPING_ITEMS.find((item) => item.id === id) || null; }
+  function getChoiceImage(item) { return item && (item.choiceImage || item.image); }
   function shuffle(items) { const result = [...items]; for (let i = result.length - 1; i > 0; i -= 1) { const j = Math.floor(Math.random() * (i + 1)); [result[i], result[j]] = [result[j], result[i]]; } return result; }
   function similarity(a, b) { return Number(a.category === b.category) + Number(a.shape === b.shape) + Number(a.color === b.color); }
   function cohesion(items) { if (items.length < 2) return 0; let score = 0, pairs = 0; for (let i = 0; i < items.length; i += 1) for (let j = i + 1; j < items.length; j += 1) { score += similarity(items[i], items[j]); pairs += 1; } return score / pairs; }
@@ -452,7 +455,13 @@
   }
   function updateTopUi() {
     const difficulty = getHudDifficulty();
-    if (els.difficultyLabel) els.difficultyLabel.textContent = "\uD83E\uDDE0 \uAE30\uC5B5 \uD65C\uB3D9";
+    const mission = state.phase === "question"
+      ? "\uC544\uB798 \uBB3C\uAC74\uC744 \uC7A5\uBC14\uAD6C\uB2C8\uC5D0 \uB2F4\uC544\uC8FC\uC138\uC694!"
+      : state.phase === "transition"
+        ? "\uC7A0\uC2DC \uD6C4 \uBB3C\uAC74\uC744 \uCC3E\uC544\uC8FC\uC138\uC694!"
+        : "\uC544\uB798 \uBB3C\uAC74\uC744 \uAE30\uC5B5\uD574\uC8FC\uC138\uC694!";
+    if (els.difficultyLabel) els.difficultyLabel.textContent = mission;
+    if (els.hudLevelLabel) els.hudLevelLabel.textContent = `Lv. ${difficulty.index + 1}`;
     if (els.stageLabel) els.stageLabel.textContent = difficulty.label;
     if (els.timeLeft) els.timeLeft.textContent = formatTime(state.remainingSeconds);
     if (els.timerBox) els.timerBox.classList.toggle("is-low", state.remainingSeconds <= 10);
@@ -532,6 +541,8 @@
   }
 
   function renderMemory() {
+    document.body.dataset.gamePhase = "memory";
+    updateTopUi();
     const targets = state.question.targetItems;
     const title = "기억할 물건을 잘 보세요!";
     const cards = targets.map((item) => `<div class="fruit-card" aria-label="${escapeHtml(item.name)}"><img class="fruit-image" src="${item.image}" alt="" draggable="false" loading="eager" decoding="async"></div>`).join("");
@@ -611,25 +622,26 @@
   }
 
   function renderTransition() {
+    document.body.dataset.gamePhase = "transition";
+    updateTopUi();
     const itemName = state.question.targetItems.length === 1 ? state.question.targetItems[0].name : "물건들";
     const title = isCareMode() ? `좋아요. 이제 ${itemName}을 찾아볼까요?` : "이제 장바구니에 담아볼까요?";
     els.playArea.innerHTML = `<section class="shop-round"><div class="transition-card"><div class="transition-icon" aria-hidden="true">🧺</div><h2 class="round-title">${escapeHtml(title)}</h2><p class="round-kicker">양쪽에서 같은 물건을 찾아주세요</p></div></section>`;
   }
   function renderQuestion() {
+    document.body.dataset.gamePhase = "question";
+    updateTopUi();
     const question = state.question;
     const remainingTargetIds = new Set(question.targetItems.map((item) => item.id));
     state.selectedIds.forEach((id) => remainingTargetIds.delete(id));
     const prompt = "장바구니에 담아주세요";
-    const splitIndex = Math.ceil(question.choiceItems.length / 2);
     const renderChoiceCards = (items) => items.map((item) => {
       const selected = state.selectedIds.includes(item.id);
       const wrong = state.wrongSelectedIds.includes(item.id);
       const hinted = question.hintUsed && remainingTargetIds.has(item.id);
-      return `<button class="choice-card ${selected ? "is-selected" : ""} ${wrong ? "is-wrong" : ""} ${hinted ? "is-hinted" : ""}" type="button" data-item-id="${item.id}" aria-label="${escapeHtml(item.name)}" ${selected ? "disabled" : ""}><img src="${item.image}" alt="" draggable="false" loading="eager" decoding="async"></button>`;
+      return `<button class="choice-card ${selected ? "is-selected" : ""} ${wrong ? "is-wrong" : ""} ${hinted ? "is-hinted" : ""}" type="button" data-item-id="${item.id}" aria-label="${escapeHtml(item.name)}" ${selected ? "disabled" : ""}><img src="${getChoiceImage(item)}" alt="" draggable="false" loading="eager" decoding="async"></button>`;
     }).join("");
-    const leftItems = question.choiceItems.slice(0, splitIndex);
-    const rightItems = question.choiceItems.slice(splitIndex);
-    els.playArea.innerHTML = `<section class="shop-round question-round"><div class="question-board"><div class="choice-layout"><section class="shelf-zone is-left" aria-label="왼쪽 물건 선택"><h3 class="choice-panel-title"><span aria-hidden="true">☘</span><span>물건 선택</span><span aria-hidden="true">☘</span></h3><div class="choice-grid" data-choice-count="${question.choiceItems.length}" data-shelf-count="${leftItems.length}">${renderChoiceCards(leftItems)}</div></section><div class="basket-zone" data-basket-drop-zone="true"><h2 class="round-title basket-prompt">${escapeHtml(prompt)}</h2><div class="basket-image-wrap ${state.collectedItems.length ? "is-bounce" : ""}"><img class="basket-image" src="assets/images/basket.webp" alt="장바구니" draggable="false" loading="eager" decoding="async"><div class="basket-collected">${state.collectedItems.map((item) => `<img src="${item.image}" alt="" draggable="false" loading="eager" decoding="async" data-item-id="${item.id}">`).join("")}</div></div></div><section class="shelf-zone is-right" aria-label="오른쪽 물건 선택"><h3 class="choice-panel-title"><span aria-hidden="true">☘</span><span>물건 선택</span><span aria-hidden="true">☘</span></h3><div class="choice-grid" data-choice-count="${question.choiceItems.length}" data-shelf-count="${rightItems.length}">${renderChoiceCards(rightItems)}</div></section></div></div></section>`;
+    els.playArea.innerHTML = `<section class="shop-round question-round"><div class="question-board"><div class="choice-layout"><section class="shelf-zone" aria-label="물건 선택"><img class="shelf-image" src="assets/images/stand2.webp" alt="" draggable="false" loading="eager" decoding="async"><div class="choice-grid" data-choice-count="${question.choiceItems.length}">${renderChoiceCards(question.choiceItems)}</div></section><div class="basket-zone" data-basket-drop-zone="true"><h2 class="round-title basket-prompt">${escapeHtml(prompt)}</h2><div class="basket-image-wrap ${state.collectedItems.length ? "is-bounce" : ""}"><img class="basket-image" src="assets/images/basket2.webp" alt="장바구니" draggable="false" loading="eager" decoding="async"><div class="basket-collected">${state.collectedItems.map((item) => `<img src="${getChoiceImage(item)}" alt="" draggable="false" loading="eager" decoding="async" data-item-id="${item.id}">`).join("")}</div></div></div></div></div></section>`;
     els.hintButton.classList.toggle("is-hidden", runtimeConfig.hintEnabled === false);
   }
 
@@ -666,7 +678,7 @@
     const collected = els.playArea.querySelector(".basket-collected");
     if (!collected || collected.querySelector(`[data-item-id="${item.id}"]`)) return;
     const image = document.createElement("img");
-    image.src = item.image;
+    image.src = getChoiceImage(item);
     image.alt = "";
     image.draggable = false;
     image.loading = "eager";
@@ -727,7 +739,7 @@
   }
 
   function showDragGhost(session, clientX, clientY) {
-    els.dragGhost.innerHTML = `<img src="${session.item.image}" alt="" loading="eager" decoding="async">`;
+    els.dragGhost.innerHTML = `<img src="${getChoiceImage(session.item)}" alt="" loading="eager" decoding="async">`;
     els.dragGhost.style.width = `${Math.max(44, session.width)}px`;
     els.dragGhost.style.height = `${Math.max(44, session.height)}px`;
     placeDragGhost(session, clientX, clientY);
@@ -771,7 +783,7 @@
     const midY = Math.min(startY, targetY) - arcLift;
 
     flyItem.className = "basket-fly-item";
-    flyItem.src = item.image;
+    flyItem.src = getChoiceImage(item);
     flyItem.alt = "";
     flyItem.draggable = false;
     flyItem.decoding = "async";

@@ -18,20 +18,23 @@
       var verticalGutter = Math.max(0, (viewportHeight - (stageHeight * scale)) / (2 * scale));
       var horizontalGutter = Math.max(0, (viewportWidth - (stageWidth * scale)) / (2 * scale));
       document.documentElement.style.setProperty("--game-scale", String(scale));
-      document.documentElement.style.setProperty("--game-viewport-top-gutter", String(Math.min(verticalGutter, 120)) + "px");
-      document.documentElement.style.setProperty("--game-viewport-side-gutter", String(Math.min(horizontalGutter, 120)) + "px");
+      document.documentElement.style.setProperty("--game-viewport-top-gutter", String(verticalGutter) + "px");
+      document.documentElement.style.setProperty("--game-viewport-side-gutter", String(horizontalGutter) + "px");
     })();
   </script>
-  <link rel="stylesheet" href="css/base.css?v=20260607-webp-preload">
+  <link rel="stylesheet" href="css/base.css?v=20260608-play-background">
   <link rel="stylesheet" href="css/start.css?v=20260607-loading-brown">
   <link rel="stylesheet" href="css/difficulty.css?v=20260605">
-  <link rel="stylesheet" href="css/game-screen.css?v=20260607-lower-basket-timer-color">
+  <link rel="stylesheet" href="css/game-screen.css?v=20260608-responsive-status-bar">
   <link rel="stylesheet" href="css/result.css?v=20260605">
   <link rel="stylesheet" href="css/condition.css?v=20260605">
   <link rel="stylesheet" href="css/tutorial-settings-pause.css?v=20260607-pause-ui">
   <link rel="stylesheet" href="css/accessibility.css?v=20260605">
   <link rel="preload" as="image" href="assets/images/background2.webp" fetchpriority="high">
+  <link rel="preload" as="image" href="assets/images/play_background.webp">
   <link rel="preload" as="image" href="assets/images/title2.webp" fetchpriority="high">
+  <link rel="preload" as="image" href="assets/images/stand2.webp">
+  <link rel="preload" as="image" href="assets/images/basket2.webp">
 </head>
 <body data-screen="start" data-loading="true">
   <div class="game-background" aria-hidden="true"></div>
@@ -117,6 +120,9 @@
         </div>
 
         <div class="info-bar">
+          <div class="hud-level-pill" aria-label="현재 레벨">
+            <strong id="hud-level-label">Lv. 1</strong>
+          </div>
           <div id="timer-box" class="info-pill timer-pill">
             <span class="info-icon timer-icon" aria-hidden="true"></span>
             <span class="info-copy">
@@ -124,12 +130,16 @@
               <strong id="time-left">02:00</strong>
             </span>
           </div>
-          <div class="info-pill difficulty-pill">
+          <div class="info-pill difficulty-pill hud-mission-pill">
             <span class="info-icon level-icon" aria-hidden="true"><i></i><i></i><i></i></span>
             <span class="info-copy">
-              <strong id="difficulty-label">🧠 기억 활동</strong>
+              <strong id="difficulty-label">물건을 기억해주세요!</strong>
               <strong id="stage-label" class="sr-only">쉬움</strong>
             </span>
+          </div>
+          <div class="hud-score-pill" aria-label="점수">
+            <span class="hud-score-star" aria-hidden="true">★</span>
+            <strong id="score-label">0</strong>
           </div>
           <button id="pause-button" class="game-button icon-button" type="button" aria-label="일시정지">
             <span class="pause-symbol" aria-hidden="true"></span>
@@ -456,6 +466,6 @@
   </script>
   <script src="js/config-normalizer.js?v=20260605"></script>
   <script src="js/app-bridge.js?v=20260605"></script>
-  <script src="js/game.js?v=20260607-side-card-panels"></script>
+  <script src="js/game.js?v=20260608-responsive-status-bar"></script>
 </body>
 </html>
