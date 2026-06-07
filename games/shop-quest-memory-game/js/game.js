@@ -24,8 +24,6 @@
     "assets/images/title2.webp",
     "assets/images/ui-touch2.webp",
     "assets/images/ui-drag2.webp",
-    "assets/images/left_stand.webp",
-    "assets/images/right_stand.webp",
     "assets/images/basket.webp"
   ]);
   const HUD_DIFFICULTIES = Object.freeze({
@@ -190,8 +188,6 @@
   function warmQuestionAssets(question) {
     if (!question) return preloadGameAssets();
     return preloadImages([
-      "assets/images/left_stand.webp",
-      "assets/images/right_stand.webp",
       "assets/images/basket.webp",
       ...question.targetItems.map((item) => item.image),
       ...question.choiceItems.map((item) => item.image)
@@ -617,7 +613,7 @@
   function renderTransition() {
     const itemName = state.question.targetItems.length === 1 ? state.question.targetItems[0].name : "물건들";
     const title = isCareMode() ? `좋아요. 이제 ${itemName}을 찾아볼까요?` : "이제 장바구니에 담아볼까요?";
-    els.playArea.innerHTML = `<section class="shop-round"><div class="transition-card"><div class="transition-icon" aria-hidden="true">🧺</div><h2 class="round-title">${escapeHtml(title)}</h2><p class="round-kicker">진열대에서 같은 물건을 찾아주세요</p></div></section>`;
+    els.playArea.innerHTML = `<section class="shop-round"><div class="transition-card"><div class="transition-icon" aria-hidden="true">🧺</div><h2 class="round-title">${escapeHtml(title)}</h2><p class="round-kicker">양쪽에서 같은 물건을 찾아주세요</p></div></section>`;
   }
   function renderQuestion() {
     const question = state.question;
@@ -633,7 +629,7 @@
     }).join("");
     const leftItems = question.choiceItems.slice(0, splitIndex);
     const rightItems = question.choiceItems.slice(splitIndex);
-    els.playArea.innerHTML = `<section class="shop-round question-round"><div class="question-board"><div class="choice-layout"><div class="shelf-zone is-left"><img class="shelf-image" src="assets/images/left_stand.webp" alt="" draggable="false" loading="eager" decoding="async"><div class="choice-grid" data-choice-count="${question.choiceItems.length}" data-shelf-count="${leftItems.length}">${renderChoiceCards(leftItems)}</div></div><div class="basket-zone" data-basket-drop-zone="true"><h2 class="round-title basket-prompt">${escapeHtml(prompt)}</h2><div class="basket-image-wrap ${state.collectedItems.length ? "is-bounce" : ""}"><img class="basket-image" src="assets/images/basket.webp" alt="장바구니" draggable="false" loading="eager" decoding="async"><div class="basket-collected">${state.collectedItems.map((item) => `<img src="${item.image}" alt="" draggable="false" loading="eager" decoding="async" data-item-id="${item.id}">`).join("")}</div></div></div><div class="shelf-zone is-right"><img class="shelf-image" src="assets/images/right_stand.webp" alt="" draggable="false" loading="eager" decoding="async"><div class="choice-grid" data-choice-count="${question.choiceItems.length}" data-shelf-count="${rightItems.length}">${renderChoiceCards(rightItems)}</div></div></div></div></section>`;
+    els.playArea.innerHTML = `<section class="shop-round question-round"><div class="question-board"><div class="choice-layout"><section class="shelf-zone is-left" aria-label="왼쪽 물건 선택"><h3 class="choice-panel-title"><span aria-hidden="true">☘</span><span>물건 선택</span><span aria-hidden="true">☘</span></h3><div class="choice-grid" data-choice-count="${question.choiceItems.length}" data-shelf-count="${leftItems.length}">${renderChoiceCards(leftItems)}</div></section><div class="basket-zone" data-basket-drop-zone="true"><h2 class="round-title basket-prompt">${escapeHtml(prompt)}</h2><div class="basket-image-wrap ${state.collectedItems.length ? "is-bounce" : ""}"><img class="basket-image" src="assets/images/basket.webp" alt="장바구니" draggable="false" loading="eager" decoding="async"><div class="basket-collected">${state.collectedItems.map((item) => `<img src="${item.image}" alt="" draggable="false" loading="eager" decoding="async" data-item-id="${item.id}">`).join("")}</div></div></div><section class="shelf-zone is-right" aria-label="오른쪽 물건 선택"><h3 class="choice-panel-title"><span aria-hidden="true">☘</span><span>물건 선택</span><span aria-hidden="true">☘</span></h3><div class="choice-grid" data-choice-count="${question.choiceItems.length}" data-shelf-count="${rightItems.length}">${renderChoiceCards(rightItems)}</div></section></div></div></section>`;
     els.hintButton.classList.toggle("is-hidden", runtimeConfig.hintEnabled === false);
   }
 
