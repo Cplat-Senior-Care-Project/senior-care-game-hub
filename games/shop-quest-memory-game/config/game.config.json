@@ -11,7 +11,7 @@
   "description": "잠깐 본 장보기 물건을 기억한 뒤 같은 물건을 장바구니에 담는 기억 활동 게임",
   "durationSeconds": 120,
   "totalQuestions": 10,
-  "revealMs": 3600,
+  "revealMs": 3000,
   "defaultDifficulty": null,
   "soundEnabled": true,
   "voiceGuideEnabled": true,
@@ -22,8 +22,8 @@
   "useDrag": true,
   "autoAddToCart": true,
   "difficulties": {
-    "easy": { "label": "쉬움", "memoryItemCount": 1, "answerChoiceCount": 2, "revealMs": 4200 },
-    "normal": { "label": "보통", "memoryItemCount": 2, "answerChoiceCount": 4, "revealMs": 3600 },
-    "hard": { "label": "어려움", "memoryItemCount": 3, "answerChoiceCount": 6, "revealMs": 3200 }
+    "easy": { "label": "쉬움", "memoryItemCount": 1, "answerChoiceCount": 2, "revealMs": 3000 },
+    "normal": { "label": "보통", "memoryItemCount": 2, "answerChoiceCount": 4, "revealMs": 3000 },
+    "hard": { "label": "어려움", "memoryItemCount": 3, "answerChoiceCount": 6, "revealMs": 3000 }
   }
 }

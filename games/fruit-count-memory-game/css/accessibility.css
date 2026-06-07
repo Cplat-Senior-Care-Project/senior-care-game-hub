@@ -1,4 +1,42 @@
 /* Accessibility States */
+@media (hover: none) and (pointer: coarse), (max-width: 960px), (max-height: 540px) {
+  :root {
+    --text-stroke: 0.36px;
+  }
+
+  html,
+  body,
+  .app,
+  .screen,
+  .game-button,
+  .difficulty-option,
+  .fruit-card,
+  .number-button,
+  .modal-card,
+  img {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+
+  img,
+  .game-background,
+  .start-title-image,
+  .fruit-image {
+    -webkit-user-drag: none;
+    user-drag: none;
+  }
+
+  .start-screen .subtitle {
+    -webkit-text-stroke-width: 1.1px;
+  }
+
+  .start-screen .primary-button,
+  .start-screen .primary-button > span:first-child {
+    -webkit-text-stroke-width: 3.2px;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
