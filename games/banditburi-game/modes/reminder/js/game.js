@@ -360,8 +360,11 @@
     let hintSecondsLeft = 5;
     const maxRounds = Math.max(1, Number(appliedGameConfig.question_count) || 10);
     const roundTimeLimit = Math.max(0, Number(appliedGameConfig.round_time_limit_sec) || 0);
-    const autoReturnDelayMs = Math.max(0, Number(appliedGameConfig.auto_return_delay_ms) || 3000);
-    const autoReturnUrl = appliedGameConfig.auto_return_url || "file:///C:/Users/juhye/OneDrive/Desktop/senior-care-game-hub/index.html";
+    const autoReturnDelayMs = Math.max(0, Number(appliedGameConfig.auto_return_delay_ms) || 0);
+    const configuredHubReturnUrl =
+      appliedGameConfig.return_url ||
+      appliedGameConfig.auto_return_url ||
+      "file:///C:/Users/juhye/OneDrive/Desktop/senior-care-game-hub/index.html";
     const gameSchemaVersion = "1.0.0";
     let gameSessionId = defaultGameConfig.sessionId || `local-${Date.now()}`;
     let gameTelemetry = null;
@@ -1395,6 +1398,25 @@
       }
     }
 
+    function resolveHubReturnUrl() {
+      const marker = "/games/banditburi-game/";
+      const configuredUrl = String(configuredHubReturnUrl || "");
+      const isHostedPage = window.location.protocol === "http:" || window.location.protocol === "https:";
+      if (isHostedPage && configuredUrl.startsWith("file:") && window.location.pathname.includes(marker)) {
+        const hubPath = `${window.location.pathname.split(marker)[0]}/index.html`;
+        return `${window.location.origin}${hubPath}`;
+      }
+      if (isHostedPage && configuredUrl.startsWith("file:")) {
+        const reminderMarker = "/modes/reminder/";
+        if (window.location.pathname.includes(reminderMarker)) {
+          const hubPath = `${window.location.pathname.split(reminderMarker)[0]}/index.html`;
+          return `${window.location.origin}${hubPath}`;
+        }
+        return new URL("../../index.html", window.location.href).href;
+      }
+      return configuredUrl || "../../index.html";
+    }
+
     function scheduleAutoReturnAfterVoice(voicePromise) {
       if (!appliedGameConfig.auto_return) return;
       clearAutoReturnTimer();
@@ -1409,8 +1431,12 @@
 
     function requestActivityReturn(reason) {
       sendGameMessage({ type: "GAME_RETURN_REQUESTED", reason });
-      if (autoReturnUrl) {
-        window.location.assign(autoReturnUrl);
+      const hubReturnUrl = resolveHubReturnUrl();
+      if (!hubReturnUrl) return;
+      try {
+        window.location.assign(hubReturnUrl);
+      } catch (error) {
+        window.location.href = hubReturnUrl;
       }
     }
 
