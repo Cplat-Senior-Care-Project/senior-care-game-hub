@@ -21,7 +21,7 @@
     answerChoiceCount: 4,
     memoryItemCount: null,
     maxItemsToRemember: 3,
-    revealMs: 3500,
+    revealMs: 3000,
     soundEnabled: true,
     voiceGuideEnabled: true,
     collectCondition: true,
@@ -46,9 +46,9 @@
       showFinishCheck: true
     },
     difficulties: {
-      easy: { label: "쉬움", memoryItemCount: 1, answerChoiceCount: 2, revealMs: 4200 },
-      normal: { label: "보통", memoryItemCount: 2, answerChoiceCount: 4, revealMs: 3600 },
-      hard: { label: "어려움", memoryItemCount: 3, answerChoiceCount: 6, revealMs: 3200 }
+      easy: { label: "쉬움", memoryItemCount: 1, answerChoiceCount: 2, revealMs: 3000 },
+      normal: { label: "보통", memoryItemCount: 2, answerChoiceCount: 4, revealMs: 3000 },
+      hard: { label: "어려움", memoryItemCount: 3, answerChoiceCount: 6, revealMs: 3000 }
     }
   });
 

@@ -802,6 +802,19 @@
   padding-block: 12px 14px;
 }
 
+.post-condition-page[data-post-condition-page="0"] .post-condition-question[aria-labelledby="post-condition-fatigue-title"] .post-condition-option[data-post-value="medium"],
+.post-condition-page[data-post-condition-page="0"] .post-condition-question[aria-labelledby="post-condition-fatigue-title"] .post-condition-option[data-post-value="high"] {
+  gap: 8px;
+  padding-inline: 8px;
+  font-size: 44px;
+}
+
+.post-condition-page[data-post-condition-page="0"] .post-condition-question[aria-labelledby="post-condition-fatigue-title"] .post-condition-option > span:last-child {
+  overflow-wrap: normal;
+  word-break: keep-all;
+  white-space: nowrap;
+}
+
 .post-condition-option > span:last-child {
   min-width: 0;
   overflow-wrap: anywhere;

@@ -1,14 +1,50 @@
 html[data-show-settings="false"] #settings-button,
 html[data-show-tutorial="false"] #tutorial-button,
 html[data-show-timer="false"] #timer-box,
-html[data-show-progress="false"] #progress-box,
+html[data-show-progress="false"] .race-wrap,
 html[data-show-score="false"] #score-box {
   display: none !important;
 }
-html[data-mode="care"] .game-header {
-  grid-template-columns: auto;
-  justify-content: end;
+
+html[data-mode="care"][data-show-timer="true"] .game-screen,
+html[data-mode="care"][data-show-progress="true"] .game-screen,
+html[data-mode="ai_assisted"][data-show-timer="true"] .game-screen,
+html[data-mode="ai_assisted"][data-show-progress="true"] .game-screen {
+  grid-template-rows: var(--game-hud-zone) minmax(0, 1fr);
+  padding: 12px 48px 18px;
 }
+
+html[data-mode="care"][data-show-timer="true"] .game-header,
+html[data-mode="care"][data-show-progress="true"] .game-header,
+html[data-mode="ai_assisted"][data-show-timer="true"] .game-header,
+html[data-mode="ai_assisted"][data-show-progress="true"] .game-header {
+  display: grid !important;
+}
+
+html[data-mode="care"][data-show-timer="true"] .play-area,
+html[data-mode="care"][data-show-progress="true"] .play-area,
+html[data-mode="ai_assisted"][data-show-timer="true"] .play-area,
+html[data-mode="ai_assisted"][data-show-progress="true"] .play-area {
+  grid-row: 2;
+}
+
+html[data-mode="care"][data-show-timer="true"] #timer-box,
+html[data-mode="ai_assisted"][data-show-timer="true"] #timer-box {
+  display: flex !important;
+}
+
+html[data-mode="care"][data-show-progress="true"] .race-wrap:not([hidden]),
+html[data-mode="ai_assisted"][data-show-progress="true"] .race-wrap:not([hidden]) {
+  display: block !important;
+}
+
+html[data-mode="care"] .game-header .difficulty-pill,
+html[data-mode="care"] .game-header #pause-button,
+html[data-mode="ai_assisted"] .game-header .difficulty-pill,
+html[data-mode="ai_assisted"] .game-header #pause-button {
+  display: none !important;
+}
+
 html[data-mode="care"] .play-hint-button {
   right: 72px;
   bottom: 42px;

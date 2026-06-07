@@ -4826,6 +4826,16 @@
   }
 
   function bindEvents() {
+    els.app.addEventListener("contextmenu", (event) => {
+      event.preventDefault();
+    });
+    els.app.addEventListener("dragstart", (event) => {
+      event.preventDefault();
+    });
+    els.app.addEventListener("selectstart", (event) => {
+      event.preventDefault();
+    });
+
     els.startButton.addEventListener("click", runAfterStartPress(els.startButton, showDifficultySelect));
     els.settingsButton.addEventListener("click", runAfterStartPress(els.settingsButton, openSettings));
     els.tutorialButton.addEventListener("click", runAfterStartPress(els.tutorialButton, openTutorial));
