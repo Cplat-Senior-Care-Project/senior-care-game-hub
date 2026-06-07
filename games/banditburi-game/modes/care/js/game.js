@@ -330,6 +330,8 @@
     let totalTimer = null;
     let noticeTimer = null;
     let betweenTimer = null;
+    let autoReturnTimer = null;
+    let autoReturnSequence = 0;
     let isPreviewing = false;
     let isHinting = false;
     let isPaused = false;
@@ -593,6 +595,58 @@
       }
     }
 
+    function playVoiceClipAndWait(voiceKey, fallbackText = "", interrupt = true) {
+      return new Promise((resolve) => {
+        if (!voiceEnabled) {
+          resolve();
+          return;
+        }
+
+        const src = VOICE_CLIPS[voiceKey];
+        if (!src) {
+          if (fallbackText) {
+            speakGuideAndWait(fallbackText, interrupt).then(resolve);
+            return;
+          }
+          resolve();
+          return;
+        }
+
+        let settled = false;
+        let fallbackTimer = null;
+        const cleanup = () => {
+          voiceClipAudio.removeEventListener("ended", finish);
+          voiceClipAudio.removeEventListener("error", finish);
+          if (fallbackTimer) clearTimeout(fallbackTimer);
+        };
+        const finish = () => {
+          if (settled) return;
+          settled = true;
+          cleanup();
+          resolve();
+        };
+
+        try {
+          if (interrupt) stopVoiceGuide();
+          voiceClipAudio.pause();
+          voiceClipAudio.currentTime = 0;
+          voiceClipAudio.src = src;
+          voiceClipAudio.addEventListener("ended", finish, { once: true });
+          voiceClipAudio.addEventListener("error", finish, { once: true });
+          fallbackTimer = setTimeout(finish, 12000);
+          const playPromise = voiceClipAudio.play();
+          if (playPromise?.catch) playPromise.catch(finish);
+        } catch (error) {
+          cleanup();
+          if (fallbackText) {
+            speakGuideAndWait(fallbackText, interrupt).then(resolve);
+            return;
+          }
+          resolve();
+        }
+      });
+    }
+
     function speakGuide(text, interrupt = true) {
       if (!voiceEnabled || !text) return;
       const voiceKey = getVoiceClipKey(text);
@@ -610,6 +664,49 @@
       utterance.pitch = 1;
       utterance.volume = voiceVolume;
       window.speechSynthesis.speak(utterance);
+    }
+
+    function speakGuideAndWait(text, interrupt = true) {
+      return new Promise((resolve) => {
+        if (!voiceEnabled || !text) {
+          resolve();
+          return;
+        }
+        const voiceKey = getVoiceClipKey(text);
+        if (voiceKey) {
+          playVoiceClipAndWait(voiceKey, "", interrupt).then(resolve);
+          return;
+        }
+        if (!("speechSynthesis" in window)) {
+          resolve();
+          return;
+        }
+        const cleanText = normalizeVoiceText(text).replace(/[_<>]/g, "").replace(/\s+/g, " ").trim();
+        if (!cleanText) {
+          resolve();
+          return;
+        }
+
+        let settled = false;
+        let fallbackTimer = null;
+        const finish = () => {
+          if (settled) return;
+          settled = true;
+          if (fallbackTimer) clearTimeout(fallbackTimer);
+          resolve();
+        };
+
+        if (interrupt) stopVoiceGuide();
+        const utterance = new SpeechSynthesisUtterance(cleanText);
+        utterance.lang = "ko-KR";
+        utterance.rate = 0.86;
+        utterance.pitch = 1;
+        utterance.volume = voiceVolume;
+        utterance.onend = finish;
+        utterance.onerror = finish;
+        fallbackTimer = setTimeout(finish, 12000);
+        window.speechSynthesis.speak(utterance);
+      });
     }
 
     function roundTransitionVoice(doneMessage) {
@@ -1311,6 +1408,24 @@
       }, autoHintDelay * 1000);
     }
 
+    function clearAutoReturnTimer() {
+      autoReturnSequence += 1;
+      if (autoReturnTimer) {
+        clearTimeout(autoReturnTimer);
+        autoReturnTimer = null;
+      }
+    }
+
+    function scheduleAutoReturnAfterVoice(voicePromise) {
+      if (!appliedGameConfig.auto_return) return;
+      clearAutoReturnTimer();
+      const sequence = ++autoReturnSequence;
+      Promise.resolve(voicePromise).then(() => {
+        if (sequence !== autoReturnSequence || currentPhase !== "result") return;
+        requestActivityReturn("auto_return");
+      });
+    }
+
     function resetSessionState() {
       clearPreviewTimer();
       clearHintTimer();
@@ -1318,6 +1433,7 @@
       clearTotalTimer();
       clearNoticeTimer();
       clearBetweenTimer();
+      clearAutoReturnTimer();
       currentRound = 0;
       timeLeft = roundTimeLimit;
       totalTimeLeft = totalTimeLimit;
@@ -1534,7 +1650,7 @@
       currentMusicMode = "intro";
       refreshBackgroundMusic();
       message.textContent = "수고하셨습니다.";
-      speakGuide("수고하셨습니다.");
+      const resultVoice = playVoiceClipAndWait("finishThanks", TEXT.final);
       startButton.textContent = TEXT.restart;
       startButton.classList.add("is-hidden");
       startButton.disabled = true;
@@ -1543,11 +1659,7 @@
       remainText.textContent = "-";
       board.parentElement.classList.add("result-mode");
       board.innerHTML = `<div class="result-card"><p>${TEXT.final}</p></div>`;
-      if (appliedGameConfig.auto_return) {
-        setTimeout(() => {
-          requestActivityReturn("auto_return");
-        }, 2500);
-      }
+      scheduleAutoReturnAfterVoice(resultVoice);
     }
 
     function completePostGameAndExit() {
