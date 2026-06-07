@@ -1,22 +1,64 @@
 /* Accessibility States */
-@media (hover: none) and (pointer: coarse), (max-width: 960px), (max-height: 540px) {
+@media (hover: none) and (pointer: coarse) {
   :root {
-    --text-stroke: 0.36px;
+    --text-stroke: 0.15px;
   }
 
   html,
   body,
   .app,
   .screen,
-  .game-button,
-  .difficulty-option,
-  .fruit-card,
-  .number-button,
-  .modal-card,
+  .game-background,
   img {
     -webkit-touch-callout: none;
     -webkit-user-select: none;
     user-select: none;
+  }
+
+  .app,
+  .app * {
+    font-synthesis: none;
+  }
+
+  .orientation-guard-card strong,
+  .app .eyebrow,
+  .app h1,
+  .app h2,
+  .app .game-button,
+  .app .guide-text,
+  .app .game-countdown-message,
+  .app .game-countdown-face strong,
+  .app .modal-card h2,
+  .app .modal-card p,
+  .app .difficulty-option,
+  .app .info-label,
+  .app .info-pill strong,
+  .app .fruit-name,
+  .app .target-fruit,
+  .app .number-button,
+  .app .feedback-title,
+  .app .feedback-message,
+  .app .hint-message,
+  .app .hint-button,
+  .app .result-message,
+  .app .result-content h2,
+  .app .error-message,
+  .app .condition-title-text,
+  .app .condition-section-title,
+  .app .condition-mood-button,
+  .app .condition-sleep-row,
+  .app .condition-confirm-button,
+  .app .condition-skip-button,
+  .app .post-condition-question-title,
+  .app .post-condition-option,
+  .app .setting-row strong,
+  .app .setting-row small,
+  .app .tutorial-card #tutorial-title,
+  .app .tutorial-card #tutorial-message,
+  .app .tutorial-detail,
+  .app .pause-sound-button,
+  .app .settings-panel-title {
+    font-weight: 800 !important;
   }
 
   img,
@@ -28,12 +70,14 @@
   }
 
   .start-screen .subtitle {
-    -webkit-text-stroke-width: 1.1px;
+    font-weight: 800 !important;
+    -webkit-text-stroke-width: 0.5px;
   }
 
   .start-screen .primary-button,
   .start-screen .primary-button > span:first-child {
-    -webkit-text-stroke-width: 3.2px;
+    font-weight: 800 !important;
+    -webkit-text-stroke-width: 2px;
   }
 }
 

@@ -386,7 +386,6 @@
   let activeVoiceGuideAudio = null;
   let voiceGuideTimerId = null;
   let reminderAudioReadyPromise = null;
-  let fullscreenRequestInProgress = false;
 
   function createEmptyTelemetryState() {
     return {
@@ -3505,8 +3504,6 @@
   }
 
   function closeConditionCheck() {
-    requestAppFullscreen();
-
     if (!els.conditionModal) {
       return;
     }
@@ -4171,57 +4168,16 @@
     unlockBackgroundMusicFromGesture();
   }
 
-  function isMobileDevice() {
-    return /Android|iPhone|iPad|iPod/i.test(navigator.userAgent || "");
-  }
-
   function isMobileLandscape() {
-    const viewport = window.visualViewport;
-    const width = viewport && viewport.width ? viewport.width : window.innerWidth || document.documentElement.clientWidth || STAGE_WIDTH;
-    const height = viewport && viewport.height ? viewport.height : window.innerHeight || document.documentElement.clientHeight || STAGE_HEIGHT;
-    return isMobileDevice() && width > height;
-  }
-
-  function isFullscreenActive() {
-    return Boolean(
-      document.fullscreenElement
-      || document.webkitFullscreenElement
-    );
-  }
-
-  function removeTapToFullscreenListeners() {
-    window.removeEventListener("click", handleFirstFullscreenGesture);
-  }
-
-  function updateScaleAfterFullscreenAttempt() {
-    fullscreenRequestInProgress = false;
-    updateGameScale();
-    window.setTimeout(updateGameScale, 250);
-
-    if (isFullscreenActive()) {
-      removeTapToFullscreenListeners();
-    }
-  }
-
-  function warnFullscreenFailure(error) {
-    if (window.console && typeof window.console.warn === "function") {
-      window.console.warn("Fullscreen request failed:", error);
-    }
+    return window.matchMedia("(orientation: landscape) and (pointer: coarse)").matches;
   }
 
   function requestAppFullscreen() {
-    if (!isMobileLandscape()) {
-      updateGameScale();
-      return;
-    }
-
-    if (fullscreenRequestInProgress) {
-      return;
-    }
-
-    if (isFullscreenActive()) {
-      removeTapToFullscreenListeners();
-      updateGameScale();
+    if (
+      !isMobileLandscape()
+      || document.fullscreenElement
+      || document.webkitFullscreenElement
+    ) {
       return;
     }
 
@@ -4234,47 +4190,37 @@
     }
 
     try {
-      fullscreenRequestInProgress = true;
       const requestResult = request.call(target, { navigationUI: "hide" });
-
       if (requestResult && typeof requestResult.then === "function") {
         requestResult
-          .then(updateScaleAfterFullscreenAttempt)
-          .catch((error) => {
-            fullscreenRequestInProgress = false;
-            warnFullscreenFailure(error);
-            updateGameScale();
-          });
+          .then(() => window.setTimeout(updateGameScale, 250))
+          .catch(updateGameScale);
         return;
       }
 
-      updateScaleAfterFullscreenAttempt();
+      window.setTimeout(updateGameScale, 250);
     } catch (error) {
-      fullscreenRequestInProgress = false;
-      warnFullscreenFailure(error);
       updateGameScale();
     }
   }
 
-  function handleFirstFullscreenGesture() {
-    requestAppFullscreen();
+  function runAfterStartButtonPress() {
+    return (event) => {
+      requestAppFullscreen();
+      runAfterStartPress(els.startButton, showDifficultySelect)(event);
+    };
   }
 
-  function setupTapToFullscreen() {
-    if (!isMobileDevice()) {
+  function handleStartScreenBackgroundPress(event) {
+    if (
+      event.target
+      && typeof event.target.closest === "function"
+      && event.target.closest("button, a, input, select, textarea, label")
+    ) {
       return;
     }
 
-    window.addEventListener("click", handleFirstFullscreenGesture);
-  }
-
-  function handleFullscreenChange() {
-    if (isFullscreenActive()) {
-      removeTapToFullscreenListeners();
-    }
-
-    fullscreenRequestInProgress = false;
-    updateGameScale();
+    requestAppFullscreen();
   }
 
   function muteBackgroundMusic() {
@@ -4825,18 +4771,15 @@
     };
   }
 
-  function bindEvents() {
-    els.app.addEventListener("contextmenu", (event) => {
-      event.preventDefault();
-    });
-    els.app.addEventListener("dragstart", (event) => {
-      event.preventDefault();
-    });
-    els.app.addEventListener("selectstart", (event) => {
-      event.preventDefault();
-    });
+  function preventLongPressInteraction(event) {
+    event.preventDefault();
+  }
 
-    els.startButton.addEventListener("click", runAfterStartPress(els.startButton, showDifficultySelect));
+  function bindEvents() {
+    document.addEventListener("contextmenu", preventLongPressInteraction, true);
+    document.addEventListener("dragstart", preventLongPressInteraction, true);
+    els.startScreen.addEventListener("click", handleStartScreenBackgroundPress);
+    els.startButton.addEventListener("click", runAfterStartButtonPress());
     els.settingsButton.addEventListener("click", runAfterStartPress(els.settingsButton, openSettings));
     els.tutorialButton.addEventListener("click", runAfterStartPress(els.tutorialButton, openTutorial));
     els.restartButton.addEventListener("click", withButtonSound(restartCurrentDifficulty));
@@ -4905,7 +4848,6 @@
     els.postConditionBackButton.addEventListener("click", withButtonSound(showPreviousPostConditionStep));
     els.postConditionConfirmButton.addEventListener("click", withButtonSound(submitPostConditionCheck));
 
-    setupTapToFullscreen();
     document.addEventListener("pointerdown", handleAudioGesture, true);
     document.addEventListener("keydown", handleAudioGesture, true);
 
@@ -4933,8 +4875,6 @@
       }
     });
     window.addEventListener("message", handleExternalInputMessage);
-    document.addEventListener("fullscreenchange", handleFullscreenChange);
-    document.addEventListener("webkitfullscreenchange", handleFullscreenChange);
     window.addEventListener("pagehide", () => {
       sendAbandonedResult("webview_closed");
     });
@@ -4981,7 +4921,6 @@
 
   function runAfterStartPress(button, action, delay = 180) {
     return (event) => {
-      requestAppFullscreen();
       event.preventDefault();
       unlockBackgroundMusicFromGesture();
       playSound("button");
