@@ -19,17 +19,6 @@
   const MEMORY_LAYOUT_MIN_GAP = 4;
   const MEMORY_LAYOUT_MAX_GAP = 8;
   const MEMORY_LAYOUT_MAX_COLUMNS = 7;
-  const SHELF_VISIBLE_WIDTH_RATIO = 1972 / 2048;
-  const SHELF_VISIBLE_CENTER_OFFSET_RATIO = 3 / 1972;
-  const SHELF_ASPECT_RATIO = 2048 / 682;
-  const SHELF_VISIBLE_BOTTOM_RATIO = 586 / 682;
-  const BASKET_DISPLAY_WIDTH = 500;
-  const BASKET_ASPECT_RATIO = 1672 / 941;
-  const BASKET_VISIBLE_TOP_RATIO = 158 / 941;
-  const BASKET_VISIBLE_BOTTOM_RATIO = 777 / 941;
-  const BASKET_VISIBLE_BOTTOM_GAP = 8;
-  const SHELF_BASKET_OVERLAP = 50;
-  const PLAY_AREA_TOP = 102;
   const ITEM_GLOW_ASSET_VERSION = "20260608-soft-glow";
   const STATIC_IMAGE_ASSETS = Object.freeze([
     "assets/images/background2.webp",
@@ -148,26 +137,9 @@
     const scale = Math.max(0.01, Math.min(viewportWidth / STAGE_WIDTH, viewportHeight / STAGE_HEIGHT));
     const verticalGutter = Math.max(0, (viewportHeight - (STAGE_HEIGHT * scale)) / (2 * scale));
     const horizontalGutter = Math.max(0, (viewportWidth - (STAGE_WIDTH * scale)) / (2 * scale));
-    const viewportStageWidth = viewportWidth / scale;
-    const viewportStageBottom = STAGE_HEIGHT + verticalGutter;
-    const shelfWidth = viewportStageWidth / SHELF_VISIBLE_WIDTH_RATIO;
-    const shelfHeight = shelfWidth / SHELF_ASPECT_RATIO;
-    const basketHeight = BASKET_DISPLAY_WIDTH / BASKET_ASPECT_RATIO;
-    const basketTop = viewportStageBottom
-      - PLAY_AREA_TOP
-      - (basketHeight * BASKET_VISIBLE_BOTTOM_RATIO)
-      - BASKET_VISIBLE_BOTTOM_GAP;
-    const shelfTop = basketTop
-      + (basketHeight * BASKET_VISIBLE_TOP_RATIO)
-      + SHELF_BASKET_OVERLAP
-      - (shelfHeight * SHELF_VISIBLE_BOTTOM_RATIO);
     document.documentElement.style.setProperty("--game-scale", String(scale));
     document.documentElement.style.setProperty("--game-viewport-top-gutter", `${verticalGutter}px`);
     document.documentElement.style.setProperty("--game-viewport-side-gutter", `${horizontalGutter}px`);
-    document.documentElement.style.setProperty("--game-shelf-fill-width", `${shelfWidth}px`);
-    document.documentElement.style.setProperty("--game-shelf-fill-offset", `${viewportStageWidth * SHELF_VISIBLE_CENTER_OFFSET_RATIO}px`);
-    document.documentElement.style.setProperty("--game-shelf-top", `${shelfTop}px`);
-    document.documentElement.style.setProperty("--game-basket-top", `${basketTop - shelfTop}px`);
   }
 
   function isMobileLandscape() {

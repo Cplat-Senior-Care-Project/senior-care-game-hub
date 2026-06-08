@@ -4,26 +4,24 @@ html[data-mode="standard"] .app[data-screen="game"] {
 }
 
 html[data-mode="standard"] .game-screen {
-  --game-hud-zone: clamp(128px, 19vh, 150px);
-  padding-top: calc(var(--safe-top) + clamp(6px, 1.8vh, 12px));
   overflow: visible;
 }
 
 html[data-mode="standard"] .game-header {
   align-content: start;
-  transform: translateY(calc(var(--game-viewport-top-gutter, 0px) * -1));
+  transform: none;
 }
 
 html[data-mode="standard"] .play-area {
-  overflow: visible;
+  overflow: hidden;
 }
 
 html[data-mode="standard"] .shelf-zone.is-left {
-  transform: translateX(calc(var(--game-viewport-side-gutter, 0px) * -1)) translateY(26px);
+  transform: translateY(26px);
 }
 
 html[data-mode="standard"] .shelf-zone.is-right {
-  transform: translateX(var(--game-viewport-side-gutter, 0px)) translateY(26px);
+  transform: translateY(26px);
 }
 
 html[data-mode="standard"] .start-side-button {
@@ -83,8 +81,8 @@ html[data-mode="standard"] .result-screen {
   align-items: center;
   justify-items: center;
   overflow: hidden;
-  padding-top: calc(clamp(16px, 21.6px, 34px) + var(--safe-top));
-  padding-bottom: calc(clamp(16px, 21.6px, 34px) + var(--safe-bottom));
+  padding-top: 22px;
+  padding-bottom: 22px;
 }
 
 html[data-mode="standard"] .result-emoji {
@@ -99,7 +97,7 @@ html[data-mode="standard"] .standard-result-card {
   width: 100%;
   min-height: 0;
   max-height: calc(var(--stage-height) - 86px);
-  padding: 28px clamp(26px, 4vw, 42px) 30px;
+  padding: 28px 42px 30px;
   border: 3px solid #cda964;
   border-radius: 34px;
   background: rgba(255, 252, 238, 0.95);
@@ -138,7 +136,7 @@ html[data-mode="standard"] .standard-result-score-panel {
   column-gap: 24px;
   row-gap: 6px;
   width: 100%;
-  padding: 14px clamp(24px, 3.6vw, 36px) 12px;
+  padding: 14px 36px 12px;
   border: 3px solid #f0c661;
   border-radius: 24px;
   background:
@@ -194,7 +192,7 @@ html[data-mode="standard"] .standard-result-answer-label {
 }
 
 html[data-mode="standard"] .standard-result-answer-label {
-  margin-left: clamp(6px, 1vw, 12px);
+  margin-left: 12px;
 }
 
 html[data-mode="standard"] .standard-result-rate {

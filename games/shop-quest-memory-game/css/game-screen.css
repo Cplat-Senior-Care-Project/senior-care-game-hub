@@ -1,6 +1,6 @@
 .game-screen {
-  padding-inline: calc(clamp(12px, 44.8px, 60px) + var(--safe-left)) calc(clamp(12px, 44.8px, 60px) + var(--safe-right));
-  padding-top: calc(2px + var(--safe-top));
+  padding-inline: 44.8px;
+  padding-top: 2px;
   --game-hud-zone: 150px;
   --memory-stack-gap: 12px;
   --question-stack-gap: 13px;
@@ -1186,7 +1186,7 @@
   grid-template-rows: max-content minmax(0, 1fr);
   align-content: end;
   justify-items: center;
-  gap: clamp(8px, 1.3vw, 16px);
+  gap: 16px;
 }
 
 .basket-prompt {
@@ -1507,11 +1507,11 @@
 
 #play-area .question-round .shelf-zone {
   position: absolute;
-  left: calc(50% + var(--game-shelf-fill-offset, 0px));
-  top: var(--game-shelf-top, 105px);
+  left: calc(50% + 2px);
+  top: 118px;
   z-index: 1;
   display: block;
-  width: var(--game-shelf-fill-width, calc(100% + (var(--game-viewport-side-gutter, 0px) * 2)));
+  width: 1196px;
   max-width: none;
   height: auto;
   aspect-ratio: 2048 / 682;
@@ -1643,7 +1643,7 @@
 #play-area .question-round .basket-zone {
   position: absolute;
   left: 50%;
-  top: var(--game-basket-top, 52%);
+  top: 238px;
   bottom: auto;
   z-index: 4;
   display: block;
@@ -1658,20 +1658,17 @@
 #play-area .question-round .basket-zone::before {
   content: "";
   position: absolute;
-  left: 14%;
-  right: 8%;
-  bottom: 5%;
+  left: 7%;
+  right: 3%;
+  bottom: 0;
   z-index: 0;
-  height: 34%;
-  border-radius: 22px;
-  background:
-    radial-gradient(ellipse at center, rgba(76, 47, 19, 0.38) 0%, rgba(82, 51, 21, 0.27) 64%, rgba(91, 58, 25, 0.08) 100%),
-    linear-gradient(180deg, rgba(89, 57, 26, 0.14), rgba(82, 51, 21, 0.24));
-  box-shadow: 0 0 20px 9px rgba(76, 47, 19, 0.16);
-  filter: blur(4px);
-  opacity: 0.94;
+  height: 27%;
+  border-radius: 50%;
+  background: radial-gradient(ellipse at center, rgba(76, 47, 19, 0.32) 0%, rgba(82, 51, 21, 0.19) 48%, rgba(91, 58, 25, 0) 76%);
+  filter: blur(10px);
+  opacity: 0.82;
   pointer-events: none;
-  transform: scaleX(1.04);
+  transform: scaleX(1.08) scaleY(0.72);
   transform-origin: center bottom;
 }
 
@@ -1727,6 +1724,7 @@
 html body[data-screen="game"] .game-screen {
   --game-hud-zone: 102px;
   padding-top: 0;
+  overflow: visible;
 }
 
 html body[data-screen="game"] .game-header {
@@ -1737,8 +1735,8 @@ html body[data-screen="game"] .game-header {
   z-index: 12;
   display: block;
   width: calc(100% + (var(--game-viewport-side-gutter, 0px) * 2));
-  height: 96px;
-  min-height: 96px;
+  height: calc(96px + (var(--safe-top) / var(--game-scale, 1)));
+  min-height: calc(96px + (var(--safe-top) / var(--game-scale, 1)));
   transform: none;
 }
 
@@ -1750,9 +1748,13 @@ html body[data-screen="game"] .info-bar {
   position: relative;
   display: block;
   width: 100%;
-  height: 96px;
-  gap: clamp(10px, 1.2vw, 16px);
-  padding: 10px max(16px, calc(var(--safe-left) / var(--game-scale, 1))) 12px max(16px, calc(var(--safe-right) / var(--game-scale, 1)));
+  height: calc(96px + (var(--safe-top) / var(--game-scale, 1)));
+  gap: 15px;
+  padding:
+    calc(10px + (var(--safe-top) / var(--game-scale, 1)))
+    max(16px, calc(var(--safe-right) / var(--game-scale, 1)))
+    12px
+    max(16px, calc(var(--safe-left) / var(--game-scale, 1)));
   border: 0;
   border-bottom: 4px solid #9d470e;
   border-radius: 0 0 24px 24px;
@@ -1782,12 +1784,12 @@ html body[data-screen="game"] #pause-button.icon-button {
 html body[data-screen="game"] .timer-pill {
   position: absolute;
   left: max(24px, calc(var(--safe-left) / var(--game-scale, 1)));
-  top: 10px;
+  top: calc(10px + (var(--safe-top) / var(--game-scale, 1)));
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
-  width: clamp(150px, 16vw, 190px);
+  width: 190px;
   padding: 5px 10px;
   border: 3px solid #f5c84b;
   border-radius: 24px;
@@ -1847,7 +1849,7 @@ html body[data-screen="game"] .timer-pill .info-copy {
 html body[data-screen="game"] #time-left {
   min-width: 0;
   color: #422817;
-  font-size: clamp(21px, 2.2vw, 28px);
+  font-size: 28px;
   line-height: 1;
   text-align: center;
   text-shadow: 0 1px 0 #fff;
@@ -1856,11 +1858,11 @@ html body[data-screen="game"] #time-left {
 html body[data-screen="game"] .hud-mission-pill {
   position: absolute;
   left: 50%;
-  top: 10px;
+  top: calc(10px + (var(--safe-top) / var(--game-scale, 1)));
   display: grid;
   place-items: center;
-  width: clamp(270px, 31vw, 390px);
-  padding: 7px clamp(8px, 1.55vw, 20px);
+  width: 390px;
+  padding: 7px 20px;
   border: 3px solid #f5c84b;
   border-radius: 24px;
   color: #5f351a;
@@ -1888,7 +1890,7 @@ html body[data-screen="game"] .hud-mission-pill .info-copy {
 
 html body[data-screen="game"] .hud-mission-pill #difficulty-label {
   color: #4f301a;
-  font-size: clamp(19px, 2.1vw, 27px);
+  font-size: 27px;
   line-height: 1;
   font-weight: 1000;
   white-space: nowrap;
@@ -1897,12 +1899,12 @@ html body[data-screen="game"] .hud-mission-pill #difficulty-label {
 
 html body[data-screen="game"] .hud-hint-button {
   position: absolute;
-  right: calc(max(24px, calc(var(--safe-right) / var(--game-scale, 1))) + clamp(150px, 16vw, 190px) + 24px);
-  top: 10px;
+  right: calc(max(24px, calc(var(--safe-right) / var(--game-scale, 1))) + 214px);
+  top: calc(10px + (var(--safe-top) / var(--game-scale, 1)));
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: clamp(112px, 12vw, 148px);
+  width: 148px;
   min-width: 0;
   padding: 0 16px;
   border: 3px solid #ffe1a3;
@@ -1925,12 +1927,12 @@ html body[data-screen="game"] .hud-hint-button {
 html body[data-screen="game"] #pause-button.icon-button {
   position: absolute;
   right: max(24px, calc(var(--safe-right) / var(--game-scale, 1)));
-  top: 10px;
+  top: calc(10px + (var(--safe-top) / var(--game-scale, 1)));
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 10px;
-  width: clamp(150px, 16vw, 190px);
+  width: 190px;
   padding: 0 18px;
   border: 3px solid #d8c6a9;
   border-radius: 20px;
@@ -1947,7 +1949,7 @@ html body[data-screen="game"] #pause-button.icon-button {
 html body[data-screen="game"] #pause-button.icon-button > span:last-child {
   display: inline;
   color: #5f351a;
-  font-size: clamp(19px, 1.9vw, 24px);
+  font-size: 24px;
   line-height: 1;
   font-weight: 1000;
   white-space: nowrap;

@@ -22,13 +22,13 @@
       document.documentElement.style.setProperty("--game-viewport-side-gutter", String(horizontalGutter) + "px");
     })();
   </script>
-  <link rel="stylesheet" href="css/base.css?v=20260608-play-background-webp">
-  <link rel="stylesheet" href="css/start.css?v=20260607-loading-brown">
-  <link rel="stylesheet" href="css/difficulty.css?v=20260605">
-  <link rel="stylesheet" href="css/game-screen.css?v=20260608-low-basket-overlap">
+  <link rel="stylesheet" href="css/base.css?v=20260608-fixed-stage-layout">
+  <link rel="stylesheet" href="css/start.css?v=20260608-fixed-stage-layout">
+  <link rel="stylesheet" href="css/difficulty.css?v=20260608-fixed-stage-layout">
+  <link rel="stylesheet" href="css/game-screen.css?v=20260608-soft-basket-shadow">
   <link rel="stylesheet" href="css/result.css?v=20260605">
   <link rel="stylesheet" href="css/condition.css?v=20260605">
-  <link rel="stylesheet" href="css/tutorial-settings-pause.css?v=20260607-pause-ui">
+  <link rel="stylesheet" href="css/tutorial-settings-pause.css?v=20260608-fixed-stage-layout">
   <link rel="stylesheet" href="css/accessibility.css?v=20260605">
   <link rel="preload" as="image" href="assets/images/background2.webp" fetchpriority="high">
   <link rel="preload" as="image" href="assets/images/play_background.webp?v=20260608-refreshed">
@@ -440,7 +440,7 @@
       var requestedMode = String(params.get("mode") || "standard").trim().toLowerCase();
       var requestedConfigUrl = String(params.get("configUrl") || "").trim();
       var mode = Object.prototype.hasOwnProperty.call(modeMap, requestedMode) ? requestedMode : "standard";
-      var assetVersion = "20260607-standard-result";
+      var assetVersion = "20260608-responsive-status-bar";
       window.__SHOP_QUEST_GAME_MODE__ = mode;
       window.__SHOP_QUEST_MODE_ASSETS__ = {
         css: "css/modes/" + mode + ".css",
@@ -459,6 +459,6 @@
   </script>
   <script src="js/config-normalizer.js?v=20260605"></script>
   <script src="js/app-bridge.js?v=20260605"></script>
-  <script src="js/game.js?v=20260608-low-basket-overlap"></script>
+  <script src="js/game.js?v=20260608-responsive-status-bar"></script>
 </body>
 </html>
