@@ -33,6 +33,7 @@
       medium: { label: TEXT.middle, gridSize: 3, targetCount: 3 },
       low: { label: TEXT.low, gridSize: 2, targetCount: 2 },
     };
+    const baseDifficultySettings = JSON.parse(JSON.stringify(difficultySettings));
 
     const mergeGameConfig = (baseConfig, fileConfig) => ({
       ...baseConfig,
@@ -361,11 +362,11 @@
     let timeLeft = Number(appliedGameConfig.round_time_limit_sec) || 60;
     let previewSecondsLeft = Math.max(1, Math.round((Number(appliedGameConfig.exposure_time_ms) || 5000) / 1000));
     let hintSecondsLeft = 5;
-    const maxRounds = Math.max(1, Number(appliedGameConfig.question_count) || 10);
-    const roundTimeLimit = Math.max(0, Number(appliedGameConfig.round_time_limit_sec) || 0);
-    const totalTimeLimit = Math.max(0, Number(appliedGameConfig.total_time_limit_sec) || 0);
-    const autoHintDelay = Math.max(0, Number(appliedGameConfig.auto_hint_delay_sec) || 0);
-    const configuredHubReturnUrl =
+    let maxRounds = Math.max(1, Number(appliedGameConfig.question_count) || 10);
+    let roundTimeLimit = Math.max(0, Number(appliedGameConfig.round_time_limit_sec) || 0);
+    let totalTimeLimit = Math.max(0, Number(appliedGameConfig.total_time_limit_sec) || 0);
+    let autoHintDelay = Math.max(0, Number(appliedGameConfig.auto_hint_delay_sec) || 0);
+    let configuredHubReturnUrl =
       appliedGameConfig.return_url ||
       appliedGameConfig.auto_return_url ||
       "file:///C:/Users/juhye/OneDrive/Desktop/senior-care-game-hub/index.html";
@@ -375,6 +376,7 @@
     let gameTelemetry = null;
     let roundTelemetry = null;
     let roundClosed = false;
+    let lastRuntimeConfigSignature = JSON.stringify(defaultGameConfig);
     const BUTTON_CLICK_SOUND_SRC = "../../assets/audio/audio-01-7e204aa7.mp3";
     const BOARD_SELECT_SOUND_SRC = "../../assets/audio/board-select.mp3";
     const INTRO_MUSIC_SRC = "../../assets/audio/audio-02-7642c099.mp3";
@@ -1125,6 +1127,70 @@
       if (!element) return;
       element.hidden = !visible;
       element.classList.toggle("mode-hidden", !visible);
+    }
+
+    function syncRuntimeConfig(nextDefaultConfig = defaultGameConfig) {
+      const nextMode = normalizeMode(nextDefaultConfig.mode || gameMode);
+      const nextAppliedConfig = {
+        ...MODE_DEFAULTS[nextMode],
+        ...(nextDefaultConfig.config || {}),
+        mode: nextMode,
+      };
+
+      Object.keys(defaultGameConfig).forEach((key) => delete defaultGameConfig[key]);
+      Object.assign(defaultGameConfig, nextDefaultConfig);
+      Object.keys(appliedGameConfig).forEach((key) => delete appliedGameConfig[key]);
+      Object.assign(appliedGameConfig, nextAppliedConfig);
+
+      Object.keys(baseDifficultySettings).forEach((key) => {
+        difficultySettings[key] = { ...baseDifficultySettings[key] };
+      });
+      if (appliedGameConfig.grid_rows && appliedGameConfig.grid_cols) {
+        difficultySettings.low.gridSize = Math.max(2, Number(appliedGameConfig.grid_rows));
+      }
+      if (appliedGameConfig.target_count) {
+        difficultySettings.low.targetCount = Math.max(1, Number(appliedGameConfig.target_count));
+      }
+
+      maxRounds = Math.max(1, Number(appliedGameConfig.question_count) || 10);
+      roundTimeLimit = Math.max(0, Number(appliedGameConfig.round_time_limit_sec) || 0);
+      totalTimeLimit = Math.max(0, Number(appliedGameConfig.total_time_limit_sec) || 0);
+      autoHintDelay = Math.max(0, Number(appliedGameConfig.auto_hint_delay_sec) || 0);
+      configuredHubReturnUrl =
+        appliedGameConfig.return_url ||
+        appliedGameConfig.auto_return_url ||
+        "file:///C:/Users/juhye/OneDrive/Desktop/senior-care-game-hub/index.html";
+      if (currentPhase === "home" || currentPhase === "result" || currentPhase === "postgame") {
+        totalTimeLeft = totalTimeLimit;
+        timeLeft = roundTimeLimit;
+      }
+
+      voiceEnabled = appliedGameConfig.voice_guide_enabled !== false;
+      musicVolume = normalizeVolume(appliedGameConfig.music_volume ?? appliedGameConfig.musicVolume, musicVolume);
+      soundVolume = normalizeVolume(appliedGameConfig.effect_volume ?? appliedGameConfig.effectVolume ?? appliedGameConfig.sound_volume ?? appliedGameConfig.soundVolume, soundVolume);
+      voiceVolume = normalizeVolume(appliedGameConfig.voice_volume ?? appliedGameConfig.voiceVolume, voiceVolume);
+
+      applyModeUi();
+      applyAudioVolumes();
+      syncAudioButtons();
+      updateRoundDisplay();
+      updateRemaining();
+      updateTimeDisplay();
+      updateLevelUi();
+      if (currentPhase === "home") clearBoard();
+    }
+
+    function reloadRuntimeConfigIfChanged() {
+      try {
+        const nextDefaultConfig = loadGameConfig();
+        const nextSignature = JSON.stringify(nextDefaultConfig);
+        if (nextSignature === lastRuntimeConfigSignature) return;
+        lastRuntimeConfigSignature = nextSignature;
+        syncRuntimeConfig(nextDefaultConfig);
+        console.info("game.config.json changes applied.", appliedGameConfig);
+      } catch (error) {
+        console.warn("Could not hot-reload game config.", error);
+      }
     }
 
     function applyModeUi() {
@@ -2311,6 +2377,7 @@
     applyAudioVolumes();
     syncAudioButtons();
     setDifficulty(currentDifficulty);
+    setInterval(reloadRuntimeConfigIfChanged, 1000);
     difficultyModal.classList.remove("open");
     setTimeout(() => {
       loadingScreen.classList.add("is-hidden");

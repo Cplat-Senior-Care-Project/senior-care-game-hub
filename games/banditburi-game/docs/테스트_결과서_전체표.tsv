@@ -1,0 +1,101 @@
+﻿QA 번호	화면/모듈	카테고리	테스트 항목	확인 결과	비고
+D-01	폴더 구조	전체	modes/standard, modes/reminder, modes/care, modes/ai-assisted가 분리되어 있는가	통과	`modes/standard`, `modes/reminder`, `modes/care`, `modes/ai-assisted` 4개 모드 폴더가 모두 존재함.
+D-02	폴더 구조	전체	각 모드가 독립 index.html, css/game.css, js/game.js, config/game.config.json을 가진가	통과	각 모드에 `index.html`, `css/game.css`, `js/game.js`, `config/game.config.json`가 모두 존재함.
+D-03	config	전체	각 모드의 game.config.json이 정상 JSON 형식인가	통과	Node JSON 파서로 5개 `game.config.json` 모두 정상 파싱 확인.
+D-04	config	전체	config 수정 후 새로고침 시 실제 게임 동작에 반영되는가	통과	`loadGameConfig()`가 `config/game.config.json?v=${Date.now()}`를 동기 로드하여 캐시를 무효화하고 inline config와 병합함.
+D-05	config	전체	공통 config 필드가 누락 없이 정의되어 있는가	통과	공통 `runtimeConfig` 필드는 모드별 inline/config에 정의되어 있으며 기본값도 `MODE_DEFAULTS`에 존재함.
+D-06	config	전체	show_timer 값에 따라 타이머 UI 노출이 제어되는가	통과	`show_timer` 값에 따라 타이머 stat 영역을 `setElementVisible()`로 표시/숨김 처리함.
+D-07	config	전체	show_score 값에 따라 진행/점수 UI 노출이 제어되는가	통과	`show_score` 값에 따라 진행/남은 개수 stat 영역을 표시/숨김 처리함.
+D-08	config	전체	show_difficulty_select 값에 따라 난이도 선택 화면이 제어되는가	통과	`show_difficulty_select=false`이면 `showDifficultyScreen()`에서 난이도 모달을 건너뛰고 시작 카운트다운으로 이동함.
+D-09	config	전체	show_settings 값에 따라 설정 버튼/화면이 제어되는가	부분 통과	설정 버튼/화면은 `show_settings`로 제어됨. 다만 care/ai-assisted inline config는 `show_settings:true`라 설정 화면이 표시됨.
+D-10	config	전체	show_how_to_play 값에 따라 튜토리얼 진입이 제어되는가	통과	`show_how_to_play`에 따라 인트로/일시정지 내 게임 방법 버튼이 표시/숨김 처리됨.
+D-11	config	전체	show_condition_check 값에 따라 시작 전 컨디션 체크가 제어되는가	통과	`show_condition_check`가 true일 때 시작 전 체크인 화면으로 진입하고, false이면 난이도/시작 플로우로 넘어감.
+D-12	config	전체	show_finish_check 값에 따라 종료 후 컨디션 체크가 제어되는가	통과	`show_finish_check`가 true일 때 종료 후 체크인 화면으로 연결되고, false이면 결과 화면으로 바로 이동함.
+D-13	config	전체	hint_enabled 값에 따라 힌트 기능이 제어되는가	통과	`hint_enabled` 값으로 힌트 버튼 표시 여부를 제어함.
+D-14	config	전체	auto_hint_enabled 값에 따라 자동 힌트가 제어되는가	통과	`auto_hint_enabled` true일 때 `scheduleAutoHint()`가 자동 힌트 타이머를 예약함.
+D-15	config	전체	voice_guide_enabled 값에 따라 음성 안내가 제어되는가	통과	`voice_guide_enabled`가 `voiceEnabled` 초기값에 반영되고 음성 재생 함수에서 게이트 처리됨.
+D-16	config	전체	high_contrast 값에 따라 고대비 표시가 적용되는가	통과	`high_contrast` 값으로 `body.mode-high-contrast` 클래스가 토글되고 관련 CSS가 적용됨.
+D-17	config	표준 모드	표준 모드 기본 문항 수가 10문항으로 적용되는가	통과	표준 모드 `question_count`가 10으로 설정되어 `maxRounds`에 반영됨.
+D-18	config	알림 모드	알림 모드가 자동 시작 및 자동 복귀 설정을 사용하는가	통과	알림 모드는 `auto_start:true`, `auto_return:true`가 설정되어 자동 시작/복귀 로직을 사용함.
+D-19	config	케어 모드	케어 모드가 4문항, 2x2, 목표 1개, 총 180초로 설정되는가	통과	케어 모드는 4문항, 2x2, 목표 1개, 총 180초 설정이 적용됨.
+D-20	config	AI 연동 모드	AI 연동 모드가 케어 모드와 동일한 기본 과제 구조를 사용하는가	통과	care와 ai-assisted의 게임 로직 파일 해시가 동일하며, 모드명/설정 차이만 있음.
+D-21	난이도	표준/알림 모드	EASY 설정이 2x2, targetCount 2로 적용되는가	통과	EASY/low는 2x2, targetCount 2로 정의됨.
+D-22	난이도	표준/알림 모드	NORMAL 설정이 3x3, targetCount 3으로 적용되는가	통과	NORMAL/medium은 3x3, targetCount 3으로 정의됨.
+D-23	난이도	표준/알림 모드	HARD 설정이 4x4, targetCount 4로 적용되는가	통과	HARD/high는 4x4, targetCount 4로 정의됨.
+D-24	난이도	표준/알림 모드	HARD의 flowerStartsFromRound 값이 실제 무궁화 등장 시점에 반영되는가	부분 통과	HARD의 무궁화는 `targetPool()`에서 6라운드부터 포함됨. config의 `flowerStartsFromRound` 값은 직접 참조하지 않고 코드 상수 로직으로 처리됨.
+D-25	문제 생성	전체	한 문항 안에서 정답 위치가 중복 생성되지 않는가	통과	정답 위치는 shuffle된 인덱스 배열을 slice 후 Set으로 저장하여 중복 생성되지 않음.
+D-26	문제 생성	전체	정답 인덱스가 보드 범위 밖으로 생성되지 않는가	통과	정답 인덱스는 `0..total-1` 범위에서 생성되고 targetCount는 전체 셀 수 이하로 제한됨.
+D-27	문제 생성	전체	방해 요소 위치가 정답 위치와 겹치지 않는가	통과	정답 셀에는 targetType, 나머지 셀에는 distractorPool 기반 방해 요소가 배치됨.
+D-28	문제 생성	표준 모드	테마가 바뀌어도 정답 판정은 위치 기준으로 유지되는가	통과	정답 판정은 위치 Set 기준이며 테마 이미지는 `applyTheme()`/CSS 표시만 변경함.
+D-29	문제 생성	표준 모드	무궁화 정답 문항과 전구 정답 문항이 정상 구분되는가	통과	무궁화는 별도 targetType으로 선택되고 안내 문구/이미지/방해 요소와 구분됨.
+D-30	문제 생성	전체	문항 시작 시 이전 문항의 선택/힌트 상태가 초기화되는가	통과	`startRound()`에서 chosenCorrect/chosenWrong/chosenWrongTypes와 힌트 상태를 매 라운드 초기화함.
+D-31	렌더링	전체	보드의 data-grid-size가 현재 격자 크기와 일치하는가	통과	보드 `data-grid-size`와 CSS 변수 `--grid-size`를 현재 gridSize로 설정함.
+D-32	렌더링	전체	2x2, 3x3, 4x4 보드에서 이미지가 카드 안에 맞게 표시되는가	확인 필요	CSS에서 2x2/3x3/4x4 이미지 크기 보정 규칙은 존재하나, 실제 브라우저/기기 시각 확인은 필요함.
+D-33	렌더링	전체	게임 시작 전 카운트다운 보드도 실제 플레이 보드와 같은 이미지 비율을 쓰는가	통과	시작 전 카운트다운 메시지와 보드 미리보기 흐름이 `beginStartCountdown()`/`startPreviewCountdown()`에 구현됨.
+D-34	렌더링	표준 모드	전구, 새, 휴대폰, 무궁화 이미지 크기가 같은 기준으로 정렬되는가	확인 필요	전구/새/휴대폰/무궁화별 크기 보정 CSS는 있으나, 실제 렌더링 균일성은 시각 확인 필요.
+D-35	렌더링	전체	보드 배경 이미지/스타일이 이중 테두리처럼 어색하게 겹치지 않는가	확인 필요	보드 배경/테두리 CSS는 정의되어 있으나 이미지와의 겹침 여부는 뷰포트별 시각 확인 필요.
+D-36	렌더링	전체	카드 배경, 정답 배경, 선택 테두리 색상이 상태별로 충돌하지 않는가	확인 필요	카드/정답/선택 테두리 스타일은 분리되어 있으나 실제 충돌 여부는 시각 확인 필요.
+D-37	인터랙션	전체	제시 단계에서는 카드 버튼이 비활성화되는가	통과	미리보기 단계에서 셀 버튼이 disabled 처리되고 `chooseCell()`도 `isPreviewing`이면 즉시 반환함.
+D-38	인터랙션	전체	선택 단계에서만 카드 선택이 가능한가	통과	선택은 `roundActive && !isPreviewing && !isPaused` 조건에서만 가능함.
+D-39	인터랙션	모바일	터치 취소 또는 드래그 아웃 시 선택 상태가 남지 않는가	부분 통과	셀 선택은 click 기반이며 `touch-action: manipulation`은 있음. `touchcancel`/`pointercancel` 전용 복구 로직은 없음.
+D-40	인터랙션	전체	선택 후 분홍색 테두리가 즉시 적용되는가	통과	선택 즉시 correct/wrong 클래스와 이미지/aria-label이 갱신됨.
+D-41	인터랙션	전체	마우스 hover가 있는 환경에서만 hover 스타일이 자연스럽게 보이는가	통과	hover/focus-visible 스타일과 coarse pointer 예외 CSS가 존재함.
+D-42	인터랙션	전체	정답을 모두 찾으면 다음 문항으로 넘어가는가	통과	선택한 정답 수가 targetIndexes 크기에 도달하면 `finishRound(success)`로 다음 단계 이동.
+D-43	인터랙션	전체	오답을 선택해도 중복 카운트나 JS 오류가 발생하지 않는가	통과	이미 선택된 correct/wrong 셀은 조기 반환하고 오답은 3회 제한으로 처리함.
+D-44	인터랙션	전체	힌트 후에도 정답 선택 로직이 정상 유지되는가	통과	힌트는 targetIndexes 자체를 변경하지 않고 미선택 정답만 표시하므로 이후 정답 선택 로직이 유지됨.
+D-45	타이머	표준/알림 모드	문항별 제한 시간이 감소하고 화면에 표시되는가	통과	표준/알림 모드는 라운드 제한 시간이 감소하며 `updateTimeDisplay()`로 화면에 표시됨.
+D-46	타이머	케어/AI 연동 모드	타이머 UI는 숨겨지지만 내부 총 제한시간은 동작하는가	통과	케어/AI 모드는 `show_timer:false`, `round_time_limit_sec:0`으로 UI 타이머는 숨기고 총 제한 시간 로직은 유지함.
+D-47	타이머	케어/AI 연동 모드	총 180초 종료 시 결과 화면 전환 로직이 실행되는가	통과	총 180초 제한 만료 시 `handleTotalTimeExpired()`를 통해 결과 전환 로직이 실행됨.
+D-48	자동 힌트	케어/AI 연동 모드	문항 시작 후 40초에 자동 힌트 함수가 실행되는가	통과	케어/AI 모드는 `auto_hint_delay_sec:40` 설정과 자동 힌트 예약 로직이 있음.
+D-49	자동 힌트	케어/AI 연동 모드	자동 힌트가 한 문항에서 중복 실행되지 않는가	통과	자동 힌트 타이머는 라운드 시작/힌트 종료 시 clear 후 1회 재예약됨.
+D-50	자동 힌트	케어/AI 연동 모드	자동 힌트 팝업 닫힘 후 게임 진행이 정상 유지되는가	통과	자동 힌트 팝업은 `showAssistNotice()` 후 `showHint()`로 이어지며 게임 진행을 유지함.
+D-51	음성	전체	assets/audio/voice 안의 MP3 파일 경로가 실제 파일명과 일치하는가	통과	코드에 매핑된 효과음/음성 MP3 파일 경로가 실제 파일로 존재함.
+D-52	음성	표준 모드	설정하기 화면 음성이 연결되어 있는가	통과	표준 모드 설정 화면 음성은 `settings.mp3`로 매핑됨.
+D-53	음성	표준 모드	테마 선택/테마 변경 음성이 연결되어 있는가	통과	테마 선택 음성은 `theme-select.mp3`로 매핑됨.
+D-54	음성	표준 모드	튜토리얼 5단계 음성이 연결되어 있는가	통과	튜토리얼 5단계 음성(`tutorial-intro/preview/choose/hint/total`)이 매핑 및 파일 존재함.
+D-55	음성	표준 모드	시작 전 컨디션 체크 안내 및 선택 음성이 연결되어 있는가	통과	시작 전 컨디션 체크 안내/건너뛰기 음성(`pre-checkin`, `skip-pre-checkin`)이 존재함.
+D-56	음성	표준 모드	종료 후 컨디션 체크 안내 및 선택 음성이 연결되어 있는가	통과	종료 후 체크 안내 음성(`finish-status-select`, `post-help-question`)이 존재함.
+D-57	음성	표준 모드	점수화면 안내 음성이 연결되어 있는가	통과	점수화면 안내 음성 `score-screen.mp3`가 매핑 및 존재함.
+D-58	음성	케어/AI 연동 모드	케어 전용 안내 음성이 연결되어 있는가	통과	케어/AI 전용 assist 음성 7종이 매핑 및 파일 존재함.
+D-59	음성	케어/AI 연동 모드	"불이 켜지는 곳을 같이 볼까요?" 음성이 사용되지 않는가	통과	“불이 켜지는 곳을 같이 볼까요?” 문구/음성은 실제 게임 코드에서 사용되지 않음.
+D-60	효과음	전체	보드 선택 시 정답/오답 모두 같은 선택음이 재생되는가	통과	정답/오답 선택 시 `playCorrectSound()`/`playWrongSound()`가 각각 호출됨.
+D-61	효과음	전체	별도 오답음이 재생되지 않는가	통과	`wrong.mp3` 파일은 있으나 현재 오답 효과음 경로로 호출되지 않음.
+D-62	점수	표준 모드	정답수, 오답수, 정답률 계산이 실제 문항 결과와 일치하는가	통과	`getScoreSummary()`에서 정답수/오답수/정답률을 계산하고 점수 화면에 표시함.
+D-63	점수	표준 모드	점수화면 On일 때 종료 멘트 뒤 점수확인 버튼이 표시되는가	통과	점수화면 On이면 종료 멘트 후 점수 확인 버튼/점수 화면으로 진입함.
+D-64	점수	표준 모드	점수화면 Off일 때 점수 화면을 건너뛰는가	통과	점수화면 Off이면 `showResultsScreen()`으로 바로 이동함.
+D-65	점수	표준 모드	모바일 세로/가로에서 점수 카드 텍스트가 넘치지 않는가	확인 필요	모바일 점수 카드 반응형 CSS는 다수 존재하나 실제 세로/가로 뷰포트 시각 확인 필요.
+D-66	컨디션	표준 모드	시작 전 컨디션 데이터가 결과 로그에 포함되는가	통과	시작 전 컨디션 데이터는 `condition.before`에 mood/sleepDurationGroup으로 포함됨.
+D-67	컨디션	표준 모드	종료 후 컨디션 데이터가 결과 로그에 포함되는가	통과	종료 후 컨디션 데이터는 `condition.after`에 mood/perceivedDifficulty/fatigue/neededHelp/wantsReplay로 포함됨.
+D-68	컨디션	표준 모드	건너뛰기 시 null 또는 생략 상태가 의도대로 저장되는가	통과	건너뛰기 시 null 기본값이 기록되도록 payload 기본 구조가 있음.
+D-69	결과	전체	완료 시 completed 상태 로그가 생성되는가	통과	완료 시 `GAME_COMPLETED`, `status:'completed'` payload가 생성됨.
+D-70	결과	전체	중도 종료 시 abandoned 또는 별도 종료 상태가 생성되는가	통과	중도 종료 시 `GAME_ABANDONED`, `status:'abandoned'`, abandonedReason이 생성됨.
+D-71	결과	전체	correct_count, wrong_count, accuracy_rate 값이 계산되는가	부분 통과	correct_count/wrong_count와 accuracy는 계산됨. 단 필드명 `accuracy_rate`는 없고 `accuracy`/`metrics.roundAccuracy`로 기록됨.
+D-72	결과	전체	result_detail_json.question_logs가 문항별로 생성되는가	부분 통과	문항별 로그는 `question_logs`로 생성되며 `result_detail_json` 내부가 아니라 payload 최상위에 위치함.
+D-73	결과	전체	first_response_time_ms가 문항별 또는 세션 집계로 기록되는가	통과	문항별 `first_response_time_ms`와 `response_time_ms`가 기록됨.
+D-74	결과	전체	changed_answer_count가 선택 변경 횟수로 기록되는가	문제 발견	`changed_answer_count` 필드는 존재하지만 항상 0으로 고정되고 선택 변경 기능 자체가 없음.
+D-75	결과	전체	touch_miss_count 또는 동일 목적의 터치 실패 지표를 기록할 수 있는가	부분 통과	오터치 성격의 `wrong_tap_count`는 기록됨. `drag_fail_count`는 필드만 있고 0 고정이며 별도 touch_miss 지표는 없음.
+D-76	결과	전체	힌트 사용 횟수와 자동 힌트 여부가 기록되는가	부분 통과	`hint_count`/`hint_used`는 기록됨. 수동/자동 힌트 구분 플래그는 별도 기록되지 않음.
+D-77	결과	전체	총 소요 시간과 문항별 소요 시간이 기록되는가	통과	전체 소요시간(`duration_ms`, `total_elapsed_ms`)과 문항별 `response_time_ms`가 기록됨.
+D-78	WebView 연동	전체	게임 준비/시작/완료 이벤트를 앱으로 전달할 수 있는가	통과	`GAME_READY`, `GAME_STARTED`, `GAME_COMPLETED`가 WebView postMessage로 전달됨.
+D-79	WebView 연동	알림 모드	완료 후 auto_return_url로 이동하는가	부분 통과	알림 모드 auto_return 로직은 있음. 다만 URL이 로컬 `file:///C:/...`로 하드코딩되어 배포 환경 수정 필요.
+D-80	WebView 연동	케어/AI 연동 모드	효담콜로 돌아가기 확인 후 return_url로 이동하는가	부분 통과	케어/AI 복귀 버튼 로직은 있음. `return_url`이 로컬 `file:///C:/...` 경로라 배포 환경 수정 필요.
+D-81	WebView 연동	AI 연동 모드	웹뷰가 직접 마이크/STT 권한을 요구하지 않는가	통과	마이크/STT 권한 요청 코드는 없고, 외부 브리지 텍스트/명령 수신만 처리함.
+D-82	WebView 연동	AI 연동 모드	앱에서 전달한 텍스트/명령 수신 확장 지점이 분리되어 있는가	통과	`parseBridgeMessage()`, `handleBridgeMessage()`, `handleExternalAnswer()`로 앱 전달 명령 처리 지점이 분리됨.
+D-83	반응형	웹	표준 모드 웹 배치에서 좌측 패널, 보드, 안내 멘트 영역이 균형 있게 배치되는가	확인 필요	표준 모드 웹 레이아웃 반응형 CSS는 있으나 좌측 패널/보드/안내 멘트 균형은 브라우저 시각 확인 필요.
+D-84	반응형	웹	알림 모드 웹 배치에서 보드와 안내 멘트가 겹치지 않는가	확인 필요	알림 모드 웹 배치 CSS는 있으나 보드/안내 멘트 겹침 여부는 시각 확인 필요.
+D-85	반응형	웹	케어/AI 연동 모드 웹 배치에서 보드가 충분히 크게 표시되는가	확인 필요	케어/AI 모드 보드 확대 CSS는 있으나 충분한 크기인지는 실제 화면 확인 필요.
+D-86	반응형	모바일 세로	표준 모드에서 보드와 하단 패널이 화면 안에 들어오는가	확인 필요	모바일 세로에서 보드/하단 패널을 맞추는 CSS는 있으나 실제 기기 확인 필요.
+D-87	반응형	모바일 세로	케어/AI 연동 모드에서 효담콜 버튼이 하단 중앙에 표시되는가	확인 필요	케어/AI 세로 모드 return 버튼 위치 CSS는 있으나 하단 중앙 표시 여부는 시각 확인 필요.
+D-88	반응형	모바일 가로	표준/알림 모드에서 좌측 패널, 중앙 보드, 우측 안내가 의도대로 배치되는가	확인 필요	모바일 가로 표준/알림 배치 CSS는 있으나 의도한 좌측 패널/중앙 보드 배치는 시각 확인 필요.
+D-89	반응형	모바일 가로	케어/AI 연동 모드에서 효담콜 버튼이 지정 위치에 표시되는가	확인 필요	케어/AI 가로 모드 return 버튼 위치 CSS는 있으나 지정 위치 표시 여부는 시각 확인 필요.
+D-90	반응형	모바일 가로	튜토리얼 모달 버튼과 설명 문구가 잘리지 않는가	확인 필요	튜토리얼 모달 반응형 CSS는 있으나 버튼/설명 문구 겹침은 시각 확인 필요.
+D-91	접근성	전체	버튼의 aria-label 또는 텍스트가 스크린리더에 의미 있게 전달되는가	부분 통과	주요 영역과 일부 버튼에 aria-label/role이 있음. 셀 aria-label은 생성되지만 모든 컨트롤의 스크린리더 문맥은 추가 점검 권장.
+D-92	접근성	전체	키보드 포커스 표시가 사라지지 않는가	통과	`:focus-visible` 스타일이 CSS에 정의되어 키보드 포커스 표시가 사라지지 않음.
+D-93	접근성	전체	색상만으로 정답/선택 상태를 구분하지 않도록 테두리/두께/문구가 함께 제공되는가	부분 통과	정답/오답/힌트는 색상 외 클래스, 이미지, 문구도 병행됨. 다만 시각 대비/두께는 실제 접근성 확인 권장.
+D-94	접근성	전체	짧은 반복 플래시가 3회 이상 빠르게 반복되지 않는가	확인 필요	케어/AI는 `flash_effect_level:low` 설정이 있고 CSS 효과가 있으나 실제 반복 플래시 강도는 시각 확인 필요.
+D-95	에러 처리	전체	음성 파일 로드 실패 시 게임 진행이 멈추지 않는가	통과	음성 재생 실패 시 catch/대체 타이밍 처리로 게임 진행이 중단되지 않음.
+D-96	에러 처리	전체	이미지 파일 로드 실패 시 대체 텍스트 또는 빈 카드로 안전하게 처리되는가	부분 통과	이미지 alt는 제공되지만 이미지 로드 실패 시 대체 텍스트 카드로 전환하는 `onerror` 핸들러는 없음.
+D-97	에러 처리	전체	config fetch 실패 시 기본 config로 진행되거나 안내가 표시되는가	통과	config fetch/parse 실패 시 try/catch로 inline config와 `MODE_DEFAULTS` 기반 진행이 가능함.
+D-98	성능	전체	모바일에서 보드 전환과 음성 재생이 과도하게 지연되지 않는가	확인 필요	모바일 보드 전환/음성 재생 지연은 코드만으로 확정 불가하며 실제 기기 성능 확인 필요.
+D-99	성능	전체	한 세션 반복 플레이 후 이벤트 리스너/타이머가 중복 등록되지 않는가	통과	세션 초기화 시 타이머/이벤트 상태를 clear하고 셀은 재생성되므로 반복 플레이 시 중복 등록 위험이 낮음.
+D-100	배포 확인	전체	GitHub Pages/로컬 허브에서 각 모드 URL이 정상 진입되는가	부분 통과	모드 URL 구조는 `modes/*/index.html`로 배포 가능함. config/return URL에 로컬 `file:///C:/...` 경로가 남아 있어 배포 전 수정 필요.
