@@ -5134,6 +5134,71 @@
   }
 }
 
+@media (orientation: landscape) and (max-height: 520px) {
+  body.mode-ai-assisted {
+    height: 100dvh !important;
+    min-height: 100dvh !important;
+    overflow: hidden !important;
+  }
+
+  body.mode-ai-assisted .app {
+    height: 100dvh !important;
+    min-height: 100dvh !important;
+    overflow: hidden !important;
+    padding: max(6px, env(safe-area-inset-top)) max(8px, env(safe-area-inset-right)) max(6px, env(safe-area-inset-bottom)) max(8px, env(safe-area-inset-left)) !important;
+  }
+
+  body.mode-ai-assisted .board-wrap:not(.result-mode) {
+    height: 100% !important;
+    max-height: calc(100dvh - 12px) !important;
+    grid-template-columns: minmax(220px, 36vw) minmax(0, 1fr) !important;
+    grid-template-rows: auto minmax(0, 1fr) !important;
+    align-content: stretch !important;
+    align-items: stretch !important;
+    column-gap: clamp(14px, 2.4vw, 26px) !important;
+    row-gap: clamp(8px, 1.8vh, 12px) !important;
+    padding: clamp(8px, 2vh, 12px) clamp(12px, 2.4vw, 20px) !important;
+    overflow: hidden !important;
+  }
+
+  body.mode-ai-assisted .return-button {
+    grid-column: 1 !important;
+    grid-row: 1 !important;
+    justify-self: start !important;
+    align-self: start !important;
+    min-width: clamp(200px, 30vw, 262px) !important;
+    min-height: clamp(36px, 8vh, 46px) !important;
+    margin: 0 !important;
+    padding: 6px clamp(16px, 2.6vw, 24px) !important;
+    font-size: clamp(16px, min(3.9vh, 2.8vw), 22px) !important;
+  }
+
+  body.mode-ai-assisted .play-training-label {
+    display: none !important;
+  }
+
+  body.mode-ai-assisted .board-wrap:not(.result-mode) .message {
+    grid-column: 1 !important;
+    grid-row: 2 !important;
+    align-self: start !important;
+    width: 100% !important;
+    min-height: clamp(74px, 23vh, 108px) !important;
+    max-height: clamp(94px, 30vh, 138px) !important;
+    padding: clamp(10px, 3vh, 16px) clamp(14px, 2.8vw, 22px) !important;
+    font-size: clamp(21px, min(6vh, 3.5vw), 30px) !important;
+    line-height: 1.12 !important;
+    overflow: hidden !important;
+  }
+
+  body.mode-ai-assisted .board-wrap:not(.result-mode) .board {
+    grid-column: 2 !important;
+    grid-row: 1 / span 2 !important;
+    place-self: center !important;
+    width: min(calc(100dvh - 44px), calc(100vw - 282px), 350px) !important;
+    height: min(calc(100dvh - 44px), calc(100vw - 282px), 350px) !important;
+  }
+}
+
 /* Flower targets should always use the same yellow target glow across themes. */
 .cell.preview-glow.object-flower,
 .cell.hint.object-flower,

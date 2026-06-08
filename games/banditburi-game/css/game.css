@@ -4791,3 +4791,32 @@ body.mode-reminder .stats .stat.mode-hidden,
 body.mode-reminder .stats .stat[hidden] {
   display: none !important;
 }
+
+/* Keep the tutorial example fully visible on short mobile landscape screens. */
+@media (orientation: landscape) and (max-height: 520px) {
+  .tutorial-card .tutorial-box {
+    height: min(260px, calc(100dvh - 132px)) !important;
+    grid-template-columns: minmax(0, 1fr) minmax(0, clamp(160px, 27vw, 220px)) !important;
+    grid-template-rows: auto auto minmax(0, 1fr) !important;
+    align-content: stretch !important;
+    overflow: hidden !important;
+  }
+
+  .tutorial-card .tutorial-demo {
+    align-self: start !important;
+    justify-self: center !important;
+    width: min(100%, 210px, calc(100dvh - 184px)) !important;
+    max-height: 100% !important;
+    padding: clamp(5px, 1.4vh, 7px) !important;
+    overflow: hidden !important;
+  }
+
+  .tutorial-demo-grid {
+    gap: clamp(3px, .9vh, 5px) !important;
+  }
+
+  .tutorial-demo-cell {
+    border-width: clamp(2px, .7vh, 3px) !important;
+    border-radius: clamp(10px, 2vh, 14px) !important;
+  }
+}

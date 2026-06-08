@@ -6155,6 +6155,56 @@ body[data-mode="standard"] .stats .stat.time-stat #timeText {
   }
 }
 
+/* Keep the tutorial example fully visible on short mobile landscape screens. */
+@media (orientation: landscape) and (max-height: 520px) {
+  body[data-mode="standard"] .tutorial-card {
+    width: min(calc(100vw - 8px), 820px) !important;
+    max-height: calc(100dvh - 8px) !important;
+    padding: clamp(8px, 1.8vh, 12px) clamp(10px, 2vw, 16px) !important;
+  }
+
+  body[data-mode="standard"] .tutorial-card .tutorial-box {
+    height: min(262px, calc(100dvh - 132px)) !important;
+    grid-template-columns: minmax(0, 1fr) minmax(0, clamp(164px, 28vw, 230px)) !important;
+    grid-template-rows: auto auto minmax(0, 1fr) !important;
+    align-content: stretch !important;
+    overflow: hidden !important;
+  }
+
+  body[data-mode="standard"] .tutorial-card .tutorial-demo {
+    align-self: start !important;
+    justify-self: center !important;
+    width: min(100%, 220px, calc(100dvh - 184px)) !important;
+    max-height: 100% !important;
+    gap: clamp(3px, .8vh, 5px) !important;
+    overflow: hidden !important;
+  }
+
+  body[data-mode="standard"] .tutorial-demo-board {
+    width: 100% !important;
+    max-width: 100% !important;
+    padding: clamp(4px, 1vh, 6px) !important;
+    border-width: clamp(2px, .7vh, 3px) !important;
+    border-radius: 16px !important;
+  }
+
+  body[data-mode="standard"] .tutorial-demo-grid {
+    gap: clamp(3px, .8vh, 5px) !important;
+  }
+
+  body[data-mode="standard"] .tutorial-demo-cell {
+    border-width: clamp(2px, .7vh, 3px) !important;
+    border-radius: clamp(10px, 2vh, 14px) !important;
+  }
+
+  body[data-mode="standard"] .tutorial-demo-caption {
+    min-height: 0 !important;
+    padding: 3px 6px !important;
+    font-size: clamp(11px, 2.7vh, 14px) !important;
+    line-height: 1.08 !important;
+  }
+}
+
 /* Keep runtime-config visibility flags above late layout display rules. */
 body[data-mode="standard"] .stats .stat.mode-hidden,
 body[data-mode="standard"] .stats .stat[hidden] {
