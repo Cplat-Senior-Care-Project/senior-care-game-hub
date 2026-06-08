@@ -140,7 +140,7 @@
         show_timer: false,
         show_score: false,
         show_difficulty_select: false,
-        show_settings: false,
+        show_settings: true,
         show_how_to_play: false,
         show_condition_check: false,
         show_finish_check: false,
@@ -242,6 +242,34 @@
     };
 
     const loadingScreen = document.getElementById("loadingScreen");
+    const loadingProgressFill = document.getElementById("loadingProgressFill");
+    const loadingProgressText = document.getElementById("loadingProgressText");
+    const loadingProgressBar = loadingProgressFill ? loadingProgressFill.closest(".loading-bar") : null;
+    let loadingProgressValue = 0;
+    let loadingProgressTimer = null;
+
+    function setLoadingProgress(percent) {
+      loadingProgressValue = Math.max(0, Math.min(100, Math.round(percent)));
+      if (loadingProgressFill) loadingProgressFill.style.width = `${loadingProgressValue}%`;
+      if (loadingProgressText) loadingProgressText.textContent = `게임을 준비하고 있어요 ${loadingProgressValue}%`;
+      if (loadingProgressBar) loadingProgressBar.setAttribute("aria-valuenow", String(loadingProgressValue));
+    }
+
+    function startLoadingProgress() {
+      setLoadingProgress(0);
+      loadingProgressTimer = setInterval(() => {
+        if (loadingProgressValue >= 96) return;
+        setLoadingProgress(loadingProgressValue + Math.max(1, Math.ceil((96 - loadingProgressValue) / 12)));
+      }, 80);
+    }
+
+    function finishLoadingProgress(callback) {
+      clearInterval(loadingProgressTimer);
+      setLoadingProgress(100);
+      setTimeout(callback, 180);
+    }
+
+    startLoadingProgress();
     const introModal = document.getElementById("introModal");
     const tutorialModal = document.getElementById("tutorialModal");
     const settingsModal = document.getElementById("settingsModal");
@@ -1216,6 +1244,8 @@
         console.warn("Could not hot-reload game config.", error);
       }
     }
+
+    window.__reloadGameConfig = reloadRuntimeConfigIfChanged;
 
     function applyModeUi() {
       document.body.dataset.mode = gameMode;
@@ -2409,7 +2439,9 @@
     setInterval(reloadRuntimeConfigIfChanged, 1000);
     difficultyModal.classList.remove("open");
     setTimeout(() => {
+      finishLoadingProgress(() => {
       loadingScreen.classList.add("is-hidden");
       sendGameMessage({ type: "GAME_READY" });
       showIntroScreen();
+      });
     }, 900);

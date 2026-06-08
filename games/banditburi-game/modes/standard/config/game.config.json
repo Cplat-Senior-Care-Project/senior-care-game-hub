@@ -2,7 +2,10 @@
   "gameId": "light-memory-game",
   "gameTitle": "빛나는 전구를 찾아라",
   "schemaVersion": "1.0.0",
+  "contentId": "memory_light_bulb_001",
+  "gameKey": "light_memory",
   "mode": "standard",
+  "difficulty": "easy",
   "modeTitle": "표준 모드",
   "difficultyOptions": {
     "EASY": {

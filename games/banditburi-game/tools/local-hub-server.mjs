@@ -27,6 +27,13 @@ const liveReloadSnippet = `
 <script>
 (() => {
   const source = new EventSource("/__live_reload");
+  source.addEventListener("config", () => {
+    if (typeof window.__reloadGameConfig === "function") {
+      window.__reloadGameConfig();
+      return;
+    }
+    window.location.reload();
+  });
   source.addEventListener("reload", () => window.location.reload());
 })();
 </script>`;
@@ -39,10 +46,14 @@ function safeFilePath(requestPath) {
   return resolved;
 }
 
-function sendReload() {
+function sendLiveEvent(eventName) {
   for (const response of clients) {
-    response.write(`event: reload\ndata: ${Date.now()}\n\n`);
+    response.write(`event: ${eventName}\ndata: ${Date.now()}\n\n`);
   }
+}
+
+function getLiveEventName(relativePath) {
+  return /(^|\/)config\/game\.config\.json$/i.test(relativePath) ? "config" : "reload";
 }
 
 async function serveFile(request, response) {
@@ -90,13 +101,19 @@ async function serveFile(request, response) {
 }
 
 let reloadTimer = null;
+let pendingLiveEvent = null;
 try {
   watch(hubRoot, { recursive: true }, (_eventType, filename) => {
     if (!filename) return;
     const relative = filename.replaceAll("\\", "/");
     if (relative.startsWith(".git/") || relative.includes("/.git/") || relative.includes("node_modules/")) return;
+    const nextEvent = getLiveEventName(relative);
+    pendingLiveEvent = pendingLiveEvent === "reload" || nextEvent === "reload" ? "reload" : "config";
     clearTimeout(reloadTimer);
-    reloadTimer = setTimeout(sendReload, 180);
+    reloadTimer = setTimeout(() => {
+      sendLiveEvent(pendingLiveEvent || "reload");
+      pendingLiveEvent = null;
+    }, 180);
   });
 } catch (error) {
   console.warn(`File watching is not available here: ${error.message}`);

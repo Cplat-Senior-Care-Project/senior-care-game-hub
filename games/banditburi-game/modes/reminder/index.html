@@ -17,7 +17,10 @@
   <div id="loadingScreen" class="loading-screen">
     <div class="loading-card">
       <img id="loadingImage" class="loading-image" src="../../assets/images/image-01-c44771d0.png" alt="잠시만 기다려 주세요.">
-      <div class="loading-bar" aria-hidden="true"><span></span></div>
+      <p id="loadingProgressText" class="loading-progress-text" aria-live="polite">게임을 준비하고 있어요 0%</p>
+      <div class="loading-bar" role="progressbar" aria-label="게임 로딩 진행률" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+        <span id="loadingProgressFill"></span>
+      </div>
     </div>
   </div>
 
@@ -279,39 +282,10 @@
 
   <script>
     window.__GAME_CONFIG__ = {
-      mode: "reminder",
-      difficulty: "normal",
-      contentId: "memory_light_bulb_001",
-      gameKey: "light_memory",
-      playSource: "reminder",
-      config: {
-        show_timer: true,
-        show_score: true,
-        show_difficulty_select: false,
-        show_settings: true,
-        show_how_to_play: true,
-        show_condition_check: false,
-        show_finish_check: false,
-        question_count: 5,
-        exposure_time_ms: 5000,
-        round_time_limit_sec: 0,
-        total_time_limit_sec: 480,
-        hint_enabled: true,
-        auto_hint_enabled: false,
-        auto_start: true,
-        auto_return: true,
-        auto_return_delay_ms: 0,
-        auto_return_url: "file:///C:/Users/juhye/OneDrive/Desktop/senior-care-game-hub/index.html",
-        soft_feedback: false,
-        voice_guide_enabled: true,
-        music_volume: 70,
-        effect_volume: 100,
-        voice_volume: 100,
-        high_contrast: false,
-        result_log_level: "summary"
-      }
+      mode: "reminder"
     };
   </script>
+  <script src="../../js/dev-server-redirect.js"></script>
   <script src="../../js/mobile-fullscreen.js"></script>
   <script src="js/game.js?v=20260608-countdown-pause-settings-1"></script>
 </body>
