@@ -5914,6 +5914,10 @@ body[data-mode="standard"] #levelText {
     line-height: 1.12 !important;
   }
 
+  body[data-mode="standard"] .panel-guide {
+    display: none !important;
+  }
+
   body[data-mode="standard"] .board {
     width: min(100%, calc(100dvh - 36px), 336px) !important;
     height: min(100%, calc(100dvh - 36px), 336px) !important;

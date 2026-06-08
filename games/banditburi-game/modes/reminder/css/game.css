@@ -5523,6 +5523,10 @@ body.mode-reminder #levelText {
 }
 
 @media (orientation: landscape) and (max-height: 520px) {
+  body.mode-reminder .panel-guide {
+    display: none !important;
+  }
+
   body.mode-reminder .stats .stat span:first-child {
     font-size: clamp(8px, 2.55vh, 12px) !important;
     line-height: 1 !important;

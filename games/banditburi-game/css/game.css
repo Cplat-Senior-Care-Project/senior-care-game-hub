@@ -3825,6 +3825,33 @@ body.mode-reminder .stats .stat.time-stat #timeText {
   }
 }
 
+/* Standard mode: keep the board backing square locked to the board corner on short landscape screens. */
+@media (orientation: landscape) and (max-height: 520px) {
+  body[data-mode="standard"] .board {
+    position: relative !important;
+    isolation: isolate !important;
+    overflow: visible !important;
+    box-shadow:
+      inset 0 8px 18px rgba(255, 255, 255, .24),
+      inset 0 -22px 36px rgba(22, 78, 38, .2),
+      0 18px 28px rgba(20, 70, 35, .2) !important;
+  }
+
+  body[data-mode="standard"] .board::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: calc(100% + clamp(10px, 2.5vh, 16px));
+    height: calc(100% + clamp(10px, 2.5vh, 16px));
+    border-radius: inherit;
+    background: rgba(42, 112, 55, .18);
+    box-shadow: 0 14px 24px rgba(20, 70, 35, .18);
+    pointer-events: none;
+    z-index: -1;
+  }
+}
+
 /* Status panel order: difficulty, remain/progress, total time. */
 .stats,
 body[data-mode="standard"] .stats,
@@ -4570,7 +4597,7 @@ body.mode-reminder #levelText {
   }
 
   .panel-guide {
-    display: flex !important;
+    display: none !important;
     min-height: 0 !important;
     padding: 10px 12px !important;
     gap: 6px !important;
