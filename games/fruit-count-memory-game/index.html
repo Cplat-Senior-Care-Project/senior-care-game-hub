@@ -562,7 +562,7 @@
       var requestedMode = String(params.get("mode") || "standard").trim().toLowerCase();
       var requestedConfigUrl = String(params.get("configUrl") || "").trim();
       var mode = Object.prototype.hasOwnProperty.call(modeMap, requestedMode) ? requestedMode : "standard";
-      var assetVersion = "ai-external-input-config-fix-20260602";
+      var assetVersion = "care-standard-pause-20260608";
       window.__FRUIT_COUNT_GAME_MODE__ = mode;
       window.__FRUIT_COUNT_MODE_ASSETS__ = {
         css: "css/modes/" + mode + ".css",
@@ -582,6 +582,6 @@
   <script src="js/config-normalizer.js?v=ai-external-input-config-fix-20260602"></script>
   <script src="js/app-bridge.js?v=ai-external-input-config-fix-20260602"></script>
   <audio id="background-audio" src="assets/audio/background.wav" preload="auto" loop></audio>
-  <script src="js/game.js?v=fullscreen-start-background-long-press-20260607"></script>
+  <script src="js/game.js?v=care-start-actions-20260608"></script>
 </body>
 </html>

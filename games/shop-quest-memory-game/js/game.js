@@ -12,6 +12,7 @@
   const TRANSITION_TIME = 1300;
   const AUTO_HINT_DELAY_MS = 10000;
   const STANDARD_REVEAL_MS = 3000;
+  const MAX_MEMORY_ITEMS = 6;
   const RACE_POINTS = Object.freeze([16, 50, 84, 94]);
   const MEMORY_LAYOUT_MIN_CARD = 38;
   const MEMORY_LAYOUT_CARD_SIZE = 146;
@@ -68,8 +69,14 @@
     hard: Object.freeze([
       { through: 3, memoryItemCount: 5, answerChoiceCount: 9 },
       { through: 6, memoryItemCount: 6, answerChoiceCount: 11 },
-      { through: 10, memoryItemCount: 7, answerChoiceCount: 12 }
+      { through: 10, memoryItemCount: 6, answerChoiceCount: 12 }
     ])
+  });
+
+  const CARE_DIFFICULTIES = Object.freeze({
+    easy: Object.freeze({ memoryItemCount: 1, answerChoiceCount: 2 }),
+    normal: Object.freeze({ memoryItemCount: 2, answerChoiceCount: 4 }),
+    hard: Object.freeze({ memoryItemCount: 3, answerChoiceCount: 9 })
   });
 
   const TUTORIAL_STEPS = Object.freeze([
@@ -87,7 +94,7 @@
     errorTitle: $("error-title"), errorMessage: $("error-message"), startButton: $("start-button"), startExitButton: $("start-exit-button"), settingsButton: $("settings-button"), tutorialButton: $("tutorial-button"),
     difficultyButtons: Array.from(document.querySelectorAll("[data-difficulty], [data-difficulty-index]")), difficultyBackButton: $("difficulty-back-button"), playArea: $("play-area"), hintButton: $("hint-button"), dragGhost: $("drag-ghost"),
     pauseButton: $("pause-button"), pauseModal: $("pause-modal"), resumeButton: $("resume-button"), pauseRestartButton: $("pause-restart-button"), pauseQuitButton: $("home-button"), pauseHelpButton: $("pause-help-button"),
-    roundLabel: $("round-label"), timeLeft: $("time-left"), timerBox: $("timer-box"), scoreLabel: $("score-label"), hudLevelLabel: $("hud-level-label"), difficultyLabel: $("difficulty-label"), stageLabel: $("stage-label"), raceWrap: document.querySelector(".race-wrap"), raceMarker: $("race-marker"), raceSteps: Array.from(document.querySelectorAll(".race-step")), resultEmoji: $("result-emoji"), resultTitle: $("result-title"), resultMessage: $("result-message"), resultCorrect: $("result-correct"), resultTotal: $("result-total"), resultHintCount: $("result-hint-count"), resultRate: $("result-rate"), resultCompare: $("result-compare"),
+    roundLabel: $("round-label"), timeLeft: $("time-left"), timerBox: $("timer-box"), difficultyLabel: $("difficulty-label"), stageLabel: $("stage-label"), raceWrap: document.querySelector(".race-wrap"), raceMarker: $("race-marker"), raceSteps: Array.from(document.querySelectorAll(".race-step")), resultEmoji: $("result-emoji"), resultTitle: $("result-title"), resultMessage: $("result-message"), resultCorrect: $("result-correct"), resultTotal: $("result-total"), resultHintCount: $("result-hint-count"), resultRate: $("result-rate"), resultCompare: $("result-compare"),
     restartButton: $("restart-button"), resultStartButton: $("result-start-button"), resultHomeButton: $("result-home-button"), errorHomeButton: $("error-home-button"),
     conditionModal: $("condition-modal"), conditionButtons: Array.from(document.querySelectorAll("[data-mood]")), conditionSleepDial: document.querySelector(".condition-sleep-dial"), conditionSleepRows: $("condition-sleep-rows"), conditionSleepUpButton: $("condition-sleep-up-button"), conditionSleepDownButton: $("condition-sleep-down-button"), conditionSkipButton: $("condition-skip-button"), conditionConfirmButton: $("condition-confirm-button"),
     postConditionModal: $("post-condition-modal"), postConditionPages: Array.from(document.querySelectorAll(".post-condition-page")), postConditionDots: Array.from(document.querySelectorAll(".post-condition-dot")), postConditionOptions: Array.from(document.querySelectorAll(".post-condition-option")), postConditionSkipButton: $("post-condition-skip-button"), postConditionNextButton: $("post-condition-next-button"), postConditionBackButton: $("post-condition-back-button"), postConditionConfirmButton: $("post-condition-confirm-button"),
@@ -316,10 +323,6 @@
   function findItem(id) { return SHOPPING_ITEMS.find((item) => item.id === id) || null; }
   function getChoiceImage(item) { return item && (item.choiceImage || item.image); }
   function shuffle(items) { const result = [...items]; for (let i = result.length - 1; i > 0; i -= 1) { const j = Math.floor(Math.random() * (i + 1)); [result[i], result[j]] = [result[j], result[i]]; } return result; }
-  function similarity(a, b) { return Number(a.category === b.category) + Number(a.shape === b.shape) + Number(a.color === b.color); }
-  function cohesion(items) { if (items.length < 2) return 0; let score = 0, pairs = 0; for (let i = 0; i < items.length; i += 1) for (let j = i + 1; j < items.length; j += 1) { score += similarity(items[i], items[j]); pairs += 1; } return score / pairs; }
-  function maxSimilarity(item, targets) { return Math.max(...targets.map((target) => similarity(item, target))); }
-  function targetKey(items) { return items.map((item) => item.id).sort().join("|"); }
   function reportError(code, error) {
     const payload = { status: "error", error_code: code, error_message: error && error.message ? error.message : String(error || code), game_id: GAME_ID, occurred_at: new Date().toISOString() };
     if (els.errorMessage) els.errorMessage.textContent = payload.error_message;
@@ -374,8 +377,20 @@
       }
       merged.revealMs = STANDARD_REVEAL_MS;
     }
-    if (isCareMode()) { merged.memoryItemCount = 1; merged.answerChoiceCount = 2; merged.revealMs = Math.max(merged.revealMs, 4500); }
-    const maxMemoryItems = shouldUseStandardDifficultyPlan() ? Math.max(runtimeConfig.maxItemsToRemember || 7, 7) : runtimeConfig.maxItemsToRemember || 3;
+    if (runtimeConfig.mode === "care") {
+      const careDifficulty = CARE_DIFFICULTIES[key] || CARE_DIFFICULTIES.easy;
+      merged.memoryItemCount = careDifficulty.memoryItemCount;
+      merged.answerChoiceCount = careDifficulty.answerChoiceCount;
+      merged.revealMs = Math.max(merged.revealMs, 4500);
+    } else if (isCareMode()) {
+      merged.memoryItemCount = 1;
+      merged.answerChoiceCount = 2;
+      merged.revealMs = Math.max(merged.revealMs, 4500);
+    }
+    const configuredMaxMemoryItems = runtimeConfig.maxItemsToRemember || MAX_MEMORY_ITEMS;
+    const maxMemoryItems = shouldUseStandardDifficultyPlan() || runtimeConfig.mode === "care"
+      ? MAX_MEMORY_ITEMS
+      : Math.min(configuredMaxMemoryItems, MAX_MEMORY_ITEMS);
     const maxAnswerChoices = shouldUseStandardDifficultyPlan() ? Math.min(STANDARD_MAX_ANSWER_CHOICES, SHOPPING_ITEMS.length) : SHOPPING_ITEMS.length;
     merged.memoryItemCount = Math.max(1, Math.min(merged.memoryItemCount, maxMemoryItems));
     merged.answerChoiceCount = Math.max(merged.memoryItemCount + 1, Math.min(merged.answerChoiceCount, maxAnswerChoices));
@@ -399,30 +414,13 @@
   }
 
   function pickTargets(difficulty) {
-    let best = [], bestScore = difficulty.key === "hard" ? Number.NEGATIVE_INFINITY : Number.POSITIVE_INFINITY;
-    const used = new Set(state.questionLogs.map((log) => targetKey(log.target_items.map(findItem).filter(Boolean))));
-    for (let attempt = 0; attempt < 100; attempt += 1) {
-      const candidate = shuffle(SHOPPING_ITEMS).slice(0, difficulty.memoryItemCount);
-      if (used.has(targetKey(candidate))) continue;
-      const c = cohesion(candidate);
-      const score = difficulty.key === "easy" ? c : difficulty.key === "normal" ? Math.abs(c - 0.75) : c;
-      if (difficulty.key === "normal" && c === 0 && difficulty.memoryItemCount > 1) continue;
-      if ((difficulty.key === "hard" && score > bestScore) || (difficulty.key !== "hard" && score < bestScore)) { best = candidate; bestScore = score; }
-    }
-    return best.length ? best : shuffle(SHOPPING_ITEMS).slice(0, difficulty.memoryItemCount);
+    return shuffle(SHOPPING_ITEMS).slice(0, difficulty.memoryItemCount);
   }
 
   function pickDistractors(difficulty, targets) {
     const targetIds = new Set(targets.map((item) => item.id));
     const needed = difficulty.answerChoiceCount - targets.length;
-    const ranked = shuffle(SHOPPING_ITEMS.filter((item) => !targetIds.has(item.id))).map((item) => ({ item, score: maxSimilarity(item, targets) })).sort((a, b) => a.score - b.score);
-    if (difficulty.key === "easy") return ranked.slice(0, needed).map(({ item }) => item);
-    if (difficulty.key === "hard") return ranked.reverse().slice(0, needed).map(({ item }) => item);
-    const similar = ranked.filter(({ score }) => score > 0).reverse().map(({ item }) => item);
-    const different = ranked.filter(({ score }) => score === 0).map(({ item }) => item);
-    const mixed = [...similar.slice(0, Math.min(Math.max(1, Math.ceil(needed / 3)), similar.length)), ...shuffle(different)];
-    const filler = ranked.map(({ item }) => item).filter((item) => !mixed.some((picked) => picked.id === item.id));
-    return [...mixed, ...filler].slice(0, needed);
+    return shuffle(SHOPPING_ITEMS.filter((item) => !targetIds.has(item.id))).slice(0, needed);
   }
 
   function generateQuestion() {
@@ -461,7 +459,6 @@
         ? "\uC7A0\uC2DC \uD6C4 \uBB3C\uAC74\uC744 \uCC3E\uC544\uC8FC\uC138\uC694!"
         : "\uC544\uB798 \uBB3C\uAC74\uC744 \uAE30\uC5B5\uD574\uC8FC\uC138\uC694!";
     if (els.difficultyLabel) els.difficultyLabel.textContent = mission;
-    if (els.hudLevelLabel) els.hudLevelLabel.textContent = `Lv. ${difficulty.index + 1}`;
     if (els.stageLabel) els.stageLabel.textContent = difficulty.label;
     if (els.timeLeft) els.timeLeft.textContent = formatTime(state.remainingSeconds);
     if (els.timerBox) els.timerBox.classList.toggle("is-low", state.remainingSeconds <= 10);
@@ -470,7 +467,6 @@
   function updateHud() {
     const total = getTotalQuestions();
     if (els.roundLabel) els.roundLabel.textContent = `${Math.min(state.questionIndex + 1, total)} / ${total}`;
-    if (els.scoreLabel) els.scoreLabel.textContent = String(state.correctCount);
     updateTopUi();
   }
 

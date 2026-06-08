@@ -20,7 +20,7 @@
     totalQuestions: 10,
     answerChoiceCount: 4,
     memoryItemCount: null,
-    maxItemsToRemember: 3,
+    maxItemsToRemember: 6,
     revealMs: 3000,
     soundEnabled: true,
     voiceGuideEnabled: true,

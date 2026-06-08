@@ -4,9 +4,7 @@
     id: "care",
     apply(config) {
       config.difficultyKey = config.difficultyKey || "easy";
-      config.totalQuestions = Math.min(config.totalQuestions || 5, 5);
-      config.memoryItemCount = 1;
-      config.answerChoiceCount = 2;
+      config.totalQuestions = 5;
       config.useDrag = false;
       config.autoAddToCart = true;
       config.ui.showTimer = false;

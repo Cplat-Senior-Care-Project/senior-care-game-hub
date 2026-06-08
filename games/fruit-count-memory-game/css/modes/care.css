@@ -3,9 +3,6 @@ html[data-mode="care"]:has(#start-screen:not(.is-hidden)) .game-background {
   background-image: url("../../assets/images/standard_background2.png");
 }
 
-html[data-mode="care"] #settings-button,
-html[data-mode="care"] #tutorial-button,
-html[data-mode="care"] #pause-help-button,
 html[data-mode="care"] .game-header,
 html[data-mode="care"] .game-bottom-safe,
 html[data-mode="care"] #timer-box,
@@ -201,28 +198,15 @@ html[data-mode="care"] .care-play-button.is-pressed {
   transform: translateX(-50%) translateY(3px) scale(calc(var(--care-control-scale) * 0.98));
 }
 
-html[data-mode="care"] .start-actions {
-  --care-start-action-width: clamp(380px, 29vw, 400px);
-  width: 100%;
-  grid-template-columns: auto auto;
-  justify-items: center;
-  gap: clamp(14px, 2.8vw, 32px);
+html[data-mode="care"] .start-side-button {
+  position: relative;
+  justify-content: center;
+  text-align: center;
 }
 
-html[data-mode="care"] .start-exit-button {
-  display: inline-grid;
-  grid-column: 1;
-  place-items: center;
-  align-self: center;
-  justify-self: end;
-  width: var(--care-start-action-width);
-  min-width: var(--care-start-action-width);
-  max-width: var(--care-start-action-width);
-  min-height: var(--start-primary-height-base);
+html[data-mode="care"] #tutorial-button.start-side-button {
   border: 3px solid #ffb3a3;
-  border-radius: clamp(28px, 64px, 54px);
-  padding-block: var(--start-primary-pad-y-base);
-  padding-inline: var(--start-primary-pad-x-base);
+  border-radius: clamp(22px, 46.08px, 38px);
   color: #fffdf3;
   background: linear-gradient(315deg, rgba(126, 29, 29, 0.24) 0%, rgba(207, 62, 52, 0.08) 48%, rgba(255, 151, 128, 0.24) 100%),
         #d95145;
@@ -231,45 +215,70 @@ html[data-mode="care"] .start-exit-button {
         inset 0 0 0 1px #8f3028,
         inset 0 3px 0 rgba(255, 255, 244, 0.35),
         inset 0 -6px 0 rgba(104, 24, 22, 0.28);
-  font-size: clamp(30px, min(64px, 63.36px), var(--start-primary-font-base));
   font-weight: 1000;
+  text-shadow: 0 2px 0 rgba(96, 28, 22, 0.6),
+        0 0 4px rgba(96, 28, 22, 0.34);
+}
+
+html[data-mode="care"] #tutorial-button.start-side-button > span:not([aria-hidden="true"]) {
+  position: absolute !important;
+  left: 50% !important;
+  top: 50% !important;
+  transform: translate(-50%, -50%) !important;
+  width: max-content;
+  color: #fffdf3;
   line-height: 1;
-  white-space: nowrap;
-  text-shadow: none;
 }
 
-html[data-mode="care"] .start-exit-button > span:first-child {
-  position: relative;
-  z-index: 1;
-  display: inline-block;
-  white-space: nowrap;
+html[data-mode="care"] #settings-button.start-side-button > span {
+  position: relative !important;
+  left: 0 !important;
 }
 
-html[data-mode="care"] #start-button {
-  grid-column: 2;
-  justify-self: start;
-  width: var(--care-start-action-width);
-  min-width: var(--care-start-action-width);
-  max-width: var(--care-start-action-width);
-  font-weight: 1000;
-  -webkit-text-stroke: 0;
-  paint-order: normal;
+html[data-mode="care"] #settings-button.start-side-button > span:last-child {
+  top: 0 !important;
 }
 
+html[data-mode="care"] #start-button,
 html[data-mode="care"] #start-button > span:first-child {
   font-weight: 1000;
   -webkit-text-stroke: 0;
   paint-order: normal;
 }
 
-html[data-mode="care"] .start-exit-button:active,
-html[data-mode="care"] .start-exit-button.is-pressed {
+html[data-mode="care"] #tutorial-button.start-side-button:hover {
+  filter: brightness(1.03);
+  box-shadow: 0 7px 18px rgba(116, 36, 30, 0.22),
+        0 0 0 1px #8f3028,
+        inset 0 0 0 1px #8f3028,
+        inset 0 3px 0 rgba(255, 255, 244, 0.35),
+        inset 0 -6px 0 rgba(104, 24, 22, 0.28);
+}
+
+html[data-mode="care"] #tutorial-button.start-side-button:active,
+html[data-mode="care"] #tutorial-button.start-side-button.is-pressed {
   transform: translateY(3px) scale(0.98);
   box-shadow: 0 3px 8px rgba(116, 36, 30, 0.16),
         0 0 0 1px #8f3028,
         inset 0 0 0 1px #8f3028,
         inset 0 2px 0 rgba(255, 255, 244, 0.34),
         inset 0 -3px 0 rgba(104, 24, 22, 0.24);
+}
+
+html[data-mode="care"] #settings-modal .settings-card {
+  width: min(620px, calc(100% - 24px));
+}
+
+html[data-mode="care"] #settings-modal .settings-layout {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+html[data-mode="care"] #settings-modal .settings-left-panel {
+  display: none;
+}
+
+html[data-mode="care"] #settings-modal .settings-sound-panel {
+  width: 100%;
 }
 
 html[data-mode="care"] .play-area {
@@ -359,77 +368,6 @@ html[data-mode="care"] .app.is-care-hint-open .question-top-row .guide-text {
 
 html[data-mode="care"] .hint-area {
   display: none !important;
-}
-
-html[data-mode="care"] #pause-modal .pause-card {
-  width: min(900px, calc(100% - 40px));
-  max-height: calc(100% - 40px);
-  padding: 48px 56px 56px;
-}
-
-html[data-mode="care"] #pause-modal .pause-card h2 {
-  font-size: clamp(44px, 5.2vw, 60px);
-  text-align: center;
-}
-
-html[data-mode="care"] #pause-modal .pause-help-button,
-html[data-mode="care"] #pause-modal .pause-sound-panel {
-  display: none !important;
-}
-
-html[data-mode="care"] #pause-modal .pause-card p {
-  display: block;
-  margin: 18px 0 0;
-  color: #6f4728;
-  font-size: clamp(30px, 3.4vw, 42px);
-  font-weight: 900;
-  line-height: 1.15;
-  text-align: center;
-  word-break: keep-all;
-}
-
-html[data-mode="care"] #pause-modal .pause-layout {
-  display: block;
-  margin-top: 42px;
-}
-
-html[data-mode="care"] #pause-modal .pause-action-panel {
-  display: grid;
-  gap: 34px;
-  width: 100%;
-  padding: 0;
-  border-right: 0;
-}
-
-html[data-mode="care"] #pause-modal .pause-small-actions {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 34px;
-}
-
-html[data-mode="care"] #pause-modal .pause-main-button,
-html[data-mode="care"] #pause-modal .pause-sub-button {
-  min-width: 0;
-  height: auto;
-  min-height: 156px;
-  padding: 0 32px;
-  border-radius: 44px;
-  font-size: clamp(46px, 5.8vw, 62px);
-  line-height: 1;
-  white-space: nowrap;
-}
-
-html[data-mode="care"] #pause-modal #pause-restart-button {
-  box-shadow: inset 0 0 0 1px #f5c84b,
-        inset 0 3px 0 rgba(255, 255, 244, 0.48),
-        inset 0 -6px 0 rgba(204, 157, 52, 0.28);
-}
-
-html[data-mode="care"] #pause-modal #pause-restart-button:hover {
-  box-shadow: 0 7px 14px rgba(87, 56, 22, 0.16),
-        inset 0 0 0 1px #f5c84b,
-        inset 0 3px 0 rgba(255, 255, 244, 0.52),
-        inset 0 -6px 0 rgba(204, 157, 52, 0.3);
 }
 
 html[data-mode="care"] .result-actions #result-home-button {

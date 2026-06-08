@@ -13,7 +13,7 @@
     "duration_seconds": 120,
     "reveal_ms": 3000,
     "question_count": 10,
-    "max_items_to_remember": 7,
+    "max_items_to_remember": 6,
     "use_drag": true,
     "auto_add_to_cart": true,
     "hint_enabled": true,

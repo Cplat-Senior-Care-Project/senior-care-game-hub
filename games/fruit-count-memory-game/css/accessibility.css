@@ -58,7 +58,7 @@
   .app .tutorial-detail,
   .app .pause-sound-button,
   .app .settings-panel-title {
-    font-weight: 800 !important;
+    font-weight: 700 !important;
   }
 
   img,
@@ -70,13 +70,13 @@
   }
 
   .start-screen .subtitle {
-    font-weight: 800 !important;
+    font-weight: 700 !important;
     -webkit-text-stroke-width: 0.5px;
   }
 
   .start-screen .primary-button,
   .start-screen .primary-button > span:first-child {
-    font-weight: 800 !important;
+    font-weight: 700 !important;
     -webkit-text-stroke-width: 2px;
   }
 }
