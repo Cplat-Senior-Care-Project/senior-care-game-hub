@@ -19,10 +19,21 @@
   const MEMORY_LAYOUT_MIN_GAP = 4;
   const MEMORY_LAYOUT_MAX_GAP = 8;
   const MEMORY_LAYOUT_MAX_COLUMNS = 7;
-  const ITEM_GLOW_ASSET_VERSION = "20260607-strong-glow";
+  const SHELF_VISIBLE_WIDTH_RATIO = 1972 / 2048;
+  const SHELF_VISIBLE_CENTER_OFFSET_RATIO = 3 / 1972;
+  const SHELF_ASPECT_RATIO = 2048 / 682;
+  const SHELF_VISIBLE_BOTTOM_RATIO = 586 / 682;
+  const BASKET_DISPLAY_WIDTH = 500;
+  const BASKET_ASPECT_RATIO = 1672 / 941;
+  const BASKET_VISIBLE_TOP_RATIO = 158 / 941;
+  const BASKET_VISIBLE_BOTTOM_RATIO = 777 / 941;
+  const BASKET_VISIBLE_BOTTOM_GAP = 8;
+  const SHELF_BASKET_OVERLAP = 50;
+  const PLAY_AREA_TOP = 102;
+  const ITEM_GLOW_ASSET_VERSION = "20260608-soft-glow";
   const STATIC_IMAGE_ASSETS = Object.freeze([
     "assets/images/background2.webp",
-    "assets/images/play_background.webp",
+    "assets/images/play_background.webp?v=20260608-refreshed",
     "assets/images/title2.webp",
     "assets/images/ui-touch2.webp",
     "assets/images/ui-drag2.webp",
@@ -137,9 +148,81 @@
     const scale = Math.max(0.01, Math.min(viewportWidth / STAGE_WIDTH, viewportHeight / STAGE_HEIGHT));
     const verticalGutter = Math.max(0, (viewportHeight - (STAGE_HEIGHT * scale)) / (2 * scale));
     const horizontalGutter = Math.max(0, (viewportWidth - (STAGE_WIDTH * scale)) / (2 * scale));
+    const viewportStageWidth = viewportWidth / scale;
+    const viewportStageBottom = STAGE_HEIGHT + verticalGutter;
+    const shelfWidth = viewportStageWidth / SHELF_VISIBLE_WIDTH_RATIO;
+    const shelfHeight = shelfWidth / SHELF_ASPECT_RATIO;
+    const basketHeight = BASKET_DISPLAY_WIDTH / BASKET_ASPECT_RATIO;
+    const basketTop = viewportStageBottom
+      - PLAY_AREA_TOP
+      - (basketHeight * BASKET_VISIBLE_BOTTOM_RATIO)
+      - BASKET_VISIBLE_BOTTOM_GAP;
+    const shelfTop = basketTop
+      + (basketHeight * BASKET_VISIBLE_TOP_RATIO)
+      + SHELF_BASKET_OVERLAP
+      - (shelfHeight * SHELF_VISIBLE_BOTTOM_RATIO);
     document.documentElement.style.setProperty("--game-scale", String(scale));
     document.documentElement.style.setProperty("--game-viewport-top-gutter", `${verticalGutter}px`);
     document.documentElement.style.setProperty("--game-viewport-side-gutter", `${horizontalGutter}px`);
+    document.documentElement.style.setProperty("--game-shelf-fill-width", `${shelfWidth}px`);
+    document.documentElement.style.setProperty("--game-shelf-fill-offset", `${viewportStageWidth * SHELF_VISIBLE_CENTER_OFFSET_RATIO}px`);
+    document.documentElement.style.setProperty("--game-shelf-top", `${shelfTop}px`);
+    document.documentElement.style.setProperty("--game-basket-top", `${basketTop - shelfTop}px`);
+  }
+
+  function isMobileLandscape() {
+    return window.matchMedia("(orientation: landscape) and (pointer: coarse)").matches;
+  }
+
+  function requestAppFullscreen() {
+    if (
+      !isMobileLandscape()
+      || document.fullscreenElement
+      || document.webkitFullscreenElement
+    ) {
+      return;
+    }
+
+    const target = document.documentElement;
+    const request = target.requestFullscreen || target.webkitRequestFullscreen;
+
+    if (typeof request !== "function") {
+      updateGameScale();
+      return;
+    }
+
+    try {
+      const requestResult = request.call(target, { navigationUI: "hide" });
+      if (requestResult && typeof requestResult.then === "function") {
+        requestResult
+          .then(() => window.setTimeout(updateGameScale, 250))
+          .catch(updateGameScale);
+        return;
+      }
+
+      window.setTimeout(updateGameScale, 250);
+    } catch (error) {
+      updateGameScale();
+    }
+  }
+
+  function runAfterStartButtonPress() {
+    return (event) => {
+      requestAppFullscreen();
+      startFlow(event);
+    };
+  }
+
+  function handleStartScreenBackgroundPress(event) {
+    if (
+      event.target
+      && typeof event.target.closest === "function"
+      && event.target.closest("button, a, input, select, textarea, label")
+    ) {
+      return;
+    }
+
+    requestAppFullscreen();
   }
 
   function uniqueValues(values) {
@@ -453,12 +536,6 @@
   }
   function updateTopUi() {
     const difficulty = getHudDifficulty();
-    const mission = state.phase === "question"
-      ? "\uC544\uB798 \uBB3C\uAC74\uC744 \uC7A5\uBC14\uAD6C\uB2C8\uC5D0 \uB2F4\uC544\uC8FC\uC138\uC694!"
-      : state.phase === "transition"
-        ? "\uC7A0\uC2DC \uD6C4 \uBB3C\uAC74\uC744 \uCC3E\uC544\uC8FC\uC138\uC694!"
-        : "\uC544\uB798 \uBB3C\uAC74\uC744 \uAE30\uC5B5\uD574\uC8FC\uC138\uC694!";
-    if (els.difficultyLabel) els.difficultyLabel.textContent = mission;
     if (els.stageLabel) els.stageLabel.textContent = difficulty.label;
     if (els.timeLeft) els.timeLeft.textContent = formatTime(state.remainingSeconds);
     if (els.timerBox) els.timerBox.classList.toggle("is-low", state.remainingSeconds <= 10);
@@ -637,7 +714,7 @@
       const hinted = question.hintUsed && remainingTargetIds.has(item.id);
       return `<button class="choice-card ${selected ? "is-selected" : ""} ${wrong ? "is-wrong" : ""} ${hinted ? "is-hinted" : ""}" type="button" data-item-id="${item.id}" aria-label="${escapeHtml(item.name)}" ${selected ? "disabled" : ""}><img src="${getChoiceImage(item)}" alt="" draggable="false" loading="eager" decoding="async"></button>`;
     }).join("");
-    els.playArea.innerHTML = `<section class="shop-round question-round"><div class="question-board"><div class="choice-layout"><section class="shelf-zone" aria-label="물건 선택"><img class="shelf-image" src="assets/images/stand2.webp" alt="" draggable="false" loading="eager" decoding="async"><div class="choice-grid" data-choice-count="${question.choiceItems.length}">${renderChoiceCards(question.choiceItems)}</div></section><div class="basket-zone" data-basket-drop-zone="true"><h2 class="round-title basket-prompt">${escapeHtml(prompt)}</h2><div class="basket-image-wrap ${state.collectedItems.length ? "is-bounce" : ""}"><img class="basket-image" src="assets/images/basket2.webp" alt="장바구니" draggable="false" loading="eager" decoding="async"><div class="basket-collected">${state.collectedItems.map((item) => `<img src="${getChoiceImage(item)}" alt="" draggable="false" loading="eager" decoding="async" data-item-id="${item.id}">`).join("")}</div></div></div></div></div></section>`;
+    els.playArea.innerHTML = `<section class="shop-round question-round"><div class="question-board"><div class="choice-layout"><section class="shelf-zone" aria-label="물건 선택"><img class="shelf-image" src="assets/images/stand2.webp" alt="" draggable="false" loading="eager" decoding="async"><div class="choice-grid" data-choice-count="${question.choiceItems.length}">${renderChoiceCards(question.choiceItems)}</div><div class="basket-zone" data-basket-drop-zone="true"><h2 class="round-title basket-prompt">${escapeHtml(prompt)}</h2><div class="basket-image-wrap ${state.collectedItems.length ? "is-bounce" : ""}"><img class="basket-image" src="assets/images/basket2.webp" alt="장바구니" draggable="false" loading="eager" decoding="async"><div class="basket-collected">${state.collectedItems.map((item) => `<img src="${getChoiceImage(item)}" alt="" draggable="false" loading="eager" decoding="async" data-item-id="${item.id}">`).join("")}</div></div></div></section></div></div></section>`;
     els.hintButton.classList.toggle("is-hidden", runtimeConfig.hintEnabled === false);
   }
 
@@ -1454,8 +1531,16 @@
   function bindEvents() {
     moveDragGhostToBody();
     window.addEventListener("resize", updateGameScale);
+    window.addEventListener("orientationchange", () => {
+      updateGameScale();
+      window.setTimeout(() => {
+        updateGameScale();
+        scheduleMemoryLayout();
+      }, 160);
+    });
     if (window.visualViewport) window.visualViewport.addEventListener("resize", updateGameScale);
-    els.startButton.addEventListener("click", startFlow);
+    els.startScreen.addEventListener("click", handleStartScreenBackgroundPress);
+    els.startButton.addEventListener("click", runAfterStartButtonPress());
     els.startExitButton.addEventListener("click", requestExit);
     els.settingsButton.addEventListener("click", openSettings);
     els.tutorialButton.addEventListener("click", openTutorial);
