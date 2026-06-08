@@ -201,12 +201,7 @@
     const difficultyMap = { easy: "low", normal: "medium", hard: "high", low: "low", medium: "medium", high: "high" };
     let defaultDifficultyKey = difficultyMap[defaultGameConfig.difficulty || appliedGameConfig.difficulty] || "low";
 
-    if (appliedGameConfig.grid_rows && appliedGameConfig.grid_cols) {
-      difficultySettings.low.gridSize = Math.max(2, Number(appliedGameConfig.grid_rows));
-    }
-    if (appliedGameConfig.target_count) {
-      difficultySettings.low.targetCount = Math.max(1, Number(appliedGameConfig.target_count));
-    }
+    applyRuntimeDifficultySettings();
 
     const tutorialSteps = [
       {
@@ -1201,6 +1196,52 @@
       element.classList.toggle("mode-hidden", !visible);
     }
 
+    function toNonNegativeNumber(value, fallback = null) {
+      if (value === undefined || value === null || value === "") return fallback;
+      const number = Number(value);
+      return Number.isFinite(number) ? Math.max(0, number) : fallback;
+    }
+
+    function applyRuntimeDifficultySettings() {
+      Object.keys(baseDifficultySettings).forEach((key) => {
+        difficultySettings[key] = { ...baseDifficultySettings[key] };
+      });
+
+      if (appliedGameConfig.grid_rows && appliedGameConfig.grid_cols) {
+        difficultySettings.low.gridSize = Math.max(2, Number(appliedGameConfig.grid_rows));
+      }
+      if (appliedGameConfig.target_count) {
+        difficultySettings.low.targetCount = Math.max(1, Number(appliedGameConfig.target_count));
+      }
+
+      const runtimeTotalLimit = toNonNegativeNumber(appliedGameConfig.total_time_limit_sec);
+      const options = defaultGameConfig.difficultyOptions || {};
+      [
+        ["EASY", "low"],
+        ["NORMAL", "medium"],
+        ["HARD", "high"],
+      ].forEach(([optionKey, difficultyKey]) => {
+        const option = options[optionKey] || {};
+        const baseTotalLimit = baseDifficultySettings[difficultyKey].totalTimeLimitSec;
+        const optionTotalLimit = toNonNegativeNumber(option.totalTimeLimitSec);
+        const optionOverridesTotalLimit = optionTotalLimit !== null && optionTotalLimit !== baseTotalLimit;
+
+        if (option.gridSize !== undefined) {
+          difficultySettings[difficultyKey].gridSize = Math.max(2, Number(option.gridSize) || difficultySettings[difficultyKey].gridSize);
+        }
+        if (option.targetCount !== undefined) {
+          difficultySettings[difficultyKey].targetCount = Math.max(1, Number(option.targetCount) || difficultySettings[difficultyKey].targetCount);
+        }
+        if (optionOverridesTotalLimit) {
+          difficultySettings[difficultyKey].totalTimeLimitSec = optionTotalLimit;
+        } else if (runtimeTotalLimit !== null) {
+          difficultySettings[difficultyKey].totalTimeLimitSec = runtimeTotalLimit;
+        } else if (optionTotalLimit !== null) {
+          difficultySettings[difficultyKey].totalTimeLimitSec = optionTotalLimit;
+        }
+      });
+    }
+
     function syncRuntimeConfig(nextDefaultConfig = defaultGameConfig) {
       const nextMode = normalizeMode(nextDefaultConfig.mode || gameMode);
       const nextAppliedConfig = {
@@ -1216,15 +1257,7 @@
 
       gameMode = nextMode;
       defaultDifficultyKey = difficultyMap[defaultGameConfig.difficulty || appliedGameConfig.difficulty] || "low";
-      Object.keys(baseDifficultySettings).forEach((key) => {
-        difficultySettings[key] = { ...baseDifficultySettings[key] };
-      });
-      if (appliedGameConfig.grid_rows && appliedGameConfig.grid_cols) {
-        difficultySettings.low.gridSize = Math.max(2, Number(appliedGameConfig.grid_rows));
-      }
-      if (appliedGameConfig.target_count) {
-        difficultySettings.low.targetCount = Math.max(1, Number(appliedGameConfig.target_count));
-      }
+      applyRuntimeDifficultySettings();
       maxRounds = Math.max(1, Number(appliedGameConfig.question_count) || 10);
       roundTimeLimit = Math.max(0, Number(appliedGameConfig.round_time_limit_sec) || 0);
       autoReturnDelayMs = Math.max(0, Number(appliedGameConfig.auto_return_delay_ms) || 0);
@@ -1414,7 +1447,9 @@
 
     function getTotalTimeLimit() {
       const setting = difficultySettings[currentDifficulty] || difficultySettings.low;
-      return Math.max(0, Number(setting.totalTimeLimitSec) || Number(appliedGameConfig.total_time_limit_sec) || 0);
+      const settingTotalLimit = toNonNegativeNumber(setting.totalTimeLimitSec);
+      if (settingTotalLimit !== null) return settingTotalLimit;
+      return toNonNegativeNumber(appliedGameConfig.total_time_limit_sec, 0);
     }
 
     function updateTimeDisplay() {
