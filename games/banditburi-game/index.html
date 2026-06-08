@@ -10,7 +10,7 @@
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="apple-touch-icon" href="assets/images/image-01-c44771d0.png">
   <title>빛나는 전구를 찾아라</title>
-  <link rel="stylesheet" href="css/game.css">
+  <link rel="stylesheet" href="css/game.css?v=20260608-status-audio-ui-1">
   <link rel="stylesheet" href="css/mobile-fullscreen.css">
 </head>
 <body>
@@ -112,23 +112,6 @@
         <button id="effectToggleButton" type="button">효과음 On</button>
         <button id="voiceToggleButton" type="button">음성안내 On</button>
         <button id="settingsBackButton" type="button">돌아가기</button>
-      </div>
-      <div id="settingsVolumeControls" class="audio-volume-controls" aria-label="음량 조절">
-        <label class="volume-control" for="musicVolumeSlider">
-          <span>배경음악</span>
-          <input id="musicVolumeSlider" type="range" min="0" max="100" step="5" value="70">
-          <strong id="musicVolumeValue">70%</strong>
-        </label>
-        <label class="volume-control" for="effectVolumeSlider">
-          <span>효과음</span>
-          <input id="effectVolumeSlider" type="range" min="0" max="100" step="5" value="100">
-          <strong id="effectVolumeValue">100%</strong>
-        </label>
-        <label class="volume-control" for="voiceVolumeSlider">
-          <span>안내음성</span>
-          <input id="voiceVolumeSlider" type="range" min="0" max="100" step="5" value="100">
-          <strong id="voiceVolumeValue">100%</strong>
-        </label>
       </div>
     </div>
   </div>
@@ -280,23 +263,6 @@
         <button id="pauseMusicButton" type="button">음악 On</button>
         <button id="pauseEffectButton" type="button">효과음 On</button>
         <button id="pauseVoiceButton" type="button">음성안내 On</button>
-      </div>
-      <div id="pauseVolumeControls" class="audio-volume-controls pause-volume-controls" aria-label="일시정지 음량 조절">
-        <label class="volume-control" for="pauseMusicVolumeSlider">
-          <span>배경음악</span>
-          <input id="pauseMusicVolumeSlider" type="range" min="0" max="100" step="5" value="70">
-          <strong id="pauseMusicVolumeValue">70%</strong>
-        </label>
-        <label class="volume-control" for="pauseEffectVolumeSlider">
-          <span>효과음</span>
-          <input id="pauseEffectVolumeSlider" type="range" min="0" max="100" step="5" value="100">
-          <strong id="pauseEffectVolumeValue">100%</strong>
-        </label>
-        <label class="volume-control" for="pauseVoiceVolumeSlider">
-          <span>안내음성</span>
-          <input id="pauseVoiceVolumeSlider" type="range" min="0" max="100" step="5" value="100">
-          <strong id="pauseVoiceVolumeValue">100%</strong>
-        </label>
       </div>
     </div>
   </div>

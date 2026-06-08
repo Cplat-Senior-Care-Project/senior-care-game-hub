@@ -361,7 +361,11 @@
     const maxRounds = Math.max(1, Number(appliedGameConfig.question_count) || 10);
     const roundTimeLimit = Math.max(0, Number(appliedGameConfig.round_time_limit_sec) || 0);
     const autoReturnDelayMs = Math.max(0, Number(appliedGameConfig.auto_return_delay_ms) || 0);
+    const autoReturnFallbackDelayMs = Math.max(autoReturnDelayMs, 3500);
+    const urlParams = new URLSearchParams(window.location.search);
+    const queryReturnUrl = urlParams.get("auto_return_url") || urlParams.get("return_url");
     const configuredHubReturnUrl =
+      queryReturnUrl ||
       appliedGameConfig.return_url ||
       appliedGameConfig.auto_return_url ||
       "file:///C:/Users/juhye/OneDrive/Desktop/senior-care-game-hub/index.html";
@@ -1421,12 +1425,21 @@
       if (!appliedGameConfig.auto_return) return;
       clearAutoReturnTimer();
       const sequence = ++autoReturnSequence;
-      Promise.resolve(voicePromise).then(() => {
+
+      const returnOnce = () => {
         if (sequence !== autoReturnSequence || currentPhase !== "result") return;
-        autoReturnTimer = setTimeout(() => {
-          requestActivityReturn("auto_return");
-        }, autoReturnDelayMs);
-      });
+        clearAutoReturnTimer();
+        requestActivityReturn("auto_return");
+      };
+
+      autoReturnTimer = setTimeout(returnOnce, autoReturnFallbackDelayMs);
+      Promise.resolve(voicePromise)
+        .then(() => {
+          if (sequence !== autoReturnSequence || currentPhase !== "result") return;
+          clearAutoReturnTimer();
+          autoReturnTimer = setTimeout(returnOnce, autoReturnDelayMs);
+        })
+        .catch(returnOnce);
     }
 
     function requestActivityReturn(reason) {

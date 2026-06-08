@@ -5198,6 +5198,7 @@ body.mode-ai-assisted .board button.cell.wrong:focus-visible {
   display: inline-flex !important;
   width: max-content !important;
   max-width: none !important;
+  box-sizing: border-box !important;
   min-height: clamp(34px, min(2.2vw, 5.8vh), 46px) !important;
   align-items: center !important;
   justify-content: center !important;
@@ -5209,6 +5210,17 @@ body.mode-ai-assisted .board button.cell.wrong:focus-visible {
   text-align: center !important;
   transform: scaleX(.76) !important;
   transform-origin: center !important;
+}
+
+@media (orientation: landscape) and (max-height: 520px) {
+  #levelText {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    font-size: clamp(17px, 4.5vh, 22px) !important;
+    line-height: .95 !important;
+    transform: scaleX(.9) !important;
+  }
 }
 
 .hero-board {
@@ -5684,4 +5696,100 @@ body.mode-ai-assisted .board button.cell.wrong:focus-visible {
   box-shadow: none !important;
   cursor: default !important;
   pointer-events: none !important;
+}
+
+/* Keep compact status cards readable when the browser or mobile landscape width is tight. */
+.stats .stat {
+  min-width: 0 !important;
+  padding-inline: 2px !important;
+}
+
+.stats .stat span {
+  max-width: 100% !important;
+  min-width: 0 !important;
+  text-align: center !important;
+}
+
+.stats .stat span:last-child {
+  width: 100% !important;
+  max-width: 100% !important;
+  font-size: clamp(17px, min(1.22vw, 4.45vh), 27px) !important;
+  line-height: .98 !important;
+  overflow: visible !important;
+  white-space: nowrap !important;
+}
+
+#levelText {
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+  font-size: clamp(17px, min(1.16vw, 4.35vh), 26px) !important;
+  transform: scaleX(.8) !important;
+}
+
+body[data-mode="standard"] .stats .stat span:last-child {
+  width: 100% !important;
+  max-width: 100% !important;
+  font-size: clamp(17px, min(1.22vw, 4.45vh), 27px) !important;
+  line-height: .98 !important;
+  overflow: visible !important;
+  white-space: nowrap !important;
+}
+
+body[data-mode="standard"] #levelText {
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+  font-size: clamp(17px, min(1.16vw, 4.35vh), 26px) !important;
+  transform: scaleX(.8) !important;
+}
+
+@media (orientation: landscape) and (max-height: 520px) {
+  body[data-mode="standard"] .app {
+    grid-template-columns: clamp(152px, 24vw, 176px) minmax(0, 1fr) clamp(156px, 25vw, 206px) !important;
+    gap: 7px !important;
+    padding: 6px !important;
+  }
+
+  body[data-mode="standard"] .message {
+    padding: clamp(12px, 3vh, 24px) clamp(12px, 1.8vw, 22px) !important;
+    font-size: clamp(22px, 5.2vh, 34px) !important;
+    line-height: 1.12 !important;
+  }
+
+  body[data-mode="standard"] .board {
+    width: min(100%, calc(100dvh - 36px), 336px) !important;
+    height: min(100%, calc(100dvh - 36px), 336px) !important;
+  }
+
+  body[data-mode="standard"] .stat {
+    min-height: clamp(47px, 15.5vh, 60px) !important;
+  }
+
+  .stats .stat span:first-child {
+    font-size: clamp(8px, 2.55vh, 12px) !important;
+    line-height: 1 !important;
+  }
+
+  .stats .stat span:last-child {
+    min-height: clamp(24px, 6vh, 34px) !important;
+    font-size: clamp(15px, 4vh, 20px) !important;
+    line-height: .95 !important;
+  }
+
+  #levelText {
+    font-size: clamp(15px, 4vh, 19px) !important;
+    transform: scaleX(.78) !important;
+  }
+
+  body[data-mode="standard"] .stats .stat span:last-child {
+    min-height: clamp(24px, 6vh, 34px) !important;
+    font-size: clamp(15px, 4vh, 20px) !important;
+    line-height: .95 !important;
+  }
+
+  body[data-mode="standard"] #levelText {
+    font-size: clamp(15px, 4vh, 19px) !important;
+    transform: scaleX(.78) !important;
+  }
 }

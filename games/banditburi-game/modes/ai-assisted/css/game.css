@@ -5246,6 +5246,7 @@ body.mode-ai-assisted .board button.cell.wrong:focus-visible {
   display: inline-flex !important;
   width: max-content !important;
   max-width: none !important;
+  box-sizing: border-box !important;
   min-height: clamp(34px, min(2.2vw, 5.8vh), 46px) !important;
   align-items: center !important;
   justify-content: center !important;
@@ -5257,6 +5258,17 @@ body.mode-ai-assisted .board button.cell.wrong:focus-visible {
   text-align: center !important;
   transform: scaleX(.76) !important;
   transform-origin: center !important;
+}
+
+@media (orientation: landscape) and (max-height: 520px) {
+  #levelText {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    font-size: clamp(17px, 4.5vh, 22px) !important;
+    line-height: .95 !important;
+    transform: scaleX(.9) !important;
+  }
 }
 
 .hero-board {
