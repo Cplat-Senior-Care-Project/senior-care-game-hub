@@ -5717,3 +5717,9 @@ body.mode-reminder .stats .stat.time-stat #timeText {
     min-height: clamp(48px, 13.5vh, 60px) !important;
   }
 }
+
+/* Keep runtime-config visibility flags above late layout display rules. */
+body.mode-reminder .stats .stat.mode-hidden,
+body.mode-reminder .stats .stat[hidden] {
+  display: none !important;
+}

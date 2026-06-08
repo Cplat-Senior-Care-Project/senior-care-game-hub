@@ -6154,3 +6154,9 @@ body[data-mode="standard"] .stats .stat.time-stat #timeText {
     border-radius: clamp(20px, 1.7vw, 30px) !important;
   }
 }
+
+/* Keep runtime-config visibility flags above late layout display rules. */
+body[data-mode="standard"] .stats .stat.mode-hidden,
+body[data-mode="standard"] .stats .stat[hidden] {
+  display: none !important;
+}

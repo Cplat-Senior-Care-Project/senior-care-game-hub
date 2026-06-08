@@ -4781,3 +4781,13 @@ body.mode-reminder .stats .stat.time-stat #timeText {
     font-size: clamp(15px, 3.85vh, 21px) !important;
   }
 }
+
+/* Keep runtime-config visibility flags above late layout display rules. */
+.stats .stat.mode-hidden,
+.stats .stat[hidden],
+body[data-mode="standard"] .stats .stat.mode-hidden,
+body[data-mode="standard"] .stats .stat[hidden],
+body.mode-reminder .stats .stat.mode-hidden,
+body.mode-reminder .stats .stat[hidden] {
+  display: none !important;
+}
