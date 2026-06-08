@@ -7,21 +7,21 @@
       "gridSize": 2,
       "targetCount": 2,
       "roundCount": 10,
-      "timeLimitSec": 60,
+      "timeLimitSec": 0,
       "totalTimeLimitSec": 600
     },
     "NORMAL": {
       "gridSize": 3,
       "targetCount": 3,
       "roundCount": 10,
-      "timeLimitSec": 60,
+      "timeLimitSec": 0,
       "totalTimeLimitSec": 480
     },
     "HARD": {
       "gridSize": 4,
       "targetCount": 4,
       "roundCount": 10,
-      "timeLimitSec": 60,
+      "timeLimitSec": 0,
       "totalTimeLimitSec": 360,
       "flowerStartsFromRound": 6
     }

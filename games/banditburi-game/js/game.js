@@ -138,6 +138,17 @@
     const remainText = document.getElementById("remainText");
     const roundText = document.getElementById("roundText");
     const timeText = document.getElementById("timeText");
+    levelText.closest(".stat").classList.add("level-stat");
+    remainText.closest(".stat").classList.add("remain-stat");
+    roundText.closest(".stat").classList.add("round-stat");
+    const timeStat = timeText.closest(".stat");
+    timeStat.classList.add("time-stat");
+    timeStat.innerHTML = "";
+    const totalTimeLabel = document.createElement("span");
+    totalTimeLabel.textContent = "전체 문항 남은 시간";
+    timeText.textContent = "";
+    timeText.setAttribute("aria-label", "전체 문항 남은 시간");
+    timeStat.append(totalTimeLabel, timeText);
     const guideTitle = document.getElementById("guideTitle");
     const guideText = document.getElementById("guideText");
     const startButton = document.getElementById("startButton");
@@ -192,11 +203,11 @@
     let tutorialStepIndex = 0;
     let currentPhase = "home";
     let currentRound = 0;
-    let timeLeft = 60;
+    let timeLeft = 0;
     let previewSecondsLeft = 5;
     let hintSecondsLeft = 5;
     const maxRounds = 10;
-    const roundTimeLimit = 60;
+    const roundTimeLimit = 0;
     const defaultGameConfig = window.__GAME_CONFIG__ || {};
     const hubReturnUrl = defaultGameConfig.config?.auto_return_url || defaultGameConfig.auto_return_url || "file:///C:/Users/juhye/OneDrive/Desktop/senior-care-game-hub/index.html";
     const gameSchemaVersion = "1.0.0";
@@ -844,11 +855,14 @@
     }
 
     function formatTime(seconds) {
-      return `${Math.max(0, seconds)}초`;
+      const safeSeconds = Math.max(0, Math.floor(Number(seconds) || 0));
+      if (safeSeconds < 60) return `${safeSeconds}초`;
+      return `${Math.floor(safeSeconds / 60)}분 ${safeSeconds % 60}초`;
     }
 
     function updateTimeDisplay() {
-      timeText.textContent = formatTime(totalTimer ? totalTimeLeft : timeLeft);
+      const totalDisplaySeconds = totalTimer || totalTimeLeft > 0 ? totalTimeLeft : getTotalTimeLimit();
+      timeText.textContent = formatTime(totalDisplaySeconds);
     }
 
     function updateRoundDisplay() {

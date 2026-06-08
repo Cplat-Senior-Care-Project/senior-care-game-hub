@@ -5539,3 +5539,166 @@ body.mode-reminder #levelText {
     transform: scaleX(.78) !important;
   }
 }
+
+/* Wide total-time status card. */
+body.mode-reminder .stats .stat.time-stat {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  grid-column: 1 / -1 !important;
+  min-height: clamp(82px, 15dvh, 118px) !important;
+  padding: clamp(8px, 1.4dvh, 14px) clamp(10px, 1.4vw, 18px) !important;
+  gap: 3px !important;
+}
+
+body.mode-reminder .stats .stat.time-stat span {
+  transform: none !important;
+  white-space: nowrap !important;
+}
+
+body.mode-reminder .stats .stat.time-stat span:first-child { order: 1 !important; }
+body.mode-reminder .stats .stat.time-stat #timeText { order: 2 !important; }
+
+body.mode-reminder .stats .stat.time-stat span:first-child {
+  color: #27613b !important;
+  font-size: clamp(12px, min(1.12vw, 2.55dvh), 17px) !important;
+  font-weight: 900 !important;
+  line-height: 1.05 !important;
+}
+
+body.mode-reminder .stats .stat.time-stat #timeText {
+  min-height: 0 !important;
+  color: #0c6b36 !important;
+  font-size: clamp(18px, min(1.55vw, 3.7dvh), 28px) !important;
+  font-weight: 950 !important;
+  line-height: 1.05 !important;
+}
+
+@media (orientation: landscape) and (max-height: 520px) {
+  body.mode-reminder .stats .stat.time-stat {
+    min-height: clamp(66px, 19vh, 78px) !important;
+    padding: 4px 8px !important;
+    gap: 1px !important;
+  }
+
+  body.mode-reminder .stats .stat.time-stat span:first-child {
+    font-size: clamp(10px, 2.6vh, 13px) !important;
+  }
+
+  body.mode-reminder .stats .stat.time-stat #timeText {
+    font-size: clamp(15px, 3.85vh, 21px) !important;
+  }
+}
+
+/* Reminder mode shows only the total session timer. */
+body.mode-reminder .stats .stat.time-stat {
+  min-height: clamp(58px, 10dvh, 82px) !important;
+  gap: 4px !important;
+}
+
+body.mode-reminder .stats .stat.time-stat span:first-child {
+  order: 1 !important;
+}
+
+body.mode-reminder .stats .stat.time-stat #timeText {
+  order: 2 !important;
+}
+
+@media (orientation: landscape) and (max-height: 520px) {
+  body.mode-reminder .stats .stat.time-stat {
+    min-height: clamp(52px, 14vh, 62px) !important;
+    padding: 5px 8px !important;
+  }
+}
+
+/* Status panel order: difficulty, remain/progress, total time. */
+body.mode-reminder .stats {
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  align-items: stretch !important;
+}
+
+body.mode-reminder .stats .stat.level-stat,
+body.mode-reminder .stats .stat.time-stat {
+  grid-column: 1 / -1 !important;
+}
+
+body.mode-reminder .stats .stat.level-stat {
+  order: 1 !important;
+  min-height: clamp(48px, 8.5dvh, 72px) !important;
+}
+
+body.mode-reminder .stats .stat.remain-stat {
+  order: 2 !important;
+}
+
+body.mode-reminder .stats .stat.round-stat {
+  order: 3 !important;
+}
+
+body.mode-reminder .stats .stat.time-stat {
+  order: 4 !important;
+  min-height: clamp(54px, 9dvh, 74px) !important;
+}
+
+body.mode-reminder .stats .stat.remain-stat,
+body.mode-reminder .stats .stat.round-stat {
+  min-height: clamp(54px, 9dvh, 76px) !important;
+  padding-inline: 4px !important;
+}
+
+body.mode-reminder .stats .stat.level-stat span:first-child,
+body.mode-reminder .stats .stat.remain-stat span:first-child,
+body.mode-reminder .stats .stat.round-stat span:first-child,
+body.mode-reminder .stats .stat.time-stat span:first-child {
+  width: 100% !important;
+  max-width: 100% !important;
+  font-size: clamp(10px, min(1vw, 2.45dvh), 15px) !important;
+  line-height: 1.05 !important;
+  text-align: center !important;
+  white-space: nowrap !important;
+}
+
+body.mode-reminder .stats .stat.level-stat span:last-child {
+  width: 100% !important;
+  font-size: clamp(18px, min(1.5vw, 3.6dvh), 28px) !important;
+  line-height: 1 !important;
+  transform: none !important;
+}
+
+body.mode-reminder .stats .stat.remain-stat span:last-child,
+body.mode-reminder .stats .stat.round-stat span:last-child {
+  width: 100% !important;
+  font-size: clamp(15px, min(1.22vw, 3.2dvh), 23px) !important;
+  line-height: 1 !important;
+  white-space: nowrap !important;
+}
+
+body.mode-reminder .stats .stat.time-stat span:first-child,
+body.mode-reminder .stats .stat.time-stat #timeText {
+  width: 100% !important;
+  text-align: center !important;
+}
+
+body.mode-reminder .stats .stat.time-stat #timeText {
+  font-size: clamp(18px, min(1.6vw, 3.8dvh), 28px) !important;
+}
+
+@media (orientation: landscape) and (max-height: 520px) {
+  body.mode-reminder .stats {
+    gap: 5px !important;
+  }
+
+  body.mode-reminder .stats .stat.level-stat {
+    min-height: clamp(44px, 12vh, 56px) !important;
+  }
+
+  body.mode-reminder .stats .stat.remain-stat,
+  body.mode-reminder .stats .stat.round-stat {
+    min-height: clamp(46px, 13vh, 58px) !important;
+  }
+
+  body.mode-reminder .stats .stat.time-stat {
+    min-height: clamp(48px, 13.5vh, 60px) !important;
+  }
+}
