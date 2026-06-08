@@ -329,6 +329,7 @@
     let betweenTimer = null;
     let autoReturnTimer = null;
     let autoReturnSequence = 0;
+    let startCountdownSecondsLeft = 0;
     let isPreviewing = false;
     let isHinting = false;
     let isPaused = false;
@@ -1436,8 +1437,12 @@
       Promise.resolve(voicePromise)
         .then(() => {
           if (sequence !== autoReturnSequence || currentPhase !== "result") return;
-          clearAutoReturnTimer();
-          autoReturnTimer = setTimeout(returnOnce, autoReturnDelayMs);
+          if (autoReturnTimer) {
+            clearTimeout(autoReturnTimer);
+            autoReturnTimer = null;
+          }
+          const delayAfterVoice = voiceEnabled ? autoReturnDelayMs : autoReturnFallbackDelayMs;
+          autoReturnTimer = setTimeout(returnOnce, delayAfterVoice);
         })
         .catch(returnOnce);
     }
@@ -1956,20 +1961,23 @@
       startButton.classList.add("is-hidden");
       startButton.disabled = true;
       hintButton.disabled = true;
-      setPauseReady(false);
+      setPauseReady(true);
       updateRoundDisplay();
       startTotalTimer();
       updateTimeDisplay();
       clearBoard(false);
 
       let secondsLeft = 3;
+      startCountdownSecondsLeft = secondsLeft;
       const updateCountdownMessage = () => {
         message.textContent = `${secondsLeft}초 후 게임이 시작됩니다.`;
       };
       updateCountdownMessage();
       speakGuide("3초 후 게임이 시작됩니다. 준비해 주세요.");
       betweenTimer = setInterval(() => {
+        if (isPaused) return;
         secondsLeft -= 1;
+        startCountdownSecondsLeft = secondsLeft;
         if (secondsLeft > 0) {
           updateCountdownMessage();
           return;
@@ -2052,6 +2060,10 @@
       currentPhase = pausedPhase || "playing";
       pausedPhase = null;
       setPauseReady(true);
+      if (currentPhase === "countdown") {
+        message.textContent = `${startCountdownSecondsLeft}초 후 게임이 시작됩니다.`;
+        return;
+      }
       if (currentPhase === "preview") {
         isPreviewing = true;
         renderBoard("preview");
@@ -2087,7 +2099,7 @@
     }
 
     function togglePause() {
-      if (!["preview", "playing", "hint"].includes(currentPhase) && !isPaused) return;
+      if (!["countdown", "preview", "playing", "hint"].includes(currentPhase) && !isPaused) return;
       if (!isPaused) {
         isPaused = true;
         pausedPhase = currentPhase;
