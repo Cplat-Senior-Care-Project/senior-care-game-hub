@@ -33,6 +33,7 @@
       medium: { label: TEXT.middle, gridSize: 3, targetCount: 3, totalTimeLimitSec: 480 },
       low: { label: TEXT.low, gridSize: 2, targetCount: 2, totalTimeLimitSec: 600 },
     };
+    const baseDifficultySettings = JSON.parse(JSON.stringify(difficultySettings));
 
     const mergeGameConfig = (baseConfig, fileConfig) => ({
       ...baseConfig,
@@ -58,6 +59,17 @@
       return normalized;
     }
 
+    function parseGameConfigText(configText) {
+      try {
+        return JSON.parse(configText);
+      } catch (error) {
+        const normalizedText = configText.replace(/(:\s*)(True|False)(?=\s*[,}])/g, (_match, prefix, value) => {
+          return `${prefix}${value.toLowerCase()}`;
+        });
+        return JSON.parse(normalizedText);
+      }
+    }
+
     function loadGameConfig() {
       const inlineConfig = window.__GAME_CONFIG__ || {};
       try {
@@ -70,7 +82,7 @@
         const isOk = (request.status >= 200 && request.status < 300) || (request.status === 0 && hasResponse);
         if (!isOk || !hasResponse) return inlineConfig;
 
-        return mergeGameConfig(inlineConfig, normalizeGameConfigFile(JSON.parse(request.responseText)));
+        return mergeGameConfig(inlineConfig, normalizeGameConfigFile(parseGameConfigText(request.responseText)));
       } catch (error) {
         console.warn("Could not load config/game.config.json. Using inline game config.", error);
         return inlineConfig;
@@ -184,14 +196,14 @@
       },
     };
     const normalizeMode = (mode) => (MODE_DEFAULTS[mode] ? mode : "standard");
-    const gameMode = normalizeMode(defaultGameConfig.mode || "standard");
+    let gameMode = normalizeMode(defaultGameConfig.mode || "standard");
     const appliedGameConfig = {
       ...MODE_DEFAULTS[gameMode],
       ...(defaultGameConfig.config || {}),
       mode: gameMode,
     };
     const difficultyMap = { easy: "low", normal: "medium", hard: "high", low: "low", medium: "medium", high: "high" };
-    const defaultDifficultyKey = difficultyMap[defaultGameConfig.difficulty || appliedGameConfig.difficulty] || "low";
+    let defaultDifficultyKey = difficultyMap[defaultGameConfig.difficulty || appliedGameConfig.difficulty] || "low";
 
     if (appliedGameConfig.grid_rows && appliedGameConfig.grid_cols) {
       difficultySettings.low.gridSize = Math.max(2, Number(appliedGameConfig.grid_rows));
@@ -381,14 +393,15 @@
     let timeLeft = Math.max(0, Number(appliedGameConfig.round_time_limit_sec) || 0);
     let previewSecondsLeft = Math.max(1, Math.round((Number(appliedGameConfig.exposure_time_ms) || 5000) / 1000));
     let hintSecondsLeft = 5;
-    const maxRounds = Math.max(1, Number(appliedGameConfig.question_count) || 10);
-    const roundTimeLimit = Math.max(0, Number(appliedGameConfig.round_time_limit_sec) || 0);
-    const hubReturnUrl = appliedGameConfig.auto_return_url || "file:///C:/Users/juhye/OneDrive/Desktop/senior-care-game-hub/index.html";
+    let maxRounds = Math.max(1, Number(appliedGameConfig.question_count) || 10);
+    let roundTimeLimit = Math.max(0, Number(appliedGameConfig.round_time_limit_sec) || 0);
+    let hubReturnUrl = appliedGameConfig.auto_return_url || "file:///C:/Users/juhye/OneDrive/Desktop/senior-care-game-hub/index.html";
     const gameSchemaVersion = "1.0.0";
     let gameSessionId = defaultGameConfig.sessionId || `local-${Date.now()}`;
     let gameTelemetry = null;
     let roundTelemetry = null;
     let roundClosed = false;
+    let lastRuntimeConfigSignature = JSON.stringify(defaultGameConfig);
     const BUTTON_CLICK_SOUND_SRC = "../../assets/audio/audio-01-7e204aa7.mp3";
     const BOARD_SELECT_SOUND_SRC = "../../assets/audio/board-select.mp3";
     const INTRO_MUSIC_SRC = "../../assets/audio/audio-02-7642c099.mp3";
@@ -1109,6 +1122,77 @@
       element.classList.toggle("mode-hidden", !visible);
     }
 
+    function syncRuntimeConfig(nextDefaultConfig = defaultGameConfig) {
+      const nextMode = normalizeMode(nextDefaultConfig.mode || gameMode);
+      const nextAppliedConfig = {
+        ...MODE_DEFAULTS[nextMode],
+        ...(nextDefaultConfig.config || {}),
+        mode: nextMode,
+      };
+
+      Object.keys(defaultGameConfig).forEach((key) => delete defaultGameConfig[key]);
+      Object.assign(defaultGameConfig, nextDefaultConfig);
+      Object.keys(appliedGameConfig).forEach((key) => delete appliedGameConfig[key]);
+      Object.assign(appliedGameConfig, nextAppliedConfig);
+
+      gameMode = nextMode;
+      defaultDifficultyKey = difficultyMap[defaultGameConfig.difficulty || appliedGameConfig.difficulty] || "low";
+      Object.keys(baseDifficultySettings).forEach((key) => {
+        difficultySettings[key] = { ...baseDifficultySettings[key] };
+      });
+      if (appliedGameConfig.grid_rows && appliedGameConfig.grid_cols) {
+        difficultySettings.low.gridSize = Math.max(2, Number(appliedGameConfig.grid_rows));
+      }
+      if (appliedGameConfig.target_count) {
+        difficultySettings.low.targetCount = Math.max(1, Number(appliedGameConfig.target_count));
+      }
+      maxRounds = Math.max(1, Number(appliedGameConfig.question_count) || 10);
+      roundTimeLimit = Math.max(0, Number(appliedGameConfig.round_time_limit_sec) || 0);
+      hubReturnUrl = appliedGameConfig.auto_return_url || appliedGameConfig.return_url || hubReturnUrl;
+
+      if (currentPhase === "home" || currentPhase === "result" || currentPhase === "postgame") {
+        timeLeft = roundTimeLimit;
+      }
+      if (currentPhase === "home") {
+        setDifficulty(defaultDifficultyKey);
+        if (checkinModal.classList.contains("open") && !appliedGameConfig.show_condition_check) {
+          showDifficultyScreen();
+        } else if (difficultyModal.classList.contains("open") && appliedGameConfig.show_condition_check) {
+          showCheckinScreen();
+        } else if (difficultyModal.classList.contains("open") && !appliedGameConfig.show_difficulty_select) {
+          showDifficultyScreen();
+        }
+      }
+
+      scoreScreenEnabled = appliedGameConfig.show_score_screen !== false;
+      voiceEnabled = appliedGameConfig.voice_guide_enabled !== false;
+      musicVolume = normalizeVolume(appliedGameConfig.music_volume ?? appliedGameConfig.musicVolume, musicVolume);
+      soundVolume = normalizeVolume(appliedGameConfig.effect_volume ?? appliedGameConfig.effectVolume ?? appliedGameConfig.sound_volume ?? appliedGameConfig.soundVolume, soundVolume);
+      voiceVolume = normalizeVolume(appliedGameConfig.voice_volume ?? appliedGameConfig.voiceVolume, voiceVolume);
+
+      applyModeUi();
+      applyAudioVolumes();
+      syncAudioButtons();
+      updateRoundDisplay();
+      updateRemaining();
+      updateTimeDisplay();
+      updateLevelUi();
+      if (currentPhase === "home") clearBoard();
+    }
+
+    function reloadRuntimeConfigIfChanged() {
+      try {
+        const nextDefaultConfig = loadGameConfig();
+        const nextSignature = JSON.stringify(nextDefaultConfig);
+        if (nextSignature === lastRuntimeConfigSignature) return;
+        lastRuntimeConfigSignature = nextSignature;
+        syncRuntimeConfig(nextDefaultConfig);
+        console.info("game.config.json changes applied.", appliedGameConfig);
+      } catch (error) {
+        console.warn("Could not hot-reload game config.", error);
+      }
+    }
+
     function applyModeUi() {
       document.body.dataset.mode = gameMode;
       document.body.classList.toggle("mode-care", gameMode === "care");
@@ -1415,6 +1499,7 @@
     }
 
     function startModeFlow() {
+      reloadRuntimeConfigIfChanged();
       if (appliedGameConfig.show_condition_check) {
         showCheckinScreen();
         return;
@@ -2377,6 +2462,11 @@
     applyAudioVolumes();
     syncAudioButtons();
     setDifficulty(currentDifficulty);
+    window.addEventListener("focus", reloadRuntimeConfigIfChanged);
+    document.addEventListener("visibilitychange", () => {
+      if (!document.hidden) reloadRuntimeConfigIfChanged();
+    });
+    setInterval(reloadRuntimeConfigIfChanged, 1000);
     difficultyModal.classList.remove("open");
     setTimeout(() => {
       loadingScreen.classList.add("is-hidden");

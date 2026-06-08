@@ -59,6 +59,17 @@
       return normalized;
     }
 
+    function parseGameConfigText(configText) {
+      try {
+        return JSON.parse(configText);
+      } catch (error) {
+        const normalizedText = configText.replace(/(:\s*)(True|False)(?=\s*[,}])/g, (_match, prefix, value) => {
+          return `${prefix}${value.toLowerCase()}`;
+        });
+        return JSON.parse(normalizedText);
+      }
+    }
+
     function loadGameConfig() {
       const inlineConfig = window.__GAME_CONFIG__ || {};
       try {
@@ -71,7 +82,7 @@
         const isOk = (request.status >= 200 && request.status < 300) || (request.status === 0 && hasResponse);
         if (!isOk || !hasResponse) return inlineConfig;
 
-        return mergeGameConfig(inlineConfig, normalizeGameConfigFile(JSON.parse(request.responseText)));
+        return mergeGameConfig(inlineConfig, normalizeGameConfigFile(parseGameConfigText(request.responseText)));
       } catch (error) {
         console.warn("Could not load config/game.config.json. Using inline game config.", error);
         return inlineConfig;
@@ -180,14 +191,14 @@
       },
     };
     const normalizeMode = (mode) => (MODE_DEFAULTS[mode] ? mode : "standard");
-    const gameMode = normalizeMode(defaultGameConfig.mode || "standard");
+    let gameMode = normalizeMode(defaultGameConfig.mode || "standard");
     const appliedGameConfig = {
       ...MODE_DEFAULTS[gameMode],
       ...(defaultGameConfig.config || {}),
       mode: gameMode,
     };
     const difficultyMap = { easy: "low", normal: "medium", hard: "high", low: "low", medium: "medium", high: "high" };
-    const defaultDifficultyKey = difficultyMap[defaultGameConfig.difficulty || appliedGameConfig.difficulty] || "low";
+    let defaultDifficultyKey = difficultyMap[defaultGameConfig.difficulty || appliedGameConfig.difficulty] || "low";
 
     if (appliedGameConfig.grid_rows && appliedGameConfig.grid_cols) {
       difficultySettings.low.gridSize = Math.max(2, Number(appliedGameConfig.grid_rows));
@@ -1142,6 +1153,8 @@
       Object.keys(appliedGameConfig).forEach((key) => delete appliedGameConfig[key]);
       Object.assign(appliedGameConfig, nextAppliedConfig);
 
+      gameMode = nextMode;
+      defaultDifficultyKey = difficultyMap[defaultGameConfig.difficulty || appliedGameConfig.difficulty] || "low";
       Object.keys(baseDifficultySettings).forEach((key) => {
         difficultySettings[key] = { ...baseDifficultySettings[key] };
       });
@@ -1169,6 +1182,17 @@
       musicVolume = normalizeVolume(appliedGameConfig.music_volume ?? appliedGameConfig.musicVolume, musicVolume);
       soundVolume = normalizeVolume(appliedGameConfig.effect_volume ?? appliedGameConfig.effectVolume ?? appliedGameConfig.sound_volume ?? appliedGameConfig.soundVolume, soundVolume);
       voiceVolume = normalizeVolume(appliedGameConfig.voice_volume ?? appliedGameConfig.voiceVolume, voiceVolume);
+
+      if (currentPhase === "home") {
+        setDifficulty(defaultDifficultyKey);
+        if (checkinModal.classList.contains("open") && !appliedGameConfig.show_condition_check) {
+          showDifficultyScreen();
+        } else if (difficultyModal.classList.contains("open") && appliedGameConfig.show_condition_check) {
+          showCheckinScreen();
+        } else if (difficultyModal.classList.contains("open") && !appliedGameConfig.show_difficulty_select) {
+          showDifficultyScreen();
+        }
+      }
 
       applyModeUi();
       applyAudioVolumes();
@@ -1553,6 +1577,7 @@
     }
 
     function startModeFlow() {
+      reloadRuntimeConfigIfChanged();
       if (appliedGameConfig.show_condition_check) {
         showCheckinScreen();
         return;
@@ -2377,6 +2402,10 @@
     applyAudioVolumes();
     syncAudioButtons();
     setDifficulty(currentDifficulty);
+    window.addEventListener("focus", reloadRuntimeConfigIfChanged);
+    document.addEventListener("visibilitychange", () => {
+      if (!document.hidden) reloadRuntimeConfigIfChanged();
+    });
     setInterval(reloadRuntimeConfigIfChanged, 1000);
     difficultyModal.classList.remove("open");
     setTimeout(() => {
