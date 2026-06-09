@@ -1,0 +1,273 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+<title>오늘의 준비물</title>
+<link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+<div id="app">
+  <!-- START -->
+  <!-- CONDITION CHECK -->
+  <section class="screen" id="screen-condition">
+    <div class="center-wrap">
+      <div class="cc-card">
+        <h1 class="cc-title">오늘 상태를 알려주세요.</h1>
+        <p class="subtitle" style="text-align:center;margin:0 0 clamp(10px,1.6vh,16px)">게임을 시작하기 전에 오늘의 기분과 수면시간을 가볍게 확인합니다.</p>
+        <div class="cc-grid">
+          <div class="cc-panel">
+            <div class="cc-panel-head"><span class="cc-label">오늘 기분은 어떠세요?</span></div>
+            <div class="mood-row" id="cc-mood-row">
+              <button class="mood-btn" data-mood="good"><span class="emoji">😊</span><span>좋음</span></button>
+              <button class="mood-btn" data-mood="normal"><span class="emoji">😐</span><span>보통</span></button>
+              <button class="mood-btn" data-mood="bad"><span class="emoji">😟</span><span>나쁨</span></button>
+            </div>
+          </div>
+          <div class="cc-panel">
+            <div class="cc-panel-head"><span class="cc-label">어젯밤 수면시간은?</span></div>
+            <div class="sleep-stepper">
+              <div class="sleep-rows" id="cc-sleep-rows">
+                <div class="sleep-cell" id="cc-sleep-up"></div>
+                <div class="sleep-cell center" id="cc-sleep-mid"></div>
+                <div class="sleep-cell" id="cc-sleep-down"></div>
+              </div>
+              <div class="sleep-arrows">
+                <button class="sleep-arrow" id="cc-sleep-up-btn" aria-label="수면시간 늘리기">▲</button>
+                <button class="sleep-arrow" id="cc-sleep-down-btn" aria-label="수면시간 줄이기">▼</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="cc-confirm-bar">
+      <button class="cc-skip" id="cc-skip" type="button">건너뛰기</button>
+      <button class="cc-confirm" id="cc-confirm" disabled>확인</button>
+    </div>
+  </section>
+
+  <section class="screen active" id="screen-start">
+    <div class="center-wrap">
+      <img class="title-logo" src="assets/title-logo.png" alt="오늘의 준비물 - 상황에 맞는 물건을 천천히 골라보세요" />
+      <div id="mode-row" style="display:none"></div>
+      <div id="diff-row" style="display:none"></div>
+      <p id="diff-source" style="display:none"></p>
+      <div class="start-actions">
+        <div class="side left"><button class="btn-secondary" id="btn-settings">설정</button></div>
+        <div class="side"><button class="btn-big" id="btn-start">게임 시작</button></div>
+        <div class="side right"><button class="btn-secondary" id="btn-howto">게임 방법</button></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- DIFFICULTY SELECT -->
+  <section class="screen" id="screen-difficulty">
+    <div class="center-wrap">
+      <h1 class="title">난이도를 선택해주세요.</h1>
+      <p class="subtitle">처음 하신다면 쉬움부터 시작해보세요.</p>
+      <div class="diff-row" id="diff-row-select" style="display:grid">
+        <button class="opt-card" data-diff="easy"><div class="name">쉬움</div><div class="desc">처음 하시는 분께 좋아요</div></button>
+        <button class="opt-card" data-diff="normal"><div class="name">보통</div><div class="desc">익숙한 생활 문제</div></button>
+        <button class="opt-card" data-diff="hard"><div class="name">어려움</div><div class="desc">여러 단서를 함께 살펴봐요</div></button>
+      </div>
+      <div style="margin-top:clamp(8px,1.6dvh,16px)">
+        <button class="btn-secondary" id="btn-diff-back">뒤로가기</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- PLAY -->
+  <section class="screen" id="screen-play">
+    <div class="play">
+      <div class="topbar">
+        <div class="pills">
+          <span class="pill" id="p-mode">모드</span>
+          <span class="pill" id="p-diff">난이도</span>
+          <span class="pill" id="p-stage">단계 1</span>
+          <span class="pill" id="p-qnum">1 / 10</span>
+        </div>
+        <div class="actions">
+          <span class="timer" id="p-timer">⏱ 02:00</span>
+          <button class="icon-btn" id="btn-pause" title="일시정지">⏸ 일시정지</button>
+        </div>
+      </div>
+
+      <div class="qcard">
+        <div class="sit" id="p-situation">상황 문장</div>
+        <div class="target" id="p-target"></div>
+      </div>
+
+      <div id="p-seen" class="seen-row" style="display:none"></div>
+
+      <div class="fb-area">
+        <p class="fb-msg" id="p-feedback"></p>
+      </div>
+
+      <div class="choices-wrap">
+        <div class="choices" id="p-choices"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- RESULT -->
+  <section class="screen" id="screen-result">
+    <div class="center-wrap">
+      <div class="result-box">
+        <div class="hero" id="r-hero">수고하셨어요</div>
+        <p class="msg" id="r-msg">오늘도 끝까지 잘 해내셨어요.</p>
+        <div class="btns">
+          <button class="ghost" id="btn-again">다시 하기</button>
+          <button class="btn-return" id="btn-return">허브로 돌아가기</button>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- Pause menu -->
+<div class="modal" id="pause-modal">
+  <div class="box pause-box">
+    <h3>잠시 쉬어갈까요?</h3>
+    <p class="sub">원하는 항목을 선택해주세요.</p>
+
+    <div class="pause-section">
+      <div class="label">게임 진행</div>
+      <button class="pause-btn resume" id="btn-resume">▶ 계속하기</button>
+      <button class="pause-btn restart" id="btn-restart">↻ 다시하기</button>
+      <button class="pause-btn help" id="btn-help">? 게임 방법보기</button>
+      <button class="pause-btn exit" id="btn-pause-end">✕ 게임 나가기</button>
+    </div>
+
+    <div class="pause-section">
+      <div class="label">사운드 조절</div>
+      <div class="sound-row">
+        <span class="nm">배경음</span>
+        <button class="toggle on" data-sound="bgm"><span class="dot"></span><span class="txt">켜짐</span></button>
+      </div>
+      <div class="sound-row">
+        <span class="nm">효과음</span>
+        <button class="toggle on" data-sound="sfx"><span class="dot"></span><span class="txt">켜짐</span></button>
+      </div>
+      <div class="sound-row">
+        <span class="nm">안내음성</span>
+        <button class="toggle on" data-sound="voice"><span class="dot"></span><span class="txt">켜짐</span></button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Exit confirm -->
+<div class="modal" id="exit-modal">
+  <div class="box">
+    <h3>게임을 그만할까요?</h3>
+    <p>지금까지 참여한 내용은 저장됩니다.<br>다음에 다시 새로운 게임으로 시작할 수 있어요.</p>
+    <div class="actions">
+      <button class="keep" id="btn-keep">계속하기</button>
+      <button class="end" id="btn-end">그만하기</button>
+    </div>
+  </div>
+</div>
+
+<!-- Help / Tutorial (multi-page) -->
+<div class="modal" id="help-modal">
+  <div class="box help-box">
+    <img class="title-logo xs" src="assets/title-logo.png" alt="오늘의 준비물" />
+    <h3>게임 방법</h3>
+    <div class="help-body">
+      <div class="htitle" id="help-title"></div>
+      <p class="htext" id="help-text"></p>
+    </div>
+    <div class="help-progress" id="help-progress"></div>
+    <div class="help-nav">
+      <button id="help-prev">이전</button>
+      <button id="help-next" class="primary-nav">다음</button>
+      <button id="help-done" class="primary-nav" style="display:none">게임으로 돌아가기</button>
+    </div>
+  </div>
+</div>
+
+<!-- Settings -->
+<div class="modal" id="settings-modal">
+  <div class="box settings-box">
+    <h3>설정</h3>
+    <div class="pause-section">
+      <div class="sound-row">
+        <span class="nm">배경음</span>
+        <button class="toggle on" data-sound="bgm"><span class="dot"></span><span class="txt">켜짐</span></button>
+      </div>
+      <div class="sound-row">
+        <span class="nm">효과음</span>
+        <button class="toggle on" data-sound="sfx"><span class="dot"></span><span class="txt">켜짐</span></button>
+      </div>
+      <div class="sound-row">
+        <span class="nm">안내음성</span>
+        <button class="toggle on" data-sound="voice"><span class="dot"></span><span class="txt">켜짐</span></button>
+      </div>
+    </div>
+    <div class="actions">
+      <button class="keep" id="btn-settings-back">돌아가기</button>
+    </div>
+  </div>
+</div>
+
+<!-- Countdown -->
+<div class="modal" id="countdown-modal">
+  <div class="box countdown-box">
+    <h3>곧 시작합니다!</h3>
+    <p class="sub">잠시만 기다려주세요.</p>
+    <div class="countdown-circle" id="countdown-num">3</div>
+    <span class="countdown-warn">ⓘ 준비가 되면 자동으로 시작됩니다.</span>
+  </div>
+</div>
+
+<!-- Mission transition -->
+<div class="modal" id="mission-modal">
+  <div class="box">
+    <h3 id="mission-title">이번 미션</h3>
+    <p id="mission-text" style="font-size:20px;color:#13182A;font-weight:700;line-height:1.5"></p>
+    <div class="actions">
+      <button class="keep" id="btn-mission-start" style="font-size:20px;padding:18px">시작하기</button>
+    </div>
+  </div>
+</div>
+
+<!-- Error -->
+<div class="modal" id="error-modal">
+  <div class="box error-box">
+    <div class="icon">⚠️</div>
+    <h3>게임을 불러오는 중 문제가 생겼어요</h3>
+    <p id="error-msg">잠시 후 다시 시도해주세요.</p>
+    <div class="actions">
+      <button class="keep" id="btn-error-retry">다시 시도</button>
+      <button class="end" id="btn-error-exit">게임 나가기</button>
+    </div>
+  </div>
+</div>
+
+<!-- Loading -->
+<div id="loading-screen" class="active">
+  <img class="title-logo sm" src="assets/title-logo.png" alt="오늘의 준비물" />
+  <div class="loading-title">게임을 준비 중이에요</div>
+  <div class="loading-sub">잠시만 기다려주세요!</div>
+  <div class="loading-percent" id="loading-percent">0%</div>
+  <div class="loading-bar"><div id="loading-bar-fill"></div></div>
+</div>
+
+<!-- Reveal correct answer -->
+<div class="modal" id="reveal-modal">
+  <div class="box">
+    <h3>정답을 함께 확인해볼게요</h3>
+    <div id="reveal-content"></div>
+    <p id="reveal-explain" style="font-size:15px;color:#3A4054"></p>
+  </div>
+</div>
+
+<script src="config/modes.js"></script>
+<script src="js/items.js"></script>
+<script src="js/questions.js"></script>
+<script src="js/audio.js"></script>
+<script src="modes/registry.js"></script>
+<script src="js/game.js"></script>
+</body>
+</html>
