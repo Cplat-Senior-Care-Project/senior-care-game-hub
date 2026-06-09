@@ -15,14 +15,13 @@
   const MAX_MEMORY_ITEMS = 6;
   const RACE_POINTS = Object.freeze([16, 50, 84, 94]);
   const MEMORY_LAYOUT_MIN_CARD = 38;
-  const MEMORY_LAYOUT_CARD_SIZE = 146;
-  const MEMORY_LAYOUT_MIN_GAP = 4;
-  const MEMORY_LAYOUT_MAX_GAP = 8;
+  const MEMORY_LAYOUT_CARD_SIZE = 176;
+  const MEMORY_LAYOUT_MIN_GAP = 22;
+  const MEMORY_LAYOUT_MAX_GAP = 34;
   const MEMORY_LAYOUT_MAX_COLUMNS = 7;
   const ITEM_GLOW_ASSET_VERSION = "20260608-soft-glow";
   const STATIC_IMAGE_ASSETS = Object.freeze([
     "assets/images/background2.webp",
-    "assets/images/play_background.webp?v=20260608-refreshed",
     "assets/images/title2.webp",
     "assets/images/ui-touch2.webp",
     "assets/images/ui-drag2.webp",
@@ -535,8 +534,7 @@
     clearTimer("countdown");
     timers.countdown = window.setInterval(() => {
       state.revealRemaining -= 1;
-      const countdown = els.playArea.querySelector(".memory-countdown");
-      if (countdown) countdown.innerHTML = renderMemoryCountdown(state.revealRemaining);
+      updateMemoryProgress();
     }, 1000);
   }
 
@@ -591,10 +589,40 @@
     const targets = state.question.targetItems;
     const title = "기억할 물건을 잘 보세요!";
     const cards = targets.map((item) => `<div class="fruit-card" aria-label="${escapeHtml(item.name)}"><img class="fruit-image" src="${item.image}" alt="" draggable="false" loading="eager" decoding="async"></div>`).join("");
-    els.playArea.innerHTML = `<section class="memory-view"><div class="memory-card"><p class="guide-text">${escapeHtml(title)}</p></div><div class="fruit-grid ${getMemoryGridClass(targets.length)} is-auto-fit" style="--memory-count:${targets.length}; --memory-columns:${targets.length}">${cards}</div><p class="memory-countdown" aria-live="polite">${renderMemoryCountdown(state.revealRemaining)}</p></section>`;
+    els.playArea.innerHTML = `<section class="memory-view"><div class="memory-card"><p class="guide-text">${escapeHtml(title)}</p></div><div class="memory-items-panel" data-memory-count="${targets.length}"><div class="fruit-grid ${getMemoryGridClass(targets.length)} is-auto-fit" style="--memory-count:${targets.length}; --memory-columns:${targets.length}">${cards}</div></div><div class="memory-progress" role="progressbar" aria-label="기억 시간" aria-valuemin="0" aria-valuemax="${state.question.revealMs}" aria-valuenow="${state.question.revealMs}"><span class="memory-progress-fill"></span></div></section>`;
+    animateMemoryProgress(state.question.revealMs);
     els.hintButton.classList.add("is-hidden");
     scheduleMemoryLayout();
     window.setTimeout(scheduleMemoryLayout, 60);
+  }
+
+  function updateMemoryProgress() {
+    const progress = els.playArea.querySelector(".memory-progress");
+    if (!progress || !state.question) return;
+    const totalSeconds = Math.max(1, Math.ceil(state.question.revealMs / 1000));
+    const remainingSeconds = Math.max(0, state.revealRemaining);
+    const ratio = Math.min(1, remainingSeconds / totalSeconds);
+    progress.setAttribute("aria-valuenow", String(Math.round(ratio * state.question.revealMs)));
+  }
+
+  function animateMemoryProgress(remainingMs, shouldAnimate = true) {
+    const progress = els.playArea.querySelector(".memory-progress");
+    const fill = progress && progress.querySelector(".memory-progress-fill");
+    if (!progress || !fill || !state.question) return;
+    const totalMs = Math.max(1, state.question.revealMs);
+    const safeRemainingMs = Math.max(0, Math.min(totalMs, Number(remainingMs) || 0));
+    const ratio = safeRemainingMs / totalMs;
+    fill.style.transition = "none";
+    fill.style.width = `${ratio * 100}%`;
+    progress.setAttribute("aria-valuenow", String(Math.round(safeRemainingMs)));
+    if (!shouldAnimate || safeRemainingMs <= 0) return;
+    window.requestAnimationFrame(() => {
+      window.requestAnimationFrame(() => {
+        if (state.phase !== "memory" || !fill.isConnected) return;
+        fill.style.transition = `width ${safeRemainingMs}ms linear`;
+        fill.style.width = "0%";
+      });
+    });
   }
 
   function getMemoryGridClass(count) {
@@ -621,23 +649,16 @@
     if (!view || state.phase !== "memory") return;
 
     const grid = view.querySelector(".fruit-grid");
-    const notice = view.querySelector(".memory-card");
-    const countdown = view.querySelector(".memory-countdown");
-    if (!grid || !notice || grid.children.length === 0) return;
+    const panel = view.querySelector(".memory-items-panel");
+    if (!grid || !panel || grid.children.length === 0) return;
 
     const count = grid.children.length;
-    const viewWidth = view.clientWidth;
-    const viewHeight = view.clientHeight;
-    const noticeHeight = notice.offsetHeight;
-    const countdownHeight = countdown ? countdown.offsetHeight : 0;
-    if (viewWidth <= 0 || viewHeight <= 0) return;
+    const panelStyle = window.getComputedStyle(panel);
+    const availableWidth = Math.max(1, panel.clientWidth - parseCssLength(panelStyle.paddingLeft) - parseCssLength(panelStyle.paddingRight));
+    const availableHeight = Math.max(1, panel.clientHeight - parseCssLength(panelStyle.paddingTop) - parseCssLength(panelStyle.paddingBottom));
+    if (availableWidth <= 0 || availableHeight <= 0) return;
 
-    const viewStyle = window.getComputedStyle(view);
-    const stackGap = parseCssLength(viewStyle.rowGap || viewStyle.gap);
-    const availableWidth = Math.max(1, viewWidth);
     const isShortLandscape = false;
-    const verticalSafety = 14;
-    const availableHeight = Math.max(1, viewHeight - noticeHeight - countdownHeight - (stackGap * 2) - verticalSafety);
     const columns = Math.min(MEMORY_LAYOUT_MAX_COLUMNS, count);
     const rows = Math.ceil(count / columns);
     const gap = getAdaptiveMemoryGap(availableWidth, availableHeight, count, isShortLandscape);
@@ -686,8 +707,26 @@
       const hinted = question.hintUsed && remainingTargetIds.has(item.id);
       return `<button class="choice-card ${selected ? "is-selected" : ""} ${wrong ? "is-wrong" : ""} ${hinted ? "is-hinted" : ""}" type="button" data-item-id="${item.id}" aria-label="${escapeHtml(item.name)}" ${selected ? "disabled" : ""}><img src="${getChoiceImage(item)}" alt="" draggable="false" loading="eager" decoding="async"></button>`;
     }).join("");
-    els.playArea.innerHTML = `<section class="shop-round question-round"><div class="question-board"><div class="choice-layout"><section class="shelf-zone" aria-label="물건 선택"><img class="shelf-image" src="assets/images/stand2.webp" alt="" draggable="false" loading="eager" decoding="async"><div class="choice-grid" data-choice-count="${question.choiceItems.length}">${renderChoiceCards(question.choiceItems)}</div><div class="basket-zone" data-basket-drop-zone="true"><h2 class="round-title basket-prompt">${escapeHtml(prompt)}</h2><div class="basket-image-wrap ${state.collectedItems.length ? "is-bounce" : ""}"><img class="basket-image" src="assets/images/basket2.webp" alt="장바구니" draggable="false" loading="eager" decoding="async"><div class="basket-collected">${state.collectedItems.map((item) => `<img src="${getChoiceImage(item)}" alt="" draggable="false" loading="eager" decoding="async" data-item-id="${item.id}">`).join("")}</div></div></div></section></div></div></section>`;
+    els.playArea.innerHTML = `<section class="shop-round question-round"><div class="question-board"><div class="choice-layout"><section class="shelf-zone" aria-label="물건 선택"><img class="shelf-image" src="assets/images/stand2.webp" alt="" draggable="false" loading="eager" decoding="async"><div class="choice-grid" data-choice-count="${question.choiceItems.length}">${renderChoiceCards(question.choiceItems)}</div><div class="basket-zone" data-basket-drop-zone="true"><h2 class="round-title basket-prompt">${escapeHtml(prompt)}</h2><div class="basket-image-wrap ${state.collectedItems.length ? "is-bounce" : ""}"><div class="basket-ground-shadow" aria-hidden="true"></div><img class="basket-image" src="assets/images/basket2.webp" alt="장바구니" draggable="false" loading="eager" decoding="async"><div class="basket-collected">${state.collectedItems.map((item) => `<img src="${getChoiceImage(item)}" alt="" draggable="false" loading="eager" decoding="async" data-item-id="${item.id}">`).join("")}</div></div></div></section></div></div></section>`;
+    const questionBoard = els.playArea.querySelector(".question-board");
+    if (questionBoard) {
+      questionBoard.insertAdjacentHTML("afterbegin", `<div class="selection-instruction"><span class="selection-instruction-highlight">&#xC7A5;&#xBC14;&#xAD6C;&#xB2C8;</span>&#xC5D0; &#xB2F4;&#xC544;&#xC8FC;&#xC138;&#xC694;!</div><div class="selection-progress" role="progressbar" aria-label="&#xB0A8;&#xC740; &#xAC1C;&#xC218;" aria-valuemin="0" aria-valuemax="${question.targetItems.length}" aria-valuenow="0"><div class="selection-progress-track"><span class="selection-progress-fill"></span></div><span class="selection-progress-label">&#xB0A8;&#xC740; &#xAC1C;&#xC218;</span><strong class="selection-progress-count">0/${question.targetItems.length}</strong></div>`);
+    }
+    updateSelectionProgress();
     els.hintButton.classList.toggle("is-hidden", runtimeConfig.hintEnabled === false);
+  }
+
+  function updateSelectionProgress() {
+    const progress = els.playArea.querySelector(".selection-progress");
+    if (!progress || !state.question) return;
+    const selectedCount = state.selectedIds.length;
+    const totalCount = state.question.targetItems.length;
+    const ratio = totalCount > 0 ? Math.min(1, selectedCount / totalCount) : 0;
+    progress.style.setProperty("--selection-progress", `${ratio * 100}%`);
+    progress.setAttribute("aria-valuemax", String(totalCount));
+    progress.setAttribute("aria-valuenow", String(selectedCount));
+    const count = progress.querySelector(".selection-progress-count");
+    if (count) count.textContent = `${selectedCount}/${totalCount}`;
   }
 
   function showFeedback(message, tone) {
@@ -926,6 +965,7 @@
 
     if (isTarget) {
       state.selectedIds.push(item.id);
+      updateSelectionProgress();
       const selectedElement = sourceElement || getChoiceCardByItemId(item.id);
       markChoiceCardSelected(item.id, selectedElement);
       const questionCompleted = state.selectedIds.length >= question.targetItems.length;
@@ -998,6 +1038,7 @@
     state.pause.startedAt = Date.now();
     pausedPhaseTimerCallback = phaseTimerCallback;
     pausedAutoHintTimerCallback = autoHintTimerCallback;
+    if (previousPhase === "memory") animateMemoryProgress(state.pause.phaseRemainingMs, false);
     state.phase = "pause";
     state.pauseCount += 1;
     clearTimer("game"); clearTimer("countdown"); clearTimer("phase"); clearTimer("autoHint");
@@ -1023,7 +1064,10 @@
     if (state.firstResponseAt && previousPhase === "question") state.firstResponseAt += pausedForMs;
     startGameTimer(false);
 
-    if (previousPhase === "memory") startMemoryCountdownTimer();
+    if (previousPhase === "memory") {
+      startMemoryCountdownTimer();
+      animateMemoryProgress(state.pause.phaseRemainingMs);
+    }
     if (pausedPhaseTimerCallback) {
       schedulePhaseTimer(pausedPhaseTimerCallback, state.pause.phaseRemainingMs);
     }
