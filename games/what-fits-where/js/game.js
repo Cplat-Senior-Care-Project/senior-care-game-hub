@@ -17,8 +17,40 @@ const state = {
   endedByUser:false, timeOver:false,
   timerId:null, timerLeft:0, paused:false,
   advanceTimer:null,
+  scoreScreenEnabled:true,
+  lastResult:null,
 };
 state.conditionData = null;
+state.postGameConditionData = null;
+
+const SCORE_SCREEN_STORAGE_KEY = "whatFitsWhere.scoreScreenEnabled";
+
+function loadScoreScreenEnabled(defaultValue){
+  try{
+    const saved = localStorage.getItem(SCORE_SCREEN_STORAGE_KEY);
+    if(saved === "true") return true;
+    if(saved === "false") return false;
+  }catch(e){}
+  return defaultValue;
+}
+
+function saveScoreScreenEnabled(value){
+  try{ localStorage.setItem(SCORE_SCREEN_STORAGE_KEY, value ? "true" : "false"); }catch(e){}
+}
+
+function refreshScoreScreenToggle(){
+  const btn = $("score-screen-toggle");
+  if(!btn) return;
+  const on = state.scoreScreenEnabled !== false;
+  btn.classList.toggle("on", on);
+  btn.setAttribute("aria-pressed", on ? "true" : "false");
+  const t = btn.querySelector(".txt");
+  if(t) t.textContent = on ? "On" : "Off";
+}
+
+function shouldShowScoreScreen(){
+  return (state.appMode || "standard") === "standard" && state.scoreScreenEnabled !== false;
+}
 
 /* ===== APP CONFIG (mode-driven UI) ===== */
 function applyAppConfig(){
@@ -33,10 +65,14 @@ function applyAppConfig(){
   soundSettings.sfx = !!cfg.sound_effect_enabled;
   soundSettings.voice = !!cfg.voice_guide_enabled;
   refreshSoundToggles();
+  state.scoreScreenEnabled = loadScoreScreenEnabled(cfg.show_score !== false);
+  refreshScoreScreenToggle();
   // top buttons visibility
   const sBtn = $("btn-settings"), hBtn = $("btn-howto");
   if(sBtn) sBtn.style.display = cfg.show_settings ? "" : "none";
   if(hBtn) hBtn.style.display = cfg.show_how_to_play ? "" : "none";
+  const scoreRow = $("settings-score-row");
+  if(scoreRow) scoreRow.style.display = appMode === "standard" ? "" : "none";
   // difficulty section
   const diffRow = $("diff-row"), diffH = $("diff-heading");
   if(diffRow) diffRow.style.display = cfg.show_difficulty_select ? "" : "none";
@@ -56,6 +92,12 @@ function applyAppConfig(){
 const _settingsBtn = $("btn-settings");
 if(_settingsBtn) _settingsBtn.addEventListener("click", ()=>{ $("settings-modal").classList.add("active"); });
 $("btn-settings-back").addEventListener("click", ()=>{ $("settings-modal").classList.remove("active"); });
+const _scoreToggle = $("score-screen-toggle");
+if(_scoreToggle) _scoreToggle.addEventListener("click", ()=>{
+  state.scoreScreenEnabled = !(state.scoreScreenEnabled !== false);
+  saveScoreScreenEnabled(state.scoreScreenEnabled);
+  refreshScoreScreenToggle();
+});
 
 /* ===== HELP / TUTORIAL (multi-page) ===== */
 let helpIdx = 0;
@@ -316,6 +358,7 @@ function startGame(){
   state.situationResponses=[];
   state.stageStats = [{c:0,w:0},{c:0,w:0},{c:0,w:0}];
   state.responses = [];
+  state.postGameConditionData = null;
   state.endedByUser = false; state.timeOver = false;
   state.paused = false;
   switchScreen("screen-play");
@@ -481,6 +524,98 @@ $("btn-end").addEventListener("click", ()=>{
   finishGame(true, false);
 });
 
+/* ===== POST GAME CONDITION CHECK ===== */
+let _postGameCondition = null;
+const POST_STEP_1_FIELDS = ["mood", "difficulty_feel", "fatigue"];
+const POST_STEP_2_FIELDS = ["needed_help", "want_replay"];
+
+function resetPostGameConditionCheck(){
+  _postGameCondition = {
+    mood: null,
+    difficulty_feel: null,
+    fatigue: null,
+    needed_help: null,
+    want_replay: null,
+    skipped: false,
+  };
+  renderPostGameConditionCheck();
+}
+
+function renderPostGameConditionCheck(){
+  const data = _postGameCondition || {};
+  document.querySelectorAll("[data-post-group]").forEach(group=>{
+    const field = group.dataset.postGroup;
+    group.querySelectorAll("button").forEach(btn=>{
+      btn.classList.toggle("sel", data[field] === btn.dataset.value);
+    });
+  });
+  const step1Done = POST_STEP_1_FIELDS.every(field => !!data[field]);
+  const step2Done = POST_STEP_2_FIELDS.every(field => !!data[field]);
+  const nextBtn = $("post-next-1");
+  const completeBtn = $("post-complete-2");
+  if(nextBtn) nextBtn.disabled = !step1Done;
+  if(completeBtn) completeBtn.disabled = !step2Done;
+}
+
+function startPostGameConditionCheck(){
+  resetPostGameConditionCheck();
+  switchScreen("screen-post-check-1");
+}
+
+function finishPostGameConditionCheck(skipped){
+  const data = Object.assign({}, _postGameCondition || {}, {
+    skipped: !!skipped,
+    completed_at: new Date().toISOString(),
+  });
+  if(skipped){
+    data.mood = null;
+    data.difficulty_feel = null;
+    data.fatigue = null;
+    data.needed_help = null;
+    data.want_replay = null;
+  }
+  state.postGameConditionData = data;
+  sendGameEvent(skipped ? "POST_GAME_CONDITION_SKIPPED" : "POST_GAME_CONDITION_COMPLETED", data);
+  resetToStartScreen();
+}
+
+document.querySelectorAll("[data-post-group]").forEach(group=>{
+  group.addEventListener("click", e=>{
+    const btn = e.target.closest("button");
+    if(!btn || !_postGameCondition) return;
+    _postGameCondition[group.dataset.postGroup] = btn.dataset.value;
+    renderPostGameConditionCheck();
+  });
+});
+$("post-skip-1").addEventListener("click", ()=>{ finishPostGameConditionCheck(true); });
+$("post-next-1").addEventListener("click", ()=>{
+  if(POST_STEP_1_FIELDS.every(field => !!(_postGameCondition && _postGameCondition[field]))){
+    switchScreen("screen-post-check-2");
+  }
+});
+$("post-prev-2").addEventListener("click", ()=>{ switchScreen("screen-post-check-1"); });
+$("post-complete-2").addEventListener("click", ()=>{
+  if(POST_STEP_2_FIELDS.every(field => !!(_postGameCondition && _postGameCondition[field]))){
+    finishPostGameConditionCheck(false);
+  }
+});
+
+function resetToStartScreen(){
+  stopTimer(); clearAdvance();
+  ["reveal-modal", "pause-modal", "exit-modal", "help-modal", "countdown-modal", "mission-modal", "error-modal"].forEach(id=>{
+    const el = $(id);
+    if(el) el.classList.remove("active");
+  });
+  state.mode = null;
+  state.queue = [];
+  state.qIndex = 0;
+  state.current = null;
+  state.paused = false;
+  state.endedByUser = false;
+  state.timeOver = false;
+  switchScreen("screen-start");
+}
+
 /* ===== FINISH ===== */
 function recommendNext(){
   const c = state.correct;
@@ -542,7 +677,9 @@ function finishGame(userExit, timeOver){
     recommended_next_difficulty_label: DIFF_LABEL[nextDiff],
     stage_results: state.stageStats.map((s,i)=>{const qps=Q_PER_STAGE_BY_DIFF[state.diff]||Q_PER_STAGE_BY_DIFF.normal; return {stage:i+1, total_questions:qps[i]||0, correct_count:s.c, wrong_count:s.w};}),
     condition_data: state.conditionData || null,
+    score_screen_enabled: shouldShowScoreScreen(),
   };
+  state.lastResult = result;
 
   let hero, msg;
   if(timeOver){
@@ -564,10 +701,13 @@ function finishGame(userExit, timeOver){
   // Mode-specific UI: show 다시 하기 only for standard mode
   const appMode = state.appMode || "standard";
   const againBtn = $("btn-again");
+  const returnBtn = $("btn-return");
   if(appMode === "standard"){
     againBtn.style.display = "";
+    returnBtn.textContent = "다음";
   } else {
     againBtn.style.display = "none";
+    returnBtn.textContent = "허브로 돌아가기";
   }
   switchScreen("screen-result");
 
@@ -581,8 +721,27 @@ function finishGame(userExit, timeOver){
   }
 }
 
+function renderScoreScreen(result){
+  const data = result || state.lastResult || {};
+  const correct = data.correct_count || 0;
+  const wrong = data.wrong_count || 0;
+  const accuracy = data.accuracy_percent || 0;
+  $("score-correct").textContent = `${correct}문항`;
+  $("score-wrong").textContent = `${wrong}문항`;
+  $("score-accuracy").textContent = `${accuracy}%`;
+  switchScreen("screen-score");
+}
+
 $("btn-again").addEventListener("click", ()=>{ startGame(); });
 $("btn-return").addEventListener("click", ()=>{
+  if((state.appMode || "standard") === "standard"){
+    if(shouldShowScoreScreen()){
+      renderScoreScreen();
+      return;
+    }
+    startPostGameConditionCheck();
+    return;
+  }
   returnToHub(); return;
   // Notify host app to return to 효담콜
   sendGameEvent("RETURN_TO_HYODAM_CALL", { app_mode: state.appMode || "standard" });
@@ -598,4 +757,7 @@ $("btn-return").addEventListener("click", ()=>{
   const map = {low:"easy", middle:"normal", high:"hard"};
   if(g && map[g]){ state.diff = map[g]; state.diffSource="profile_based"; }
   switchScreen("screen-start");
+});
+$("btn-score-next").addEventListener("click", ()=>{
+  startPostGameConditionCheck();
 });

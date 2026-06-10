@@ -11,8 +11,8 @@
 
   /* START */
   .center-wrap{flex:1;min-height:0;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;gap:clamp(6px,1.4dvh,14px);width:100%;overflow:hidden}
-  #screen-result.active{overflow:auto}
-  #screen-result .center-wrap{justify-content:center;overflow:visible}
+  #screen-result.active,#screen-score.active{overflow:auto}
+  #screen-result .center-wrap,#screen-score .center-wrap{justify-content:center;overflow:visible}
   .title{font-size:clamp(20px,3.4dvh,34px);color:#13182A;line-height:1.25}
   .subtitle{color:#3A4054;font-size:clamp(13px,1.8dvh,17px);max-width:680px;line-height:1.5;margin:0}
   .title-logo{width:min(85vw,760px);height:auto;object-fit:contain;display:block;margin:0 auto clamp(20px,3.2dvh,32px) auto;background:transparent}
@@ -256,10 +256,31 @@
   .result-box .btn-return{padding:clamp(14px,2.2dvh,18px) clamp(22px,3.4vw,36px);border-radius:14px;background:linear-gradient(135deg,#1E5BBF,#3D86E8);color:#FFFFFF;font-weight:900;font-size:clamp(17px,2.3dvh,20px);border:3px solid #154A9E;box-shadow:0 6px 16px -6px rgba(30,91,191,.5);min-width:220px}
   .result-box .btn-return:hover{filter:brightness(1.05)}
   .result-box .ghost{min-width:140px}
+  .post-check.active{overflow:auto}
+  .post-check .center-wrap{justify-content:center;overflow:visible}
+  .post-check-box{width:min(100%,760px);background:#FFFFFF;border:1px solid #E2D9C0;border-radius:20px;padding:clamp(20px,3.2dvh,34px);display:flex;flex-direction:column;gap:clamp(14px,2.2dvh,22px);box-shadow:0 10px 28px rgba(60,40,10,.07)}
+  .post-title{font-size:clamp(24px,3.8dvh,36px);color:#13182A;text-align:center;line-height:1.25}
+  .post-question{display:flex;flex-direction:column;gap:10px;text-align:left}
+  .post-label{font-size:clamp(17px,2.3dvh,21px);font-weight:900;color:#1F2433}
+  .post-options{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+  .post-options.two{grid-template-columns:repeat(2,1fr)}
+  .post-options button{min-height:clamp(58px,8dvh,76px);padding:12px 10px;border-radius:16px;border:3px solid #D9CFB3;background:#FFFDF8;color:#1F2433;font-size:clamp(16px,2.3dvh,21px);font-weight:900;line-height:1.2;transition:background .15s,border-color .15s,box-shadow .15s,transform .1s}
+  .post-options button:hover{background:#FFF4DA;border-color:#B48A2E}
+  .post-options button:active{transform:translateY(2px)}
+  .post-options button.sel{background:#E6EEFB;border-color:#1E5BBF;color:#0E1322;box-shadow:0 0 0 3px rgba(30,91,191,.18)}
+  .post-actions{display:flex;gap:12px;justify-content:center;margin-top:4px}
+  .post-actions button{flex:1;min-height:56px}
+  .post-actions .btn-return{padding:clamp(14px,2.2dvh,18px) clamp(22px,3.4vw,36px);border-radius:14px;background:linear-gradient(135deg,#1E5BBF,#3D86E8);color:#FFFFFF;font-weight:900;font-size:clamp(17px,2.3dvh,20px);border:3px solid #154A9E;box-shadow:0 6px 16px -6px rgba(30,91,191,.5)}
+  .post-actions .btn-return:disabled{opacity:.45;cursor:not-allowed;filter:grayscale(.25);box-shadow:none}
+  .post-actions .ghost{font-size:clamp(16px,2.1dvh,19px);font-weight:900}
   @media (max-width:520px){
     .result-stats{grid-template-columns:repeat(3,1fr);padding:12px 6px}
     .result-box .btns{flex-direction:column-reverse;align-items:stretch}
     .result-box .btn-return,.result-box .ghost{width:100%;min-width:0}
+    .post-check .center-wrap{justify-content:flex-start}
+    .post-check-box{padding:16px;gap:12px}
+    .post-options,.post-options.two{grid-template-columns:1fr}
+    .post-actions{flex-direction:column-reverse}
   }
 
   /* Landscape phone */

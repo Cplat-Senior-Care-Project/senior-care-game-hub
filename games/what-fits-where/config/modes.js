@@ -28,8 +28,8 @@
     },
     care: {
       show_condition_check: false,
-      show_settings: false,
-      show_how_to_play: false,
+      show_settings: true,
+      show_how_to_play: true,
       background_music_enabled: false,
       voice_guide_enabled: true,
       soft_feedback: true,
@@ -38,7 +38,7 @@
     },
     ai_assisted: {
       show_condition_check: false,
-      show_settings: false,
+      show_settings: true,
       show_how_to_play: true,
       background_music_enabled: false,
       voice_guide_enabled: true,

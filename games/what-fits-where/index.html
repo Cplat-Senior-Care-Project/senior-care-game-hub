@@ -123,6 +123,96 @@
       </div>
     </div>
   </section>
+
+  <!-- SCORE -->
+  <section class="screen" id="screen-score">
+    <div class="center-wrap">
+      <div class="result-box">
+        <div class="hero">점수 확인</div>
+        <div class="result-stats" aria-label="점수 결과">
+          <div class="item">
+            <span class="lbl">정답 문항 수</span>
+            <span class="val" id="score-correct">0문항</span>
+          </div>
+          <div class="item">
+            <span class="lbl">오답 문항 수</span>
+            <span class="val" id="score-wrong">0문항</span>
+          </div>
+          <div class="item">
+            <span class="lbl">정답률</span>
+            <span class="val" id="score-accuracy">0%</span>
+          </div>
+        </div>
+        <div class="btns">
+          <button class="btn-return" id="btn-score-next">다음</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- POST GAME CONDITION CHECK 1 -->
+  <section class="screen post-check" id="screen-post-check-1">
+    <div class="center-wrap">
+      <div class="post-check-box">
+        <h1 class="post-title">게임 후 상태를 알려주세요</h1>
+        <div class="post-question">
+          <div class="post-label">지금의 기분은 어떠세요?</div>
+          <div class="post-options" data-post-group="mood">
+            <button type="button" data-value="good">좋음</button>
+            <button type="button" data-value="normal">보통</button>
+            <button type="button" data-value="bad">나쁨</button>
+          </div>
+        </div>
+        <div class="post-question">
+          <div class="post-label">게임 난이도는 어떠셨어요?</div>
+          <div class="post-options" data-post-group="difficulty_feel">
+            <button type="button" data-value="easy">쉬웠어요</button>
+            <button type="button" data-value="just_right">적당했어요</button>
+            <button type="button" data-value="hard">어려웠어요</button>
+          </div>
+        </div>
+        <div class="post-question">
+          <div class="post-label">피로감은 어떠세요?</div>
+          <div class="post-options" data-post-group="fatigue">
+            <button type="button" data-value="fine">괜찮아요</button>
+            <button type="button" data-value="a_little_tired">조금 피곤해요</button>
+            <button type="button" data-value="very_tired">많이 피곤해요</button>
+          </div>
+        </div>
+        <div class="post-actions">
+          <button class="ghost" id="post-skip-1" type="button">건너뛰기</button>
+          <button class="btn-return" id="post-next-1" type="button" disabled>다음</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- POST GAME CONDITION CHECK 2 -->
+  <section class="screen post-check" id="screen-post-check-2">
+    <div class="center-wrap">
+      <div class="post-check-box">
+        <h1 class="post-title">조금만 더 알려주세요</h1>
+        <div class="post-question">
+          <div class="post-label">도움이 필요했나요?</div>
+          <div class="post-options two" data-post-group="needed_help">
+            <button type="button" data-value="no">아니오</button>
+            <button type="button" data-value="yes">네</button>
+          </div>
+        </div>
+        <div class="post-question">
+          <div class="post-label">다시 하고 싶으세요?</div>
+          <div class="post-options two" data-post-group="want_replay">
+            <button type="button" data-value="yes">네</button>
+            <button type="button" data-value="no">아니오</button>
+          </div>
+        </div>
+        <div class="post-actions">
+          <button class="ghost" id="post-prev-2" type="button">이전</button>
+          <button class="btn-return" id="post-complete-2" type="button" disabled>완료</button>
+        </div>
+      </div>
+    </div>
+  </section>
 </div>
 
 <!-- Pause menu -->
@@ -152,6 +242,10 @@
       <div class="sound-row">
         <span class="nm">안내음성</span>
         <button class="toggle on" data-sound="voice"><span class="dot"></span><span class="txt">켜짐</span></button>
+      </div>
+      <div class="sound-row" id="settings-score-row">
+        <span class="nm">점수화면</span>
+        <button class="toggle on" id="score-screen-toggle" data-setting="score-screen" aria-pressed="true"><span class="dot"></span><span class="txt">On</span></button>
       </div>
     </div>
   </div>
