@@ -39,13 +39,13 @@ function saveScoreScreenEnabled(value){
 }
 
 function refreshScoreScreenToggle(){
-  const btn = $("score-screen-toggle");
-  if(!btn) return;
   const on = state.scoreScreenEnabled !== false;
-  btn.classList.toggle("on", on);
-  btn.setAttribute("aria-pressed", on ? "true" : "false");
-  const t = btn.querySelector(".txt");
-  if(t) t.textContent = on ? "On" : "Off";
+  document.querySelectorAll('[data-setting="score-screen"]').forEach(btn=>{
+    btn.classList.toggle("on", on);
+    btn.setAttribute("aria-pressed", on ? "true" : "false");
+    const t = btn.querySelector(".txt");
+    if(t) t.textContent = on ? "On" : "Off";
+  });
 }
 
 function shouldShowScoreScreen(){
@@ -71,8 +71,10 @@ function applyAppConfig(){
   const sBtn = $("btn-settings"), hBtn = $("btn-howto");
   if(sBtn) sBtn.style.display = cfg.show_settings ? "" : "none";
   if(hBtn) hBtn.style.display = cfg.show_how_to_play ? "" : "none";
-  const scoreRow = $("settings-score-row");
-  if(scoreRow) scoreRow.style.display = appMode === "standard" ? "" : "none";
+  ["settings-score-row", "settings-modal-score-row"].forEach(id=>{
+    const scoreRow = $(id);
+    if(scoreRow) scoreRow.style.display = appMode === "standard" ? "" : "none";
+  });
   // difficulty section
   const diffRow = $("diff-row"), diffH = $("diff-heading");
   if(diffRow) diffRow.style.display = cfg.show_difficulty_select ? "" : "none";
@@ -92,11 +94,12 @@ function applyAppConfig(){
 const _settingsBtn = $("btn-settings");
 if(_settingsBtn) _settingsBtn.addEventListener("click", ()=>{ $("settings-modal").classList.add("active"); });
 $("btn-settings-back").addEventListener("click", ()=>{ $("settings-modal").classList.remove("active"); });
-const _scoreToggle = $("score-screen-toggle");
-if(_scoreToggle) _scoreToggle.addEventListener("click", ()=>{
-  state.scoreScreenEnabled = !(state.scoreScreenEnabled !== false);
-  saveScoreScreenEnabled(state.scoreScreenEnabled);
-  refreshScoreScreenToggle();
+document.querySelectorAll('[data-setting="score-screen"]').forEach(btn=>{
+  btn.addEventListener("click", ()=>{
+    state.scoreScreenEnabled = !(state.scoreScreenEnabled !== false);
+    saveScoreScreenEnabled(state.scoreScreenEnabled);
+    refreshScoreScreenToggle();
+  });
 });
 
 /* ===== HELP / TUTORIAL (multi-page) ===== */

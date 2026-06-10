@@ -52,7 +52,6 @@ const I = {
   "주방용 세제":{n:"주방용 세제",img:"assets/goods/dish_soap.png"},
   고무장갑:{n:"고무장갑",img:"assets/goods/rubber_gloves.png"},
   수세미:{n:"수세미",img:"assets/goods/sponge.png"},
-  삽:{n:"삽",img:"assets/goods/shovel.png"},
   호미:{n:"호미",img:"assets/goods/shovel.png"},
   씨앗:{n:"씨앗",img:"assets/goods/seeds.png"},
   쌀:{n:"쌀",img:"assets/goods/rice.png"},
