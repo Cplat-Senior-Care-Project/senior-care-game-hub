@@ -1,7 +1,7 @@
 {
   "mode": "reminder",
-  "difficulty": "normal",
-  "difficultyKey": "normal",
+  "difficulty": "easy",
+  "difficultyKey": "easy",
   "config": {
     "show_timer": true,
     "show_progress": true,
