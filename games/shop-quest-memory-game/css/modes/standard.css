@@ -1,36 +1,28 @@
-/* Standard mode only. Keep default game UI unless this mode needs overrides. */
-html[data-mode="standard"] .app[data-screen="game"] {
+/* Standard-style mode UI shared by standard and reminder modes. */
+html:is([data-mode="standard"], [data-mode="reminder"]) .app[data-screen="game"] {
   overflow: visible;
 }
 
-html[data-mode="standard"] .game-screen {
+html:is([data-mode="standard"], [data-mode="reminder"]) .game-screen {
   overflow: visible;
 }
 
-html[data-mode="standard"] .game-header {
+html:is([data-mode="standard"], [data-mode="reminder"]) .game-header {
   align-content: start;
   transform: none;
 }
 
-html[data-mode="standard"] .play-area {
+html:is([data-mode="standard"], [data-mode="reminder"]) .play-area {
   overflow: hidden;
 }
 
-html[data-mode="standard"] .shelf-zone.is-left {
-  transform: translateY(26px);
-}
-
-html[data-mode="standard"] .shelf-zone.is-right {
-  transform: translateY(26px);
-}
-
-html[data-mode="standard"] .start-side-button {
+html:is([data-mode="standard"], [data-mode="reminder"]) .start-side-button {
   position: relative;
   justify-content: center;
   text-align: center;
 }
 
-html[data-mode="standard"] #tutorial-button.start-side-button > span:not([aria-hidden="true"]) {
+html:is([data-mode="standard"], [data-mode="reminder"]) #tutorial-button.start-side-button > span:not([aria-hidden="true"]) {
   position: absolute !important;
   left: 50% !important;
   top: 50% !important;
@@ -39,27 +31,28 @@ html[data-mode="standard"] #tutorial-button.start-side-button > span:not([aria-h
   line-height: 1;
 }
 
-html[data-mode="standard"] #settings-button.start-side-button > span {
+html:is([data-mode="standard"], [data-mode="reminder"]) #settings-button.start-side-button > span {
   position: relative !important;
   left: 0 !important;
 }
 
-html[data-mode="standard"] #settings-button.start-side-button > span:last-child {
+html:is([data-mode="standard"], [data-mode="reminder"]) #settings-button.start-side-button > span:last-child {
   top: 0 !important;
 }
 
-html[data-mode="standard"] #start-button,
-html[data-mode="standard"] #start-button > span:first-child {
+html:is([data-mode="standard"], [data-mode="reminder"]) #start-button,
+html:is([data-mode="standard"], [data-mode="reminder"]) #start-button > span:first-child {
   font-weight: 1000;
   -webkit-text-stroke: 0;
   paint-order: normal;
 }
 
-html[data-mode="standard"] .result-content {
+html:is([data-mode="standard"], [data-mode="reminder"]) .result-content {
   box-sizing: border-box;
   justify-self: center;
+  align-self: center;
   position: relative;
-  width: min(1180px, calc(100% - 44px));
+  width: min(1120px, calc(100% - 96px));
   max-height: calc(100% - 28px);
   padding: 0;
   gap: 14px;
@@ -71,33 +64,36 @@ html[data-mode="standard"] .result-content {
   transform: none;
 }
 
-html[data-mode="standard"] .result-content > .eyebrow,
-html[data-mode="standard"] .result-message {
+html:is([data-mode="standard"], [data-mode="reminder"]) .result-content > .eyebrow,
+html:is([data-mode="standard"], [data-mode="reminder"]) .result-message {
   display: none;
 }
 
-html[data-mode="standard"] .result-screen {
+html:is([data-mode="standard"], [data-mode="reminder"]) .result-screen {
   align-content: center;
   align-items: center;
   justify-items: center;
   overflow: hidden;
-  padding-top: 22px;
-  padding-bottom: 22px;
+  padding-left: 0;
+  padding-right: 0;
+  padding-top: calc(clamp(16px, 21.6px, 34px) + var(--safe-top));
+  padding-bottom: calc(clamp(16px, 21.6px, 34px) + var(--safe-bottom));
 }
 
-html[data-mode="standard"] .result-emoji {
+html:is([data-mode="standard"], [data-mode="reminder"]) .result-emoji {
   display: none;
 }
 
-html[data-mode="standard"] .standard-result-card {
+html:is([data-mode="standard"], [data-mode="reminder"]) .standard-result-card {
   box-sizing: border-box;
   display: grid;
   align-content: start;
   justify-items: center;
   width: 100%;
+  min-width: 0;
   min-height: 0;
   max-height: calc(var(--stage-height) - 86px);
-  padding: 28px 42px 30px;
+  padding: 28px 34px 30px;
   border: 3px solid #cda964;
   border-radius: 34px;
   background: rgba(255, 252, 238, 0.95);
@@ -106,7 +102,7 @@ html[data-mode="standard"] .standard-result-card {
     inset 0 0 0 1px rgba(255, 255, 255, 0.62);
 }
 
-html[data-mode="standard"] .result-content h2 {
+html:is([data-mode="standard"], [data-mode="reminder"]) .result-content h2 {
   margin: 0;
   width: 100%;
   padding-bottom: 16px;
@@ -121,14 +117,14 @@ html[data-mode="standard"] .result-content h2 {
     0 4px 8px rgba(56, 34, 15, 0.16);
 }
 
-html[data-mode="standard"] .standard-result-record {
+html:is([data-mode="standard"], [data-mode="reminder"]) .standard-result-record {
   display: grid;
   width: 100%;
   gap: 12px;
   margin-top: 14px;
 }
 
-html[data-mode="standard"] .standard-result-score-panel {
+html:is([data-mode="standard"], [data-mode="reminder"]) .standard-result-score-panel {
   box-sizing: border-box;
   display: grid;
   grid-template-columns: auto 1fr;
@@ -136,7 +132,7 @@ html[data-mode="standard"] .standard-result-score-panel {
   column-gap: 24px;
   row-gap: 6px;
   width: 100%;
-  padding: 14px 36px 12px;
+  padding: 14px clamp(24px, 3.6vw, 36px) 12px;
   border: 3px solid #f0c661;
   border-radius: 24px;
   background:
@@ -146,7 +142,7 @@ html[data-mode="standard"] .standard-result-score-panel {
     0 8px 18px rgba(93, 57, 21, 0.12);
 }
 
-html[data-mode="standard"] .standard-result-trophy {
+html:is([data-mode="standard"], [data-mode="reminder"]) .standard-result-trophy {
   grid-row: 1 / 3;
   display: grid;
   place-items: center;
@@ -159,7 +155,7 @@ html[data-mode="standard"] .standard-result-trophy {
   filter: drop-shadow(0 6px 8px rgba(124, 75, 16, 0.22));
 }
 
-html[data-mode="standard"] .standard-result-score {
+html:is([data-mode="standard"], [data-mode="reminder"]) .standard-result-score {
   box-sizing: border-box;
   display: flex;
   align-items: center;
@@ -171,7 +167,7 @@ html[data-mode="standard"] .standard-result-score {
   word-break: keep-all;
 }
 
-html[data-mode="standard"] .standard-result-correct {
+html:is([data-mode="standard"], [data-mode="reminder"]) .standard-result-correct {
   color: #e86f0a;
   font-size: 88px;
   letter-spacing: 0;
@@ -180,9 +176,9 @@ html[data-mode="standard"] .standard-result-correct {
     0 7px 12px rgba(153, 78, 15, 0.12);
 }
 
-html[data-mode="standard"] .standard-result-score-divider,
-html[data-mode="standard"] .standard-result-total,
-html[data-mode="standard"] .standard-result-answer-label {
+html:is([data-mode="standard"], [data-mode="reminder"]) .standard-result-score-divider,
+html:is([data-mode="standard"], [data-mode="reminder"]) .standard-result-total,
+html:is([data-mode="standard"], [data-mode="reminder"]) .standard-result-answer-label {
   color: #2f1a0b;
   font-size: 72px;
   text-shadow:
@@ -191,11 +187,11 @@ html[data-mode="standard"] .standard-result-answer-label {
   white-space: nowrap;
 }
 
-html[data-mode="standard"] .standard-result-answer-label {
-  margin-left: 12px;
+html:is([data-mode="standard"], [data-mode="reminder"]) .standard-result-answer-label {
+  margin-left: clamp(6px, 1vw, 12px);
 }
 
-html[data-mode="standard"] .standard-result-rate {
+html:is([data-mode="standard"], [data-mode="reminder"]) .standard-result-rate {
   box-sizing: border-box;
   display: flex;
   align-items: center;
@@ -214,23 +210,24 @@ html[data-mode="standard"] .standard-result-rate {
   white-space: nowrap;
 }
 
-html[data-mode="standard"] .standard-result-rate strong {
+html:is([data-mode="standard"], [data-mode="reminder"]) .standard-result-rate strong {
   color: #3f7e1f;
   font-size: 41px;
 }
 
-html[data-mode="standard"] .standard-result-details {
+html:is([data-mode="standard"], [data-mode="reminder"]) .standard-result-details {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: minmax(300px, 0.56fr) minmax(0, 1fr);
   width: 100%;
   gap: 12px 18px;
 }
 
-html[data-mode="standard"] .standard-result-detail {
+html:is([data-mode="standard"], [data-mode="reminder"]) .standard-result-detail {
   box-sizing: border-box;
   display: flex;
   align-items: center;
   justify-content: flex-start;
+  min-width: 0;
   min-height: 92px;
   gap: 20px;
   padding: 0 26px;
@@ -244,7 +241,7 @@ html[data-mode="standard"] .standard-result-detail {
   word-break: keep-all;
 }
 
-html[data-mode="standard"] .standard-result-detail-icon {
+html:is([data-mode="standard"], [data-mode="reminder"]) .standard-result-detail-icon {
   flex: 0 0 auto;
   display: grid;
   place-items: center;
@@ -257,12 +254,14 @@ html[data-mode="standard"] .standard-result-detail-icon {
   line-height: 1;
 }
 
-html[data-mode="standard"] .standard-result-detail span {
+html:is([data-mode="standard"], [data-mode="reminder"]) .standard-result-detail span {
+  min-width: 0;
   color: #2f1a0b;
   white-space: nowrap;
 }
 
-html[data-mode="standard"] .standard-result-detail strong {
+html:is([data-mode="standard"], [data-mode="reminder"]) .standard-result-detail strong {
+  min-width: 0;
   color: #e86f0a;
   margin-left: auto;
   font-size: 50px;
@@ -271,44 +270,47 @@ html[data-mode="standard"] .standard-result-detail strong {
   white-space: nowrap;
 }
 
-html[data-mode="standard"] .standard-result-hint {
+html:is([data-mode="standard"], [data-mode="reminder"]) .standard-result-hint {
   border-color: #efbd64;
 }
 
-html[data-mode="standard"] .standard-result-hint .standard-result-detail-icon {
+html:is([data-mode="standard"], [data-mode="reminder"]) .standard-result-hint .standard-result-detail-icon {
   background: #f0ac2f;
 }
 
-html[data-mode="standard"] .standard-result-compare {
+html:is([data-mode="standard"], [data-mode="reminder"]) .standard-result-compare {
   border-color: #ef8d8c;
 }
 
-html[data-mode="standard"] .standard-result-compare .standard-result-detail-icon {
+html:is([data-mode="standard"], [data-mode="reminder"]) .standard-result-compare .standard-result-detail-icon {
   background: #e75f5c;
 }
 
-html[data-mode="standard"] .standard-result-compare strong {
+html:is([data-mode="standard"], [data-mode="reminder"]) .standard-result-compare strong {
   color: #3f7e1f;
   margin-left: 0;
-  font-size: 50px;
+  font-size: 42px;
+  line-height: 1.05;
+  text-align: left;
+  white-space: normal;
 }
 
-html[data-mode="standard"] .result-actions {
-  width: min(1080px, 100%);
+html:is([data-mode="standard"], [data-mode="reminder"]) .result-actions {
+  width: min(984px, 100%);
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 500px));
+  grid-template-columns: repeat(2, minmax(0, 470px));
   justify-content: center;
-  gap: 78px;
+  gap: 44px;
   margin-top: auto;
   padding-top: 18px;
 }
 
-html[data-mode="standard"] .result-actions #restart-button {
+html:is([data-mode="standard"], [data-mode="reminder"]) .result-actions #restart-button {
   display: none;
 }
 
-html[data-mode="standard"] .result-actions .game-button {
-  width: 500px;
+html:is([data-mode="standard"], [data-mode="reminder"]) .result-actions .game-button {
+  width: 470px;
   min-width: 0;
   min-height: 116px;
   padding: 10px 18px;
@@ -319,7 +321,7 @@ html[data-mode="standard"] .result-actions .game-button {
   white-space: nowrap;
 }
 
-html[data-mode="standard"] .result-actions #result-start-button {
+html:is([data-mode="standard"], [data-mode="reminder"]) .result-actions #result-start-button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -336,10 +338,10 @@ html[data-mode="standard"] .result-actions #result-start-button {
   text-shadow: 0 2px 0 rgba(255, 246, 204, 0.72);
 }
 
-html[data-mode="standard"] .result-actions #result-home-button {
+html:is([data-mode="standard"], [data-mode="reminder"]) .result-actions #result-home-button {
   min-width: 0;
   min-height: 116px;
-  width: 500px;
+  width: 470px;
   margin-top: 0;
   font-size: 50px;
   color: #fffdf3;
@@ -359,9 +361,9 @@ html[data-mode="standard"] .result-actions #result-home-button {
     0 0 4px rgba(56, 69, 32, 0.42);
 }
 
-html[data-mode="standard"] .result-actions #result-home-button:visited,
-html[data-mode="standard"] .result-actions #result-home-button:hover,
-html[data-mode="standard"] .result-actions #result-home-button:focus-visible,
-html[data-mode="standard"] .result-actions #result-home-button:active {
+html:is([data-mode="standard"], [data-mode="reminder"]) .result-actions #result-home-button:visited,
+html:is([data-mode="standard"], [data-mode="reminder"]) .result-actions #result-home-button:hover,
+html:is([data-mode="standard"], [data-mode="reminder"]) .result-actions #result-home-button:focus-visible,
+html:is([data-mode="standard"], [data-mode="reminder"]) .result-actions #result-home-button:active {
   color: #fffdf3;
 }

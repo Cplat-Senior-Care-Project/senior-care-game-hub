@@ -17,19 +17,24 @@
       var scale = Math.max(0.01, Math.min(viewportWidth / stageWidth, viewportHeight / stageHeight));
       var verticalGutter = Math.max(0, (viewportHeight - (stageHeight * scale)) / (2 * scale));
       var horizontalGutter = Math.max(0, (viewportWidth - (stageWidth * scale)) / (2 * scale));
+      var hudDesignWidth = 1536;
+      var visibleHudWidth = viewportWidth / scale;
+      var hudFitScale = Math.max(0.01, visibleHudWidth / hudDesignWidth);
       document.documentElement.style.setProperty("--game-scale", String(scale));
+      document.documentElement.style.setProperty("--hud-fit-scale", String(hudFitScale));
       document.documentElement.style.setProperty("--game-viewport-top-gutter", String(verticalGutter) + "px");
       document.documentElement.style.setProperty("--game-viewport-side-gutter", String(horizontalGutter) + "px");
     })();
   </script>
-  <link rel="stylesheet" href="css/base.css?v=20260609-background2-blur">
-  <link rel="stylesheet" href="css/start.css?v=20260608-fixed-stage-layout">
+  <link rel="stylesheet" href="css/base.css?v=20260610-start-countdown">
+  <link rel="stylesheet" href="css/start.css?v=20260609-loading-text-white-v25">
   <link rel="stylesheet" href="css/difficulty.css?v=20260608-fixed-stage-layout">
-  <link rel="stylesheet" href="css/game-screen.css?v=20260609-small-orange-v17">
+  <link rel="stylesheet" href="css/game-screen.css?v=20260610-start-countdown">
   <link rel="stylesheet" href="css/result.css?v=20260605">
   <link rel="stylesheet" href="css/condition.css?v=20260605">
-  <link rel="stylesheet" href="css/tutorial-settings-pause.css?v=20260608-fixed-stage-layout">
+  <link rel="stylesheet" href="css/tutorial-settings-pause.css?v=20260610-tutorial-drag-both-lower-v24">
   <link rel="stylesheet" href="css/accessibility.css?v=20260605">
+  <link rel="stylesheet" href="css/animations.css?v=20260609-start-reveal-v1">
   <link rel="preload" as="image" href="assets/images/background2.webp" fetchpriority="high">
   <link rel="preload" as="image" href="assets/images/title2.webp" fetchpriority="high">
   <link rel="preload" as="image" href="assets/images/stand2.webp">
@@ -119,6 +124,23 @@
         </div>
 
         <div class="info-bar">
+          <div class="info-pill hud-progress-pill" role="progressbar" aria-label="진행" aria-valuemin="1" aria-valuemax="10" aria-valuenow="1">
+            <div class="hud-progress-copy">
+              <span class="hud-progress-label">진행</span>
+              <strong id="hud-progress-current" class="hud-progress-current">1</strong>
+              <span class="hud-progress-divider">/</span>
+              <strong id="hud-progress-total" class="hud-progress-total">10</strong>
+            </div>
+            <div class="hud-progress-track" aria-hidden="true">
+              <span class="hud-progress-line"></span>
+              <span class="hud-progress-line-fill"></span>
+              <span class="hud-progress-step is-active"></span>
+              <span class="hud-progress-step"></span>
+              <span class="hud-progress-step"></span>
+              <span class="hud-progress-step"></span>
+              <span class="hud-progress-step"></span>
+            </div>
+          </div>
           <div id="timer-box" class="info-pill timer-pill">
             <span class="info-icon timer-icon" aria-hidden="true"></span>
             <span class="info-copy">
@@ -127,13 +149,13 @@
             </span>
           </div>
           <div class="info-pill difficulty-pill hud-mission-pill">
-            <span class="info-icon level-icon" aria-hidden="true"><i></i><i></i><i></i></span>
+            <span class="info-icon level-icon" aria-hidden="true">🧠</span>
             <span class="info-copy">
-              <strong id="difficulty-label">🧠 기억 활동</strong>
+              <strong id="difficulty-label">기억 활동</strong>
               <strong id="stage-label" class="sr-only">쉬움</strong>
             </span>
           </div>
-          <button id="hint-button" class="game-button hint-button hud-hint-button" type="button">힌트</button>
+          <button id="hint-button" class="game-button hint-button hud-hint-button" type="button" data-hint-step-count="2"><span class="hint-button-icon" aria-hidden="true">💡</span><span class="hint-button-label">힌트</span></button>
           <button id="pause-button" class="game-button icon-button" type="button" aria-label="일시정지">
             <span class="pause-symbol" aria-hidden="true"></span>
             <span>일시정지</span>
@@ -425,6 +447,17 @@
     </div>
   </div>
 
+  <div id="game-countdown" class="game-countdown-layer is-hidden" aria-live="polite" aria-hidden="true">
+    <div class="game-countdown-stage">
+      <p id="game-countdown-message" class="game-countdown-message">&#xAC8C;&#xC784;&#xC774;&#x0020;&#xACE7;&#x0020;&#xC2DC;&#xC791;&#xB3FC;&#xC694;&#x0021;</p>
+      <div class="game-countdown-timer" style="--countdown-angle: 0deg;">
+        <div class="game-countdown-face">
+          <strong id="game-countdown-number">3</strong>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <div class="orientation-warning" role="status">가로 화면으로 돌려주세요.</div>
 
   <script>
@@ -439,7 +472,7 @@
       var requestedMode = String(params.get("mode") || "standard").trim().toLowerCase();
       var requestedConfigUrl = String(params.get("configUrl") || "").trim();
       var mode = Object.prototype.hasOwnProperty.call(modeMap, requestedMode) ? requestedMode : "standard";
-      var assetVersion = "20260608-responsive-status-bar";
+      var assetVersion = "20260610-result-no-cut";
       window.__SHOP_QUEST_GAME_MODE__ = mode;
       window.__SHOP_QUEST_MODE_ASSETS__ = {
         css: "css/modes/" + mode + ".css",
@@ -458,6 +491,6 @@
   </script>
   <script src="js/config-normalizer.js?v=20260605"></script>
   <script src="js/app-bridge.js?v=20260605"></script>
-  <script src="js/game.js?v=20260609-memory-panel-items-v2"></script>
+  <script src="js/game.js?v=20260610-start-countdown-v88"></script>
 </body>
 </html>

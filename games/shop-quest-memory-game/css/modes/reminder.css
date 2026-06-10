@@ -1,1 +1,3 @@
+@import url("standard.css");
+
 html[data-mode="reminder"] .difficulty-screen { display: none !important; }

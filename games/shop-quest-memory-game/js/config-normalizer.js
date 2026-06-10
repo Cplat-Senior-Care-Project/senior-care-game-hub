@@ -80,9 +80,12 @@
 
     if (hasConfigValue(settings, "show_condition_check")) {
       normalized.collectCondition = settings.show_condition_check;
+    } else if (hasConfigValue(config, "show_condition_check")) {
+      normalized.collectCondition = config.show_condition_check;
     }
 
     normalized.ui = isPlainObject(normalized.ui) ? { ...normalized.ui } : {};
+    copyMappedFields(config, normalized.ui, UI_FIELD_MAP);
     copyMappedFields(settings, normalized.ui, UI_FIELD_MAP);
 
     return normalized;

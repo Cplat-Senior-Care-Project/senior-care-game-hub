@@ -15,6 +15,194 @@ html[data-mode="ai_assisted"][data-show-tutorial="true"] #pause-help-button:not(
   display: inline-flex !important;
 }
 
+html[data-mode="care"] #tutorial-modal .tutorial-play-view,
+html[data-mode="ai_assisted"] #tutorial-modal .tutorial-play-view {
+  display: grid;
+  place-items: center;
+  align-content: center;
+  justify-items: center;
+  justify-content: stretch;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  gap: 10px;
+  padding: 0;
+  text-align: center;
+  transform: none;
+}
+
+html[data-mode="care"] #tutorial-modal .memory-view,
+html[data-mode="care"] #tutorial-modal .question-view,
+html[data-mode="ai_assisted"] #tutorial-modal .memory-view,
+html[data-mode="ai_assisted"] #tutorial-modal .question-view {
+  align-content: center;
+  justify-content: stretch;
+  gap: 10px;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  max-height: none;
+  overflow: visible;
+}
+
+html[data-mode="care"] #tutorial-modal .tutorial-preview .memory-card,
+html[data-mode="ai_assisted"] #tutorial-modal .tutorial-preview .memory-card {
+  width: min(100%, 500px);
+  max-width: 100%;
+  max-height: none;
+  border-width: 2px;
+  border-radius: 18px;
+  padding: 8px 18px;
+}
+
+html[data-mode="care"] #tutorial-modal .tutorial-preview .question-card,
+html[data-mode="ai_assisted"] #tutorial-modal .tutorial-preview .question-card {
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  width: 100%;
+  height: auto;
+  min-height: 0;
+  max-height: none;
+  gap: 8px;
+  overflow: visible;
+}
+
+html[data-mode="care"] #tutorial-modal .tutorial-preview.has-tap-pointer .question-card,
+html[data-mode="ai_assisted"] #tutorial-modal .tutorial-preview.has-tap-pointer .question-card {
+  height: 100%;
+  min-height: 100%;
+}
+
+html[data-mode="care"] #tutorial-modal .tutorial-preview .guide-text,
+html[data-mode="ai_assisted"] #tutorial-modal .tutorial-preview .guide-text {
+  width: auto;
+  max-width: none;
+  margin: 0;
+  color: #5f351a;
+  font-size: 42px;
+  line-height: 1.12;
+  white-space: normal;
+  transform: none !important;
+}
+
+html[data-mode="care"] #tutorial-modal .tutorial-preview .question-card .guide-text,
+html[data-mode="ai_assisted"] #tutorial-modal .tutorial-preview .question-card .guide-text {
+  font-size: 46px;
+}
+
+html[data-mode="care"] #tutorial-modal .tutorial-preview .memory-countdown,
+html[data-mode="ai_assisted"] #tutorial-modal .tutorial-preview .memory-countdown {
+  display: block !important;
+  margin-top: 4px;
+  font-size: 30px;
+}
+
+html[data-mode="care"] #tutorial-modal .tutorial-preview .fruit-grid,
+html[data-mode="care"] #tutorial-modal .tutorial-preview .fruit-grid.is-sparse,
+html[data-mode="ai_assisted"] #tutorial-modal .tutorial-preview .fruit-grid,
+html[data-mode="ai_assisted"] #tutorial-modal .tutorial-preview .fruit-grid.is-sparse {
+  display: flex !important;
+  flex-wrap: nowrap !important;
+  justify-content: center !important;
+  align-content: center;
+  align-items: center;
+  width: 100% !important;
+  max-width: none !important;
+  gap: 10px !important;
+  transform: none !important;
+}
+
+html[data-mode="care"] #tutorial-modal .tutorial-preview .fruit-card,
+html[data-mode="care"] #tutorial-modal .tutorial-preview .fruit-grid.is-sparse .fruit-card,
+html[data-mode="ai_assisted"] #tutorial-modal .tutorial-preview .fruit-card,
+html[data-mode="ai_assisted"] #tutorial-modal .tutorial-preview .fruit-grid.is-sparse .fruit-card {
+  flex: 0 0 auto !important;
+  width: 82px !important;
+  min-width: 0 !important;
+  min-height: 82px !important;
+  padding: 7px !important;
+  border-width: 2px;
+  border-radius: 16px;
+}
+
+html[data-mode="care"] #tutorial-modal .tutorial-preview .fruit-image,
+html[data-mode="care"] #tutorial-modal .tutorial-preview .fruit-grid.is-sparse .fruit-image,
+html[data-mode="ai_assisted"] #tutorial-modal .tutorial-preview .fruit-image,
+html[data-mode="ai_assisted"] #tutorial-modal .tutorial-preview .fruit-grid.is-sparse .fruit-image {
+  width: 50px !important;
+  height: auto !important;
+  max-width: 86% !important;
+  max-height: 50px !important;
+}
+
+html[data-mode="care"] #tutorial-modal .tutorial-preview .fruit-name,
+html[data-mode="care"] #tutorial-modal .tutorial-preview .fruit-grid.is-sparse .fruit-name,
+html[data-mode="ai_assisted"] #tutorial-modal .tutorial-preview .fruit-name,
+html[data-mode="ai_assisted"] #tutorial-modal .tutorial-preview .fruit-grid.is-sparse .fruit-name {
+  margin-top: 4px;
+  font-size: 18px !important;
+  line-height: 1.05 !important;
+}
+
+html[data-mode="care"] #tutorial-modal .tutorial-preview .target-fruit,
+html[data-mode="ai_assisted"] #tutorial-modal .tutorial-preview .target-fruit {
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+  width: auto;
+  min-width: 190px;
+  min-height: 50px;
+  gap: 8px;
+  padding: 8px 18px;
+  border-width: 2px;
+  border-radius: 8px;
+  font-size: 24px;
+  transform: none;
+}
+
+html[data-mode="care"] #tutorial-modal .tutorial-preview .target-fruit-image,
+html[data-mode="ai_assisted"] #tutorial-modal .tutorial-preview .target-fruit-image {
+  position: absolute;
+  left: 42px;
+  top: 50%;
+  flex: 0 0 auto;
+  width: 34px !important;
+  height: 34px !important;
+  transform: translateY(-50%);
+}
+
+html[data-mode="care"] #tutorial-modal .tutorial-preview .target-fruit-name,
+html[data-mode="ai_assisted"] #tutorial-modal .tutorial-preview .target-fruit-name {
+  transform: translateX(18px);
+  font-size: inherit;
+}
+
+html[data-mode="care"] #tutorial-modal .tutorial-preview .answer-grid,
+html[data-mode="ai_assisted"] #tutorial-modal .tutorial-preview .answer-grid {
+  position: relative;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  justify-content: stretch;
+  width: min(100%, 390px);
+  gap: 8px;
+  overflow: visible;
+  padding-bottom: 48px;
+  margin-bottom: -34px;
+  transform: none;
+}
+
+html[data-mode="care"] #tutorial-modal .tutorial-preview .number-button,
+html[data-mode="ai_assisted"] #tutorial-modal .tutorial-preview .number-button {
+  width: 100%;
+  min-width: 0;
+  height: auto;
+  min-height: 54px;
+  aspect-ratio: auto;
+  border-width: 2px;
+  padding: 0;
+  font-size: 30px;
+}
+
 html[data-mode="care"][data-show-condition-check="true"] #condition-modal:not(.is-hidden),
 html[data-mode="ai_assisted"][data-show-condition-check="true"] #condition-modal:not(.is-hidden) {
   display: grid !important;

@@ -9,17 +9,32 @@
   const STAGE_WIDTH = 1280;
   const STAGE_HEIGHT = 720;
   const FEEDBACK_TIME = 1400;
+  const RETRY_FEEDBACK_TIME = 2000;
+  const CORRECT_FEEDBACK_TIME = 3000;
+  const FINAL_WRONG_FEEDBACK_TIME = 3000;
+  const START_READY_MESSAGE_TIME = 2000;
+  const START_COUNTDOWN_TIME = 3000;
   const TRANSITION_TIME = 1300;
   const AUTO_HINT_DELAY_MS = 10000;
   const STANDARD_REVEAL_MS = 3000;
   const MAX_MEMORY_ITEMS = 6;
   const RACE_POINTS = Object.freeze([16, 50, 84, 94]);
-  const MEMORY_LAYOUT_MIN_CARD = 38;
-  const MEMORY_LAYOUT_CARD_SIZE = 176;
-  const MEMORY_LAYOUT_MIN_GAP = 22;
-  const MEMORY_LAYOUT_MAX_GAP = 34;
+  const MEMORY_LAYOUT_FIXED_CARD_SIZE = 164;
+  const MEMORY_LAYOUT_FIXED_GAP = 22;
   const MEMORY_LAYOUT_MAX_COLUMNS = 7;
-  const ITEM_GLOW_ASSET_VERSION = "20260608-soft-glow";
+  const ITEM_GLOW_ASSET_VERSION = "20260609-choice-glow";
+  const CHOICE_TOUCH_HITBOXES = Object.freeze({
+    apple: Object.freeze({ x: 0.18, y: 0.24, w: 0.64, h: 0.55 }),
+    banana: Object.freeze({ x: 0.10, y: 0.32, w: 0.80, h: 0.28 }),
+    orange: Object.freeze({ x: 0.18, y: 0.23, w: 0.64, h: 0.55 }),
+    watermelon: Object.freeze({ x: 0.14, y: 0.31, w: 0.72, h: 0.39 }),
+    bread: Object.freeze({ x: 0.16, y: 0.25, w: 0.68, h: 0.52 }),
+    cheese: Object.freeze({ x: 0.20, y: 0.30, w: 0.60, h: 0.42 }),
+    carrot: Object.freeze({ x: 0.10, y: 0.35, w: 0.82, h: 0.24 }),
+    vegetable: Object.freeze({ x: 0.13, y: 0.27, w: 0.74, h: 0.42 }),
+    fish: Object.freeze({ x: 0.09, y: 0.37, w: 0.82, h: 0.23 }),
+    meat: Object.freeze({ x: 0.15, y: 0.32, w: 0.70, h: 0.35 })
+  });
   const STATIC_IMAGE_ASSETS = Object.freeze([
     "assets/images/background2.webp",
     "assets/images/title2.webp",
@@ -35,17 +50,23 @@
   });
 
   const SHOPPING_ITEMS = Object.freeze([
-    { id: "apple", name: "사과", image: `assets/images/item-cutout-apple-glow.webp?v=${ITEM_GLOW_ASSET_VERSION}`, choiceImage: "assets/images/apple.webp", category: "fruit", shape: "round", color: "red" },
-    { id: "banana", name: "바나나", image: `assets/images/item-cutout-banana-glow.webp?v=${ITEM_GLOW_ASSET_VERSION}`, choiceImage: "assets/images/banana.webp", category: "fruit", shape: "long", color: "yellow" },
-    { id: "orange", name: "오렌지", image: `assets/images/item-cutout-orange-glow.webp?v=${ITEM_GLOW_ASSET_VERSION}`, choiceImage: "assets/images/orange.webp", category: "fruit", shape: "round", color: "orange" },
-    { id: "watermelon", name: "수박", image: `assets/images/item-cutout-watermelon-glow.webp?v=${ITEM_GLOW_ASSET_VERSION}`, choiceImage: "assets/images/watermelon.webp", category: "fruit", shape: "round", color: "green" },
-    { id: "bread", name: "빵", image: `assets/images/item-cutout-bread-glow.webp?v=${ITEM_GLOW_ASSET_VERSION}`, choiceImage: "assets/images/bread.webp", category: "food", shape: "box", color: "brown" },
-    { id: "cheese", name: "치즈", image: `assets/images/item-cutout-cheese-glow.webp?v=${ITEM_GLOW_ASSET_VERSION}`, choiceImage: "assets/images/cheese.webp", category: "food", shape: "box", color: "yellow" },
-    { id: "carrot", name: "당근", image: `assets/images/item-cutout-carrot-glow.webp?v=${ITEM_GLOW_ASSET_VERSION}`, choiceImage: "assets/images/carrot.webp", category: "vegetable", shape: "long", color: "orange" },
-    { id: "vegetable", name: "채소", image: `assets/images/item-cutout-vegetable-glow.webp?v=${ITEM_GLOW_ASSET_VERSION}`, choiceImage: "assets/images/baechu.webp", category: "vegetable", shape: "leaf", color: "green" },
-    { id: "fish", name: "생선", image: `assets/images/item-cutout-fish-glow.webp?v=${ITEM_GLOW_ASSET_VERSION}`, choiceImage: "assets/images/fish.webp", category: "meat", shape: "long", color: "blue" },
-    { id: "meat", name: "고기", image: `assets/images/item-cutout-meat-glow.webp?v=${ITEM_GLOW_ASSET_VERSION}`, choiceImage: "assets/images/meat.webp", category: "meat", shape: "box", color: "red" }
+    { id: "apple", name: "사과", image: `assets/images/item-cutout-apple-glow.webp?v=${ITEM_GLOW_ASSET_VERSION}`, choiceImage: `assets/images/apple-glow.webp?v=${ITEM_GLOW_ASSET_VERSION}`, category: "fruit", shape: "round", color: "red" },
+    { id: "banana", name: "바나나", image: `assets/images/item-cutout-banana-glow.webp?v=${ITEM_GLOW_ASSET_VERSION}`, choiceImage: `assets/images/banana-glow.webp?v=${ITEM_GLOW_ASSET_VERSION}`, category: "fruit", shape: "long", color: "yellow" },
+    { id: "orange", name: "오렌지", image: `assets/images/item-cutout-orange-glow.webp?v=${ITEM_GLOW_ASSET_VERSION}`, choiceImage: `assets/images/orange-glow.webp?v=${ITEM_GLOW_ASSET_VERSION}`, category: "fruit", shape: "round", color: "orange" },
+    { id: "watermelon", name: "수박", image: `assets/images/item-cutout-watermelon-glow.webp?v=${ITEM_GLOW_ASSET_VERSION}`, choiceImage: `assets/images/watermelon-glow.webp?v=${ITEM_GLOW_ASSET_VERSION}`, category: "fruit", shape: "round", color: "green" },
+    { id: "bread", name: "빵", image: `assets/images/item-cutout-bread-glow.webp?v=${ITEM_GLOW_ASSET_VERSION}`, choiceImage: `assets/images/bread-glow.webp?v=${ITEM_GLOW_ASSET_VERSION}`, category: "food", shape: "box", color: "brown" },
+    { id: "cheese", name: "치즈", image: `assets/images/item-cutout-cheese-glow.webp?v=${ITEM_GLOW_ASSET_VERSION}`, choiceImage: `assets/images/cheese-glow.webp?v=${ITEM_GLOW_ASSET_VERSION}`, category: "food", shape: "box", color: "yellow" },
+    { id: "carrot", name: "당근", image: `assets/images/item-cutout-carrot-glow.webp?v=${ITEM_GLOW_ASSET_VERSION}`, choiceImage: `assets/images/carrot-glow.webp?v=${ITEM_GLOW_ASSET_VERSION}`, category: "vegetable", shape: "long", color: "orange" },
+    { id: "vegetable", name: "채소", image: `assets/images/item-cutout-vegetable-glow.webp?v=${ITEM_GLOW_ASSET_VERSION}`, choiceImage: `assets/images/baechu-glow.webp?v=${ITEM_GLOW_ASSET_VERSION}`, category: "vegetable", shape: "leaf", color: "green" },
+    { id: "fish", name: "생선", image: `assets/images/item-cutout-fish-glow.webp?v=${ITEM_GLOW_ASSET_VERSION}`, choiceImage: `assets/images/fish-glow.webp?v=${ITEM_GLOW_ASSET_VERSION}`, category: "meat", shape: "long", color: "blue" },
+    { id: "meat", name: "고기", image: `assets/images/item-cutout-meat-glow.webp?v=${ITEM_GLOW_ASSET_VERSION}`, choiceImage: `assets/images/meat-glow.webp?v=${ITEM_GLOW_ASSET_VERSION}`, category: "meat", shape: "box", color: "red" }
   ]);
+  const ITEM_CATEGORY_LABELS = Object.freeze({
+    fruit: "과일",
+    food: "식품",
+    vegetable: "채소",
+    meat: "생선/고기"
+  });
 
   const DEFAULT_DIFFICULTIES = Object.freeze({
     easy: { key: "easy", label: "쉬움", memoryItemCount: 1, answerChoiceCount: 2, revealMs: 3000 },
@@ -56,9 +77,9 @@
   const STANDARD_MAX_ANSWER_CHOICES = 12;
   const STANDARD_DIFFICULTY_QUESTION_PLANS = Object.freeze({
     easy: Object.freeze([
-      { through: 3, memoryItemCount: 2, answerChoiceCount: 4 },
-      { through: 7, memoryItemCount: 3, answerChoiceCount: 5 },
-      { through: 10, memoryItemCount: 4, answerChoiceCount: 6 }
+      { through: 3, memoryItemCount: 1, answerChoiceCount: 4 },
+      { through: 7, memoryItemCount: 2, answerChoiceCount: 5 },
+      { through: 10, memoryItemCount: 3, answerChoiceCount: 6 }
     ]),
     normal: Object.freeze([
       { through: 3, memoryItemCount: 4, answerChoiceCount: 7 },
@@ -79,9 +100,9 @@
   });
 
   const TUTORIAL_STEPS = Object.freeze([
-    { message: "잠깐 보여주는 물건을 기억해주세요.", previewIds: ["apple", "orange", "bread"] },
-    { message: "물건이 사라지면 같은 물건을 찾아 장바구니에 담아주세요.", previewIds: ["banana", "carrot", "vegetable"] },
-    { message: "힌트가 필요하면 힌트 버튼을 눌러 천천히 확인할 수 있어요.", previewIds: ["cheese", "fish", "meat"] }
+    { message: "잠깐 보여주는 물건을 기억해주세요.", previewIds: ["apple", "orange", "bread"], mode: "memory" },
+    { message: "물건을 톡 누르면 장바구니에 담아져요", previewIds: ["carrot", "banana", "vegetable"], mode: "touch" },
+    { message: "물건을 끌어서 장바구니에 담을 수 있어요", previewIds: ["carrot", "banana", "vegetable"], mode: "drag" }
   ]);
 
   const CONDITION_SLEEP_HOURS = Object.freeze([4, 5, 6, 7, 8, 9, 10, 11, 12]);
@@ -91,9 +112,9 @@
   const els = {
     app: $("app"), startScreen: $("start-screen"), startLoading: $("start-loading"), startLoadingFill: $("start-loading-fill"), startLoadingText: $("start-loading-text"), difficultyScreen: $("difficulty-screen"), gameScreen: $("game-screen"), resultScreen: $("result-screen"), errorScreen: $("error-screen"),
     errorTitle: $("error-title"), errorMessage: $("error-message"), startButton: $("start-button"), startExitButton: $("start-exit-button"), settingsButton: $("settings-button"), tutorialButton: $("tutorial-button"),
-    difficultyButtons: Array.from(document.querySelectorAll("[data-difficulty], [data-difficulty-index]")), difficultyBackButton: $("difficulty-back-button"), playArea: $("play-area"), hintButton: $("hint-button"), dragGhost: $("drag-ghost"),
+    difficultyButtons: Array.from(document.querySelectorAll("[data-difficulty], [data-difficulty-index]")), difficultyBackButton: $("difficulty-back-button"), playArea: $("play-area"), hintButton: $("hint-button"), dragGhost: $("drag-ghost"), gameCountdown: $("game-countdown"), gameCountdownMessage: $("game-countdown-message"), gameCountdownTimer: document.querySelector(".game-countdown-timer"), gameCountdownNumber: $("game-countdown-number"),
     pauseButton: $("pause-button"), pauseModal: $("pause-modal"), resumeButton: $("resume-button"), pauseRestartButton: $("pause-restart-button"), pauseQuitButton: $("home-button"), pauseHelpButton: $("pause-help-button"),
-    roundLabel: $("round-label"), timeLeft: $("time-left"), timerBox: $("timer-box"), difficultyLabel: $("difficulty-label"), stageLabel: $("stage-label"), raceWrap: document.querySelector(".race-wrap"), raceMarker: $("race-marker"), raceSteps: Array.from(document.querySelectorAll(".race-step")), resultEmoji: $("result-emoji"), resultTitle: $("result-title"), resultMessage: $("result-message"), resultCorrect: $("result-correct"), resultTotal: $("result-total"), resultHintCount: $("result-hint-count"), resultRate: $("result-rate"), resultCompare: $("result-compare"),
+    roundLabel: $("round-label"), timeLeft: $("time-left"), timerBox: $("timer-box"), difficultyLabel: $("difficulty-label"), stageLabel: $("stage-label"), hudProgress: document.querySelector(".hud-progress-pill"), hudProgressCurrent: $("hud-progress-current"), hudProgressTotal: $("hud-progress-total"), hudProgressSteps: Array.from(document.querySelectorAll(".hud-progress-step")), raceWrap: document.querySelector(".race-wrap"), raceMarker: $("race-marker"), raceSteps: Array.from(document.querySelectorAll(".race-step")), resultEmoji: $("result-emoji"), resultTitle: $("result-title"), resultMessage: $("result-message"), resultCorrect: $("result-correct"), resultTotal: $("result-total"), resultHintCount: $("result-hint-count"), resultRate: $("result-rate"), resultCompare: $("result-compare"),
     restartButton: $("restart-button"), resultStartButton: $("result-start-button"), resultHomeButton: $("result-home-button"), errorHomeButton: $("error-home-button"),
     conditionModal: $("condition-modal"), conditionButtons: Array.from(document.querySelectorAll("[data-mood]")), conditionSleepDial: document.querySelector(".condition-sleep-dial"), conditionSleepRows: $("condition-sleep-rows"), conditionSleepUpButton: $("condition-sleep-up-button"), conditionSleepDownButton: $("condition-sleep-down-button"), conditionSkipButton: $("condition-skip-button"), conditionConfirmButton: $("condition-confirm-button"),
     postConditionModal: $("post-condition-modal"), postConditionPages: Array.from(document.querySelectorAll(".post-condition-page")), postConditionDots: Array.from(document.querySelectorAll(".post-condition-dot")), postConditionOptions: Array.from(document.querySelectorAll(".post-condition-option")), postConditionSkipButton: $("post-condition-skip-button"), postConditionNextButton: $("post-condition-next-button"), postConditionBackButton: $("post-condition-back-button"), postConditionConfirmButton: $("post-condition-confirm-button"),
@@ -101,7 +122,7 @@
     tutorialModal: $("tutorial-modal"), tutorialMessage: $("tutorial-message"), tutorialPreview: $("tutorial-preview"), tutorialDetail: $("tutorial-detail"), tutorialCloseButton: $("tutorial-close-button"), tutorialNextButton: $("tutorial-next-button")
   };
 
-  const timers = { phase: null, countdown: null, game: null, feedback: null, autoHint: null };
+  const timers = { phase: null, countdown: null, game: null, feedback: null, autoHint: null, resultReturn: null };
   let runtimeConfig = null;
   let pendingStart = false;
   let tutorialIndex = 0;
@@ -121,6 +142,7 @@
   const state = {
     phase: "start", difficultyKey: "easy", questionIndex: 0, question: null, selectedIds: [], wrongSelectedIds: [], collectedItems: [], correctCount: 0, wrongCount: 0, hintCount: 0, retryCount: 0, pauseCount: 0, interactionCount: 0, questionLogs: [],
     startedAt: null, endedAt: null, remainingSeconds: 0, revealRemaining: 0, questionStartedAt: null, firstResponseAt: null, status: "completed", abandonReason: null, externalInputUsed: false,
+    startCountdownIntroTimeoutId: null, startCountdownFrameId: null,
     condition: { completed: false, skipped: false, mood: "good", sleepHours: 7 },
     conditionSleepIndex: 3,
     postCondition: { completed: false, skipped: false, step: 0, moodAfter: "good", fatigue: "low", perceivedDifficulty: "justRight", neededHelp: "none", replayIntent: "yes" },
@@ -136,7 +158,11 @@
     const scale = Math.max(0.01, Math.min(viewportWidth / STAGE_WIDTH, viewportHeight / STAGE_HEIGHT));
     const verticalGutter = Math.max(0, (viewportHeight - (STAGE_HEIGHT * scale)) / (2 * scale));
     const horizontalGutter = Math.max(0, (viewportWidth - (STAGE_WIDTH * scale)) / (2 * scale));
+    const hudDesignWidth = 1536;
+    const visibleHudWidth = viewportWidth / scale;
+    const hudFitScale = Math.max(0.01, visibleHudWidth / hudDesignWidth);
     document.documentElement.style.setProperty("--game-scale", String(scale));
+    document.documentElement.style.setProperty("--hud-fit-scale", String(hudFitScale));
     document.documentElement.style.setProperty("--game-viewport-top-gutter", `${verticalGutter}px`);
     document.documentElement.style.setProperty("--game-viewport-side-gutter", `${horizontalGutter}px`);
   }
@@ -264,6 +290,7 @@
         els.startScreen.classList.add("is-loaded");
       }
       document.body.dataset.loading = "false";
+      completeIntroLoading();
       return;
     }
 
@@ -298,15 +325,27 @@
         els.startScreen.classList.remove("is-loading");
         els.startScreen.classList.add("is-loaded");
         document.body.dataset.loading = "false";
+        if (shouldAutoStartAfterLoading()) {
+          completeIntroLoading();
+          return;
+        }
         els.startScreen.classList.add("is-intro-revealing");
         window.setTimeout(() => {
           els.startScreen.classList.remove("is-intro-revealing");
-          openConditionCheck();
+          completeIntroLoading();
         }, 850);
       }, 260));
     }
 
     window.requestAnimationFrame(update);
+  }
+
+  function completeIntroLoading() {
+    if (shouldAutoStartAfterLoading()) {
+      startFlow();
+      return;
+    }
+    openConditionCheck();
   }
 
   function clearTimer(name) {
@@ -324,7 +363,28 @@
       autoHintTimerCallback = null;
     }
   }
-  function clearAllTimers() { Object.keys(timers).forEach(clearTimer); }
+  function clearStartCountdown() {
+    if (state.startCountdownFrameId) {
+      window.cancelAnimationFrame(state.startCountdownFrameId);
+      state.startCountdownFrameId = null;
+    }
+    if (state.startCountdownIntroTimeoutId) {
+      window.clearTimeout(state.startCountdownIntroTimeoutId);
+      state.startCountdownIntroTimeoutId = null;
+    }
+    if (els.gameCountdown) {
+      els.gameCountdown.classList.add("is-hidden");
+      els.gameCountdown.classList.remove("is-intro");
+      els.gameCountdown.setAttribute("aria-hidden", "true");
+    }
+    if (els.gameCountdownTimer) {
+      els.gameCountdownTimer.style.setProperty("--countdown-angle", "0deg");
+    }
+  }
+  function clearAllTimers() {
+    Object.keys(timers).forEach(clearTimer);
+    clearStartCountdown();
+  }
 
   function schedulePhaseTimer(callback, delay) {
     const safeDelay = Math.max(0, Number(delay) || 0);
@@ -376,6 +436,7 @@
   function escapeHtml(value) { return String(value).replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;"); }
   function findItem(id) { return SHOPPING_ITEMS.find((item) => item.id === id) || null; }
   function getChoiceImage(item) { return item && (item.choiceImage || item.image); }
+  function getBasketItemImage(item) { return item && (item.image || item.choiceImage); }
   function shuffle(items) { const result = [...items]; for (let i = result.length - 1; i > 0; i -= 1) { const j = Math.floor(Math.random() * (i + 1)); [result[i], result[j]] = [result[j], result[i]]; } return result; }
   function reportError(code, error) {
     const payload = { status: "error", error_code: code, error_message: error && error.message ? error.message : String(error || code), game_id: GAME_ID, occurred_at: new Date().toISOString() };
@@ -415,6 +476,7 @@
   function shouldShowConditionCheck() { return runtimeConfig && runtimeConfig.collectCondition !== false && runtimeConfig.ui && runtimeConfig.ui.showConditionCheck !== false; }
   function shouldShowFinishCheck() { return runtimeConfig && runtimeConfig.ui && runtimeConfig.ui.showFinishCheck !== false; }
   function shouldShowDifficultySelect() { return runtimeConfig && runtimeConfig.ui && runtimeConfig.ui.showDifficultySelect !== false; }
+  function shouldAutoStartAfterLoading() { return runtimeConfig && runtimeConfig.mode === "reminder"; }
 
   function getDifficultyConfig(key) {
     const base = DEFAULT_DIFFICULTIES[key] || DEFAULT_DIFFICULTIES.easy;
@@ -452,7 +514,7 @@
   }
 
   function shouldUseStandardDifficultyPlan() {
-    return runtimeConfig && runtimeConfig.mode === "standard" && !isCareMode();
+    return runtimeConfig && (runtimeConfig.mode === "standard" || runtimeConfig.mode === "reminder") && !isCareMode();
   }
 
   function getStandardDifficultyQuestionPlan(key, questionIndex) {
@@ -480,7 +542,7 @@
   function generateQuestion() {
     const difficulty = getDifficultyConfig(state.difficultyKey);
     const targetItems = pickTargets(difficulty);
-    return { id: `${difficulty.key}-${state.questionIndex + 1}-${Date.now()}`, difficultyKey: difficulty.key, difficultyLabel: difficulty.label, targetItems, choiceItems: shuffle([...targetItems, ...pickDistractors(difficulty, targetItems)]), revealMs: difficulty.revealMs, hintUsed: false, inputType: "touch" };
+    return { id: `${difficulty.key}-${state.questionIndex + 1}-${Date.now()}`, difficultyKey: difficulty.key, difficultyLabel: difficulty.label, targetItems, choiceItems: shuffle([...targetItems, ...pickDistractors(difficulty, targetItems)]), revealMs: difficulty.revealMs, hintUsed: false, hintLevel: 0, choiceHintUsed: false, inputType: "touch" };
   }
 
   function formatTime(seconds) { const safe = Math.max(0, Math.floor(seconds)); return `${String(Math.floor(safe / 60)).padStart(2, "0")}:${String(safe % 60).padStart(2, "0")}`; }
@@ -514,7 +576,20 @@
   }
   function updateHud() {
     const total = getTotalQuestions();
-    if (els.roundLabel) els.roundLabel.textContent = `${Math.min(state.questionIndex + 1, total)} / ${total}`;
+    const current = Math.min(state.questionIndex + 1, total);
+    if (els.roundLabel) els.roundLabel.textContent = `${current} / ${total}`;
+    if (els.hudProgress) {
+      const ratio = Math.max(0, Math.min(1, current / total));
+      els.hudProgress.style.setProperty("--hud-progress", `${ratio * 100}%`);
+      els.hudProgress.setAttribute("aria-valuemax", String(total));
+      els.hudProgress.setAttribute("aria-valuenow", String(current));
+    }
+    if (els.hudProgressCurrent) els.hudProgressCurrent.textContent = String(current);
+    if (els.hudProgressTotal) els.hudProgressTotal.textContent = String(total);
+    els.hudProgressSteps.forEach((step, index) => {
+      const stepRatio = els.hudProgressSteps.length <= 1 ? 1 : index / (els.hudProgressSteps.length - 1);
+      step.classList.toggle("is-active", stepRatio <= Math.max(0, Math.min(1, current / total)));
+    });
     updateTopUi();
   }
 
@@ -545,8 +620,83 @@
   }
 
   function startGame(difficultyKey) {
+    startReadyCountdown(difficultyKey);
+  }
+
+  function resetRunState(phase, difficultyKey, startedAt) {
+    Object.assign(state, { phase, difficultyKey: difficultyKey || runtimeConfig.difficultyKey || "easy", questionIndex: 0, question: null, selectedIds: [], wrongSelectedIds: [], collectedItems: [], correctCount: 0, wrongCount: 0, hintCount: 0, retryCount: 0, pauseCount: 0, interactionCount: 0, questionLogs: [], startedAt: startedAt || null, endedAt: null, status: "completed", abandonReason: null, externalInputUsed: false });
+  }
+
+  function startReadyCountdown(difficultyKey) {
     clearAllTimers();
-    Object.assign(state, { phase: "memory", difficultyKey: difficultyKey || runtimeConfig.difficultyKey || "easy", questionIndex: 0, question: null, selectedIds: [], wrongSelectedIds: [], collectedItems: [], correctCount: 0, wrongCount: 0, hintCount: 0, retryCount: 0, pauseCount: 0, interactionCount: 0, questionLogs: [], startedAt: new Date(), endedAt: null, status: "completed", abandonReason: null, externalInputUsed: false });
+    const nextDifficultyKey = difficultyKey || runtimeConfig.difficultyKey || "easy";
+    resetRunState("countdown", nextDifficultyKey, null);
+    els.pauseButton.classList.remove("is-paused");
+    setScreen("game");
+    document.body.dataset.gamePhase = "countdown";
+    if (els.playArea) els.playArea.innerHTML = "";
+    updateHud();
+    els.hintButton.classList.add("is-hidden");
+
+    if (!els.gameCountdown || !els.gameCountdownTimer || !els.gameCountdownNumber) {
+      beginGame(nextDifficultyKey);
+      return;
+    }
+
+    els.gameCountdown.classList.remove("is-hidden");
+    els.gameCountdown.classList.add("is-intro");
+    els.gameCountdown.setAttribute("aria-hidden", "false");
+    els.gameCountdownNumber.textContent = "3";
+    els.gameCountdownTimer.style.setProperty("--countdown-angle", "0deg");
+
+    if (!els.gameCountdownMessage) {
+      beginReadyCountdown(nextDifficultyKey);
+      return;
+    }
+
+    els.gameCountdownMessage.textContent = "\uAC8C\uC784\uC774 \uACE7 \uC2DC\uC791\uB3FC\uC694!";
+    state.startCountdownIntroTimeoutId = window.setTimeout(() => {
+      state.startCountdownIntroTimeoutId = null;
+      beginReadyCountdown(nextDifficultyKey);
+    }, START_READY_MESSAGE_TIME);
+  }
+
+  function beginReadyCountdown(difficultyKey) {
+    if (state.phase !== "countdown" || !els.gameCountdown || !els.gameCountdownTimer || !els.gameCountdownNumber) return;
+    const startedAt = performance.now();
+    els.gameCountdown.classList.remove("is-intro");
+    let lastDisplaySeconds = null;
+
+    function updateCountdown(now) {
+      const elapsed = Math.max(0, now - startedAt);
+      const remaining = Math.max(0, START_COUNTDOWN_TIME - elapsed);
+      const displaySeconds = Math.max(1, Math.ceil(remaining / 1000));
+      const secondProgress = (elapsed % 1000) / 1000;
+      const angle = secondProgress * 360;
+
+      els.gameCountdownNumber.textContent = String(displaySeconds);
+      els.gameCountdownTimer.style.setProperty("--countdown-angle", `${angle}deg`);
+      if (displaySeconds !== lastDisplaySeconds && remaining > 0) {
+        lastDisplaySeconds = displaySeconds;
+      }
+
+      if (remaining <= 0) {
+        els.gameCountdownTimer.style.setProperty("--countdown-angle", "360deg");
+        clearStartCountdown();
+        beginGame(difficultyKey);
+        return;
+      }
+
+      state.startCountdownFrameId = window.requestAnimationFrame(updateCountdown);
+    }
+
+    updateCountdown(startedAt);
+  }
+
+  function beginGame(difficultyKey) {
+    clearAllTimers();
+    const startedAt = new Date();
+    resetRunState("memory", difficultyKey || runtimeConfig.difficultyKey || "easy", startedAt);
     els.pauseButton.classList.remove("is-paused");
     setScreen("game");
     sendBridge(["sendGameStarted", "sendStarted"], { game_id: GAME_ID, session_id: runtimeConfig.sessionId, mode: runtimeConfig.mode, difficulty: state.difficultyKey, started_at: state.startedAt.toISOString() });
@@ -583,13 +733,45 @@
     });
   }
 
+  function renderMemoryRibbon(title) {
+    return `<div class="memory-card memory-ribbon-card"><svg class="memory-ribbon-svg" viewBox="0 0 1120 180" aria-hidden="true" focusable="false"><defs><linearGradient id="memoryRibbonFill" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#ff9b31" /><stop offset="100%" stop-color="#ff6412" /></linearGradient><linearGradient id="memoryRibbonFold" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#f47b18" /><stop offset="100%" stop-color="#c84c08" /></linearGradient></defs><g class="memory-ribbon-shadow"><path d="M70 70 L180 64 L180 122 L70 128 L105 96 Z" /><path d="M1050 70 L940 64 L940 122 L1050 128 L1015 96 Z" /><path d="M175 40 H945 Q970 40 970 65 V115 Q970 140 945 140 H175 Q150 140 150 115 V65 Q150 40 175 40 Z" /></g><path class="memory-ribbon-tail" d="M70 70 L180 64 L180 122 L70 128 L105 96 Z" /><path class="memory-ribbon-tail" d="M1050 70 L940 64 L940 122 L1050 128 L1015 96 Z" /><path class="memory-ribbon-fold" d="M180 122 L255 140 L180 140 Z" /><path class="memory-ribbon-fold" d="M940 122 L865 140 L940 140 Z" /><rect class="memory-ribbon-main" x="150" y="40" width="820" height="100" rx="24" /><rect class="memory-ribbon-highlight" x="167" y="57" width="786" height="66" rx="18" /></svg><p class="guide-text memory-ribbon-text">${escapeHtml(title)}</p></div>`;
+  }
+
+  function renderTutorialMemoryPreview(step) {
+    const targets = step.previewIds.map((id) => findItem(id)).filter(Boolean);
+    const title = "기억할 물건을 잘 보세요!";
+    const cards = targets.map((item) => `<div class="fruit-card" aria-label="${escapeHtml(item.name)}"><img class="fruit-image" src="${item.image}" alt="" draggable="false" loading="eager" decoding="async"></div>`).join("");
+    return `<div class="tutorial-mini tutorial-memory-mini"><div class="tutorial-play-view"><div class="tutorial-memory-frame"><div class="tutorial-memory-stage"><section class="memory-view">${renderMemoryRibbon(title)}<div class="memory-items-panel" data-memory-count="${targets.length}"><div class="fruit-grid ${getMemoryGridClass(targets.length)} is-auto-fit" style="--memory-count:${targets.length}; --memory-columns:${targets.length}; --fruit-card-size:${MEMORY_LAYOUT_FIXED_CARD_SIZE}px; --fruit-grid-gap:${MEMORY_LAYOUT_FIXED_GAP}px;">${cards}</div></div><div class="memory-progress" role="progressbar" aria-label="기억 시간" aria-valuemin="0" aria-valuemax="3000" aria-valuenow="3000"><span class="memory-progress-fill"></span></div></section></div></div></div></div>`;
+  }
+
+  function renderTutorialSelectionPreview(step, mode = "touch") {
+    const isDragMode = mode === "drag";
+    const targetIds = new Set(step.previewIds);
+    const choiceIds = [...step.previewIds, "apple", "bread", "orange"].filter((id, index, list) => list.indexOf(id) === index);
+    const tapItem = findItem("carrot") || choiceIds.map((id) => findItem(id)).find(Boolean);
+    const choiceCards = choiceIds.map((id, index) => {
+      const item = findItem(id);
+      if (!item) return "";
+      const isTapTarget = tapItem && item.id === tapItem.id;
+      return `<button class="choice-card ${isTapTarget ? "tutorial-tap-target" : ""}" type="button" data-item-id="${item.id}" aria-label="${escapeHtml(item.name)}"><img src="${getChoiceImage(item)}" alt="" draggable="false" loading="eager" decoding="async"></button>`;
+    }).join("");
+    const slots = Array.from({ length: Math.max(1, targetIds.size) }, (_, index) => {
+      const previewItem = index === 0 && tapItem ? `<img class="tutorial-slot-item" src="${getChoiceImage(tapItem)}" alt="" draggable="false" loading="eager" decoding="async">` : "";
+      return `<div class="basket-slot" data-slot-index="${index}">${previewItem}</div>`;
+    }).join("");
+    const flyingClass = isDragMode ? "tutorial-flying-choice is-drag-motion" : "tutorial-flying-choice";
+    const flyingItem = tapItem ? `<img class="${flyingClass}" src="${getChoiceImage(tapItem)}" alt="" draggable="false" loading="eager" decoding="async">` : "";
+    const stagePointer = tapItem ? `<span class="${isDragMode ? "tutorial-stage-drag-pointer" : "tutorial-stage-touch-pointer"}" aria-hidden="true">👆</span>` : "";
+    return `<div class="tutorial-mini tutorial-selection-mini"><div class="tutorial-play-view"><div class="tutorial-selection-stage ${isDragMode ? "is-drag-mode" : "is-touch-mode"}"><div class="selection-instruction">${renderMemoryRibbon("장바구니에 담아주세요!")}</div><div class="selection-progress" role="progressbar" aria-label="남은 개수" aria-valuemin="0" aria-valuemax="${targetIds.size}" aria-valuenow="0"><div class="selection-progress-track"><span class="selection-progress-fill"></span></div><span class="selection-progress-label">남은 개수</span><strong class="selection-progress-count">0/${targetIds.size}</strong></div><section class="shelf-zone" aria-label="물건 선택"><img class="shelf-image" src="assets/images/stand2.webp" alt="" draggable="false" loading="eager" decoding="async"><div class="choice-grid" data-choice-count="${choiceIds.length}">${choiceCards}</div><div class="basket-zone" data-basket-drop-zone="true"><div class="basket-image-wrap"><div class="basket-ground-shadow" aria-hidden="true"></div><img class="basket-image" src="assets/images/basket2.webp" alt="장바구니" draggable="false" loading="eager" decoding="async"><div class="basket-collected" style="--basket-slot-count: ${targetIds.size};">${slots}</div></div></div></section>${flyingItem}${stagePointer}</div></div></div>`;
+  }
+
   function renderMemory() {
     document.body.dataset.gamePhase = "memory";
     updateTopUi();
     const targets = state.question.targetItems;
     const title = "기억할 물건을 잘 보세요!";
     const cards = targets.map((item) => `<div class="fruit-card" aria-label="${escapeHtml(item.name)}"><img class="fruit-image" src="${item.image}" alt="" draggable="false" loading="eager" decoding="async"></div>`).join("");
-    els.playArea.innerHTML = `<section class="memory-view"><div class="memory-card"><p class="guide-text">${escapeHtml(title)}</p></div><div class="memory-items-panel" data-memory-count="${targets.length}"><div class="fruit-grid ${getMemoryGridClass(targets.length)} is-auto-fit" style="--memory-count:${targets.length}; --memory-columns:${targets.length}">${cards}</div></div><div class="memory-progress" role="progressbar" aria-label="기억 시간" aria-valuemin="0" aria-valuemax="${state.question.revealMs}" aria-valuenow="${state.question.revealMs}"><span class="memory-progress-fill"></span></div></section>`;
+    els.playArea.innerHTML = `<section class="memory-view">${renderMemoryRibbon(title)}<div class="memory-items-panel" data-memory-count="${targets.length}"><div class="fruit-grid ${getMemoryGridClass(targets.length)} is-auto-fit" style="--memory-count:${targets.length}; --memory-columns:${targets.length}">${cards}</div></div><div class="memory-progress" role="progressbar" aria-label="기억 시간" aria-valuemin="0" aria-valuemax="${state.question.revealMs}" aria-valuenow="${state.question.revealMs}"><span class="memory-progress-fill"></span></div></section>`;
     animateMemoryProgress(state.question.revealMs);
     els.hintButton.classList.add("is-hidden");
     scheduleMemoryLayout();
@@ -653,66 +835,58 @@
     if (!grid || !panel || grid.children.length === 0) return;
 
     const count = grid.children.length;
-    const panelStyle = window.getComputedStyle(panel);
-    const availableWidth = Math.max(1, panel.clientWidth - parseCssLength(panelStyle.paddingLeft) - parseCssLength(panelStyle.paddingRight));
-    const availableHeight = Math.max(1, panel.clientHeight - parseCssLength(panelStyle.paddingTop) - parseCssLength(panelStyle.paddingBottom));
-    if (availableWidth <= 0 || availableHeight <= 0) return;
-
-    const isShortLandscape = false;
     const columns = Math.min(MEMORY_LAYOUT_MAX_COLUMNS, count);
-    const rows = Math.ceil(count / columns);
-    const gap = getAdaptiveMemoryGap(availableWidth, availableHeight, count, isShortLandscape);
-    const widthLimit = Math.floor((availableWidth - gap * (columns - 1)) / columns);
-    const heightLimit = Math.floor((availableHeight - gap * (rows - 1)) / rows);
-    const finalSize = Math.max(MEMORY_LAYOUT_MIN_CARD, Math.min(MEMORY_LAYOUT_CARD_SIZE, widthLimit, heightLimit));
     grid.style.setProperty("--memory-columns", columns);
-    grid.style.setProperty("--fruit-card-size", `${finalSize}px`);
-    grid.style.setProperty("--fruit-grid-gap", `${gap}px`);
+    grid.style.setProperty("--fruit-card-size", `${MEMORY_LAYOUT_FIXED_CARD_SIZE}px`);
+    grid.style.setProperty("--fruit-grid-gap", `${MEMORY_LAYOUT_FIXED_GAP}px`);
     grid.dataset.columns = String(columns);
-    grid.dataset.rows = String(rows);
-  }
-
-  function getAdaptiveMemoryGap(width, height, count, isShortLandscape) {
-    const base = Math.min(width, height) * (isShortLandscape ? 0.018 : 0.022);
-    const countAdjustment = count <= 4 ? 1.25 : count <= 8 ? 1 : 0.82;
-    return Math.round(clamp(base * countAdjustment, MEMORY_LAYOUT_MIN_GAP, MEMORY_LAYOUT_MAX_GAP));
-  }
-
-  function parseCssLength(value) {
-    const parsed = Number.parseFloat(value);
-    return Number.isFinite(parsed) ? parsed : 0;
-  }
-
-  function clamp(value, min, max) {
-    return Math.min(max, Math.max(min, value));
+    grid.dataset.rows = String(Math.ceil(count / columns));
   }
 
   function renderTransition() {
     document.body.dataset.gamePhase = "transition";
     updateTopUi();
-    const itemName = state.question.targetItems.length === 1 ? state.question.targetItems[0].name : "물건들";
+    const itemName = state.question.targetItems.length === 1 ? state.question.targetItems[0].name : "물건";
     const title = isCareMode() ? `좋아요. 이제 ${itemName}을 찾아볼까요?` : "이제 장바구니에 담아볼까요?";
     els.playArea.innerHTML = `<section class="shop-round"><div class="transition-card"><div class="transition-icon" aria-hidden="true">🧺</div><h2 class="round-title">${escapeHtml(title)}</h2><p class="round-kicker">양쪽에서 같은 물건을 찾아주세요</p></div></section>`;
   }
+  function renderBasketSlots(question) {
+    const slotCount = Math.max(1, question ? question.targetItems.length : 1);
+    return Array.from({ length: slotCount }, (_, index) => {
+      const item = state.collectedItems[index];
+      const content = item
+        ? `<img src="${getBasketItemImage(item)}" alt="" draggable="false" loading="eager" decoding="async" data-item-id="${item.id}">`
+        : "";
+      return `<div class="basket-slot ${item ? "is-filled" : ""}" data-slot-index="${index}" ${item ? `data-item-id="${item.id}"` : ""}>${content}</div>`;
+    }).join("");
+  }
+
+  function getBasketSlotBoxWidth(slotCount) {
+    const count = Math.max(1, Math.min(6, Number(slotCount) || 1));
+    return 16 + (count * 62) + ((count - 1) * 5);
+  }
+
   function renderQuestion() {
     document.body.dataset.gamePhase = "question";
     updateTopUi();
     const question = state.question;
     const remainingTargetIds = new Set(question.targetItems.map((item) => item.id));
     state.selectedIds.forEach((id) => remainingTargetIds.delete(id));
-    const prompt = "장바구니에 담아주세요";
+    const prompt = "장바구니에 담아주세요!";
     const renderChoiceCards = (items) => items.map((item) => {
       const selected = state.selectedIds.includes(item.id);
       const wrong = state.wrongSelectedIds.includes(item.id);
-      const hinted = question.hintUsed && remainingTargetIds.has(item.id);
+      const hinted = question.choiceHintUsed && remainingTargetIds.has(item.id);
       return `<button class="choice-card ${selected ? "is-selected" : ""} ${wrong ? "is-wrong" : ""} ${hinted ? "is-hinted" : ""}" type="button" data-item-id="${item.id}" aria-label="${escapeHtml(item.name)}" ${selected ? "disabled" : ""}><img src="${getChoiceImage(item)}" alt="" draggable="false" loading="eager" decoding="async"></button>`;
     }).join("");
-    els.playArea.innerHTML = `<section class="shop-round question-round"><div class="question-board"><div class="choice-layout"><section class="shelf-zone" aria-label="물건 선택"><img class="shelf-image" src="assets/images/stand2.webp" alt="" draggable="false" loading="eager" decoding="async"><div class="choice-grid" data-choice-count="${question.choiceItems.length}">${renderChoiceCards(question.choiceItems)}</div><div class="basket-zone" data-basket-drop-zone="true"><h2 class="round-title basket-prompt">${escapeHtml(prompt)}</h2><div class="basket-image-wrap ${state.collectedItems.length ? "is-bounce" : ""}"><div class="basket-ground-shadow" aria-hidden="true"></div><img class="basket-image" src="assets/images/basket2.webp" alt="장바구니" draggable="false" loading="eager" decoding="async"><div class="basket-collected">${state.collectedItems.map((item) => `<img src="${getChoiceImage(item)}" alt="" draggable="false" loading="eager" decoding="async" data-item-id="${item.id}">`).join("")}</div></div></div></section></div></div></section>`;
+    els.playArea.innerHTML = `<section class="shop-round question-round"><div class="question-board"><div class="choice-layout"><section class="shelf-zone" aria-label="물건 선택"><img class="shelf-image" src="assets/images/stand2.webp" alt="" draggable="false" loading="eager" decoding="async"><div class="choice-grid" data-choice-count="${question.choiceItems.length}">${renderChoiceCards(question.choiceItems)}</div><div class="basket-zone" data-basket-drop-zone="true"><h2 class="round-title basket-prompt">${escapeHtml(prompt)}</h2><div class="basket-image-wrap ${state.collectedItems.length ? "is-bounce" : ""}"><div class="basket-ground-shadow" aria-hidden="true"></div><img class="basket-image" src="assets/images/basket2.webp" alt="장바구니" draggable="false" loading="eager" decoding="async"><div class="basket-collected" style="--basket-slot-count: ${question.targetItems.length}; --basket-slot-box-width: ${getBasketSlotBoxWidth(question.targetItems.length)}px;">${renderBasketSlots(question)}</div></div></div></section></div></div></section>`;
     const questionBoard = els.playArea.querySelector(".question-board");
     if (questionBoard) {
-      questionBoard.insertAdjacentHTML("afterbegin", `<div class="selection-instruction"><span class="selection-instruction-highlight">&#xC7A5;&#xBC14;&#xAD6C;&#xB2C8;</span>&#xC5D0; &#xB2F4;&#xC544;&#xC8FC;&#xC138;&#xC694;!</div><div class="selection-progress" role="progressbar" aria-label="&#xB0A8;&#xC740; &#xAC1C;&#xC218;" aria-valuemin="0" aria-valuemax="${question.targetItems.length}" aria-valuenow="0"><div class="selection-progress-track"><span class="selection-progress-fill"></span></div><span class="selection-progress-label">&#xB0A8;&#xC740; &#xAC1C;&#xC218;</span><strong class="selection-progress-count">0/${question.targetItems.length}</strong></div>`);
+      questionBoard.insertAdjacentHTML("afterbegin", `<div class="selection-instruction">${renderMemoryRibbon("장바구니에 담아주세요!")}</div><div class="selection-progress" role="progressbar" aria-label="&#xB0A8;&#xC740; &#xAC1C;&#xC218;" aria-valuemin="0" aria-valuemax="${question.targetItems.length}" aria-valuenow="0"><div class="selection-progress-track"><span class="selection-progress-fill"></span></div><span class="selection-progress-label">&#xB0A8;&#xC740; &#xAC1C;&#xC218;</span><strong class="selection-progress-count">0/${question.targetItems.length}</strong></div>`);
+      if (els.hintButton) questionBoard.appendChild(els.hintButton);
     }
     updateSelectionProgress();
+    updateHintButtonState();
     els.hintButton.classList.toggle("is-hidden", runtimeConfig.hintEnabled === false);
   }
 
@@ -729,13 +903,88 @@
     if (count) count.textContent = `${selectedCount}/${totalCount}`;
   }
 
-  function showFeedback(message, tone) {
+  function showFeedback(message, tone, duration = FEEDBACK_TIME) {
     clearTimer("feedback");
+    clearFeedbackBubbles();
     const bubble = document.createElement("div");
     bubble.className = `feedback-bubble ${tone || "soft"}`;
     bubble.textContent = message;
     els.playArea.appendChild(bubble);
-    timers.feedback = window.setTimeout(() => { bubble.remove(); timers.feedback = null; }, FEEDBACK_TIME);
+    timers.feedback = window.setTimeout(() => { bubble.remove(); timers.feedback = null; }, duration);
+  }
+
+  function showHintItemsFeedback(items, duration = FEEDBACK_TIME) {
+    clearTimer("feedback");
+    clearFeedbackBubbles();
+    const bubble = document.createElement("div");
+    bubble.className = "feedback-bubble hint hint-items";
+    const list = document.createElement("div");
+    list.className = "hint-item-list";
+    items.forEach((item) => {
+      const frame = document.createElement("div");
+      frame.className = "hint-item-frame";
+      const image = document.createElement("img");
+      image.src = getBasketItemImage(item);
+      image.alt = "";
+      image.draggable = false;
+      image.loading = "eager";
+      image.decoding = "async";
+      frame.appendChild(image);
+      list.appendChild(frame);
+    });
+    bubble.appendChild(list);
+    els.playArea.appendChild(bubble);
+    timers.feedback = window.setTimeout(() => { bubble.remove(); timers.feedback = null; }, duration);
+  }
+
+  function clearFeedbackBubbles() {
+    els.playArea.querySelectorAll(".feedback-bubble").forEach((bubble) => bubble.remove());
+  }
+
+  function renderFinalWrongFeedback() {
+    clearTimer("feedback");
+    els.playArea.innerHTML = "";
+
+    const view = document.createElement("section");
+    view.className = "feedback-view";
+
+    const symbol = document.createElement("div");
+    symbol.className = "feedback-symbol is-soft";
+    symbol.textContent = "🤔";
+
+    const title = document.createElement("p");
+    title.className = "feedback-title";
+    title.textContent = "괜찮아요!";
+
+    const message = document.createElement("p");
+    message.className = "feedback-message";
+    message.textContent = "다음 문제로 가볼까요?";
+
+    view.append(symbol, title, message);
+    els.playArea.appendChild(view);
+  }
+
+  function renderCorrectFeedback() {
+    clearTimer("feedback");
+    els.playArea.innerHTML = "";
+
+    const view = document.createElement("section");
+    view.className = "feedback-view";
+
+    const symbol = document.createElement("div");
+    symbol.className = "feedback-symbol";
+    symbol.textContent = "✓";
+
+    const title = document.createElement("p");
+    title.className = "feedback-title";
+    title.textContent = "잘 기억하셨어요!";
+
+    const message = document.createElement("p");
+    message.className = "feedback-message";
+    message.textContent = "좋습니다. 다음 문제로 넘어갈게요.";
+
+    view.append(symbol, title, message);
+    els.playArea.appendChild(view);
   }
 
   function getChoiceCardByItemId(itemId) {
@@ -761,14 +1010,19 @@
     if (!item) return;
     const collected = els.playArea.querySelector(".basket-collected");
     if (!collected || collected.querySelector(`[data-item-id="${item.id}"]`)) return;
+    const slot = collected.querySelector(".basket-slot:not(.is-filled)") || collected;
     const image = document.createElement("img");
-    image.src = getChoiceImage(item);
+    image.src = getBasketItemImage(item);
     image.alt = "";
     image.draggable = false;
     image.loading = "eager";
     image.decoding = "async";
     image.dataset.itemId = item.id;
-    collected.appendChild(image);
+    slot.appendChild(image);
+    if (slot.classList && slot.classList.contains("basket-slot")) {
+      slot.classList.add("is-filled");
+      slot.dataset.itemId = item.id;
+    }
 
     const basket = els.playArea.querySelector(".basket-image-wrap");
     if (basket) {
@@ -785,13 +1039,47 @@
     const remainingTargetIds = new Set(question.targetItems.map((item) => item.id));
     state.selectedIds.forEach((id) => remainingTargetIds.delete(id));
     els.playArea.querySelectorAll(".choice-card").forEach((card) => {
-      card.classList.toggle("is-hinted", Boolean(question.hintUsed && remainingTargetIds.has(card.dataset.itemId)));
+      card.classList.toggle("is-hinted", Boolean(question.choiceHintUsed && remainingTargetIds.has(card.dataset.itemId)));
     });
   }
 
+  function getQuestionHintLevel(question) {
+    return Math.max(0, Math.min(2, Number(question && question.hintLevel) || 0));
+  }
+
+  function getRemainingTargetItems(question) {
+    if (!question) return [];
+    return question.targetItems.filter((item) => !state.selectedIds.includes(item.id));
+  }
+
+  function updateHintButtonState() {
+    if (!els.hintButton || !state.question) return;
+    const remainingHints = Math.max(0, 2 - getQuestionHintLevel(state.question));
+    els.hintButton.dataset.hintStepCount = String(remainingHints);
+  }
+
+  function isInsideChoiceTouchHitbox(event, element) {
+    if (!event || !element || typeof event.clientX !== "number" || typeof event.clientY !== "number") return true;
+    if (event.type === "click" && event.detail === 0) return true;
+    const image = element.querySelector("img");
+    const rect = (image || element).getBoundingClientRect();
+    if (!rect || rect.width <= 0 || rect.height <= 0 || !Number.isFinite(rect.left) || !Number.isFinite(rect.top)) return true;
+    const hitbox = CHOICE_TOUCH_HITBOXES[element.dataset.itemId];
+    if (!hitbox) return true;
+    const left = rect.left + rect.width * hitbox.x;
+    const top = rect.top + rect.height * hitbox.y;
+    const right = left + rect.width * hitbox.w;
+    const bottom = top + rect.height * hitbox.h;
+    return event.clientX >= left
+      && event.clientX <= right
+      && event.clientY >= top
+      && event.clientY <= bottom;
+  }
+
   function getItemFromEvent(event) {
-    const button = event.target.closest("[data-item-id]");
+    const button = event.target.closest(".choice-card[data-item-id]");
     if (!button) return null;
+    if (!isInsideChoiceTouchHitbox(event, button)) return null;
     return { item: findItem(button.dataset.itemId), element: button };
   }
 
@@ -823,7 +1111,7 @@
   }
 
   function showDragGhost(session, clientX, clientY) {
-    els.dragGhost.innerHTML = `<img src="${getChoiceImage(session.item)}" alt="" loading="eager" decoding="async">`;
+    els.dragGhost.innerHTML = `<img src="${getBasketItemImage(session.item)}" alt="" loading="eager" decoding="async">`;
     els.dragGhost.style.width = `${Math.max(44, session.width)}px`;
     els.dragGhost.style.height = `${Math.max(44, session.height)}px`;
     placeDragGhost(session, clientX, clientY);
@@ -854,20 +1142,22 @@
     const basket = els.playArea.querySelector(".basket-image-wrap") || els.playArea.querySelector("[data-basket-drop-zone]");
     const basketRect = basket && basket.getBoundingClientRect();
     if (!item || !startRect || !basketRect || !Number.isFinite(startRect.width) || !Number.isFinite(basketRect.width)) return Promise.resolve(false);
+    const targetSlot = els.playArea.querySelector(".basket-slot:not(.is-filled)");
+    const targetRect = targetSlot ? targetSlot.getBoundingClientRect() : basketRect;
 
     const flyItem = document.createElement("img");
     const width = Math.max(44, startRect.width);
     const height = Math.max(44, startRect.height);
     const startX = startRect.left;
     const startY = startRect.top;
-    const targetX = basketRect.left + basketRect.width * 0.5 - width * 0.5;
-    const targetY = basketRect.top + basketRect.height * 0.55 - height * 0.5;
+    const targetX = targetRect.left + targetRect.width * 0.5 - width * 0.5;
+    const targetY = targetRect.top + targetRect.height * 0.5 - height * 0.5;
     const arcLift = Math.min(120, Math.max(46, Math.abs(targetX - startX) * 0.18));
     const midX = startX + (targetX - startX) * 0.58;
     const midY = Math.min(startY, targetY) - arcLift;
 
     flyItem.className = "basket-fly-item";
-    flyItem.src = getChoiceImage(item);
+    flyItem.src = getBasketItemImage(item);
     flyItem.alt = "";
     flyItem.draggable = false;
     flyItem.decoding = "async";
@@ -976,7 +1266,8 @@
         updateChoiceHints();
         if (questionCompleted) {
           clearTimer("autoHint");
-          schedulePhaseTimer(() => completeQuestion(true), FEEDBACK_TIME);
+          renderCorrectFeedback();
+          schedulePhaseTimer(() => completeQuestion(true), CORRECT_FEEDBACK_TIME);
         }
       });
       return;
@@ -986,11 +1277,13 @@
     state.retryCount += 1;
     const wrongAttemptCount = state.wrongSelectedIds.length;
     markChoiceCardWrong(item.id);
-    showFeedback(isCareMode() ? "조금 헷갈릴 수 있어요. 다시 같이 볼까요?" : "괜찮아요. 다시 기억해볼게요.", "soft");
     clearTimer("autoHint");
     if (wrongAttemptCount >= 3) {
-      schedulePhaseTimer(() => completeQuestion(false), FEEDBACK_TIME);
+      renderFinalWrongFeedback();
+      schedulePhaseTimer(() => completeQuestion(false), FINAL_WRONG_FEEDBACK_TIME);
+      return;
     }
+    showFeedback("다시 한 번 생각해보세요!", "soft", RETRY_FEEDBACK_TIME);
   }
 
   function completeQuestion(isCorrect) {
@@ -1022,11 +1315,24 @@
 
   function showHint() {
     if (!state.question || state.phase !== "question" || runtimeConfig.hintEnabled === false) return;
+    const remainingItems = getRemainingTargetItems(state.question);
+    if (!remainingItems.length) return;
+    const currentHintLevel = getQuestionHintLevel(state.question);
+    if (currentHintLevel >= 2) return;
+    const nextHintLevel = currentHintLevel + 1;
+    state.question.hintLevel = nextHintLevel;
     state.question.hintUsed = true;
     state.hintCount += 1;
-    updateChoiceHints();
-    const names = state.question.targetItems.filter((item) => !state.selectedIds.includes(item.id)).map((item) => item.name).join(", ");
-    showFeedback(`힌트: ${names}을 찾아주세요`, "soft");
+    updateHintButtonState();
+
+    if (nextHintLevel === 1) {
+      const categoryLabels = Array.from(new Set(remainingItems.map((item) => ITEM_CATEGORY_LABELS[item.category] || "물건")));
+      const message = `${categoryLabels.join(", ")}입니다`;
+      showFeedback(message, "hint", 3000);
+      return;
+    }
+
+    showHintItemsFeedback(remainingItems, 3000);
   }
 
   function pauseGame() {
@@ -1102,6 +1408,16 @@
     const payload = createResultPayload();
     try { window.localStorage.setItem(`${STORAGE_KEY_PREFIX}:${runtimeConfig.mode}`, JSON.stringify(payload)); } catch (error) {}
     sendBridge(["sendGameCompleteResult", "sendComplete"], payload);
+    scheduleReminderResultReturn();
+  }
+
+  function scheduleReminderResultReturn() {
+    clearTimer("resultReturn");
+    if (!runtimeConfig || runtimeConfig.mode !== "reminder") return;
+    timers.resultReturn = window.setTimeout(() => {
+      timers.resultReturn = null;
+      if (state.phase === "result") returnToHub();
+    }, 3000);
   }
 
   function createResultPayload() {
@@ -1425,14 +1741,48 @@
   }
   function renderTutorialStep() {
     const step = TUTORIAL_STEPS[tutorialIndex] || TUTORIAL_STEPS[0];
+    const title = $("tutorial-title");
+    const icon = document.querySelector(".tutorial-question-icon");
+    const heading = document.querySelector(".tutorial-heading");
+    const isTapModeStep = step.mode === "touch";
+    const isDragModeStep = step.mode === "drag";
+    const isInputModeStep = isTapModeStep || isDragModeStep;
+    if (title) title.textContent = isTapModeStep ? "누르기 모드" : isDragModeStep ? "끌기 모드" : "진행방법";
+    if (heading) {
+      heading.classList.toggle("is-touch-heading", isTapModeStep);
+      heading.classList.toggle("is-mode-heading", isInputModeStep);
+    }
+    if (icon) {
+      icon.classList.toggle("is-image", isInputModeStep);
+      icon.innerHTML = isTapModeStep
+        ? `<img src="assets/images/ui-touch2.webp" alt="" draggable="false" loading="eager" decoding="async">`
+        : isDragModeStep
+          ? `<img src="assets/images/ui-drag2.webp" alt="" draggable="false" loading="eager" decoding="async">`
+          : "?";
+    }
     els.tutorialMessage.textContent = step.message;
     if (els.tutorialDetail) els.tutorialDetail.hidden = true;
     els.tutorialPreview.classList.remove("has-tap-pointer");
+    els.tutorialPreview.classList.toggle("is-touch-step", isTapModeStep);
+    els.tutorialPreview.classList.toggle("is-drag-step", isDragModeStep);
+    if (tutorialIndex === 0) {
+      els.tutorialPreview.innerHTML = renderTutorialMemoryPreview(step);
+      els.tutorialCloseButton.textContent = "닫기";
+      els.tutorialNextButton.textContent = tutorialIndex >= TUTORIAL_STEPS.length - 1 ? "\uB2EB\uAE30" : "\uB2E4\uC74C";
+      return;
+    }
+    if (isTapModeStep || isDragModeStep) {
+      els.tutorialPreview.innerHTML = renderTutorialSelectionPreview(step, isDragModeStep ? "drag" : "touch");
+      els.tutorialCloseButton.textContent = "이전";
+      els.tutorialNextButton.textContent = tutorialIndex >= TUTORIAL_STEPS.length - 1 ? "\uB2EB\uAE30" : "\uB2E4\uC74C";
+      return;
+    }
     const cards = step.previewIds.map((id) => {
       const item = findItem(id);
       return item ? `<div class="fruit-card"><img class="fruit-image" src="${item.image}" alt="${escapeHtml(item.name)}" draggable="false"><span class="fruit-name">${escapeHtml(item.name)}</span></div>` : "";
     }).join("");
     els.tutorialPreview.innerHTML = `<div class="tutorial-mini"><div class="tutorial-play-view"><div class="fruit-grid is-sparse">${cards}</div></div></div>`;
+    els.tutorialCloseButton.textContent = tutorialIndex > 0 ? "이전" : "닫기";
     els.tutorialNextButton.textContent = tutorialIndex >= TUTORIAL_STEPS.length - 1 ? "\uB2EB\uAE30" : "\uB2E4\uC74C";
   }
 
@@ -1584,7 +1934,7 @@
     els.pauseVoiceGuideButton.addEventListener("click", () => togglePauseSound(els.voiceGuideToggle));
     els.restartButton.addEventListener("click", () => startGame(state.difficultyKey));
     els.resultStartButton.addEventListener("click", goHome);
-    els.resultHomeButton.addEventListener("click", requestExit);
+    els.resultHomeButton.addEventListener("click", returnToHub);
     els.errorHomeButton.addEventListener("click", goHome);
     els.conditionButtons.forEach((button) => button.addEventListener("click", () => {
       els.conditionButtons.forEach((item) => { item.classList.remove("is-selected"); item.setAttribute("aria-pressed", "false"); });
@@ -1614,7 +1964,14 @@
     els.inputModeButtons.forEach((button) => button.addEventListener("click", () => selectInputMode(button)));
     els.settingsCloseButton.addEventListener("click", closeSettings);
     els.settingsExitButton.addEventListener("click", () => { closeSettings(); returnToHub(); });
-    els.tutorialCloseButton.addEventListener("click", closeTutorial);
+    els.tutorialCloseButton.addEventListener("click", () => {
+      if (tutorialIndex > 0) {
+        tutorialIndex -= 1;
+        renderTutorialStep();
+        return;
+      }
+      closeTutorial();
+    });
     els.tutorialNextButton.addEventListener("click", () => { if (tutorialIndex >= TUTORIAL_STEPS.length - 1) { closeTutorial(); return; } tutorialIndex += 1; renderTutorialStep(); });
   }
 
