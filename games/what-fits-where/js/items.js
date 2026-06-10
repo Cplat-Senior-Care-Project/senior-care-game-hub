@@ -43,6 +43,17 @@ const I = {
   비누:{n:"비누",img:"assets/goods/soap.png"},
   샴푸:{n:"샴푸",img:"assets/goods/shampoo.png"},
   쓰레기통:{n:"쓰레기통",img:""},
+  삽:{n:"삽",img:"assets/goods/shovel.png"},
+  호미:{n:"호미",img:"assets/goods/shovel.png"},
+  씨앗:{n:"씨앗",img:"assets/goods/seeds.png"},
+  쌀:{n:"쌀",img:"assets/goods/rice.png"},
+  교통카드:{n:"교통카드",img:"assets/goods/transit_card.png"},
+  노트북:{n:"노트북",img:"assets/goods/laptop.png"},
+  물뿌리개:{n:"물뿌리개",img:"assets/goods/watering_can.png"},
+  휴대폰:{n:"휴대폰",img:"assets/goods/smartphone.png"},
+  현금:{n:"현금",img:"assets/goods/cash.png"},
+  돈봉투:{n:"돈 봉투",img:"assets/goods/cash.png"},
+  성경:{n:"성경책",img:"assets/goods/bible.png"},
 };
 const it = k => ({k, ...I[k]});
 

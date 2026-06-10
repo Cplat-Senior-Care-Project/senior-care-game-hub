@@ -94,7 +94,7 @@ const SOFT_WRONG_REMOVE = ["이 물건은 이 상황에 필요해요.","다른 �
 const SOFT_WRONG_SIT = ["어떤 상황에서 쓰는 물건인지 다시 생각해봐요.","다른 상황도 살펴볼까요?"];
 const pickMsg = arr => arr[(Math.random()*arr.length)|0];
 
-const GAME_TIME_LIMIT = 120;
+const GAME_TIME_LIMIT = 180;
 
 /* ===== CONDITION CHECK CONFIG ===== */
 
