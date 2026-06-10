@@ -25,7 +25,7 @@ const I = {
   약:{n:"약",img:""},
   칫솔:{n:"칫솔",img:"assets/goods/toothbrush.png"},
   치약:{n:"치약",img:"assets/goods/toothpaste.png"},
-  수건:{n:"수건",img:""},
+  수건:{n:"수건",img:"assets/goods/towel.png"},
   컵:{n:"컵",img:"assets/goods/cup.png"},
   숟가락:{n:"숟가락",img:"assets/goods/spoon.png"},
   젓가락:{n:"젓가락",img:"assets/goods/chopsticks.png"},
@@ -52,7 +52,7 @@ const I = {
   물뿌리개:{n:"물뿌리개",img:"assets/goods/watering_can.png"},
   휴대폰:{n:"휴대폰",img:"assets/goods/smartphone.png"},
   현금:{n:"현금",img:"assets/goods/cash.png"},
-  돈봉투:{n:"돈 봉투",img:"assets/goods/cash.png"},
+  돈봉투:{n:"현금",img:"assets/goods/cash.png"},
   성경:{n:"성경책",img:"assets/goods/bible.png"},
 };
 const it = k => ({k, ...I[k]});

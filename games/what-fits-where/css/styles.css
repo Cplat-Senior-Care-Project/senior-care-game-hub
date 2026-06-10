@@ -33,27 +33,34 @@
   /* Difficulty select */
   #screen-difficulty{position:relative;overflow:hidden;background:linear-gradient(180deg,#FFFDF8 0%,#FAF7F0 52%,#F1F7EF 100%)}
   #screen-difficulty::before{content:"";position:absolute;inset:clamp(16px,3vw,36px);border:1px solid rgba(200,191,166,.7);border-radius:28px;pointer-events:none}
-  #screen-difficulty .center-wrap{position:relative;z-index:1;gap:clamp(10px,1.9dvh,20px);padding:clamp(12px,2.6dvh,26px) 0}
-  #screen-difficulty .title{font-size:clamp(26px,4dvh,42px);line-height:1.18;max-width:780px;text-wrap:balance}
-  #screen-difficulty .title::before{content:"";display:block;width:72px;height:7px;margin:0 auto clamp(10px,1.7dvh,16px);border-radius:999px;background:linear-gradient(90deg,#4F8B3C 0%,#1E5BBF 50%,#B85D57 100%)}
-  #screen-difficulty .subtitle{font-size:clamp(15px,2dvh,18px);color:#4A5060;margin-top:calc(clamp(3px,.8dvh,8px) * -1)}
-  #screen-difficulty .diff-row{width:min(100%,1080px);gap:clamp(12px,2vw,20px);align-items:stretch;margin-top:clamp(2px,.8dvh,8px)}
-  #screen-difficulty .opt-card{--accent:#1E5BBF;--line:#9FB7DD;--soft:#F0F6FF;position:relative;min-height:clamp(132px,17dvh,174px);padding:clamp(20px,2.8dvh,28px) clamp(18px,2vw,26px) clamp(18px,2.5dvh,24px) clamp(82px,7.2vw,104px);border-radius:22px;border-color:var(--line);background:linear-gradient(180deg,#FFFFFF 0%,var(--soft) 100%);box-shadow:0 14px 30px rgba(31,36,51,.09);justify-content:center;overflow:hidden}
+  #screen-difficulty .center-wrap{position:relative;z-index:1;gap:clamp(14px,2.4dvh,26px);padding:clamp(16px,3dvh,32px) 0}
+  #screen-difficulty .title{font-size:clamp(34px,5.4dvh,56px);line-height:1.14;max-width:920px;text-wrap:balance}
+  #screen-difficulty .title::before{content:"";display:block;width:clamp(78px,5.8vw,112px);height:8px;margin:0 auto clamp(12px,1.9dvh,18px);border-radius:999px;background:linear-gradient(90deg,#4F8B3C 0%,#1E5BBF 50%,#B85D57 100%)}
+  #screen-difficulty .subtitle{font-size:clamp(18px,2.45dvh,24px);color:#4A5060;margin-top:calc(clamp(4px,.8dvh,8px) * -1)}
+  #screen-difficulty .diff-row{width:min(100%,1480px);gap:clamp(18px,2.4vw,30px);align-items:stretch;margin-top:clamp(6px,1.2dvh,14px)}
+  #screen-difficulty .opt-card{--accent:#1E5BBF;--line:#9FB7DD;--soft:#F0F6FF;position:relative;min-height:clamp(172px,24dvh,230px);padding:clamp(26px,3.6dvh,38px) clamp(26px,2.5vw,42px) clamp(24px,3.3dvh,36px) clamp(112px,7.5vw,142px);border-radius:24px;border-color:var(--line);background:linear-gradient(180deg,#FFFFFF 0%,var(--soft) 100%);box-shadow:0 18px 38px rgba(31,36,51,.1);justify-content:center;overflow:hidden}
   #screen-difficulty .opt-card[data-diff="easy"]{--accent:#4F8B3C;--line:#B9D3AD;--soft:#F2FAEE}
   #screen-difficulty .opt-card[data-diff="normal"]{--accent:#1E5BBF;--line:#ABC0E4;--soft:#F1F6FF}
   #screen-difficulty .opt-card[data-diff="hard"]{--accent:#B85D57;--line:#E0B4AF;--soft:#FFF2F0}
-  #screen-difficulty .opt-card::after{content:"";position:absolute;inset:0 0 auto;height:8px;background:var(--accent)}
-  #screen-difficulty .opt-card::before{content:"1";position:absolute;left:clamp(18px,2vw,28px);top:50%;width:clamp(46px,5dvh,58px);height:clamp(46px,5dvh,58px);border-radius:18px;background:#FFFFFF;color:var(--accent);border:3px solid var(--line);display:flex;align-items:center;justify-content:center;font-size:clamp(22px,3.2dvh,30px);font-weight:900;line-height:1;box-shadow:0 6px 14px rgba(31,36,51,.08);transform:translateY(-50%)}
+  #screen-difficulty .opt-card::after{content:"";position:absolute;inset:0 0 auto;height:10px;background:var(--accent)}
+  #screen-difficulty .opt-card::before{content:"1";position:absolute;left:clamp(26px,2.8vw,44px);top:50%;width:clamp(68px,8dvh,84px);height:clamp(68px,8dvh,84px);border-radius:22px;background:#FFFFFF;color:var(--accent);border:4px solid var(--line);display:flex;align-items:center;justify-content:center;font-size:clamp(34px,4.7dvh,46px);font-weight:900;line-height:1;box-shadow:0 8px 18px rgba(31,36,51,.09);transform:translateY(-50%)}
   #screen-difficulty .opt-card[data-diff="normal"]::before{content:"2"}
   #screen-difficulty .opt-card[data-diff="hard"]::before{content:"3"}
-  #screen-difficulty .opt-card .name{font-size:clamp(22px,3dvh,30px);line-height:1.15;color:#0E1322}
-  #screen-difficulty .opt-card .desc{font-size:clamp(14px,1.85dvh,17px);font-weight:700;color:#3A4054;line-height:1.45;word-break:keep-all}
+  #screen-difficulty .opt-card .name{font-size:clamp(30px,4.4dvh,42px);line-height:1.12;color:#0E1322}
+  #screen-difficulty .opt-card .desc{font-size:clamp(18px,2.4dvh,23px);font-weight:700;color:#3A4054;line-height:1.45;word-break:keep-all}
   #screen-difficulty .opt-card:hover{background:linear-gradient(180deg,#FFFFFF 0%,var(--soft) 100%);border-color:var(--accent);box-shadow:0 18px 36px rgba(31,36,51,.13);transform:translateY(-3px)}
   #screen-difficulty .opt-card:active{transform:translateY(0);box-shadow:0 10px 22px rgba(31,36,51,.1)}
   #screen-difficulty .opt-card:focus-visible{outline:4px solid rgba(30,91,191,.28);outline-offset:4px}
-  #screen-difficulty #btn-diff-back{margin-top:clamp(8px,1.5dvh,16px);min-width:clamp(176px,20vw,240px);background:#FFFDF8;box-shadow:0 6px 0 #D8CEB6}
+  #screen-difficulty #btn-diff-back{margin-top:clamp(10px,1.8dvh,20px);min-width:clamp(220px,22vw,300px);font-size:clamp(17px,2.3dvh,22px);padding:clamp(14px,2.2dvh,20px) clamp(26px,3vw,42px);background:#FFFDF8;box-shadow:0 6px 0 #D8CEB6}
   #screen-difficulty #btn-diff-back:hover{background:#FFF4DA;box-shadow:0 6px 0 #C9B887}
   #screen-difficulty #btn-diff-back:active{transform:translateY(2px);box-shadow:0 4px 0 #C9B887}
+  @media (max-width:1100px) and (min-width:761px){
+    #screen-difficulty .diff-row{gap:clamp(12px,1.8vw,20px)}
+    #screen-difficulty .opt-card{min-height:clamp(150px,21dvh,190px);padding:clamp(22px,3dvh,30px) clamp(20px,2vw,30px) clamp(20px,2.8dvh,28px) clamp(92px,9.5vw,112px)}
+    #screen-difficulty .opt-card::before{left:clamp(20px,2.5vw,30px);width:clamp(56px,7dvh,70px);height:clamp(56px,7dvh,70px);font-size:clamp(28px,4dvh,36px)}
+    #screen-difficulty .opt-card .name{font-size:clamp(26px,4dvh,34px)}
+    #screen-difficulty .opt-card .desc{font-size:clamp(16px,2.2dvh,20px)}
+  }
 
   .primary{padding:clamp(10px,1.8dvh,14px) clamp(20px,3vw,32px);border-radius:14px;background:#1E5BBF;color:#FFFFFF;font-weight:800;font-size:clamp(14px,1.9dvh,18px);box-shadow:0 4px 12px -4px rgba(30,91,191,.45);border:2px solid #154A9E}
   .primary:hover{background:#154A9E}
