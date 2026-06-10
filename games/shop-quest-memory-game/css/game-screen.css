@@ -1482,7 +1482,7 @@
   left: 50%;
   top: 110px;
   z-index: 7;
-  display: grid;
+  display: none;
   grid-template-columns: 1fr max-content;
   align-items: center;
   width: 560px;
@@ -1634,6 +1634,7 @@
 }
 
 #play-area .question-round .shelf-zone {
+  --shelf-visual-offset-y: -70px;
   position: absolute;
   left: calc(50% + 2px);
   top: 106px;
@@ -1641,8 +1642,8 @@
   display: block;
   width: 1196px;
   max-width: none;
-  height: auto;
-  aspect-ratio: 2048 / 682;
+  height: 468px;
+  aspect-ratio: auto;
   min-width: 0;
   min-height: 0;
   padding: 0;
@@ -1661,7 +1662,7 @@
   position: absolute;
   left: 1.6%;
   right: 1.6%;
-  top: 85.5%;
+  top: calc(85.5% + var(--shelf-visual-offset-y));
   bottom: auto;
   z-index: 0;
   display: block;
@@ -1685,10 +1686,11 @@
   display: block;
   width: 100%;
   height: 100%;
-  object-fit: contain;
+  object-fit: fill;
   filter: none !important;
   pointer-events: none;
   user-select: none;
+  transform: translateY(var(--shelf-visual-offset-y));
 }
 
 #play-area .question-round .choice-grid,
@@ -1705,6 +1707,7 @@
   background: none;
   box-sizing: border-box;
   overflow: visible;
+  transform: translateY(var(--shelf-visual-offset-y));
 }
 
 #play-area .question-round .choice-card,
@@ -1732,12 +1735,12 @@
 #play-area .question-round .choice-grid[data-choice-count] .choice-card:nth-child(1) { --slot-x: 12.2%; --slot-y: 29.5%; }
 #play-area .question-round .choice-grid[data-choice-count] .choice-card:nth-child(2) { --slot-x: 30.45%; --slot-y: 29.5%; }
 #play-area .question-round .choice-grid[data-choice-count] .choice-card:nth-child(3) { --slot-x: 50%; --slot-y: 29.5%; }
-#play-area .question-round .choice-grid[data-choice-count] .choice-card:nth-child(4) { --slot-x: 69.55%; --slot-y: 29.5%; }
+#play-area .question-round .choice-grid[data-choice-count] .choice-card:nth-child(4) { --slot-x: 68.8%; --slot-y: 29.5%; }
 #play-area .question-round .choice-grid[data-choice-count] .choice-card:nth-child(5) { --slot-x: 87.8%; --slot-y: 29.5%; }
 #play-area .question-round .choice-grid[data-choice-count] .choice-card:nth-child(6) { --slot-x: 12.2%; --slot-y: 61%; }
 #play-area .question-round .choice-grid[data-choice-count] .choice-card:nth-child(7) { --slot-x: 30.45%; --slot-y: 61%; }
 #play-area .question-round .choice-grid[data-choice-count] .choice-card:nth-child(8) { --slot-x: 50%; --slot-y: 61%; }
-#play-area .question-round .choice-grid[data-choice-count] .choice-card:nth-child(9) { --slot-x: 69.55%; --slot-y: 61%; }
+#play-area .question-round .choice-grid[data-choice-count] .choice-card:nth-child(9) { --slot-x: 68.8%; --slot-y: 61%; }
 #play-area .question-round .choice-grid[data-choice-count] .choice-card:nth-child(10) { --slot-x: 87.8%; --slot-y: 61%; }
 
 #play-area .question-round .choice-card img,
@@ -1746,7 +1749,7 @@
   left: 50%;
   top: 50%;
   display: block;
-  width: 82%;
+  width: 95%;
   height: auto;
   max-width: none;
   max-height: none;
@@ -1764,13 +1767,26 @@
 }
 
 #play-area .question-round .choice-grid[data-choice-count] .choice-card[data-item-id="cheese"] img,
-#play-area .question-round .choice-grid[data-choice-count] .choice-card[data-item-id="apple"] img,
+#play-area .question-round .choice-grid[data-choice-count] .choice-card[data-item-id="apple"] img {
+  width: 85%;
+}
+
+#play-area .question-round .choice-grid[data-choice-count] .choice-card[data-item-id="apple"] img {
+  transform: translate(-50%, -50%) scaleX(1.12);
+}
+
 #play-area .question-round .choice-grid[data-choice-count] .choice-card[data-item-id="bread"] img {
-  width: 65%;
+  width: 87%;
+  transform: translate(-50%, -50%) scaleX(1.08);
+}
+
+#play-area .question-round .choice-grid[data-choice-count] .choice-card[data-item-id="fish"] img {
+  width: 100%;
 }
 
 #play-area .question-round .choice-grid[data-choice-count] .choice-card[data-item-id="orange"] img {
-  width: 72%;
+  width: 85%;
+  transform: translate(-50%, -50%) scaleX(1.12);
 }
 
 #play-area .question-round .choice-card:hover {

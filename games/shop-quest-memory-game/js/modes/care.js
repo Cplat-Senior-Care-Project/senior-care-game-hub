@@ -10,7 +10,7 @@
       config.ui.showTimer = false;
       config.ui.showProgress = false;
       config.ui.showScore = false;
-      config.ui.showSettings = false;
+      config.ui.showSettings = true;
       config.ui.showTutorial = false;
       config.ui.showDifficultySelect = false;
       config.ui.showConditionCheck = false;

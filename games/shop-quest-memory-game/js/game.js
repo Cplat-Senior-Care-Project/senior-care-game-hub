@@ -93,10 +93,18 @@
     ])
   });
 
-  const CARE_DIFFICULTIES = Object.freeze({
-    easy: Object.freeze({ memoryItemCount: 1, answerChoiceCount: 2 }),
-    normal: Object.freeze({ memoryItemCount: 2, answerChoiceCount: 4 }),
-    hard: Object.freeze({ memoryItemCount: 3, answerChoiceCount: 9 })
+  const CARE_REVEAL_MS = 5000;
+  const CARE_DIFFICULTY_QUESTION_PLANS = Object.freeze({
+    easy: Object.freeze([
+      Object.freeze({ through: 5, memoryItemCount: 1, answerChoiceCount: 2 })
+    ]),
+    normal: Object.freeze([
+      Object.freeze({ through: 5, memoryItemCount: 2, answerChoiceCount: 4 })
+    ]),
+    hard: Object.freeze([
+      Object.freeze({ through: 4, memoryItemCount: 3, answerChoiceCount: 6 }),
+      Object.freeze({ through: 5, memoryItemCount: 4, answerChoiceCount: 6 })
+    ])
   });
 
   const TUTORIAL_STEPS = Object.freeze([
@@ -494,10 +502,10 @@
       merged.revealMs = STANDARD_REVEAL_MS;
     }
     if (runtimeConfig.mode === "care") {
-      const careDifficulty = CARE_DIFFICULTIES[key] || CARE_DIFFICULTIES.easy;
-      merged.memoryItemCount = careDifficulty.memoryItemCount;
-      merged.answerChoiceCount = careDifficulty.answerChoiceCount;
-      merged.revealMs = Math.max(merged.revealMs, 4500);
+      const plan = getCareDifficultyQuestionPlan(key, state.questionIndex);
+      merged.memoryItemCount = plan.memoryItemCount;
+      merged.answerChoiceCount = plan.answerChoiceCount;
+      merged.revealMs = CARE_REVEAL_MS;
     } else if (isCareMode()) {
       merged.memoryItemCount = 1;
       merged.answerChoiceCount = 2;
@@ -519,6 +527,12 @@
 
   function getStandardDifficultyQuestionPlan(key, questionIndex) {
     const plans = STANDARD_DIFFICULTY_QUESTION_PLANS[key] || STANDARD_DIFFICULTY_QUESTION_PLANS.easy;
+    const questionNumber = questionIndex + 1;
+    return plans.find((plan) => questionNumber <= plan.through) || plans[plans.length - 1];
+  }
+
+  function getCareDifficultyQuestionPlan(key, questionIndex) {
+    const plans = CARE_DIFFICULTY_QUESTION_PLANS[key] || CARE_DIFFICULTY_QUESTION_PLANS.easy;
     const questionNumber = questionIndex + 1;
     return plans.find((plan) => questionNumber <= plan.through) || plans[plans.length - 1];
   }
@@ -950,7 +964,7 @@
 
     const symbol = document.createElement("div");
     symbol.className = "feedback-symbol is-soft";
-    symbol.textContent = "🤔";
+    symbol.textContent = "😊";
 
     const title = document.createElement("p");
     title.className = "feedback-title";
@@ -1907,7 +1921,7 @@
     if (window.visualViewport) window.visualViewport.addEventListener("resize", updateGameScale);
     els.startScreen.addEventListener("click", handleStartScreenBackgroundPress);
     els.startButton.addEventListener("click", runAfterStartButtonPress());
-    els.startExitButton.addEventListener("click", requestExit);
+    els.startExitButton.addEventListener("click", returnToHub);
     els.settingsButton.addEventListener("click", openSettings);
     els.tutorialButton.addEventListener("click", openTutorial);
     els.difficultyBackButton.addEventListener("click", goHome);

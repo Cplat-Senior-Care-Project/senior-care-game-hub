@@ -1,3 +1,102 @@
+html[data-mode="care"] .start-actions {
+  grid-template-columns: var(--start-side-width-base) auto var(--start-side-width-base);
+}
+
+html[data-mode="care"] #settings-button {
+  grid-column: 1;
+  grid-row: 1;
+}
+
+html[data-mode="care"] .start-screen #settings-button .settings-gear,
+html[data-mode="care"] .start-screen #settings-button span:last-child {
+  top: 0;
+  display: inline-grid;
+  place-items: center;
+  align-self: center;
+  height: 1em;
+  line-height: 1;
+  transform: none;
+}
+
+html[data-mode="care"] #start-button {
+  grid-column: 2;
+  grid-row: 1;
+}
+
+html[data-mode="care"] #start-button,
+html[data-mode="care"] #start-button > span:first-child {
+  font-weight: 1000;
+  -webkit-text-stroke: 0;
+  paint-order: normal;
+}
+
+html[data-mode="care"] .start-screen .start-exit-button {
+  display: inline-flex;
+  grid-column: 3;
+  grid-row: 1;
+  align-items: center;
+  justify-content: center;
+  width: var(--start-side-width-base);
+  min-width: var(--start-side-width-base);
+  max-width: var(--start-side-width-base);
+  min-height: var(--start-side-height-base);
+  border: 2px solid #ffb3a3;
+  border-radius: clamp(22px, 46.08px, 38px);
+  padding-block: clamp(calc(var(--start-side-pad-y-base) * 0.72), 12.96px, var(--start-side-pad-y-base));
+  padding-inline: clamp(calc(var(--start-side-pad-x-base) * 0.72), 38.4px, var(--start-side-pad-x-base));
+  color: #fffdf3;
+  background: linear-gradient(315deg, rgba(126, 29, 29, 0.24) 0%, rgba(207, 62, 52, 0.08) 48%, rgba(255, 151, 128, 0.24) 100%),
+    #d95145;
+  box-shadow: 0 7px 18px rgba(116, 36, 30, 0.22),
+    0 0 0 1px #8f3028,
+    inset 0 0 0 1px #8f3028,
+    inset 0 3px 0 rgba(255, 255, 244, 0.35),
+    inset 0 -6px 0 rgba(104, 24, 22, 0.28);
+  font-size: var(--start-side-font-base);
+  font-weight: 1000;
+  line-height: 1;
+  text-shadow: 0 2px 0 rgba(96, 28, 22, 0.6),
+    0 0 4px rgba(96, 28, 22, 0.34);
+}
+
+html[data-mode="care"] .start-screen .start-exit-button:active,
+html[data-mode="care"] .start-screen .start-exit-button.is-pressed {
+  transform: translateY(3px) scale(0.98);
+  box-shadow: 0 3px 8px rgba(116, 36, 30, 0.16),
+    0 0 0 1px #8f3028,
+    inset 0 0 0 1px #8f3028,
+    inset 0 2px 0 rgba(255, 255, 244, 0.34),
+    inset 0 -3px 0 rgba(104, 24, 22, 0.24);
+}
+
+html[data-mode="care"] #settings-modal .settings-card {
+  width: min(620px, calc(100% - 24px));
+}
+
+html[data-mode="care"] #settings-modal .settings-layout {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+html[data-mode="care"] #settings-modal .settings-left-panel {
+  display: none;
+}
+
+html[data-mode="care"] #settings-modal .settings-sound-panel {
+  width: 100%;
+}
+
+html[data-mode="care"] body[data-screen="game"] .info-bar {
+  grid-template-columns: repeat(2, max-content);
+}
+
+html[data-mode="care"] body[data-screen="game"] #pause-button {
+  order: 2;
+}
+
+html[data-mode="care"] body[data-screen="game"] .hud-mission-pill {
+  order: 1;
+}
+
 html[data-mode="care"] .choice-layout { grid-template-columns: minmax(0, 1fr) 300px; }
 html[data-mode="care"] .choice-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px; }
 html[data-mode="care"] .choice-card { min-height: 180px; }

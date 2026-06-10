@@ -2,6 +2,7 @@ html[data-show-settings="false"] #settings-button,
 html[data-show-tutorial="false"] #tutorial-button,
 html[data-show-timer="false"] #timer-box,
 html[data-show-progress="false"] .race-wrap,
+html[data-show-progress="false"] .hud-progress-pill,
 html[data-show-score="false"] #score-box {
   display: none !important;
 }
@@ -38,8 +39,6 @@ html[data-mode="ai_assisted"][data-show-progress="true"] .race-wrap:not([hidden]
   display: block !important;
 }
 
-html[data-mode="care"] .game-header .difficulty-pill,
-html[data-mode="care"] .game-header #pause-button,
 html[data-mode="ai_assisted"] .game-header .difficulty-pill,
 html[data-mode="ai_assisted"] .game-header #pause-button {
   display: none !important;
