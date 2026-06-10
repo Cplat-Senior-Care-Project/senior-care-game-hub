@@ -88,6 +88,7 @@
           <span class="pill" id="p-qnum">1 / 10</span>
         </div>
         <div class="actions">
+          <button class="icon-btn hint-btn" id="btn-hint" type="button" title="힌트 보기">힌트</button>
           <span class="timer" id="p-timer">⏱ 03:00</span>
           <button class="icon-btn" id="btn-pause" title="일시정지">⏸ 일시정지</button>
         </div>
@@ -215,6 +216,17 @@
   </section>
 </div>
 
+<!-- Hint -->
+<div class="modal" id="hint-modal">
+  <div class="box hint-box">
+    <h3 id="hint-title">힌트</h3>
+    <div class="hint-list" id="hint-list"></div>
+    <div class="actions">
+      <button class="keep" id="btn-hint-close" type="button">돌아가기</button>
+    </div>
+  </div>
+</div>
+
 <!-- Pause menu -->
 <div class="modal" id="pause-modal">
   <div class="box pause-box">
@@ -323,9 +335,9 @@
 <div class="modal" id="mission-modal">
   <div class="box">
     <h3 id="mission-title">이번 미션</h3>
-    <p id="mission-text" style="font-size:20px;color:#13182A;font-weight:700;line-height:1.5"></p>
+    <p id="mission-text" style="font-size:40px;color:#13182A;font-weight:700;line-height:1.5"></p>
     <div class="actions">
-      <button class="keep" id="btn-mission-start" style="font-size:20px;padding:18px">시작하기</button>
+      <button class="keep" id="btn-mission-start" style="font-size:40px;padding:18px">시작하기</button>
     </div>
   </div>
 </div>
@@ -357,7 +369,7 @@
   <div class="box">
     <h3>정답을 함께 확인해볼게요</h3>
     <div id="reveal-content"></div>
-    <p id="reveal-explain" style="font-size:15px;color:#3A4054"></p>
+    <p id="reveal-explain" style="font-size:30px;color:#3A4054"></p>
   </div>
 </div>
 

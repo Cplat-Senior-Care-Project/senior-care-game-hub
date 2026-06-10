@@ -87,8 +87,8 @@
     buildQuestions({ mode, diff, stageNo, count }) {
       return buildPackQuestions(mode, diff, stageNo, count);
     },
-    getTargetText(q) {
-      return `필요한 물건 ${q.answers.length}개를 골라주세요.`;
+    getTargetText() {
+      return "";
     },
     renderContext() {
       hideSeenItems();
@@ -132,8 +132,8 @@
     buildQuestions({ mode, diff, stageNo, count }) {
       return buildPackQuestions(mode, diff, stageNo, count);
     },
-    getTargetText(q) {
-      return `어울리지 않는 물건 ${q.answers.length}개를 빼주세요.`;
+    getTargetText() {
+      return "";
     },
     renderContext() {
       hideSeenItems();

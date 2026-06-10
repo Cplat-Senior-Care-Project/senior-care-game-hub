@@ -68,9 +68,10 @@ function applyAppConfig(){
   state.scoreScreenEnabled = loadScoreScreenEnabled(cfg.show_score !== false);
   refreshScoreScreenToggle();
   // top buttons visibility
-  const sBtn = $("btn-settings"), hBtn = $("btn-howto");
+  const sBtn = $("btn-settings"), hBtn = $("btn-howto"), hintBtn = $("btn-hint");
   if(sBtn) sBtn.style.display = cfg.show_settings ? "" : "none";
   if(hBtn) hBtn.style.display = cfg.show_how_to_play ? "" : "none";
+  if(hintBtn) hintBtn.style.display = appMode === "standard" ? "" : "none";
   ["settings-score-row", "settings-modal-score-row"].forEach(id=>{
     const scoreRow = $(id);
     if(scoreRow) scoreRow.style.display = appMode === "standard" ? "" : "none";
@@ -429,9 +430,14 @@ function renderQuestion(){
   $("p-qnum").textContent = `${state.qIndex+1} / ${state.totalQ || state.queue.length}`;
   $("p-situation").textContent = q.sit;
   $("p-feedback").textContent = ""; $("p-feedback").className = "fb-msg";
+  closeHintModal(true);
+  updateHintButton();
 
   const modeDef = getGameMode(state.mode);
-  $("p-target").textContent = modeDef.getTargetText(q);
+  const targetText = modeDef.getTargetText(q) || "";
+  const targetEl = $("p-target");
+  targetEl.textContent = targetText;
+  targetEl.style.display = targetText ? "" : "none";
   modeDef.renderContext(q);
 
   renderChoices();
@@ -449,17 +455,119 @@ function showFeedback(text, kind){
   el.className = "fb-msg " + kind;
 }
 
+function isStandardMode(){
+  return (state.appMode || "standard") === "standard";
+}
+
+function updateHintButton(){
+  const btn = $("btn-hint");
+  if(!btn) return;
+  const show = isStandardMode();
+  btn.style.display = show ? "" : "none";
+  btn.disabled = !show || !state.current || state.current.revealed;
+}
+
+function hintItemText(item){
+  return (item && item.h) || "생활 속에서 쓰임새를 떠올려 보세요.";
+}
+
+function remainingAnswerItems(q, doneKeys){
+  const answers = new Set(q.answers || []);
+  return (q.items || []).filter(item => answers.has(item.k) && !doneKeys.has(item.k));
+}
+
+function describeHint(){
+  const cur = state.current;
+  if(!cur || !cur.q){
+    return { title:"힌트", lines:[{ text:"문제가 시작되면 힌트를 볼 수 있어요." }] };
+  }
+  const q = cur.q;
+
+  if(state.mode === "choose_matching_items"){
+    const remaining = remainingAnswerItems(q, cur.picked);
+    if(!remaining.length){
+      return { title:"힌트", lines:[{ text:"아직 고르지 않은 물건이 없어요. 잘 고르셨어요." }] };
+    }
+    return {
+      title:"물건의 쓰임새",
+      lines: remaining.map(item => ({
+        text: hintItemText(item),
+      })),
+    };
+  }
+
+  if(state.mode === "remove_mismatched_items"){
+    const remaining = remainingAnswerItems(q, cur.removed);
+    if(!remaining.length){
+      return { title:"힌트", lines:[{ text:"아직 살펴볼 물건이 없어요. 잘 찾으셨어요." }] };
+    }
+    return {
+      title:"물건의 쓰임새",
+      lines: remaining.map(item => ({
+        text: hintItemText(item),
+      })),
+    };
+  }
+
+  if(state.mode === "guess_situation"){
+    const lines = q.items.map(item => ({
+      text: hintItemText(item),
+    }));
+    return { title:"물건 단서", lines };
+  }
+
+  return { title:"힌트", lines:[{ text:"물건들을 하나씩 천천히 살펴보세요." }] };
+}
+
+function renderHintModal(){
+  const hint = describeHint();
+  const title = $("hint-title");
+  const list = $("hint-list");
+  if(title) title.textContent = hint.title || "힌트";
+  if(!list) return;
+  list.innerHTML = "";
+  (hint.lines || []).forEach(line=>{
+    const row = document.createElement("div");
+    row.className = "hint-line";
+    const text = document.createElement("span");
+    text.textContent = line.text || "";
+    row.appendChild(text);
+    list.appendChild(row);
+  });
+}
+
+function openHintModal(){
+  if(!isStandardMode() || !state.current || state.current.revealed) return;
+  renderHintModal();
+  state.hintWasPaused = !!state.paused;
+  state.paused = true;
+  $("hint-modal").classList.add("active");
+  sendGameEvent("HINT_OPENED", { mode: state.mode, question_index: state.qIndex + 1 });
+}
+
+function closeHintModal(keepPaused){
+  const modal = $("hint-modal");
+  if(modal) modal.classList.remove("active");
+  if(!keepPaused && !state.hintWasPaused){
+    state.paused = false;
+  }
+  state.hintWasPaused = false;
+}
+
 function finishQuestion(success, delay){
   const cur = state.current; const q = cur.q;
+  cur.revealed = true;
   state.responses.push((Date.now()-cur.qStart)/1000);
   if(success){ state.correct++; state.stageStats[q.stage-1].c++; }
   else { state.wrong++; state.stageStats[q.stage-1].w++; }
+  updateHintButton();
   state.advanceTimer = setTimeout(()=>{ state.qIndex++; renderQuestion(); }, delay||1200);
 }
 
 function revealAndAdvance(){
   const cur = state.current; const q = cur.q;
   cur.revealed = true;
+  updateHintButton();
   state.wrong++; state.stageStats[q.stage-1].w++;
   state.responses.push((Date.now()-cur.qStart)/1000);
 
@@ -495,6 +603,11 @@ function updateTimerDisplay(){
 function stopTimer(){ if(state.timerId){ clearInterval(state.timerId); state.timerId=null; } }
 
 /* ===== PAUSE MENU ===== */
+const _hintBtn = $("btn-hint");
+if(_hintBtn) _hintBtn.addEventListener("click", openHintModal);
+const _hintCloseBtn = $("btn-hint-close");
+if(_hintCloseBtn) _hintCloseBtn.addEventListener("click", ()=>{ closeHintModal(false); });
+
 $("btn-pause").addEventListener("click", ()=>{
   state.paused = true;
   $("pause-modal").classList.add("active");
@@ -605,7 +718,7 @@ $("post-complete-2").addEventListener("click", ()=>{
 
 function resetToStartScreen(){
   stopTimer(); clearAdvance();
-  ["reveal-modal", "pause-modal", "exit-modal", "help-modal", "countdown-modal", "mission-modal", "error-modal"].forEach(id=>{
+  ["reveal-modal", "hint-modal", "pause-modal", "exit-modal", "help-modal", "countdown-modal", "mission-modal", "error-modal"].forEach(id=>{
     const el = $(id);
     if(el) el.classList.remove("active");
   });
@@ -644,6 +757,7 @@ function returnToHub(){
 function finishGame(userExit, timeOver){
   stopTimer(); clearAdvance();
   $("reveal-modal").classList.remove("active");
+  $("hint-modal").classList.remove("active");
   $("pause-modal").classList.remove("active");
   $("exit-modal").classList.remove("active");
 
