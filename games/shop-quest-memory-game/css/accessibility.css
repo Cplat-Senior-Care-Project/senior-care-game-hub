@@ -1,3 +1,175 @@
+/* Text rendering guard for low-end devices. */
+.app,
+.app * {
+  font-synthesis: none;
+}
+
+.orientation-warning,
+.app .eyebrow,
+.app h1,
+.app h2,
+.app .game-button,
+.app .guide-text,
+.app .round-title,
+.app .round-kicker,
+.app .game-countdown-message,
+.app .game-countdown-face strong,
+.app .modal-card h2,
+.app .modal-card p,
+.app .difficulty-option,
+.app .info-label,
+.app .info-pill strong,
+.app .fruit-name,
+.app .target-fruit,
+.app .number-button,
+.app .feedback-title,
+.app .feedback-message,
+.app .feedback-bubble,
+.app .hint-message,
+.app .hint-button,
+.app .hud-hint-button,
+.app .hud-hint-button::after,
+.app .hint-button-label,
+.app .result-message,
+.app .result-content h2,
+.app .result-score,
+.app .result-detail,
+.app .error-message,
+.app .error-symbol,
+.app .condition-title-text,
+.app .condition-section-title,
+.app .condition-mood-button,
+.app .condition-sleep-row,
+.app .condition-confirm-button,
+.app .condition-skip-button,
+.app .post-condition-question-title,
+.app .post-condition-option,
+.app .setting-row strong,
+.app .setting-row small,
+.app .tutorial-card #tutorial-title,
+.app .tutorial-card #tutorial-message,
+.app .tutorial-detail,
+.app .pause-sound-button,
+.app .settings-panel-title,
+.app .memory-ribbon-text,
+.app .memory-countdown,
+.app .memory-countdown-number,
+.app .selection-instruction,
+.app .selection-progress-label,
+.app .selection-progress-count,
+.app .basket-collected {
+  font-weight: 700 !important;
+  -webkit-text-stroke: 0 !important;
+  paint-order: normal !important;
+}
+
+.app .memory-ribbon-text,
+.app .feedback-bubble,
+.app .hint-button-label {
+  text-shadow: none !important;
+}
+
+@media (hover: none) and (pointer: coarse) {
+  :root {
+    --text-stroke: 0px;
+  }
+
+  html,
+  body,
+  .app,
+  .screen,
+  .game-background,
+  img {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+
+  .app,
+  .app * {
+    font-synthesis: none;
+  }
+
+  .orientation-warning,
+  .app .eyebrow,
+  .app h1,
+  .app h2,
+  .app .game-button,
+  .app .guide-text,
+  .app .round-title,
+  .app .round-kicker,
+  .app .game-countdown-message,
+  .app .game-countdown-face strong,
+  .app .modal-card h2,
+  .app .modal-card p,
+  .app .difficulty-option,
+  .app .info-label,
+  .app .info-pill strong,
+  .app .fruit-name,
+  .app .target-fruit,
+  .app .number-button,
+  .app .feedback-title,
+  .app .feedback-message,
+  .app .feedback-bubble,
+  .app .hint-message,
+  .app .hint-button,
+  .app .hud-hint-button,
+  .app .hud-hint-button::after,
+  .app .hint-button-label,
+  .app .result-message,
+  .app .result-content h2,
+  .app .result-score,
+  .app .result-detail,
+  .app .error-message,
+  .app .error-symbol,
+  .app .condition-title-text,
+  .app .condition-section-title,
+  .app .condition-mood-button,
+  .app .condition-sleep-row,
+  .app .condition-confirm-button,
+  .app .condition-skip-button,
+  .app .post-condition-question-title,
+  .app .post-condition-option,
+  .app .setting-row strong,
+  .app .setting-row small,
+  .app .tutorial-card #tutorial-title,
+  .app .tutorial-card #tutorial-message,
+  .app .tutorial-detail,
+  .app .pause-sound-button,
+  .app .settings-panel-title,
+  .app .memory-ribbon-text,
+  .app .memory-countdown,
+  .app .memory-countdown-number,
+  .app .selection-instruction,
+  .app .selection-progress-label,
+  .app .selection-progress-count,
+  .app .basket-collected {
+    font-weight: 700 !important;
+    -webkit-text-stroke: 0 !important;
+    -webkit-text-stroke-width: 0 !important;
+    paint-order: normal !important;
+  }
+
+  img,
+  .game-background,
+  .start-title-image,
+  .fruit-image {
+    -webkit-user-drag: none;
+    user-drag: none;
+  }
+
+  .start-screen .subtitle {
+    font-weight: 700 !important;
+    -webkit-text-stroke-width: 0 !important;
+  }
+
+  .start-screen .primary-button,
+  .start-screen .primary-button > span:first-child {
+    font-weight: 700 !important;
+    -webkit-text-stroke-width: 0 !important;
+  }
+}
+
 @media (orientation: portrait) {
   .orientation-warning { display: grid; }
   .app, .game-background { filter: blur(2px); }

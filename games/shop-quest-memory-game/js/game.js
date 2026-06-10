@@ -14,9 +14,13 @@
   const FINAL_WRONG_FEEDBACK_TIME = 3000;
   const START_READY_MESSAGE_TIME = 2000;
   const START_COUNTDOWN_TIME = 3000;
-  const TRANSITION_TIME = 1300;
+  const TRANSITION_TIME = 3000;
   const AUTO_HINT_DELAY_MS = 10000;
-  const STANDARD_REVEAL_MS = 3000;
+  const STANDARD_REVEAL_MS_BY_DIFFICULTY = Object.freeze({
+    easy: 5000,
+    normal: 4000,
+    hard: 3000
+  });
   const MAX_MEMORY_ITEMS = 6;
   const RACE_POINTS = Object.freeze([16, 50, 84, 94]);
   const MEMORY_LAYOUT_FIXED_CARD_SIZE = 164;
@@ -74,22 +78,23 @@
     hard: { key: "hard", label: "어려움", memoryItemCount: 3, answerChoiceCount: 6, revealMs: 3000 }
   });
 
-  const STANDARD_MAX_ANSWER_CHOICES = 12;
+  const STANDARD_MAX_ANSWER_CHOICES = 10;
   const STANDARD_DIFFICULTY_QUESTION_PLANS = Object.freeze({
     easy: Object.freeze([
-      { through: 3, memoryItemCount: 1, answerChoiceCount: 4 },
-      { through: 7, memoryItemCount: 2, answerChoiceCount: 5 },
+      { through: 5, memoryItemCount: 1, answerChoiceCount: 4 },
+      { through: 8, memoryItemCount: 2, answerChoiceCount: 5 },
       { through: 10, memoryItemCount: 3, answerChoiceCount: 6 }
     ]),
     normal: Object.freeze([
-      { through: 3, memoryItemCount: 4, answerChoiceCount: 7 },
-      { through: 7, memoryItemCount: 5, answerChoiceCount: 9 },
-      { through: 10, memoryItemCount: 6, answerChoiceCount: 10 }
+      { through: 3, memoryItemCount: 2, answerChoiceCount: 5 },
+      { through: 7, memoryItemCount: 3, answerChoiceCount: 7 },
+      { through: 10, memoryItemCount: 4, answerChoiceCount: 8 }
     ]),
     hard: Object.freeze([
-      { through: 3, memoryItemCount: 5, answerChoiceCount: 9 },
-      { through: 6, memoryItemCount: 6, answerChoiceCount: 11 },
-      { through: 10, memoryItemCount: 6, answerChoiceCount: 12 }
+      { through: 3, memoryItemCount: 3, answerChoiceCount: 7 },
+      { through: 6, memoryItemCount: 4, answerChoiceCount: 8 },
+      { through: 8, memoryItemCount: 5, answerChoiceCount: 9 },
+      { through: 10, memoryItemCount: 6, answerChoiceCount: 10 }
     ])
   });
 
@@ -440,6 +445,7 @@
   function bridge() { return window.ShopQuestMemoryGameAppBridge || null; }
   function sendBridge(methods, payload) { const b = bridge(); if (!b) return false; return methods.some((m) => typeof b[m] === "function" && (b[m](payload), true)); }
   function isCareMode() { return runtimeConfig && (runtimeConfig.mode === "care" || runtimeConfig.mode === "ai_assisted"); }
+  function usesSoftFeedback() { return runtimeConfig && runtimeConfig.softFeedback === true; }
   function getTotalQuestions() { return Math.max(1, runtimeConfig ? runtimeConfig.totalQuestions : 10); }
   function escapeHtml(value) { return String(value).replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;"); }
   function findItem(id) { return SHOPPING_ITEMS.find((item) => item.id === id) || null; }
@@ -466,14 +472,24 @@
     state.settings.voiceGuideEnabled = runtimeConfig.voiceGuideEnabled !== false;
     state.settings.useDrag = runtimeConfig.useDrag !== false && !isCareMode();
     const ui = runtimeConfig.ui || {};
-    document.documentElement.dataset.mode = runtimeConfig.mode || "standard";
+    const mode = runtimeConfig.mode || "standard";
+    const showScore = ui.showScore !== false;
+    const resultStyle = !showScore || mode === "reminder" ? "care" : "standard";
+    document.documentElement.dataset.mode = mode;
+    document.documentElement.dataset.difficultyKey = state.difficultyKey || runtimeConfig.difficultyKey || "easy";
+    document.documentElement.dataset.resultStyle = resultStyle;
     document.documentElement.dataset.showTimer = ui.showTimer === false ? "false" : "true";
     document.documentElement.dataset.showProgress = ui.showProgress === false ? "false" : "true";
-    document.documentElement.dataset.showScore = ui.showScore === false ? "false" : "true";
+    document.documentElement.dataset.showScore = showScore ? "true" : "false";
     document.documentElement.dataset.showSettings = ui.showSettings === false ? "false" : "true";
     document.documentElement.dataset.showTutorial = ui.showTutorial === false ? "false" : "true";
     document.documentElement.dataset.showConditionCheck = ui.showConditionCheck === false ? "false" : "true";
     document.documentElement.dataset.showFinishCheck = ui.showFinishCheck === false ? "false" : "true";
+    if (els.app) {
+      els.app.dataset.mode = mode;
+      els.app.dataset.resultStyle = resultStyle;
+      els.app.dataset.showScore = showScore ? "true" : "false";
+    }
     if (els.backgroundSoundToggle) els.backgroundSoundToggle.checked = state.settings.soundEnabled;
     if (els.soundToggle) els.soundToggle.checked = state.settings.soundEnabled;
     if (els.voiceGuideToggle) els.voiceGuideToggle.checked = state.settings.voiceGuideEnabled;
@@ -499,20 +515,16 @@
         merged.memoryItemCount = plan.memoryItemCount;
         merged.answerChoiceCount = plan.answerChoiceCount;
       }
-      merged.revealMs = STANDARD_REVEAL_MS;
+      merged.revealMs = STANDARD_REVEAL_MS_BY_DIFFICULTY[key] || STANDARD_REVEAL_MS_BY_DIFFICULTY.easy;
     }
-    if (runtimeConfig.mode === "care") {
+    if (isCareMode()) {
       const plan = getCareDifficultyQuestionPlan(key, state.questionIndex);
       merged.memoryItemCount = plan.memoryItemCount;
       merged.answerChoiceCount = plan.answerChoiceCount;
       merged.revealMs = CARE_REVEAL_MS;
-    } else if (isCareMode()) {
-      merged.memoryItemCount = 1;
-      merged.answerChoiceCount = 2;
-      merged.revealMs = Math.max(merged.revealMs, 4500);
     }
     const configuredMaxMemoryItems = runtimeConfig.maxItemsToRemember || MAX_MEMORY_ITEMS;
-    const maxMemoryItems = shouldUseStandardDifficultyPlan() || runtimeConfig.mode === "care"
+    const maxMemoryItems = shouldUseStandardDifficultyPlan() || isCareMode()
       ? MAX_MEMORY_ITEMS
       : Math.min(configuredMaxMemoryItems, MAX_MEMORY_ITEMS);
     const maxAnswerChoices = shouldUseStandardDifficultyPlan() ? Math.min(STANDARD_MAX_ANSWER_CHOICES, SHOPPING_ITEMS.length) : SHOPPING_ITEMS.length;
@@ -783,7 +795,7 @@
     document.body.dataset.gamePhase = "memory";
     updateTopUi();
     const targets = state.question.targetItems;
-    const title = "기억할 물건을 잘 보세요!";
+    const title = usesSoftFeedback() ? `상품 ${targets.length}개를 사고 싶어요!` : "기억할 물건을 잘 보세요!";
     const cards = targets.map((item) => `<div class="fruit-card" aria-label="${escapeHtml(item.name)}"><img class="fruit-image" src="${item.image}" alt="" draggable="false" loading="eager" decoding="async"></div>`).join("");
     els.playArea.innerHTML = `<section class="memory-view">${renderMemoryRibbon(title)}<div class="memory-items-panel" data-memory-count="${targets.length}"><div class="fruit-grid ${getMemoryGridClass(targets.length)} is-auto-fit" style="--memory-count:${targets.length}; --memory-columns:${targets.length}">${cards}</div></div><div class="memory-progress" role="progressbar" aria-label="기억 시간" aria-valuemin="0" aria-valuemax="${state.question.revealMs}" aria-valuenow="${state.question.revealMs}"><span class="memory-progress-fill"></span></div></section>`;
     animateMemoryProgress(state.question.revealMs);
@@ -861,7 +873,11 @@
     document.body.dataset.gamePhase = "transition";
     updateTopUi();
     const itemName = state.question.targetItems.length === 1 ? state.question.targetItems[0].name : "물건";
-    const title = isCareMode() ? `좋아요. 이제 ${itemName}을 찾아볼까요?` : "이제 장바구니에 담아볼까요?";
+    const title = usesSoftFeedback() ? "좋아요. 장바구니에 하나씩 담아볼까요?" : isCareMode() ? `좋아요. 이제 ${itemName}을 찾아볼까요?` : "이제 장바구니에 담아볼까요?";
+    if (usesSoftFeedback()) {
+      els.playArea.innerHTML = `<section class="shop-round transition-message-only"><div class="transition-soft-message"><p>좋아요.<br>장바구니에 하나씩 담아볼까요?</p></div></section>`;
+      return;
+    }
     els.playArea.innerHTML = `<section class="shop-round"><div class="transition-card"><div class="transition-icon" aria-hidden="true">🧺</div><h2 class="round-title">${escapeHtml(title)}</h2><p class="round-kicker">양쪽에서 같은 물건을 찾아주세요</p></div></section>`;
   }
   function renderBasketSlots(question) {
@@ -886,7 +902,7 @@
     const question = state.question;
     const remainingTargetIds = new Set(question.targetItems.map((item) => item.id));
     state.selectedIds.forEach((id) => remainingTargetIds.delete(id));
-    const prompt = "장바구니에 담아주세요!";
+    const prompt = usesSoftFeedback() ? "무엇을 사야 할까요?" : "장바구니에 담아주세요!";
     const renderChoiceCards = (items) => items.map((item) => {
       const selected = state.selectedIds.includes(item.id);
       const wrong = state.wrongSelectedIds.includes(item.id);
@@ -896,8 +912,16 @@
     els.playArea.innerHTML = `<section class="shop-round question-round"><div class="question-board"><div class="choice-layout"><section class="shelf-zone" aria-label="물건 선택"><img class="shelf-image" src="assets/images/stand2.webp" alt="" draggable="false" loading="eager" decoding="async"><div class="choice-grid" data-choice-count="${question.choiceItems.length}">${renderChoiceCards(question.choiceItems)}</div><div class="basket-zone" data-basket-drop-zone="true"><h2 class="round-title basket-prompt">${escapeHtml(prompt)}</h2><div class="basket-image-wrap ${state.collectedItems.length ? "is-bounce" : ""}"><div class="basket-ground-shadow" aria-hidden="true"></div><img class="basket-image" src="assets/images/basket2.webp" alt="장바구니" draggable="false" loading="eager" decoding="async"><div class="basket-collected" style="--basket-slot-count: ${question.targetItems.length}; --basket-slot-box-width: ${getBasketSlotBoxWidth(question.targetItems.length)}px;">${renderBasketSlots(question)}</div></div></div></section></div></div></section>`;
     const questionBoard = els.playArea.querySelector(".question-board");
     if (questionBoard) {
-      questionBoard.insertAdjacentHTML("afterbegin", `<div class="selection-instruction">${renderMemoryRibbon("장바구니에 담아주세요!")}</div><div class="selection-progress" role="progressbar" aria-label="&#xB0A8;&#xC740; &#xAC1C;&#xC218;" aria-valuemin="0" aria-valuemax="${question.targetItems.length}" aria-valuenow="0"><div class="selection-progress-track"><span class="selection-progress-fill"></span></div><span class="selection-progress-label">&#xB0A8;&#xC740; &#xAC1C;&#xC218;</span><strong class="selection-progress-count">0/${question.targetItems.length}</strong></div>`);
-      if (els.hintButton) questionBoard.appendChild(els.hintButton);
+      questionBoard.insertAdjacentHTML("afterbegin", `<div class="selection-instruction">${renderMemoryRibbon(prompt)}</div><div class="selection-progress" role="progressbar" aria-label="&#xB0A8;&#xC740; &#xAC1C;&#xC218;" aria-valuemin="0" aria-valuemax="${question.targetItems.length}" aria-valuenow="0"><div class="selection-progress-track"><span class="selection-progress-fill"></span></div><span class="selection-progress-label">&#xB0A8;&#xC740; &#xAC1C;&#xC218;</span><strong class="selection-progress-count">0/${question.targetItems.length}</strong></div>`);
+      if (els.hintButton) {
+        const infoBar = document.querySelector(".game-header .info-bar");
+        const missionPill = infoBar && infoBar.querySelector(".hud-mission-pill");
+        if (isCareMode() && infoBar) {
+          infoBar.insertBefore(els.hintButton, missionPill || null);
+        } else {
+          questionBoard.appendChild(els.hintButton);
+        }
+      }
     }
     updateSelectionProgress();
     updateHintButtonState();
@@ -968,11 +992,11 @@
 
     const title = document.createElement("p");
     title.className = "feedback-title";
-    title.textContent = "괜찮아요!";
+    title.textContent = usesSoftFeedback() ? "조금 헷갈릴 수 있어요." : "괜찮아요!";
 
     const message = document.createElement("p");
     message.className = "feedback-message";
-    message.textContent = "다음 문제로 가볼까요?";
+    message.textContent = usesSoftFeedback() ? "괜찮아요. 천천히 다시 같이 가볼까요?" : "다음 문제로 가볼까요?";
 
     view.append(symbol, title, message);
     els.playArea.appendChild(view);
@@ -991,11 +1015,11 @@
 
     const title = document.createElement("p");
     title.className = "feedback-title";
-    title.textContent = "잘 기억하셨어요!";
+    title.textContent = usesSoftFeedback() ? "좋습니다. 잘 보셨어요." : "잘 기억하셨어요!";
 
     const message = document.createElement("p");
     message.className = "feedback-message";
-    message.textContent = "좋습니다. 다음 문제로 넘어갈게요.";
+    message.textContent = usesSoftFeedback() ? "하나만 더 해볼까요? 힘드시면 쉬어도 괜찮아요." : "좋습니다. 다음 문제로 넘어갈게요.";
 
     view.append(symbol, title, message);
     els.playArea.appendChild(view);
@@ -1297,7 +1321,7 @@
       schedulePhaseTimer(() => completeQuestion(false), FINAL_WRONG_FEEDBACK_TIME);
       return;
     }
-    showFeedback("다시 한 번 생각해보세요!", "soft", RETRY_FEEDBACK_TIME);
+    showFeedback(usesSoftFeedback() ? "😊 괜찮아요. 천천히 다시 골라볼까요?" : "다시 한 번 생각해보세요!", "soft", RETRY_FEEDBACK_TIME);
   }
 
   function completeQuestion(isCorrect) {
@@ -1332,11 +1356,14 @@
     const remainingItems = getRemainingTargetItems(state.question);
     if (!remainingItems.length) return;
     const currentHintLevel = getQuestionHintLevel(state.question);
-    if (currentHintLevel >= 2) return;
-    const nextHintLevel = currentHintLevel + 1;
+    const repeatFinalCareHint = isCareMode() && currentHintLevel >= 2;
+    if (currentHintLevel >= 2 && !repeatFinalCareHint) return;
+    const nextHintLevel = repeatFinalCareHint ? 2 : currentHintLevel + 1;
     state.question.hintLevel = nextHintLevel;
     state.question.hintUsed = true;
-    state.hintCount += 1;
+    if (!repeatFinalCareHint) {
+      state.hintCount += 1;
+    }
     updateHintButtonState();
 
     if (nextHintLevel === 1) {
@@ -1517,9 +1544,17 @@
     const total = getTotalQuestions();
     const completed = state.status === "completed";
     const rate = getResultRate(total);
-    if (els.resultEmoji) els.resultEmoji.textContent = completed ? "🤗" : "🙂";
-    els.resultTitle.textContent = "오늘의 기억 활동";
-    els.resultMessage.textContent = completed ? "천천히 집중해주신 것만으로도 참 좋습니다." : "잠시 멈춰도 괜찮아요. 다음에 다시 천천히 이어가면 됩니다.";
+    const isCareResult = runtimeConfig && (runtimeConfig.mode === "reminder" || (runtimeConfig.ui && runtimeConfig.ui.showScore === false));
+    if (isCareResult) {
+      const totalAnswered = state.questionLogs.length;
+      if (els.resultEmoji) els.resultEmoji.textContent = "🤗";
+      els.resultTitle.textContent = totalAnswered > 0 ? "수고 많으셨습니다." : "괜찮습니다.";
+      els.resultMessage.textContent = totalAnswered > 0 ? "오늘도 차분히 집중해 주셨어요." : "편안한 때에 다시 이어가면 됩니다.";
+    } else {
+      if (els.resultEmoji) els.resultEmoji.textContent = completed ? "🤗" : "🙂";
+      els.resultTitle.textContent = "오늘의 기억 활동";
+      els.resultMessage.textContent = completed ? "천천히 집중해주신 것만으로도 참 좋습니다." : "잠시 멈춰도 괜찮아요. 다음에 다시 천천히 이어가면 됩니다.";
+    }
     els.resultCorrect.textContent = String(state.correctCount);
     els.resultTotal.textContent = String(total);
     els.resultHintCount.textContent = `${state.hintCount}회`;

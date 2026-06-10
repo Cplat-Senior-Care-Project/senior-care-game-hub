@@ -1,14 +1,14 @@
-html[data-mode="care"] .start-actions {
+html:is([data-mode="care"], [data-mode="ai_assisted"]) .start-actions {
   grid-template-columns: var(--start-side-width-base) auto var(--start-side-width-base);
 }
 
-html[data-mode="care"] #settings-button {
+html:is([data-mode="care"], [data-mode="ai_assisted"]) #settings-button {
   grid-column: 1;
   grid-row: 1;
 }
 
-html[data-mode="care"] .start-screen #settings-button .settings-gear,
-html[data-mode="care"] .start-screen #settings-button span:last-child {
+html:is([data-mode="care"], [data-mode="ai_assisted"]) .start-screen #settings-button .settings-gear,
+html:is([data-mode="care"], [data-mode="ai_assisted"]) .start-screen #settings-button span:last-child {
   top: 0;
   display: inline-grid;
   place-items: center;
@@ -18,19 +18,19 @@ html[data-mode="care"] .start-screen #settings-button span:last-child {
   transform: none;
 }
 
-html[data-mode="care"] #start-button {
+html:is([data-mode="care"], [data-mode="ai_assisted"]) #start-button {
   grid-column: 2;
   grid-row: 1;
 }
 
-html[data-mode="care"] #start-button,
-html[data-mode="care"] #start-button > span:first-child {
+html:is([data-mode="care"], [data-mode="ai_assisted"]) #start-button,
+html:is([data-mode="care"], [data-mode="ai_assisted"]) #start-button > span:first-child {
   font-weight: 1000;
   -webkit-text-stroke: 0;
   paint-order: normal;
 }
 
-html[data-mode="care"] .start-screen .start-exit-button {
+html:is([data-mode="care"], [data-mode="ai_assisted"]) .start-screen .start-exit-button {
   display: inline-flex;
   grid-column: 3;
   grid-row: 1;
@@ -59,8 +59,8 @@ html[data-mode="care"] .start-screen .start-exit-button {
     0 0 4px rgba(96, 28, 22, 0.34);
 }
 
-html[data-mode="care"] .start-screen .start-exit-button:active,
-html[data-mode="care"] .start-screen .start-exit-button.is-pressed {
+html:is([data-mode="care"], [data-mode="ai_assisted"]) .start-screen .start-exit-button:active,
+html:is([data-mode="care"], [data-mode="ai_assisted"]) .start-screen .start-exit-button.is-pressed {
   transform: translateY(3px) scale(0.98);
   box-shadow: 0 3px 8px rgba(116, 36, 30, 0.16),
     0 0 0 1px #8f3028,
@@ -69,37 +69,323 @@ html[data-mode="care"] .start-screen .start-exit-button.is-pressed {
     inset 0 -3px 0 rgba(104, 24, 22, 0.24);
 }
 
-html[data-mode="care"] #settings-modal .settings-card {
+html:is([data-mode="care"], [data-mode="ai_assisted"]) #settings-modal .settings-card {
   width: min(620px, calc(100% - 24px));
 }
 
-html[data-mode="care"] #settings-modal .settings-layout {
+html:is([data-mode="care"], [data-mode="ai_assisted"]) #settings-modal .settings-layout {
   grid-template-columns: minmax(0, 1fr);
 }
 
-html[data-mode="care"] #settings-modal .settings-left-panel {
+html:is([data-mode="care"], [data-mode="ai_assisted"]) #settings-modal .settings-left-panel {
   display: none;
 }
 
-html[data-mode="care"] #settings-modal .settings-sound-panel {
+html:is([data-mode="care"], [data-mode="ai_assisted"]) #settings-modal .settings-sound-panel {
   width: 100%;
 }
 
-html[data-mode="care"] body[data-screen="game"] .info-bar {
-  grid-template-columns: repeat(2, max-content);
+html:is([data-mode="care"], [data-mode="ai_assisted"]) body[data-screen="game"] .info-bar {
+  grid-template-columns: 1fr max-content 1fr;
+  align-items: stretch;
+  column-gap: 56px;
+  width: min(1440px, 100%);
+  margin-inline: auto;
 }
 
-html[data-mode="care"] body[data-screen="game"] #pause-button {
-  order: 2;
-}
-
-html[data-mode="care"] body[data-screen="game"] .hud-mission-pill {
+html:is([data-mode="care"], [data-mode="ai_assisted"]) body[data-screen="game"] #hint-button {
+  grid-column: 1;
   order: 1;
+  justify-self: end;
 }
 
-html[data-mode="care"] .choice-layout { grid-template-columns: minmax(0, 1fr) 300px; }
-html[data-mode="care"] .choice-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px; }
-html[data-mode="care"] .choice-card { min-height: 180px; }
-html[data-mode="care"] .choice-card img { width: 118px; height: 118px; }
-html[data-mode="care"] .choice-card strong { font-size: 34px; }
-html[data-mode="care"] .round-title { font-size: 54px; }
+html:is([data-mode="care"], [data-mode="ai_assisted"]) body[data-screen="game"] #pause-button {
+  grid-column: 3;
+  order: 3;
+  justify-self: start;
+}
+
+html:is([data-mode="care"], [data-mode="ai_assisted"]) body[data-screen="game"] .hud-mission-pill {
+  grid-column: 2;
+  order: 2;
+  justify-self: center;
+}
+
+html:is([data-mode="care"], [data-mode="ai_assisted"]) .choice-layout { grid-template-columns: minmax(0, 1fr) 300px; }
+html:is([data-mode="care"], [data-mode="ai_assisted"]) .choice-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px; }
+html:is([data-mode="care"], [data-mode="ai_assisted"]) .choice-card { min-height: 180px; }
+html:is([data-mode="care"], [data-mode="ai_assisted"]) .choice-card img { width: 118px; height: 118px; }
+html:is([data-mode="care"], [data-mode="ai_assisted"]) .choice-card strong { font-size: 34px; }
+html:is([data-mode="care"], [data-mode="ai_assisted"]) .round-title { font-size: 54px; }
+
+html:is([data-mode="care"], [data-mode="ai_assisted"]) #play-area .question-round .selection-instruction {
+  top: 48px;
+}
+
+html:is([data-mode="care"], [data-mode="ai_assisted"])[data-difficulty-key="hard"] #play-area .question-round .selection-instruction {
+  top: 12px;
+}
+
+html:is([data-mode="care"], [data-mode="ai_assisted"]) #play-area .feedback-bubble.hint {
+  top: 36px;
+}
+
+html:is([data-mode="care"], [data-mode="ai_assisted"]) #play-area .feedback-bubble.soft {
+  top: 42px;
+  height: 118px;
+}
+
+html:is([data-mode="care"], [data-mode="ai_assisted"])[data-difficulty-key="hard"] #play-area .feedback-bubble.hint {
+  top: 0;
+}
+
+html:is([data-mode="care"], [data-mode="ai_assisted"]) #play-area .memory-view {
+  --memory-view-lift: -20px;
+}
+
+html:is([data-mode="care"], [data-mode="ai_assisted"]) body[data-screen="game"] .hud-mission-pill,
+html:is([data-mode="care"], [data-mode="ai_assisted"]) body[data-screen="game"] #pause-button.icon-button,
+html:is([data-mode="care"], [data-mode="ai_assisted"]) body[data-screen="game"] .game-header .hud-hint-button {
+  min-height: clamp(72px, 76px, 98px);
+  padding: clamp(12px, 14px, 20px) clamp(12px, 18px, 22px);
+  border-radius: clamp(24px, 32px, 42px);
+}
+
+html:is([data-mode="care"], [data-mode="ai_assisted"]) body[data-screen="game"] .hud-mission-pill #difficulty-label {
+  font-size: clamp(28px, 35px, 40px);
+}
+
+html:is([data-mode="care"], [data-mode="ai_assisted"]) body[data-screen="game"] #pause-button.icon-button > span:last-child {
+  font-size: clamp(30px, 36px, 42px);
+}
+
+html:is([data-mode="care"], [data-mode="ai_assisted"]) body[data-screen="game"] .game-header .hud-hint-button {
+  position: relative;
+  left: auto;
+  right: auto;
+  top: auto;
+  z-index: auto;
+  display: inline-flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: fit-content;
+  min-width: 0;
+  height: auto;
+  margin: 0;
+  border: 1px solid #0f6fa9;
+  color: #fffdf4;
+  background: linear-gradient(180deg, #69c8ff 0%, #2294d7 72%, #1573b7 100%);
+  box-shadow:
+    0 clamp(5px, 7.2px, 9px) clamp(12px, 15.84px, 22px) rgba(34, 73, 109, 0.24),
+    0 0 0 1px #0f6fa9,
+    inset 0 0 0 1px #0f6fa9,
+    inset 0 clamp(2px, 3.24px, 4px) 0 rgba(255, 255, 244, 0.42),
+    inset 0 clamp(-6px, -7.2px, -4px) 0 rgba(7, 74, 132, 0.28);
+  font-size: clamp(30px, 36px, 42px);
+  font-weight: 1000;
+  line-height: 1;
+  white-space: nowrap;
+  pointer-events: auto;
+  transform: none;
+}
+
+html:is([data-mode="care"], [data-mode="ai_assisted"]) body[data-screen="game"] .game-header .hud-hint-button .hint-button-icon {
+  display: inline-grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  font-size: 42px;
+  line-height: 1;
+  text-shadow: 0 2px 1px rgba(15, 84, 136, 0.55);
+}
+
+html:is([data-mode="care"], [data-mode="ai_assisted"]) body[data-screen="game"] .game-header .hud-hint-button .hint-button-label {
+  color: #fffdf4;
+  -webkit-text-stroke: 1px rgba(15, 84, 136, 0.72);
+  paint-order: stroke fill;
+  text-shadow: 0 2px 0 rgba(15, 84, 136, 0.55), 0 0 4px rgba(15, 84, 136, 0.36);
+}
+
+html:is([data-mode="care"], [data-mode="ai_assisted"]) body[data-screen="game"] .game-header .hud-hint-button::after {
+  content: none;
+  display: none;
+}
+
+html:is([data-mode="care"], [data-mode="ai_assisted"]) #play-area .question-round .shelf-image,
+html:is([data-mode="care"], [data-mode="ai_assisted"]) #play-area .question-round .choice-grid {
+  transform: translateY(calc(var(--shelf-visual-offset-y, 0) + 26px)) scale(0.88);
+  transform-origin: center center;
+}
+
+html:is([data-mode="care"], [data-mode="ai_assisted"])[data-difficulty-key="easy"] #play-area .question-round .shelf-zone::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: block;
+  background: url("../../assets/images/care_easy_stand.webp") center / 100% 100% no-repeat;
+  pointer-events: none;
+  transform: translateY(calc(var(--shelf-visual-offset-y, 0) + 26px)) scale(0.88);
+  transform-origin: center center;
+}
+
+html:is([data-mode="care"], [data-mode="ai_assisted"])[data-difficulty-key="normal"] #play-area .question-round .shelf-zone::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: block;
+  background: url("../../assets/images/care_normal_stand.webp") center / 100% 100% no-repeat;
+  pointer-events: none;
+  transform: translateY(calc(var(--shelf-visual-offset-y, 0) + 26px)) scaleX(1) scaleY(0.98);
+  transform-origin: center center;
+}
+
+html:is([data-mode="care"], [data-mode="ai_assisted"])[data-difficulty-key="normal"] #play-area .question-round .choice-grid {
+  transform: translateY(calc(var(--shelf-visual-offset-y, 0) + 26px)) scaleX(1) scaleY(0.98);
+  transform-origin: center center;
+}
+
+html:is([data-mode="care"], [data-mode="ai_assisted"])[data-difficulty-key="hard"] #play-area .question-round .shelf-zone::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: block;
+  background: url("../../assets/images/care_hard_stand.webp") center / 100% 100% no-repeat;
+  pointer-events: none;
+  transform: translateY(calc(var(--shelf-visual-offset-y, 0) + 6px)) scale(0.81);
+  transform-origin: center center;
+}
+
+html:is([data-mode="care"], [data-mode="ai_assisted"])[data-difficulty-key="hard"] #play-area .question-round .choice-grid {
+  transform: translateY(calc(var(--shelf-visual-offset-y, 0) + 6px)) scale(0.81);
+  transform-origin: center center;
+}
+
+html:is([data-mode="care"], [data-mode="ai_assisted"])[data-difficulty-key="easy"] #play-area .question-round .shelf-image,
+html:is([data-mode="care"], [data-mode="ai_assisted"])[data-difficulty-key="normal"] #play-area .question-round .shelf-image,
+html:is([data-mode="care"], [data-mode="ai_assisted"])[data-difficulty-key="hard"] #play-area .question-round .shelf-image {
+  opacity: 0;
+}
+
+html:is([data-mode="care"], [data-mode="ai_assisted"])[data-difficulty-key="easy"] #play-area .question-round .choice-grid[data-choice-count="2"] .choice-card {
+  width: 34%;
+  height: 64%;
+}
+
+html:is([data-mode="care"], [data-mode="ai_assisted"])[data-difficulty-key="easy"] #play-area .question-round .choice-grid[data-choice-count="2"] .choice-card:nth-child(1) {
+  --slot-x: 26%;
+  --slot-y: 43%;
+}
+
+html:is([data-mode="care"], [data-mode="ai_assisted"])[data-difficulty-key="easy"] #play-area .question-round .choice-grid[data-choice-count="2"] .choice-card:nth-child(2) {
+  --slot-x: 74%;
+  --slot-y: 43%;
+}
+
+html:is([data-mode="care"], [data-mode="ai_assisted"])[data-difficulty-key="normal"] #play-area .question-round .choice-grid[data-choice-count="4"] .choice-card {
+  width: 22%;
+  height: 52%;
+}
+
+html:is([data-mode="care"], [data-mode="ai_assisted"])[data-difficulty-key="normal"] #play-area .question-round .choice-grid[data-choice-count="4"] .choice-card:nth-child(1) {
+  --slot-x: 14.1%;
+  --slot-y: 43.5%;
+}
+
+html:is([data-mode="care"], [data-mode="ai_assisted"])[data-difficulty-key="normal"] #play-area .question-round .choice-grid[data-choice-count="4"] .choice-card:nth-child(2) {
+  --slot-x: 38.5%;
+  --slot-y: 43.5%;
+}
+
+html:is([data-mode="care"], [data-mode="ai_assisted"])[data-difficulty-key="normal"] #play-area .question-round .choice-grid[data-choice-count="4"] .choice-card:nth-child(3) {
+  --slot-x: 61.5%;
+  --slot-y: 43.5%;
+}
+
+html:is([data-mode="care"], [data-mode="ai_assisted"])[data-difficulty-key="normal"] #play-area .question-round .choice-grid[data-choice-count="4"] .choice-card:nth-child(4) {
+  --slot-x: 85.9%;
+  --slot-y: 43.5%;
+}
+
+html:is([data-mode="care"], [data-mode="ai_assisted"])[data-difficulty-key="hard"] #play-area .question-round .choice-grid[data-choice-count="6"] .choice-card {
+  width: 25%;
+  height: 34%;
+}
+
+html:is([data-mode="care"], [data-mode="ai_assisted"])[data-difficulty-key="hard"] #play-area .question-round .choice-grid[data-choice-count="6"] .choice-card:nth-child(1) {
+  --slot-x: 18.5%;
+  --slot-y: 24.5%;
+}
+
+html:is([data-mode="care"], [data-mode="ai_assisted"])[data-difficulty-key="hard"] #play-area .question-round .choice-grid[data-choice-count="6"] .choice-card:nth-child(2) {
+  --slot-x: 50%;
+  --slot-y: 24.5%;
+}
+
+html:is([data-mode="care"], [data-mode="ai_assisted"])[data-difficulty-key="hard"] #play-area .question-round .choice-grid[data-choice-count="6"] .choice-card:nth-child(3) {
+  --slot-x: 81.5%;
+  --slot-y: 24.5%;
+}
+
+html:is([data-mode="care"], [data-mode="ai_assisted"])[data-difficulty-key="hard"] #play-area .question-round .choice-grid[data-choice-count="6"] .choice-card:nth-child(4) {
+  --slot-x: 18.5%;
+  --slot-y: 68%;
+}
+
+html:is([data-mode="care"], [data-mode="ai_assisted"])[data-difficulty-key="hard"] #play-area .question-round .choice-grid[data-choice-count="6"] .choice-card:nth-child(5) {
+  --slot-x: 50%;
+  --slot-y: 68%;
+}
+
+html:is([data-mode="care"], [data-mode="ai_assisted"])[data-difficulty-key="hard"] #play-area .question-round .choice-grid[data-choice-count="6"] .choice-card:nth-child(6) {
+  --slot-x: 81.5%;
+  --slot-y: 68%;
+}
+
+html:is([data-mode="care"], [data-mode="ai_assisted"])[data-difficulty-key="normal"] #play-area .memory-view .memory-items-panel[data-memory-count="2"] .fruit-grid {
+  --fruit-card-size: 164px !important;
+  --fruit-grid-gap: 64px !important;
+}
+
+html:is([data-mode="care"], [data-mode="ai_assisted"])[data-difficulty-key="normal"] #play-area .memory-view .memory-items-panel[data-memory-count="2"] .fruit-image {
+  width: 108%;
+  max-width: 108%;
+  max-height: 96%;
+  transform: scale(1.42);
+  transform-origin: center center;
+}
+
+html:is([data-mode="care"], [data-mode="ai_assisted"])[data-difficulty-key="normal"] #play-area .memory-view .memory-items-panel[data-memory-count="2"] .fruit-card::after {
+  left: 12%;
+  right: 12%;
+  bottom: 3%;
+  height: 15%;
+  transform: scaleX(1.08) scaleY(0.68);
+}
+
+html:is([data-mode="care"], [data-mode="ai_assisted"])[data-difficulty-key="hard"] #play-area .memory-view .memory-items-panel:is([data-memory-count="3"], [data-memory-count="4"]) .fruit-grid {
+  --fruit-card-size: 164px !important;
+  --fruit-grid-gap: 76px !important;
+}
+
+html:is([data-mode="care"], [data-mode="ai_assisted"])[data-difficulty-key="hard"] #play-area .memory-view .memory-items-panel:is([data-memory-count="3"], [data-memory-count="4"]) .fruit-image {
+  width: 108%;
+  max-width: 108%;
+  max-height: 96%;
+  transform: scale(1.42);
+  transform-origin: center center;
+}
+
+html:is([data-mode="care"], [data-mode="ai_assisted"])[data-difficulty-key="easy"] #play-area .memory-view .memory-items-panel[data-memory-count="1"] .fruit-image {
+  transform: scale(1.42);
+  transform-origin: center center;
+}
+

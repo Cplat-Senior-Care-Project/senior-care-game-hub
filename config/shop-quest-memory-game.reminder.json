@@ -1,26 +1,25 @@
-{
-  "mode": "reminder",
-  "difficulty": "easy",
-  "difficultyKey": "easy",
-  "config": {
-    "show_timer": true,
-    "show_progress": true,
-    "show_score": true,
-    "show_difficulty_select": false,
-    "show_settings": true,
-    "show_how_to_play": true,
-    "show_condition_check": false,
-    "show_finish_check": true,
-    "duration_seconds": 120,
-    "reveal_ms": 3000,
-    "question_count": 10,
-    "max_items_to_remember": 6,
-    "use_drag": true,
-    "auto_add_to_cart": true,
-    "hint_enabled": true,
-    "auto_hint_enabled": false,
-    "soft_feedback": false,
-    "voice_guide_enabled": true,
-    "result_log_level": "detailed"
-  }
+﻿{
+    "mode":  "reminder",
+    "difficulty":  "easy",
+    "difficultyKey":  "easy",
+    "config":  {
+                   "show_timer":  true,
+                   "show_progress":  true,
+                   "show_score":  true,
+                   "show_difficulty_select":  false,
+                   "show_settings":  true,
+                   "show_how_to_play":  true,
+                   "show_condition_check":  false,
+                   "show_finish_check":  true,
+                   "duration_seconds":  120,
+                   "question_count":  10,
+                   "max_items_to_remember":  6,
+                   "use_drag":  false,
+                   "auto_add_to_cart":  true,
+                   "hint_enabled":  true,
+                   "auto_hint_enabled":  false,
+                   "soft_feedback":  false,
+                   "voice_guide_enabled":  true,
+                   "result_log_level":  "detailed"
+               }
 }

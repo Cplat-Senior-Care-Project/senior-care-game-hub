@@ -12,7 +12,6 @@
     "show_condition_check": false,
     "show_finish_check": false,
     "duration_seconds": 90,
-    "reveal_ms": 5000,
     "question_count": 5,
     "memory_item_count": 1,
     "choice_count": 2,
