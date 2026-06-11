@@ -16,7 +16,7 @@ const state = {
   current:null,
   endedByUser:false, timeOver:false,
   timerId:null, timerLeft:0, paused:false,
-  advanceTimer:null,
+  advanceTimer:null, autoHintTimer:null,
   scoreScreenEnabled:true,
   lastResult:null,
 };
@@ -44,12 +44,40 @@ function refreshScoreScreenToggle(){
     btn.classList.toggle("on", on);
     btn.setAttribute("aria-pressed", on ? "true" : "false");
     const t = btn.querySelector(".txt");
-    if(t) t.textContent = on ? "On" : "Off";
+    if(t) t.textContent = on ? "켜짐" : "꺼짐";
   });
 }
 
 function shouldShowScoreScreen(){
   return (state.appMode || "standard") === "standard" && state.scoreScreenEnabled !== false;
+}
+
+const SCREEN_VOICE = {
+  "screen-condition": "preGameCondition",
+  "screen-difficulty": "chooseDifficulty",
+  "screen-result": "wellDone",
+  "screen-score": "scoreScreen",
+  "screen-post-check-1": "postCheckStatus",
+  "screen-post-check-2": "postCheckMore",
+};
+const SCREEN_BGM = {
+  "screen-condition": "pregame",
+  "screen-start": "pregame",
+  "screen-difficulty": "pregame",
+  "screen-play": "gameplay",
+};
+const MISSION_INTRO_VOICE = {
+  choose_matching_items: "chooseMatchingIntro",
+  remove_mismatched_items: "removeMismatchIntro",
+  guess_situation: "guessSituationIntro",
+};
+const QUESTION_PROMPT_VOICE = {
+  choose_matching_items: "chooseMatchingPrompt",
+  remove_mismatched_items: "removeMismatchPrompt",
+  guess_situation: "guessSituationPrompt",
+};
+function playQuestionPromptVoice(){
+  playVoice(QUESTION_PROMPT_VOICE[state.mode]);
 }
 
 /* ===== APP CONFIG (mode-driven UI) ===== */
@@ -71,7 +99,7 @@ function applyAppConfig(){
   const sBtn = $("btn-settings"), hBtn = $("btn-howto"), hintBtn = $("btn-hint");
   if(sBtn) sBtn.style.display = cfg.show_settings ? "" : "none";
   if(hBtn) hBtn.style.display = cfg.show_how_to_play ? "" : "none";
-  if(hintBtn) hintBtn.style.display = appMode === "standard" ? "" : "none";
+  if(hintBtn) hintBtn.style.display = supportsHintMode(appMode) ? "" : "none";
   ["settings-score-row", "settings-modal-score-row"].forEach(id=>{
     const scoreRow = $(id);
     if(scoreRow) scoreRow.style.display = appMode === "standard" ? "" : "none";
@@ -258,6 +286,7 @@ function runCountdown(onDone){
   const modal = $("countdown-modal");
   const numEl = $("countdown-num");
   let n = 3;
+  playVoice("countdownStart");
   numEl.textContent = n;
   modal.classList.add("active");
   const tick = setInterval(()=>{
@@ -330,42 +359,9 @@ applyAppConfig();
 
 /* ===== BUILD QUEUE ===== */
 const QUESTION_RULES_BY_DIFF = {
-  easy: [
-    { choices: 4, answers: 1 },
-    { choices: 4, answers: 1 },
-    { choices: 5, answers: 1 },
-    { choices: 4, answers: 1 },
-    { choices: 4, answers: 1 },
-    { choices: 5, answers: 1 },
-    { choices: 4, answers: 1 },
-    { choices: 4, answers: 1 },
-    { choices: 5, answers: 1 },
-    { choices: 5, answers: 1 },
-  ],
-  normal: [
-    { choices: 5, answers: 2 },
-    { choices: 5, answers: 2 },
-    { choices: 6, answers: 2 },
-    { choices: 5, answers: 2 },
-    { choices: 5, answers: 2 },
-    { choices: 6, answers: 2 },
-    { choices: 5, answers: 1 },
-    { choices: 5, answers: 1 },
-    { choices: 6, answers: 1 },
-    { choices: 6, answers: 1 },
-  ],
-  hard: [
-    { choices: 6, answers: 3 },
-    { choices: 6, answers: 3 },
-    { choices: 7, answers: 3 },
-    { choices: 6, answers: 3 },
-    { choices: 6, answers: 3 },
-    { choices: 7, answers: 3 },
-    { choices: 7, answers: 1 },
-    { choices: 7, answers: 1 },
-    { choices: 8, answers: 1 },
-    { choices: 8, answers: 1 },
-  ],
+  easy: Array.from({ length: 10 }, () => ({ choices: 2, answers: 1 })),
+  normal: Array.from({ length: 10 }, () => ({ choices: 3, answers: 1 })),
+  hard: Array.from({ length: 10 }, () => ({ choices: 4, answers: 1 })),
 };
 
 function collectQuestionItemKeys(){
@@ -388,22 +384,35 @@ function normalizePackQuestion(q, rule){
   if(!q || q.kind !== "pack" || !rule) return q;
   const desiredAnswerCount = Math.min(rule.answers, q.answers.length);
   const answers = q.answers.slice(0, desiredAnswerCount);
-  const answerSet = new Set(answers);
+  const originalAnswerSet = new Set(q.answers);
   let itemKeys = answers.concat(
     (q.items || [])
       .map(item => item.k)
-      .filter(k => !answerSet.has(k))
+      .filter(k => !originalAnswerSet.has(k))
   );
 
   const seen = new Set(itemKeys);
   const fillers = collectQuestionItemKeys()
-    .filter(k => !seen.has(k) && !answerSet.has(k));
+    .filter(k => !seen.has(k) && !originalAnswerSet.has(k));
   itemKeys = itemKeys.concat(shuffle(fillers).slice(0, Math.max(0, rule.choices - itemKeys.length)));
   itemKeys = itemKeys.slice(0, rule.choices);
 
   q.answers = answers;
+  q.sit = normalizePackPromptText(q.sit, answers.length);
   q.items = shuffle(itemKeys.map(k => it(k)));
   return q;
+}
+
+function normalizePackPromptText(text, answerCount){
+  if(!text) return text;
+  const countText = `${answerCount}개`;
+  return text
+    .replace(/필요한 [두세네] 가지를/g, `필요한 물건 ${countText}를`)
+    .replace(/[두세네] 가지를/g, `${countText}를`)
+    .replace(/\d+개를/g, `${countText}를`)
+    .replace(/필요한 것을/g, `필요한 물건 ${countText}를`)
+    .replace(/어울리지 않는 것을/g, `어울리지 않는 물건 ${countText}를`)
+    .replace(/빼주세요|빼세요/g, "골라주세요");
 }
 
 function collectSituationChoiceLabels(){
@@ -432,15 +441,19 @@ function normalizeGuessQuestion(q, rule){
 
 function applyQuestionRules(queue, diff){
   const rules = QUESTION_RULES_BY_DIFF[diff] || QUESTION_RULES_BY_DIFF.easy;
-  return queue.map((q, idx) => normalizeGuessQuestion(normalizePackQuestion(q, rules[idx]), rules[idx]));
+  return queue.map((q, idx) => {
+    const rule = rules[idx] || rules[rules.length - 1];
+    return normalizeGuessQuestion(normalizePackQuestion(q, rule), rule);
+  });
 }
 
 function buildQueue(){
   const q = [];
   const diff = state.diff || "easy";
-  const qps = Q_PER_STAGE_BY_DIFF[diff] || Q_PER_STAGE_BY_DIFF.normal;
+  const qps = getQuestionCountsForDiff(diff);
+  const missionSequence = getMissionSequenceForDiff(diff);
   // 각 미션마다 모드별 문제 빌더를 사용해 순서대로 진행
-  MISSION_SEQUENCE.forEach((mode, mi)=>{
+  missionSequence.forEach((mode, mi)=>{
     const stageNo = mi + 1;
     const count = qps[mi];
     if(count <= 0) return;
@@ -451,9 +464,10 @@ function buildQueue(){
 
 /* ===== GAME ===== */
 function startGame(){
+  clearAutoHint();
   try{
     if(!state.diff) state.diff = "easy";
-    state.mode = MISSION_SEQUENCE[0];
+    state.mode = getMissionSequenceForDiff(state.diff)[0];
     state.queue = buildQueue();
   }catch(e){
     showError("게임 데이터를 불러오지 못했습니다.");
@@ -466,7 +480,7 @@ function startGame(){
   state.removedMismatched=0; state.wronglyRemovedMatched=0;
   state.guessedSituations=0; state.wrongSituationChoices=0;
   state.situationResponses=[];
-  state.stageStats = [{c:0,w:0},{c:0,w:0},{c:0,w:0}];
+  state.stageStats = getQuestionCountsForDiff(state.diff).map(()=>({c:0,w:0}));
   state.responses = [];
   state.postGameConditionData = null;
   state.endedByUser = false; state.timeOver = false;
@@ -474,7 +488,7 @@ function startGame(){
   switchScreen("screen-play");
   $("p-diff").textContent = DIFF_LABEL[state.diff];
   // 총 문제 수 (난이도별)
-  const qps = Q_PER_STAGE_BY_DIFF[state.diff] || Q_PER_STAGE_BY_DIFF.normal;
+  const qps = getQuestionCountsForDiff(state.diff);
   state.totalQ = qps.reduce((a,b)=>a+b,0);
   // Pause until countdown completes
   state.paused = true;
@@ -482,7 +496,7 @@ function startGame(){
     startGlobalTimer();
     sendGameEvent("GAME_STARTED", { mode: state.mode, difficulty: state.diff });
     // 첫 미션 안내
-    showMissionIntro(MISSION_SEQUENCE[0], ()=>{
+    showMissionIntro(getMissionSequenceForDiff(state.diff)[0], ()=>{
       state.paused = false;
       renderQuestion();
     });
@@ -495,6 +509,7 @@ function showMissionIntro(mode, onStart){
   $("mission-text").textContent = MISSION_INTRO[mode] || "";
   const modal = $("mission-modal");
   modal.classList.add("active");
+  playVoice(MISSION_INTRO_VOICE[mode]);
   const btn = $("btn-mission-start");
   const handler = ()=>{
     btn.removeEventListener("click", handler);
@@ -521,9 +536,12 @@ function switchScreen(id){
       if(scroller) scroller.scrollTop = 0;
     });
   }
+  if(typeof setBgmTrack === "function") setBgmTrack(SCREEN_BGM[id] || null);
+  playVoice(SCREEN_VOICE[id]);
 }
 
 function clearAdvance(){ if(state.advanceTimer){ clearTimeout(state.advanceTimer); state.advanceTimer=null; } }
+function clearAutoHint(){ if(state.autoHintTimer){ clearTimeout(state.autoHintTimer); state.autoHintTimer=null; } }
 
 function getGameMode(mode){
   const modeDef = window.GAME_MODES && window.GAME_MODES[mode];
@@ -533,6 +551,7 @@ function getGameMode(mode){
 
 function renderQuestion(){
   clearAdvance();
+  clearAutoHint();
   if(state.qIndex >= state.queue.length){ finishGame(false, false); return; }
   const q = state.queue[state.qIndex];
   // 문제 모드 갱신 + 미션 그룹 전환 시 인트로
@@ -543,6 +562,8 @@ function renderQuestion(){
   }
   state.mode = q.mode || state.mode;
   $("p-mode").textContent = MODE_LABEL[state.mode];
+  const playEl = document.querySelector("#screen-play .play");
+  if(playEl) playEl.dataset.mode = state.mode || "";
   // area-badges removed per UI request
   state.current = { q, picked:new Set(), removed:new Set(), guessAnswered:false, wrongCount:0, revealed:false, qStart:Date.now() };
 
@@ -553,13 +574,14 @@ function renderQuestion(){
   updateHintButton();
 
   const modeDef = getGameMode(state.mode);
-  const targetText = modeDef.getTargetText(q) || "";
   const targetEl = $("p-target");
-  targetEl.textContent = targetText;
-  targetEl.style.display = targetText ? "" : "none";
+  targetEl.textContent = "";
+  targetEl.style.display = "none";
   modeDef.renderContext(q);
 
   renderChoices();
+  playQuestionPromptVoice();
+  scheduleAutoHint();
 }
 
 function renderChoices(){
@@ -568,23 +590,61 @@ function renderChoices(){
   getGameMode(state.mode).renderChoices(state.current);
 }
 
+function setFeedbackVisible(visible){
+  const area = $("p-feedback-area");
+  if(area) area.classList.toggle("has-feedback", !!visible);
+}
+
 function showFeedback(text, kind){
   closeHintModal(true);
   const el = $("p-feedback");
   el.textContent = text;
   el.className = "fb-msg " + kind;
+  setFeedbackVisible(true);
 }
 
-function isStandardMode(){
-  return (state.appMode || "standard") === "standard";
+function supportsHintMode(appMode = state.appMode || "standard"){
+  return appMode === "standard" || appMode === "reminder";
+}
+
+function supportsAutoHintMode(appMode = state.appMode || "standard"){
+  return appMode === "care" || appMode === "ai_assisted";
+}
+
+function scheduleAutoHint(){
+  clearAutoHint();
+  if(!supportsAutoHintMode() || !state.current || state.current.revealed) return;
+  const questionIndex = state.qIndex;
+  const question = state.current.q;
+  const showIfReady = ()=>{
+    state.autoHintTimer = null;
+    const cur = state.current;
+    if(!cur || cur.q !== question || state.qIndex !== questionIndex || cur.revealed) return;
+    if(state.paused){
+      state.autoHintTimer = setTimeout(showIfReady, 250);
+      return;
+    }
+    if(isHintPanelOpen()) return;
+    renderHintPanel();
+    playVoice("hint");
+    sendGameEvent("HINT_OPENED", {
+      mode: state.mode,
+      question_index: state.qIndex + 1,
+      trigger: "auto",
+    });
+  };
+  state.autoHintTimer = setTimeout(showIfReady, 10000);
 }
 
 function updateHintButton(){
   const btn = $("btn-hint");
   if(!btn) return;
-  const show = isStandardMode();
+  const show = supportsHintMode();
   btn.style.display = show ? "" : "none";
   btn.disabled = !show || !state.current || state.current.revealed;
+  const active = isHintPanelOpen();
+  btn.classList.toggle("active", active);
+  btn.setAttribute("aria-pressed", active ? "true" : "false");
 }
 
 function hintItemText(item){
@@ -639,19 +699,22 @@ function describeHint(){
   return { title:"힌트", lines:[{ text:"물건들을 하나씩 천천히 살펴보세요." }] };
 }
 
+function isHintPanelOpen(){
+  const box = $("p-feedback");
+  return !!(box && box.classList.contains("hint-panel"));
+}
+
 function renderHintPanel(){
   const hint = describeHint();
   const area = $("p-feedback-area");
   const box = $("p-feedback");
   if(!box) return;
-  if(area) area.classList.add("hint-open");
+  if(area){
+    area.classList.add("hint-open");
+    area.classList.add("has-feedback");
+  }
   box.className = "fb-msg hint hint-panel";
   box.innerHTML = "";
-
-  const title = document.createElement("div");
-  title.className = "hint-panel-title";
-  title.textContent = hint.title || "힌트";
-  box.appendChild(title);
 
   const list = document.createElement("div");
   list.className = "hint-list";
@@ -665,13 +728,7 @@ function renderHintPanel(){
     row.appendChild(text);
     list.appendChild(row);
   });
-
-  const close = document.createElement("button");
-  close.className = "hint-close";
-  close.type = "button";
-  close.textContent = "힌트 닫기";
-  close.addEventListener("click", ()=>{ closeHintModal(true); });
-  box.appendChild(close);
+  updateHintButton();
 }
 
 function renderHintModal(){
@@ -692,8 +749,13 @@ function renderHintModal(){
 }
 
 function openHintModal(){
-  if(!isStandardMode() || !state.current || state.current.revealed) return;
+  if(!supportsHintMode() || !state.current || state.current.revealed) return;
+  if(isHintPanelOpen()){
+    closeHintModal(true);
+    return;
+  }
   renderHintPanel();
+  playVoice("hint");
   sendGameEvent("HINT_OPENED", { mode: state.mode, question_index: state.qIndex + 1 });
 }
 
@@ -702,16 +764,21 @@ function closeHintModal(keepPaused){
   if(modal) modal.classList.remove("active");
   const area = $("p-feedback-area");
   const box = $("p-feedback");
+  let closedHintPanel = false;
   if(area) area.classList.remove("hint-open");
   if(box && box.classList.contains("hint-panel")){
+    closedHintPanel = true;
     box.textContent = "";
     box.className = "fb-msg";
   }
+  if(closedHintPanel) setFeedbackVisible(false);
   state.hintWasPaused = false;
+  updateHintButton();
 }
 
 function clearFeedback(){
   closeHintModal(true);
+  setFeedbackVisible(false);
   const el = $("p-feedback");
   if(!el) return;
   el.textContent = "";
@@ -721,6 +788,7 @@ function clearFeedback(){
 function finishQuestion(success, delay){
   const cur = state.current; const q = cur.q;
   cur.revealed = true;
+  clearAutoHint();
   state.responses.push((Date.now()-cur.qStart)/1000);
   if(success){ state.correct++; state.stageStats[q.stage-1].c++; }
   else { state.wrong++; state.stageStats[q.stage-1].w++; }
@@ -731,6 +799,7 @@ function finishQuestion(success, delay){
 function revealAndAdvance(){
   const cur = state.current; const q = cur.q;
   cur.revealed = true;
+  clearAutoHint();
   updateHintButton();
   state.wrong++; state.stageStats[q.stage-1].w++;
   state.responses.push((Date.now()-cur.qStart)/1000);
@@ -769,12 +838,11 @@ function stopTimer(){ if(state.timerId){ clearInterval(state.timerId); state.tim
 /* ===== PAUSE MENU ===== */
 const _hintBtn = $("btn-hint");
 if(_hintBtn) _hintBtn.addEventListener("click", openHintModal);
-const _hintCloseBtn = $("btn-hint-close");
-if(_hintCloseBtn) _hintCloseBtn.addEventListener("click", ()=>{ closeHintModal(false); });
 
 $("btn-pause").addEventListener("click", ()=>{
   state.paused = true;
   $("pause-modal").classList.add("active");
+  playVoice("pause");
 });
 $("btn-resume").addEventListener("click", ()=>{
   $("pause-modal").classList.remove("active");
@@ -783,7 +851,7 @@ $("btn-resume").addEventListener("click", ()=>{
 });
 $("btn-restart").addEventListener("click", ()=>{
   $("pause-modal").classList.remove("active");
-  stopTimer(); clearAdvance();
+  stopTimer(); clearAdvance(); clearAutoHint();
   sendGameEvent("GAME_RESTARTED", { mode: state.mode, difficulty: state.diff });
   startGame();
 });
@@ -881,7 +949,7 @@ $("post-complete-2").addEventListener("click", ()=>{
 });
 
 function resetToStartScreen(){
-  stopTimer(); clearAdvance();
+  stopTimer(); clearAdvance(); clearAutoHint();
   ["reveal-modal", "hint-modal", "pause-modal", "exit-modal", "help-modal", "countdown-modal", "mission-modal", "error-modal"].forEach(id=>{
     const el = $(id);
     if(el) el.classList.remove("active");
@@ -919,7 +987,7 @@ function returnToHub(){
 }
 
 function finishGame(userExit, timeOver){
-  stopTimer(); clearAdvance();
+  stopTimer(); clearAdvance(); clearAutoHint();
   $("reveal-modal").classList.remove("active");
   $("hint-modal").classList.remove("active");
   $("pause-modal").classList.remove("active");
@@ -931,6 +999,7 @@ function finishGame(userExit, timeOver){
   const accuracy = answeredQs ? Math.round(state.correct/answeredQs*100) : 0;
   const nextDiff = recommendNext();
   const avgSit = state.situationResponses.length ? +(state.situationResponses.reduce((a,b)=>a+b,0)/state.situationResponses.length).toFixed(1) : 0;
+  const qps = getQuestionCountsForDiff(state.diff);
 
   const result = {
     game_mode: state.mode, game_mode_label: MODE_LABEL[state.mode],
@@ -938,7 +1007,7 @@ function finishGame(userExit, timeOver){
     cognitive_areas: COGNITIVE_AREAS[state.mode],
     start_difficulty: state.diff, difficulty_label: DIFF_LABEL[state.diff],
     difficulty_source: state.diffSource,
-    total_stages: STAGES, questions_per_stage: (Q_PER_STAGE_BY_DIFF[state.diff]||Q_PER_STAGE_BY_DIFF.normal), total_questions: (state.totalQ||state.queue.length),
+    total_stages: qps.length, questions_per_stage: qps, total_questions: (state.totalQ||state.queue.length),
     answered_questions: answeredQs,
     correct_count: state.correct, wrong_count: state.wrong, accuracy_percent: accuracy,
     avg_response_sec: avg, duration_sec: duration,
@@ -956,7 +1025,7 @@ function finishGame(userExit, timeOver){
     average_situation_response_time_sec: avgSit,
     recommended_next_difficulty: nextDiff,
     recommended_next_difficulty_label: DIFF_LABEL[nextDiff],
-    stage_results: state.stageStats.map((s,i)=>{const qps=Q_PER_STAGE_BY_DIFF[state.diff]||Q_PER_STAGE_BY_DIFF.normal; return {stage:i+1, total_questions:qps[i]||0, correct_count:s.c, wrong_count:s.w};}),
+    stage_results: state.stageStats.map((s,i)=>({stage:i+1, total_questions:qps[i]||0, correct_count:s.c, wrong_count:s.w})),
     condition_data: state.conditionData || null,
     score_screen_enabled: shouldShowScoreScreen(),
   };

@@ -144,7 +144,7 @@
       return buildPackQuestions(mode, diff, stageNo, count);
     },
     getTargetText(q) {
-      return countGuide(q, "어울리지 않는 물건", "빼주세요");
+      return countGuide(q, "어울리지 않는 물건", "골라주세요");
     },
     renderContext() {
       hideSeenItems();

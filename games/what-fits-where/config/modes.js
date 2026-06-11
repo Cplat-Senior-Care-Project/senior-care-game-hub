@@ -64,21 +64,32 @@ const DEFAULT_CONFIG = {
 
 const STAGES = 3;
 const Q_PER_STAGE_BY_DIFF = {
-  easy:   [3, 3, 4],
-  normal: [3, 3, 4],
+  easy:   [10],
+  normal: [5, 5],
   hard:   [3, 3, 4],
 };
 const MISSION_SEQUENCE = ["choose_matching_items","remove_mismatched_items","guess_situation"];
+const MISSION_SEQUENCE_BY_DIFF = {
+  easy: ["choose_matching_items"],
+  normal: ["choose_matching_items","remove_mismatched_items"],
+  hard: MISSION_SEQUENCE,
+};
+function getMissionSequenceForDiff(diff){
+  return MISSION_SEQUENCE_BY_DIFF[diff] || MISSION_SEQUENCE;
+}
+function getQuestionCountsForDiff(diff){
+  return Q_PER_STAGE_BY_DIFF[diff] || Q_PER_STAGE_BY_DIFF.normal;
+}
 const MISSION_INTRO = {
   choose_matching_items: "이번에는 필요한 물건을 골라볼게요.",
-  remove_mismatched_items: "이번에는 어울리지 않는 물건을 찾아볼게요.",
+  remove_mismatched_items: "이번에는 어울리지 않는 물건을 골라볼게요.",
   guess_situation: "이번에는 물건을 보고 상황을 맞혀볼게요.",
 };
 const DIFF_LABEL = {easy:"쉬움", normal:"보통", hard:"어려움"};
 const MODE_LABEL = {
   choose_matching_items:"알맞은 물건 고르기",
-  remove_mismatched_items:"어울리지 않는 물건 빼기",
-  guess_situation:"상황을 맞춰보세요",
+  remove_mismatched_items:"어울리지 않는 물건 고르기",
+  guess_situation:"상황 맞추기",
 };
 const COGNITIVE_AREAS = {
   choose_matching_items: ["주의력","의미기억","범주화","실행 기능"],
@@ -115,7 +126,7 @@ const SLEEP_STEPS = [
 const HELP_PAGES = [
   { t:"오늘의 준비물은 어떤 게임인가요?", b:"상황을 보고 알맞은 물건을 고르는 인지활동 게임입니다.\n천천히 보고 필요한 물건을 골라 주세요." },
   { t:"알맞은 물건 고르기", b:"상황을 보고 필요한 물건을 골라 주세요.\n\n예시) \"비 오는 날 외출해요.\"\n→ 우산을 고르면 좋아요." },
-  { t:"어울리지 않는 물건 빼기", b:"상황에 맞지 않는 물건을 찾아 빼는 활동입니다.\n\n예시) \"병원에 가요.\"\n→ 수영복처럼 어울리지 않는 물건을 빼요." },
-  { t:"상황을 맞춰보세요", b:"보이는 물건들을 보고 어떤 상황인지 골라 주세요.\n\n예시) 우산, 장화, 비옷\n→ 비 오는 날 외출" },
+  { t:"어울리지 않는 물건 고르기", b:"상황에 맞지 않는 물건을 찾아 고르는 활동입니다.\n\n예시) \"병원에 가요.\"\n→ 수영복처럼 어울리지 않는 물건을 골라요." },
+  { t:"상황 맞추기", b:"보이는 물건들을 보고 어떤 상황인지 골라 주세요.\n\n예시) 우산, 장화, 비옷\n→ 비 오는 날 외출" },
   { t:"천천히 해도 괜찮아요", b:"잘 모르겠으면 힌트를 눌러도 괜찮아요.\n틀려도 괜찮습니다.\n천천히 다시 보면 됩니다." },
 ];
