@@ -1,7 +1,7 @@
 ﻿{
     "mode":  "ai_assisted",
-    "difficulty":  "easy",
-    "difficultyKey":  "easy",
+    "difficulty":  "hard",
+    "difficultyKey":  "hard",
     "config":  {
                    "show_timer":  false,
                    "show_progress":  false,
@@ -13,8 +13,8 @@
                    "show_finish_check":  false,
                    "duration_seconds":  90,
                    "question_count":  5,
-                   "max_choice_count":  2,
-                   "max_items_to_remember":  1,
+                   "max_choice_count":  6,
+                   "max_items_to_remember":  4,
                    "hint_enabled":  true,
                    "auto_hint_enabled":  true,
                    "soft_feedback":  true,

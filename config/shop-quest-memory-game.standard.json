@@ -12,14 +12,12 @@
                    "show_finish_check":  true,
                    "duration_seconds":  120,
                    "question_count":  10,
-                   "memory_item_count":  2,
-                   "choice_count":  4,
+                   "max_choice_count":  4,
                    "max_items_to_remember":  3,
-                   "use_drag":  false,
-                   "auto_add_to_cart":  true,
                    "hint_enabled":  true,
                    "auto_hint_enabled":  false,
                    "soft_feedback":  false,
+                   "use_drag":  true,
                    "voice_guide_enabled":  true,
                    "result_log_level":  "detailed"
                }

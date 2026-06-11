@@ -1,7 +1,7 @@
 ﻿{
     "mode":  "reminder",
-    "difficulty":  "easy",
-    "difficultyKey":  "easy",
+    "difficulty":  "normal",
+    "difficultyKey":  "normal",
     "config":  {
                    "show_timer":  true,
                    "show_progress":  true,
@@ -13,8 +13,8 @@
                    "show_finish_check":  true,
                    "duration_seconds":  120,
                    "question_count":  10,
-                   "max_choice_count":  6,
-                   "max_items_to_remember":  3,
+                   "max_choice_count":  8,
+                   "max_items_to_remember":  4,
                    "hint_enabled":  true,
                    "auto_hint_enabled":  false,
                    "soft_feedback":  false,

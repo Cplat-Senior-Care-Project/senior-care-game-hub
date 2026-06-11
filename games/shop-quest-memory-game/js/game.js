@@ -153,7 +153,7 @@
   const imageReadyCache = new Map();
 
   const state = {
-    phase: "start", difficultyKey: "easy", questionIndex: 0, question: null, selectedIds: [], wrongSelectedIds: [], collectedItems: [], correctCount: 0, wrongCount: 0, hintCount: 0, retryCount: 0, pauseCount: 0, interactionCount: 0, questionLogs: [],
+    phase: "start", difficultyKey: "easy", questionIndex: 0, question: null, selectedIds: [], wrongSelectedIds: [], collectedItems: [], correctCount: 0, wrongCount: 0, hintCount: 0, retryCount: 0, pauseCount: 0, interactionCount: 0, touchMissCount: 0, missedItemCount: 0, questionLogs: [],
     startedAt: null, endedAt: null, remainingSeconds: 0, revealRemaining: 0, questionStartedAt: null, firstResponseAt: null, status: "completed", abandonReason: null, externalInputUsed: false,
     startCountdownIntroTimeoutId: null, startCountdownFrameId: null,
     condition: { completed: false, skipped: false, mood: "good", sleepHours: 7 },
@@ -445,6 +445,7 @@
   function bridge() { return window.ShopQuestMemoryGameAppBridge || null; }
   function sendBridge(methods, payload) { const b = bridge(); if (!b) return false; return methods.some((m) => typeof b[m] === "function" && (b[m](payload), true)); }
   function isCareMode() { return runtimeConfig && (runtimeConfig.mode === "care" || runtimeConfig.mode === "ai_assisted"); }
+  function canUseDragMode() { return runtimeConfig && runtimeConfig.useDrag !== false && !isCareMode(); }
   function usesSoftFeedback() { return runtimeConfig && runtimeConfig.softFeedback === true; }
   function getTotalQuestions() { return Math.max(1, runtimeConfig ? runtimeConfig.totalQuestions : 10); }
   function escapeHtml(value) { return String(value).replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;"); }
@@ -470,7 +471,7 @@
     state.remainingSeconds = runtimeConfig.durationSeconds;
     state.settings.soundEnabled = runtimeConfig.soundEnabled !== false;
     state.settings.voiceGuideEnabled = runtimeConfig.voiceGuideEnabled !== false;
-    state.settings.useDrag = runtimeConfig.useDrag !== false && !isCareMode();
+    state.settings.useDrag = runtimeConfig.defaultInputMode === "drag" && canUseDragMode();
     const ui = runtimeConfig.ui || {};
     const mode = runtimeConfig.mode || "standard";
     const showScore = ui.showScore !== false;
@@ -502,7 +503,7 @@
   function shouldShowDifficultySelect() { return runtimeConfig && runtimeConfig.ui && runtimeConfig.ui.showDifficultySelect !== false; }
   function shouldAutoStartAfterLoading() { return runtimeConfig && runtimeConfig.mode === "reminder"; }
 
-  function getDifficultyConfig(key) {
+  function getDifficultyConfigForQuestion(key, questionIndex) {
     const base = DEFAULT_DIFFICULTIES[key] || DEFAULT_DIFFICULTIES.easy;
     const override = runtimeConfig && runtimeConfig.difficulties && runtimeConfig.difficulties[key] ? runtimeConfig.difficulties[key] : {};
     const merged = { ...base, ...override, key };
@@ -510,7 +511,7 @@
     if (runtimeConfig.answerChoiceCount) merged.answerChoiceCount = runtimeConfig.answerChoiceCount;
     if (runtimeConfig.revealMs) merged.revealMs = runtimeConfig.revealMs;
     if (shouldUseStandardDifficultyPlan()) {
-      const plan = getStandardDifficultyQuestionPlan(key, state.questionIndex);
+      const plan = getStandardDifficultyQuestionPlan(key, questionIndex);
       if (plan) {
         merged.memoryItemCount = plan.memoryItemCount;
         merged.answerChoiceCount = plan.answerChoiceCount;
@@ -524,13 +525,16 @@
       merged.revealMs = CARE_REVEAL_MS;
     }
     const configuredMaxMemoryItems = runtimeConfig.maxItemsToRemember || MAX_MEMORY_ITEMS;
-    const maxMemoryItems = shouldUseStandardDifficultyPlan() || isCareMode()
-      ? MAX_MEMORY_ITEMS
-      : Math.min(configuredMaxMemoryItems, MAX_MEMORY_ITEMS);
-    const maxAnswerChoices = shouldUseStandardDifficultyPlan() ? Math.min(STANDARD_MAX_ANSWER_CHOICES, SHOPPING_ITEMS.length) : SHOPPING_ITEMS.length;
+    const configuredMaxAnswerChoices = runtimeConfig.answerChoiceCount || (shouldUseStandardDifficultyPlan() ? STANDARD_MAX_ANSWER_CHOICES : SHOPPING_ITEMS.length);
+    const maxMemoryItems = Math.min(configuredMaxMemoryItems, MAX_MEMORY_ITEMS);
+    const maxAnswerChoices = Math.min(configuredMaxAnswerChoices, SHOPPING_ITEMS.length);
     merged.memoryItemCount = Math.max(1, Math.min(merged.memoryItemCount, maxMemoryItems));
     merged.answerChoiceCount = Math.max(merged.memoryItemCount + 1, Math.min(merged.answerChoiceCount, maxAnswerChoices));
     return merged;
+  }
+
+  function getDifficultyConfig(key) {
+    return getDifficultyConfigForQuestion(key, state.questionIndex);
   }
 
   function shouldUseStandardDifficultyPlan() {
@@ -650,7 +654,7 @@
   }
 
   function resetRunState(phase, difficultyKey, startedAt) {
-    Object.assign(state, { phase, difficultyKey: difficultyKey || runtimeConfig.difficultyKey || "easy", questionIndex: 0, question: null, selectedIds: [], wrongSelectedIds: [], collectedItems: [], correctCount: 0, wrongCount: 0, hintCount: 0, retryCount: 0, pauseCount: 0, interactionCount: 0, questionLogs: [], startedAt: startedAt || null, endedAt: null, status: "completed", abandonReason: null, externalInputUsed: false });
+    Object.assign(state, { phase, difficultyKey: difficultyKey || runtimeConfig.difficultyKey || "easy", questionIndex: 0, question: null, selectedIds: [], wrongSelectedIds: [], collectedItems: [], correctCount: 0, wrongCount: 0, hintCount: 0, retryCount: 0, pauseCount: 0, interactionCount: 0, touchMissCount: 0, missedItemCount: 0, questionLogs: [], startedAt: startedAt || null, endedAt: null, status: "completed", abandonReason: null, externalInputUsed: false });
   }
 
   function startReadyCountdown(difficultyKey) {
@@ -1331,6 +1335,8 @@
     const now = Date.now();
     const responseTimeMs = state.questionStartedAt ? now - state.questionStartedAt : 0;
     const firstResponseTimeMs = state.firstResponseAt && state.questionStartedAt ? state.firstResponseAt - state.questionStartedAt : responseTimeMs;
+    const missedItemCount = question.targetItems.filter((item) => !state.selectedIds.includes(item.id)).length;
+    state.missedItemCount += missedItemCount;
     state.questionLogs.push({
       question_id: question.id,
       question_index: state.questionIndex + 1,
@@ -1461,6 +1467,38 @@
     }, 3000);
   }
 
+  function getSelectedDifficultyRunConfig() {
+    const key = state.difficultyKey || runtimeConfig.difficultyKey || "easy";
+    const totalQuestions = getTotalQuestions();
+    let maxChoiceCount = 0;
+    let maxItemsToRemember = 0;
+    let revealMs = 0;
+    for (let index = 0; index < totalQuestions; index += 1) {
+      const difficulty = getDifficultyConfigForQuestion(key, index);
+      maxChoiceCount = Math.max(maxChoiceCount, difficulty.answerChoiceCount || 0);
+      maxItemsToRemember = Math.max(maxItemsToRemember, difficulty.memoryItemCount || 0);
+      if (!revealMs) revealMs = difficulty.revealMs || 0;
+    }
+    return { maxChoiceCount, maxItemsToRemember, revealMs };
+  }
+
+  function createResultDetailJson() {
+    const selectedRunConfig = getSelectedDifficultyRunConfig();
+    return {
+      max_choice_count: selectedRunConfig.maxChoiceCount,
+      max_items_to_remember: selectedRunConfig.maxItemsToRemember,
+      auto_hint_enabled: runtimeConfig.autoHintEnabled !== false,
+      reveal_ms: selectedRunConfig.revealMs,
+      difficulty_downshifted: false,
+      total_touch_miss_count: state.touchMissCount,
+      external_input_used: state.externalInputUsed,
+      use_drag: state.settings.useDrag,
+      missed_item_count: state.missedItemCount,
+      wrong_count: state.wrongCount,
+      extra_selected_count: state.retryCount
+    };
+  }
+
   function createResultPayload() {
     const startedAt = state.startedAt || new Date();
     const endedAt = state.endedAt || new Date();
@@ -1495,7 +1533,7 @@
       error_code: state.status === "error" ? "GAME_RUNTIME_ERROR" : null,
       error_message: null,
       question_logs: state.questionLogs,
-      result_detail_json: { external_input_used: state.externalInputUsed, use_drag: state.settings.useDrag, auto_add_to_cart: runtimeConfig.autoAddToCart !== false, condition: state.condition.completed && !state.condition.skipped ? state.condition : null, finish_check: state.postCondition.completed && !state.postCondition.skipped ? state.postCondition : null, ui: runtimeConfig.ui }
+      result_detail_json: createResultDetailJson()
     };
   }
 
@@ -1760,15 +1798,19 @@
 
   function updateInputModeButtons() {
     els.inputModeButtons.forEach((button) => {
+      const isDragButton = button.dataset.inputMode === "drag";
+      const isDisabled = isDragButton && !canUseDragMode();
       const isSelected = button.dataset.inputMode === (state.settings.useDrag ? "drag" : "touch");
       button.classList.toggle("is-selected", isSelected);
       button.setAttribute("aria-pressed", isSelected ? "true" : "false");
+      button.disabled = isDisabled;
+      button.setAttribute("aria-disabled", isDisabled ? "true" : "false");
     });
   }
 
   function selectInputMode(button) {
     if (!button) return;
-    state.settings.useDrag = button.dataset.inputMode === "drag" && !isCareMode();
+    state.settings.useDrag = button.dataset.inputMode === "drag" && canUseDragMode();
     updateInputModeButtons();
   }
 
@@ -1965,6 +2007,10 @@
       if (suppressNextClick) { suppressNextClick = false; return; }
       if (dragSession && dragSession.active) return;
       const target = getItemFromEvent(event);
+      if (!target && state.phase === "question" && event.target.closest(".choice-card[data-item-id]")) {
+        state.touchMissCount += 1;
+        return;
+      }
       if (target && state.settings.useDrag && state.phase === "question") return;
       if (target && target.item) selectItem(target.item, "touch", target.element);
     });

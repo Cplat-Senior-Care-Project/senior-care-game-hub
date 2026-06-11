@@ -1,14 +1,15 @@
 {
-  "mode": "standard",
-  "difficulty": null,
+  "mode": "reminder",
+  "difficulty": "hard",
+  "difficultyKey": "hard",
   "config": {
     "show_timer": true,
     "show_progress": true,
     "show_score": true,
-    "show_difficulty_select": true,
+    "show_difficulty_select": false,
     "show_settings": true,
     "show_how_to_play": true,
-    "show_condition_check": true,
+    "show_condition_check": false,
     "show_finish_check": true,
     "duration_seconds": 120,
     "question_count": 10,
@@ -17,7 +18,7 @@
     "hint_enabled": true,
     "auto_hint_enabled": false,
     "soft_feedback": false,
-    "use_drag": true,
+    "use_drag": false,
     "voice_guide_enabled": true,
     "result_log_level": "detailed"
   }

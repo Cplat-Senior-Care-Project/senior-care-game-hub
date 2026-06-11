@@ -470,9 +470,15 @@
       };
       var params = new URLSearchParams(window.location.search);
       var requestedMode = String(params.get("mode") || "standard").trim().toLowerCase();
+      var requestedDifficulty = String(params.get("difficulty") || "").trim().toLowerCase();
       var requestedConfigUrl = String(params.get("configUrl") || "").trim();
       var mode = Object.prototype.hasOwnProperty.call(modeMap, requestedMode) ? requestedMode : "standard";
-      var assetVersion = "20260610-ai-care-copy";
+      var difficultyMap = { easy: true, normal: true, hard: true };
+      var configFile = modeMap[mode];
+      if (mode !== "standard" && Object.prototype.hasOwnProperty.call(difficultyMap, requestedDifficulty)) {
+        configFile = mode + "." + requestedDifficulty + ".config.json";
+      }
+      var assetVersion = "20260611-difficulty-configs";
       window.__SHOP_QUEST_GAME_MODE__ = mode;
       window.__SHOP_QUEST_MODE_ASSETS__ = {
         css: "css/modes/" + mode + ".css",
@@ -481,7 +487,7 @@
       if (requestedConfigUrl) {
         window.__GAME_CONFIG_URL__ = requestedConfigUrl;
       } else if (!window.__GAME_CONFIG_URL__) {
-        window.__GAME_CONFIG_URL__ = "config/" + modeMap[mode];
+        window.__GAME_CONFIG_URL__ = "config/" + configFile;
       }
       document.documentElement.dataset.mode = mode;
       document.write('<link rel="stylesheet" href="' + window.__SHOP_QUEST_MODE_ASSETS__.css + '?v=' + assetVersion + '">');
