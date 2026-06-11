@@ -4,6 +4,11 @@ Put BGM, SFX, and voice guide files under `assets/audio` if the game later needs
 
 The playback hooks live in `../js/audio.js`.
 
+Background music files live in `../assets/audio` and are mapped in `BGM_FILES`.
+
+- `bgm-pregame.mp3`: start, condition, difficulty, result, score, and post-check screens
+- `bgm-gameplay.mp3`: active gameplay screen
+
 Voice guide files live in `../assets/audio/voice` and are mapped in `VOICE_FILES`.
 
 - `pre-game-condition.mp3`: pre-game mood and sleep check

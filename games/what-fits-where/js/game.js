@@ -65,6 +65,10 @@ const SCREEN_BGM = {
   "screen-start": "pregame",
   "screen-difficulty": "pregame",
   "screen-play": "gameplay",
+  "screen-result": "pregame",
+  "screen-score": "pregame",
+  "screen-post-check-1": "pregame",
+  "screen-post-check-2": "pregame",
 };
 const MISSION_INTRO_VOICE = {
   choose_matching_items: "chooseMatchingIntro",
