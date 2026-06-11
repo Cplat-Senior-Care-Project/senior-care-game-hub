@@ -1,3 +1,16 @@
 @import url("standard.css");
 
 html[data-mode="reminder"] .difficulty-screen { display: none !important; }
+
+html[data-mode="reminder"] #play-area .memory-view .fruit-card::after {
+  content: none !important;
+  display: none !important;
+  background: none !important;
+  filter: none !important;
+  box-shadow: none !important;
+}
+
+html[data-mode="reminder"] #play-area .memory-view .fruit-image,
+html[data-mode="reminder"] .memory-item-card img {
+  filter: none !important;
+}

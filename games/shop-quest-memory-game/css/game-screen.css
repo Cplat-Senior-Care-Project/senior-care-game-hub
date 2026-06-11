@@ -1249,11 +1249,14 @@
 .feedback-bubble.good { border-color: #89b95c; color: #315d18; }
 .feedback-bubble.soft { top: 2px; height: 110px; border-color: #9d470e; color: #5f351a; background: #fff1c4; -webkit-text-stroke-color: rgba(95, 53, 26, 0.22); text-shadow: 0 1px 0 rgba(255, 255, 244, 0.72); }
 .feedback-bubble.hint {
+  width: 960px;
+  max-width: calc(100% - 120px);
   border-color: #0f6fa9;
   background: linear-gradient(180deg, #69c8ff 0%, #2294d7 72%, #1573b7 100%);
   box-shadow: 0 10px 12px rgba(34, 73, 109, 0.28), inset 0 3px 0 rgba(255, 255, 244, 0.42), inset 0 -5px 0 rgba(7, 74, 132, 0.28);
   color: #fffdf4;
 }
+
 .feedback-bubble.hint-items .hint-item-list {
   display: flex;
   align-items: center;
@@ -1344,6 +1347,11 @@
   font-weight: 1000;
   -webkit-text-stroke: var(--text-stroke) currentColor;
   paint-order: stroke fill;
+}
+.feedback-message.is-one-line {
+  font-size: 36px;
+  line-height: 1;
+  white-space: nowrap;
 }
 .game-countdown-timer {
   position: relative;

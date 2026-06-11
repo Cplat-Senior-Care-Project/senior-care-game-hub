@@ -143,6 +143,19 @@ html:is([data-mode="care"], [data-mode="ai_assisted"]) #play-area .memory-view {
   --memory-view-lift: -20px;
 }
 
+html:is([data-mode="care"], [data-mode="ai_assisted"]) #play-area .memory-view .fruit-card::after {
+  content: none !important;
+  display: none !important;
+  background: none !important;
+  filter: none !important;
+  box-shadow: none !important;
+}
+
+html:is([data-mode="care"], [data-mode="ai_assisted"]) #play-area .memory-view .fruit-image,
+html:is([data-mode="care"], [data-mode="ai_assisted"]) .memory-item-card img {
+  filter: none !important;
+}
+
 html:is([data-mode="care"], [data-mode="ai_assisted"]) body[data-screen="game"] .hud-mission-pill,
 html:is([data-mode="care"], [data-mode="ai_assisted"]) body[data-screen="game"] #pause-button.icon-button,
 html:is([data-mode="care"], [data-mode="ai_assisted"]) body[data-screen="game"] .game-header .hud-hint-button {

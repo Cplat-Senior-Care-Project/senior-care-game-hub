@@ -288,12 +288,13 @@ html:is([data-mode="standard"], [data-mode="reminder"]) .standard-result-compare
 }
 
 html:is([data-mode="standard"], [data-mode="reminder"]) .standard-result-compare strong {
+  flex: 1 1 auto;
   color: #3f7e1f;
   margin-left: 0;
-  font-size: 42px;
-  line-height: 1.05;
+  font-size: 28px;
+  line-height: 1;
   text-align: left;
-  white-space: normal;
+  white-space: nowrap;
 }
 
 html:is([data-mode="standard"], [data-mode="reminder"]) .result-actions {

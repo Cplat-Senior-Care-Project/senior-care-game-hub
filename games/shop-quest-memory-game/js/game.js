@@ -9,13 +9,16 @@
   const STAGE_WIDTH = 1280;
   const STAGE_HEIGHT = 720;
   const FEEDBACK_TIME = 1400;
-  const RETRY_FEEDBACK_TIME = 2000;
+  const RETRY_FEEDBACK_TIME = 5000;
+  const CARE_RETRY_FEEDBACK_TIME = 4000;
   const CORRECT_FEEDBACK_TIME = 3000;
   const FINAL_WRONG_FEEDBACK_TIME = 3000;
   const START_READY_MESSAGE_TIME = 2000;
   const START_COUNTDOWN_TIME = 3000;
-  const TRANSITION_TIME = 3000;
+  const TRANSITION_TIME = 4000;
   const AUTO_HINT_DELAY_MS = 10000;
+  const VOICE_GUIDE_STAGE_DELAY_MS = 140;
+  const VOICE_GUIDE_FEEDBACK_DELAY_MS = 220;
   const STANDARD_REVEAL_MS_BY_DIFFICULTY = Object.freeze({
     easy: 5000,
     normal: 4000,
@@ -52,6 +55,33 @@
     normal: { index: 1, label: "\uBCF4\uD1B5", runner: "\uD83D\uDE0A" },
     hard: { index: 2, label: "\uC5B4\uB824\uC6C0", runner: "\uD83E\uDD29" }
   });
+  const AUDIO_CACHE_BUST = String(Date.now());
+  const AUDIO_TRACKS = Object.freeze({
+    button: { src: "assets/audio/button-click2.wav", volume: 0.22, poolSize: 3 },
+    toggle: { src: "assets/audio/button-click2.wav", volume: 0.22, poolSize: 3 },
+    countdown: { src: "assets/audio/countdown-tick.wav", volume: 0.68, poolSize: 3 },
+    start: { src: "assets/audio/start.wav", volume: 0.72, poolSize: 3 },
+    correct: { src: "assets/audio/correct2.wav", volume: 0.26, poolSize: 3 },
+    retry: { src: "assets/audio/retry2.wav", volume: 0.24, poolSize: 3 },
+    wrong: { src: "assets/audio/retry2.wav", volume: 0.24, poolSize: 3 },
+    complete: { src: "assets/audio/complete2.wav", volume: 0.26, poolSize: 3 },
+    background: { src: "assets/audio/background.wav", volume: 0.22, menuVolume: 0.34, unlockVolume: 0.01, loop: false, poolSize: 2, channel: "background", crossfadeSeconds: 2.4 },
+    voiceReady: { src: "assets/audio/voice-ready.wav", volume: 0.72, poolSize: 1, channel: "voice" },
+    voiceMemory: { src: "assets/audio/voice-memory.wav", volume: 0.72, poolSize: 1, channel: "voice" },
+    voiceQuestion: { src: "assets/audio/voice-question.wav", volume: 0.72, poolSize: 1, channel: "voice" },
+    voiceCorrect: { src: "assets/audio/voice-correct.wav", volume: 0.72, poolSize: 1, channel: "voice" },
+    voiceRetry: { src: "assets/audio/voice-retry.wav", volume: 0.72, poolSize: 1, channel: "voice" },
+    voiceRetry3: { src: "assets/audio/voice-retry3.wav", volume: 0.72, poolSize: 1, channel: "voice" },
+    voiceCareResult1: { src: "assets/audio/voice-care-result1.wav", volume: 0.72, poolSize: 1, channel: "voice" },
+    voiceCareResult2: { src: "assets/audio/voice-care-result2.wav", volume: 0.72, poolSize: 1, channel: "voice" },
+    voiceSoftFeedbackCorrect: { src: "assets/audio/voice-soft_feedback_correct.wav", volume: 0.72, poolSize: 1, channel: "voice" },
+    voiceSoftFeedbackMemory: { src: "assets/audio/voice-soft_feedback_memory.wav", volume: 0.72, poolSize: 1, channel: "voice" },
+    voiceSoftFeedbackQuestion: { src: "assets/audio/voice-soft_feedback_question.wav", volume: 0.72, poolSize: 1, channel: "voice" },
+    voiceSoftFeedbackRetry: { src: "assets/audio/voice-soft_feedback_retry.wav", volume: 0.72, poolSize: 1, channel: "voice" },
+    voiceSoftFeedbackRetry3: { src: "assets/audio/voice-soft_feedback_retry3.wav", volume: 0.72, poolSize: 1, channel: "voice" },
+    voiceSoftFeedbackThink: { src: "assets/audio/voice-soft_feedback_think.wav", volume: 0.72, poolSize: 1, channel: "voice" }
+  });
+  window.__SHOP_QUEST_AUDIO_TRACKS__ = AUDIO_TRACKS;
 
   const SHOPPING_ITEMS = Object.freeze([
     { id: "apple", name: "사과", image: `assets/images/item-cutout-apple-glow.webp?v=${ITEM_GLOW_ASSET_VERSION}`, choiceImage: `assets/images/apple-glow.webp?v=${ITEM_GLOW_ASSET_VERSION}`, category: "fruit", shape: "round", color: "red" },
@@ -151,6 +181,16 @@
   let pausedAutoHintTimerCallback = null;
   let reopenPauseAfterTutorial = false;
   const imageReadyCache = new Map();
+  const audioPools = new Map();
+  const audioPoolIndexes = new Map();
+  let activeVoiceGuideAudio = null;
+  let voiceGuideTimerId = null;
+  let audioUnlocked = false;
+  let backgroundAudio = null;
+  let backgroundAudioIndex = 0;
+  let backgroundLoopFrameId = null;
+  let backgroundFadeFrameId = null;
+  let backgroundCrossfadeActive = false;
 
   const state = {
     phase: "start", difficultyKey: "easy", questionIndex: 0, question: null, selectedIds: [], wrongSelectedIds: [], collectedItems: [], correctCount: 0, wrongCount: 0, hintCount: 0, retryCount: 0, pauseCount: 0, interactionCount: 0, touchMissCount: 0, questionTouchMissCount: 0, missedItemCount: 0, questionLogs: [],
@@ -161,7 +201,7 @@
     postCondition: { completed: false, skipped: false, step: 0, moodAfter: "good", fatigue: "low", perceivedDifficulty: "justRight", neededHelp: "none", replayIntent: "yes" },
     sleepDrag: { pointerId: null, lastStepY: 0 },
     pause: { previousPhase: null, phaseRemainingMs: 0, autoHintRemainingMs: 0, startedAt: 0 },
-    settings: { soundEnabled: true, voiceGuideEnabled: true, useDrag: true }
+    settings: { backgroundSoundEnabled: true, soundEnabled: true, voiceGuideEnabled: true, useDrag: true }
   };
 
   function updateGameScale() {
@@ -397,6 +437,7 @@
   function clearAllTimers() {
     Object.keys(timers).forEach(clearTimer);
     clearStartCountdown();
+    stopVoiceGuide();
   }
 
   function schedulePhaseTimer(callback, delay) {
@@ -430,6 +471,377 @@
   function pauseTimerRemaining(timer, dueAt) {
     return timer && dueAt ? Math.max(0, dueAt - Date.now()) : 0;
   }
+
+  function createAudioSource(src) {
+    return `${src}?v=${AUDIO_CACHE_BUST}`;
+  }
+
+  function getAudioPool(type) {
+    const track = AUDIO_TRACKS[type];
+    if (!track || !track.src || typeof Audio !== "function") return [];
+    if (!audioPools.has(type)) {
+      const poolSize = Math.max(1, Number(track.poolSize) || 1);
+      const pool = Array.from({ length: poolSize }, () => {
+        const audio = new Audio(createAudioSource(track.src));
+        audio.loop = track.loop === true;
+        audio.preload = "auto";
+        audio.volume = track.volume || 0.7;
+        return audio;
+      });
+      audioPools.set(type, pool);
+      audioPoolIndexes.set(type, 0);
+    }
+    return audioPools.get(type);
+  }
+
+  function preloadAudioAssets() {
+    Object.keys(AUDIO_TRACKS).forEach((type) => {
+      getAudioPool(type).forEach((audio) => {
+        try {
+          audio.load();
+        } catch (error) {
+          // Voice guidance is optional and should not block the game.
+        }
+      });
+    });
+  }
+
+  function unlockAudioFromGesture() {
+    if (audioUnlocked || typeof Audio !== "function") return;
+    audioUnlocked = true;
+    Object.keys(AUDIO_TRACKS).forEach((type) => {
+      if (AUDIO_TRACKS[type].channel === "background") return;
+      const audio = getAudioPool(type)[0];
+      if (!audio) return;
+      const originalMuted = audio.muted;
+      const originalVolume = audio.volume;
+      audio.dataset.audioUnlocking = "true";
+      audio.muted = true;
+      audio.volume = 0;
+      const playPromise = audio.play();
+      const reset = () => {
+        if (audio.dataset.audioUnlocking !== "true") return;
+        audio.pause();
+        try {
+          audio.currentTime = 0;
+        } catch (error) {
+          // Best effort unlock only.
+        }
+        audio.muted = originalMuted;
+        audio.volume = originalVolume;
+        delete audio.dataset.audioUnlocking;
+      };
+      if (playPromise && typeof playPromise.then === "function") {
+        playPromise.then(reset).catch(reset);
+        return;
+      }
+      reset();
+    });
+    syncBackgroundMusic();
+  }
+
+  function playSound(type, options = {}) {
+    const track = AUDIO_TRACKS[type];
+    if (!track || track.channel === "voice") return;
+    if (track.channel === "background") {
+      playBackgroundMusic();
+      return;
+    }
+    if (!options.force && (!els.soundToggle || !els.soundToggle.checked)) return;
+    const pool = getAudioPool(type);
+    if (pool.length === 0) return;
+    const nextIndex = audioPoolIndexes.get(type) || 0;
+    const audio = pool[nextIndex % pool.length];
+    audioPoolIndexes.set(type, (nextIndex + 1) % pool.length);
+    delete audio.dataset.audioUnlocking;
+    audio.pause();
+    try {
+      audio.currentTime = 0;
+    } catch (error) {
+      // Effects are optional; keep the game moving if the browser refuses.
+    }
+    audio.muted = false;
+    audio.volume = track.volume || 0.7;
+    const playPromise = audio.play();
+    if (playPromise && typeof playPromise.catch === "function") {
+      playPromise.catch(() => {});
+    }
+  }
+
+  function getBackgroundAudio() {
+    const pool = getAudioPool("background");
+    backgroundAudio = pool[backgroundAudioIndex] || pool[0] || null;
+    return backgroundAudio;
+  }
+
+  function getBackgroundAudioPool() {
+    getBackgroundAudio();
+    return getAudioPool("background");
+  }
+
+  function isBackgroundSoundEnabled() {
+    return !els.backgroundSoundToggle || els.backgroundSoundToggle.checked;
+  }
+
+  function shouldPlayBackgroundMusic() {
+    const screen = document.body.dataset.screen || (els.app && els.app.dataset.screen) || "";
+    return isBackgroundSoundEnabled()
+      && screen !== "result"
+      && screen !== "error"
+      && ["start", "difficulty", "countdown", "memory", "transition", "question"].includes(state.phase);
+  }
+
+  function getBackgroundMusicVolume() {
+    return state.phase === "start" || state.phase === "difficulty"
+      ? AUDIO_TRACKS.background.menuVolume
+      : AUDIO_TRACKS.background.volume;
+  }
+
+  function playBackgroundMusic() {
+    if (!shouldPlayBackgroundMusic()) {
+      pauseBackgroundMusic();
+      return;
+    }
+    if (backgroundCrossfadeActive) return;
+    const audio = getBackgroundAudio();
+    if (!audio) return;
+    delete audio.dataset.audioUnlocking;
+    audio.muted = false;
+    audio.loop = false;
+    audio.volume = getBackgroundMusicVolume();
+    const playPromise = audio.play();
+    if (playPromise && typeof playPromise.catch === "function") {
+      playPromise
+        .then(startBackgroundLoopWatch)
+        .catch(() => {});
+      return;
+    }
+    startBackgroundLoopWatch();
+  }
+
+  function pauseBackgroundMusic(reset = false) {
+    stopBackgroundLoopWatch();
+    stopBackgroundCrossfade();
+    getBackgroundAudioPool().forEach((audio) => {
+      audio.pause();
+      audio.volume = 0;
+      if (reset) {
+        try {
+          audio.currentTime = 0;
+        } catch (error) {
+          // Optional background audio should never block navigation.
+        }
+      }
+    });
+    backgroundAudioIndex = 0;
+    backgroundAudio = getBackgroundAudioPool()[0] || null;
+  }
+
+  function syncBackgroundMusic() {
+    if (!isBackgroundSoundEnabled() || !shouldPlayBackgroundMusic()) {
+      pauseBackgroundMusic(!isBackgroundSoundEnabled());
+      return;
+    }
+    if (backgroundCrossfadeActive) return;
+    playBackgroundMusic();
+  }
+
+  function stopBackgroundLoopWatch() {
+    if (backgroundLoopFrameId) {
+      window.cancelAnimationFrame(backgroundLoopFrameId);
+      backgroundLoopFrameId = null;
+    }
+  }
+
+  function stopBackgroundCrossfade() {
+    backgroundCrossfadeActive = false;
+    if (backgroundFadeFrameId) {
+      window.cancelAnimationFrame(backgroundFadeFrameId);
+      backgroundFadeFrameId = null;
+    }
+  }
+
+  function startBackgroundLoopWatch() {
+    if (backgroundCrossfadeActive) return;
+    stopBackgroundLoopWatch();
+
+    function watchLoop() {
+      if (!shouldPlayBackgroundMusic()) {
+        stopBackgroundLoopWatch();
+        return;
+      }
+
+      const pool = getBackgroundAudioPool();
+      const current = pool[backgroundAudioIndex];
+      const nextIndex = (backgroundAudioIndex + 1) % pool.length;
+      const next = pool[nextIndex];
+      const fadeSeconds = Math.max(0.1, Number(AUDIO_TRACKS.background.crossfadeSeconds) || 2.4);
+
+      if (!current) return;
+
+      if (current.paused) {
+        try {
+          current.currentTime = 0;
+        } catch (error) {
+          // Optional background recovery.
+        }
+        playBackgroundMusic();
+        return;
+      }
+
+      if (
+        next &&
+        Number.isFinite(current.duration) &&
+        current.duration > fadeSeconds &&
+        current.duration - current.currentTime <= fadeSeconds &&
+        next.paused
+      ) {
+        crossfadeBackgroundAudio(current, next, nextIndex, fadeSeconds);
+        return;
+      }
+
+      backgroundLoopFrameId = window.requestAnimationFrame(watchLoop);
+    }
+
+    backgroundLoopFrameId = window.requestAnimationFrame(watchLoop);
+  }
+
+  function crossfadeBackgroundAudio(current, next, nextIndex, fadeSeconds) {
+    if (backgroundCrossfadeActive) return;
+    backgroundCrossfadeActive = true;
+    stopBackgroundLoopWatch();
+    const startedAt = performance.now();
+    next.pause();
+    try {
+      next.currentTime = 0;
+    } catch (error) {
+      // Best effort; a failed seek just means the natural loop resumes later.
+    }
+    next.loop = false;
+    next.muted = false;
+    next.volume = 0;
+
+    const playPromise = next.play();
+    if (playPromise && typeof playPromise.catch === "function") {
+      playPromise.catch(() => {
+        next.pause();
+        next.volume = 0;
+        stopBackgroundCrossfade();
+        startBackgroundLoopWatch();
+      });
+    }
+
+    function step(now) {
+      if (!backgroundCrossfadeActive) return;
+      if (!shouldPlayBackgroundMusic()) {
+        current.volume = 0;
+        next.volume = 0;
+        stopBackgroundCrossfade();
+        return;
+      }
+
+      const progress = Math.min(1, (now - startedAt) / (fadeSeconds * 1000));
+      const targetVolume = getBackgroundMusicVolume();
+      current.volume = targetVolume * (1 - progress);
+      next.volume = targetVolume * progress;
+
+      if (progress < 1) {
+        backgroundFadeFrameId = window.requestAnimationFrame(step);
+        return;
+      }
+
+      current.pause();
+      try {
+        current.currentTime = 0;
+      } catch (error) {
+        // Optional background audio cleanup.
+      }
+      backgroundAudioIndex = nextIndex;
+      backgroundAudio = next;
+      next.volume = targetVolume;
+      backgroundFadeFrameId = null;
+      backgroundCrossfadeActive = false;
+      startBackgroundLoopWatch();
+    }
+
+    backgroundFadeFrameId = window.requestAnimationFrame(step);
+  }
+
+  function handleButtonClickSound(event) {
+    const button = event.target && typeof event.target.closest === "function"
+      ? event.target.closest("button")
+      : null;
+    if (!button || button.disabled || button.getAttribute("aria-disabled") === "true") return;
+    if (button.classList.contains("choice-card")) return;
+    if (button.classList.contains("pause-sound-button")) return;
+    playSound("button");
+  }
+
+  function playToggleSound(sourceToggle) {
+    playSound("toggle", { force: sourceToggle === els.soundToggle });
+  }
+
+  function isVoiceGuideEnabled() {
+    return !els.voiceGuideToggle || els.voiceGuideToggle.checked;
+  }
+
+  function stopVoiceGuide() {
+    if (voiceGuideTimerId) {
+      window.clearTimeout(voiceGuideTimerId);
+      voiceGuideTimerId = null;
+    }
+    if (!activeVoiceGuideAudio) return;
+    activeVoiceGuideAudio.pause();
+    try {
+      activeVoiceGuideAudio.currentTime = 0;
+    } catch (error) {
+      // Some browsers reject currentTime changes before metadata is ready.
+    }
+    activeVoiceGuideAudio = null;
+  }
+
+  function playVoiceGuide(type, options = {}) {
+    const track = AUDIO_TRACKS[type];
+    if (!track || track.channel !== "voice") return;
+    stopVoiceGuide();
+    const delayMs = Math.max(0, Number(options.delayMs) || 0);
+    if (delayMs > 0) {
+      voiceGuideTimerId = window.setTimeout(() => {
+        voiceGuideTimerId = null;
+        startVoiceGuide(type);
+      }, delayMs);
+      return;
+    }
+    startVoiceGuide(type);
+  }
+
+  function startVoiceGuide(type) {
+    const track = AUDIO_TRACKS[type];
+    if (!track || track.channel !== "voice" || !isVoiceGuideEnabled() || state.phase === "pause") return;
+    const pool = getAudioPool(type);
+    const audio = pool[0];
+    if (!audio) return;
+    delete audio.dataset.audioUnlocking;
+    audio.pause();
+    try {
+      audio.currentTime = 0;
+    } catch (error) {
+      // Best effort: voice guidance should never block game flow.
+    }
+    audio.muted = false;
+    audio.volume = track.volume || 0.7;
+    activeVoiceGuideAudio = audio;
+    audio.onended = () => {
+      if (activeVoiceGuideAudio === audio) activeVoiceGuideAudio = null;
+    };
+    const playPromise = audio.play();
+    if (playPromise && typeof playPromise.catch === "function") {
+      playPromise.catch(() => {
+        if (activeVoiceGuideAudio === audio) activeVoiceGuideAudio = null;
+      });
+    }
+  }
+
   function setScreen(name) {
     [els.startScreen, els.difficultyScreen, els.gameScreen, els.resultScreen, els.errorScreen].forEach((screen) => screen && screen.classList.add("is-hidden"));
     if (name === "start") els.startScreen.classList.remove("is-hidden");
@@ -440,6 +852,7 @@
     document.body.dataset.screen = name;
     if (name !== "game") delete document.body.dataset.gamePhase;
     if (els.app) els.app.dataset.screen = name;
+    syncBackgroundMusic();
   }
 
   function bridge() { return window.ShopQuestMemoryGameAppBridge || null; }
@@ -447,6 +860,24 @@
   function isCareMode() { return runtimeConfig && (runtimeConfig.mode === "care" || runtimeConfig.mode === "ai_assisted"); }
   function canUseDragMode() { return runtimeConfig && runtimeConfig.useDrag !== false && !isCareMode(); }
   function usesSoftFeedback() { return runtimeConfig && runtimeConfig.softFeedback === true; }
+  function shouldUseDirectFeedback() { return runtimeConfig && runtimeConfig.softFeedback === false; }
+  function isCareResultMode() { return runtimeConfig && (runtimeConfig.mode === "reminder" || (runtimeConfig.ui && runtimeConfig.ui.showScore === false)); }
+  function getMemoryVoiceGuideType() { return shouldUseDirectFeedback() ? "voiceMemory" : "voiceSoftFeedbackMemory"; }
+  function getQuestionVoiceGuideType() { return shouldUseDirectFeedback() ? "voiceQuestion" : "voiceSoftFeedbackQuestion"; }
+  function getRetryVoiceGuideType(wrongAttempts) {
+    const isThirdWrong = Number(wrongAttempts) >= 3;
+    if (shouldUseDirectFeedback()) return isThirdWrong ? "voiceRetry3" : "voiceRetry";
+    return isThirdWrong ? "voiceSoftFeedbackRetry3" : "voiceSoftFeedbackRetry";
+  }
+  function getFeedbackVoiceGuideType(isCorrect) {
+    if (isCorrect) return shouldUseDirectFeedback() ? "voiceCorrect" : "voiceSoftFeedbackCorrect";
+    return getRetryVoiceGuideType(state.wrongSelectedIds.length);
+  }
+  function getCareResultVoiceGuideType() {
+    if (shouldUseDirectFeedback() || !isCareResultMode()) return null;
+    return state.questionLogs.length > 0 ? "voiceCareResult2" : "voiceCareResult1";
+  }
+  function getRetryFeedbackTime() { return isCareMode() ? CARE_RETRY_FEEDBACK_TIME : RETRY_FEEDBACK_TIME; }
   function getTotalQuestions() { return Math.max(1, runtimeConfig ? runtimeConfig.totalQuestions : 10); }
   function escapeHtml(value) { return String(value).replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;"); }
   function findItem(id) { return SHOPPING_ITEMS.find((item) => item.id === id) || null; }
@@ -470,6 +901,7 @@
     state.difficultyKey = runtimeConfig.difficultyKey || "easy";
     state.remainingSeconds = runtimeConfig.durationSeconds;
     state.settings.soundEnabled = runtimeConfig.soundEnabled !== false;
+    state.settings.backgroundSoundEnabled = runtimeConfig.soundEnabled !== false;
     state.settings.voiceGuideEnabled = runtimeConfig.voiceGuideEnabled !== false;
     state.settings.useDrag = runtimeConfig.defaultInputMode === "drag" && canUseDragMode();
     const ui = runtimeConfig.ui || {};
@@ -491,7 +923,7 @@
       els.app.dataset.resultStyle = resultStyle;
       els.app.dataset.showScore = showScore ? "true" : "false";
     }
-    if (els.backgroundSoundToggle) els.backgroundSoundToggle.checked = state.settings.soundEnabled;
+    if (els.backgroundSoundToggle) els.backgroundSoundToggle.checked = state.settings.backgroundSoundEnabled;
     if (els.soundToggle) els.soundToggle.checked = state.settings.soundEnabled;
     if (els.voiceGuideToggle) els.voiceGuideToggle.checked = state.settings.voiceGuideEnabled;
     updatePauseSoundButtons();
@@ -685,6 +1117,7 @@
     }
 
     els.gameCountdownMessage.textContent = "\uAC8C\uC784\uC774 \uACE7 \uC2DC\uC791\uB3FC\uC694!";
+    playVoiceGuide("voiceReady", { delayMs: VOICE_GUIDE_STAGE_DELAY_MS });
     state.startCountdownIntroTimeoutId = window.setTimeout(() => {
       state.startCountdownIntroTimeoutId = null;
       beginReadyCountdown(nextDifficultyKey);
@@ -708,6 +1141,7 @@
       els.gameCountdownTimer.style.setProperty("--countdown-angle", `${angle}deg`);
       if (displaySeconds !== lastDisplaySeconds && remaining > 0) {
         lastDisplaySeconds = displaySeconds;
+        playSound("countdown");
       }
 
       if (remaining <= 0) {
@@ -730,6 +1164,7 @@
     els.pauseButton.classList.remove("is-paused");
     setScreen("game");
     sendBridge(["sendGameStarted", "sendStarted"], { game_id: GAME_ID, session_id: runtimeConfig.sessionId, mode: runtimeConfig.mode, difficulty: state.difficultyKey, started_at: state.startedAt.toISOString() });
+    playSound("start");
     startGameTimer(true);
     beginQuestion();
   }
@@ -745,12 +1180,24 @@
     warmQuestionAssets(question).then(() => {
       if (state.question !== question || state.phase !== "memory") return;
       renderMemory();
+      syncBackgroundMusic();
+      playVoiceGuide(getMemoryVoiceGuideType(), { delayMs: VOICE_GUIDE_STAGE_DELAY_MS });
       startMemoryCountdownTimer();
       schedulePhaseTimer(shouldUseStandardDifficultyPlan() ? showQuestion : showTransition, question.revealMs);
     });
   }
 
-  function showTransition() { clearTimer("phase"); clearTimer("countdown"); state.phase = "transition"; renderTransition(); schedulePhaseTimer(showQuestion, TRANSITION_TIME); }
+  function showTransition() {
+    clearTimer("phase");
+    clearTimer("countdown");
+    state.phase = "transition";
+    renderTransition();
+    syncBackgroundMusic();
+    if (!shouldUseDirectFeedback()) {
+      playVoiceGuide("voiceSoftFeedbackThink", { delayMs: VOICE_GUIDE_STAGE_DELAY_MS });
+    }
+    schedulePhaseTimer(showQuestion, TRANSITION_TIME);
+  }
   function showQuestion() {
     clearTimer("phase");
     const question = state.question;
@@ -759,6 +1206,8 @@
       state.phase = "question";
       state.questionStartedAt = Date.now();
       renderQuestion();
+      syncBackgroundMusic();
+      playVoiceGuide(getQuestionVoiceGuideType(), { delayMs: VOICE_GUIDE_STAGE_DELAY_MS });
       if (runtimeConfig.autoHintEnabled && runtimeConfig.hintEnabled) scheduleAutoHintTimer(AUTO_HINT_DELAY_MS);
     });
   }
@@ -1030,6 +1479,7 @@
 
     const message = document.createElement("p");
     message.className = "feedback-message";
+    if (usesSoftFeedback()) message.classList.add("is-one-line");
     message.textContent = usesSoftFeedback() ? "하나만 더 해볼까요? 힘드시면 쉬어도 괜찮아요." : "좋습니다. 다음 문제로 넘어갈게요.";
 
     view.append(createFeedbackMessageBox(symbol, title, message));
@@ -1312,10 +1762,12 @@
         if (state.question !== question || state.questionIndex !== questionIndex || state.phase !== "question") return;
         if (!state.collectedItems.some((collected) => collected.id === item.id)) state.collectedItems.push(item);
         appendCollectedItem(item);
+        playSound("correct");
         updateChoiceHints();
         if (questionCompleted) {
           clearTimer("autoHint");
           renderCorrectFeedback();
+          playVoiceGuide(getFeedbackVoiceGuideType(true), { delayMs: VOICE_GUIDE_FEEDBACK_DELAY_MS });
           schedulePhaseTimer(() => completeQuestion(true), CORRECT_FEEDBACK_TIME);
         }
       });
@@ -1328,11 +1780,15 @@
     markChoiceCardWrong(item.id);
     clearTimer("autoHint");
     if (wrongAttemptCount >= 3) {
+      playSound("wrong");
       renderFinalWrongFeedback();
+      playVoiceGuide(getRetryVoiceGuideType(wrongAttemptCount), { delayMs: VOICE_GUIDE_FEEDBACK_DELAY_MS });
       schedulePhaseTimer(() => completeQuestion(false), FINAL_WRONG_FEEDBACK_TIME);
       return;
     }
-    showFeedback(usesSoftFeedback() ? "😊 괜찮아요. 천천히 다시 골라볼까요?" : "다시 한 번 생각해보세요!", "soft", RETRY_FEEDBACK_TIME);
+    playSound("retry");
+    showFeedback(usesSoftFeedback() ? "😊 괜찮아요. 천천히 다시 골라볼까요?" : "다시 한 번 생각해보세요!", "soft", getRetryFeedbackTime());
+    playVoiceGuide(getRetryVoiceGuideType(wrongAttemptCount), { delayMs: VOICE_GUIDE_FEEDBACK_DELAY_MS });
   }
 
   function completeQuestion(isCorrect) {
@@ -1360,7 +1816,6 @@
       attempt_count: selectedItems.length,
       hint_used: Boolean(question.hintUsed),
       hint_count: getQuestionHintLevel(question),
-      replay_count: 0,
       response_time_ms: responseTimeMs,
       first_response_time_ms: firstResponseTimeMs,
       wrong_tap_count: state.wrongSelectedIds.length,
@@ -1413,6 +1868,8 @@
     state.phase = "pause";
     state.pauseCount += 1;
     clearTimer("game"); clearTimer("countdown"); clearTimer("phase"); clearTimer("autoHint");
+    stopVoiceGuide();
+    syncBackgroundMusic();
     els.pauseButton.classList.add("is-paused");
     updatePauseSoundButtons();
     window.requestAnimationFrame(() => {
@@ -1431,6 +1888,7 @@
     if (!previousPhase) return;
 
     state.phase = previousPhase;
+    syncBackgroundMusic();
     if (state.questionStartedAt && previousPhase === "question") state.questionStartedAt += pausedForMs;
     if (state.firstResponseAt && previousPhase === "question") state.firstResponseAt += pausedForMs;
     startGameTimer(false);
@@ -1470,6 +1928,8 @@
     closePostConditionCheck();
     const previousRecord = readPreviousRecord();
     renderResult(previousRecord);
+    playSound("complete");
+    playVoiceGuide(getCareResultVoiceGuideType(), { delayMs: VOICE_GUIDE_FEEDBACK_DELAY_MS });
     const payload = createResultPayload();
     try { window.localStorage.setItem(`${STORAGE_KEY_PREFIX}:${runtimeConfig.mode}`, JSON.stringify(payload)); } catch (error) {}
     sendBridge(["sendGameCompleteResult", "sendComplete"], payload);
@@ -1645,6 +2105,7 @@
 
   function goHome() {
     clearAllTimers();
+    stopVoiceGuide();
     Object.assign(state, { phase: "start", question: null, selectedIds: [], wrongSelectedIds: [], collectedItems: [] });
     closePostConditionCheck();
     els.conditionModal.classList.add("is-hidden");
@@ -1749,6 +2210,7 @@
   function openPostConditionCheck() {
     state.phase = "post-condition";
     state.postCondition.step = 0;
+    syncBackgroundMusic();
     updatePostConditionUi();
     els.pauseModal.classList.add("is-hidden");
     els.postConditionModal.classList.remove("is-hidden");
@@ -1820,15 +2282,24 @@
   }
 
   function syncSoundToggles(sourceToggle) {
+    playToggleSound(sourceToggle);
     if (sourceToggle === els.voiceGuideToggle) {
       state.settings.voiceGuideEnabled = els.voiceGuideToggle.checked;
+      if (!state.settings.voiceGuideEnabled) stopVoiceGuide();
       updatePauseSoundButtons();
       return;
     }
-    const nextSoundEnabled = sourceToggle ? sourceToggle.checked : state.settings.soundEnabled;
-    state.settings.soundEnabled = nextSoundEnabled;
-    if (els.backgroundSoundToggle && els.backgroundSoundToggle !== sourceToggle) els.backgroundSoundToggle.checked = nextSoundEnabled;
-    if (els.soundToggle && els.soundToggle !== sourceToggle) els.soundToggle.checked = nextSoundEnabled;
+    if (sourceToggle === els.backgroundSoundToggle) {
+      state.settings.backgroundSoundEnabled = els.backgroundSoundToggle.checked;
+      updatePauseSoundButtons();
+      syncBackgroundMusic();
+      return;
+    }
+    if (sourceToggle === els.soundToggle) {
+      state.settings.soundEnabled = els.soundToggle.checked;
+      updatePauseSoundButtons();
+      return;
+    }
     updatePauseSoundButtons();
   }
 
@@ -2111,6 +2582,9 @@
       closeTutorial();
     });
     els.tutorialNextButton.addEventListener("click", () => { if (tutorialIndex >= TUTORIAL_STEPS.length - 1) { closeTutorial(); return; } tutorialIndex += 1; renderTutorialStep(); });
+    document.addEventListener("click", handleButtonClickSound, true);
+    document.addEventListener("pointerdown", unlockAudioFromGesture, true);
+    document.addEventListener("keydown", unlockAudioFromGesture, true);
   }
 
   async function boot() {
@@ -2121,6 +2595,7 @@
       const b = bridge();
       if (!b || typeof b.getRuntimeConfig !== "function") throw new Error("App bridge is missing.");
       applyConfig(await b.getRuntimeConfig());
+      preloadAudioAssets();
       renderConditionSleepRows();
       updatePostConditionUi();
       updateHud();
