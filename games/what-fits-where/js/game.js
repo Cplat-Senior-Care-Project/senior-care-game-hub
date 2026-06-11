@@ -400,7 +400,21 @@ function showMissionIntro(mode, onStart){
 }
 
 function switchScreen(id){
-  document.querySelectorAll(".screen").forEach(s=>s.classList.toggle("active", s.id===id));
+  let activeScreen = null;
+  document.querySelectorAll(".screen").forEach(s=>{
+    const active = s.id === id;
+    s.classList.toggle("active", active);
+    if(active) activeScreen = s;
+  });
+  if(activeScreen){
+    activeScreen.scrollTop = 0;
+    const scroller = activeScreen.querySelector(".center-wrap");
+    if(scroller) scroller.scrollTop = 0;
+    requestAnimationFrame(()=>{
+      activeScreen.scrollTop = 0;
+      if(scroller) scroller.scrollTop = 0;
+    });
+  }
 }
 
 function clearAdvance(){ if(state.advanceTimer){ clearTimeout(state.advanceTimer); state.advanceTimer=null; } }
@@ -429,8 +443,7 @@ function renderQuestion(){
   $("p-stage").textContent = `단계 ${q.stage}`;
   $("p-qnum").textContent = `${state.qIndex+1} / ${state.totalQ || state.queue.length}`;
   $("p-situation").textContent = q.sit;
-  $("p-feedback").textContent = ""; $("p-feedback").className = "fb-msg";
-  closeHintModal(true);
+  clearFeedback();
   updateHintButton();
 
   const modeDef = getGameMode(state.mode);
@@ -450,6 +463,7 @@ function renderChoices(){
 }
 
 function showFeedback(text, kind){
+  closeHintModal(true);
   const el = $("p-feedback");
   el.textContent = text;
   el.className = "fb-msg " + kind;
@@ -510,13 +524,48 @@ function describeHint(){
   }
 
   if(state.mode === "guess_situation"){
-    const lines = q.items.map(item => ({
-      text: hintItemText(item),
-    }));
-    return { title:"물건 단서", lines };
+    return {
+      title:"힌트",
+      lines:[{ text:q.explanation || q.answer || "정답 상황을 천천히 떠올려보세요." }],
+    };
   }
 
   return { title:"힌트", lines:[{ text:"물건들을 하나씩 천천히 살펴보세요." }] };
+}
+
+function renderHintPanel(){
+  const hint = describeHint();
+  const area = $("p-feedback-area");
+  const box = $("p-feedback");
+  if(!box) return;
+  if(area) area.classList.add("hint-open");
+  box.className = "fb-msg hint hint-panel";
+  box.innerHTML = "";
+
+  const title = document.createElement("div");
+  title.className = "hint-panel-title";
+  title.textContent = hint.title || "힌트";
+  box.appendChild(title);
+
+  const list = document.createElement("div");
+  list.className = "hint-list";
+  box.appendChild(list);
+
+  (hint.lines || []).forEach(line=>{
+    const row = document.createElement("div");
+    row.className = "hint-line";
+    const text = document.createElement("span");
+    text.textContent = line.text || "";
+    row.appendChild(text);
+    list.appendChild(row);
+  });
+
+  const close = document.createElement("button");
+  close.className = "hint-close";
+  close.type = "button";
+  close.textContent = "힌트 닫기";
+  close.addEventListener("click", ()=>{ closeHintModal(true); });
+  box.appendChild(close);
 }
 
 function renderHintModal(){
@@ -538,20 +587,29 @@ function renderHintModal(){
 
 function openHintModal(){
   if(!isStandardMode() || !state.current || state.current.revealed) return;
-  renderHintModal();
-  state.hintWasPaused = !!state.paused;
-  state.paused = true;
-  $("hint-modal").classList.add("active");
+  renderHintPanel();
   sendGameEvent("HINT_OPENED", { mode: state.mode, question_index: state.qIndex + 1 });
 }
 
 function closeHintModal(keepPaused){
   const modal = $("hint-modal");
   if(modal) modal.classList.remove("active");
-  if(!keepPaused && !state.hintWasPaused){
-    state.paused = false;
+  const area = $("p-feedback-area");
+  const box = $("p-feedback");
+  if(area) area.classList.remove("hint-open");
+  if(box && box.classList.contains("hint-panel")){
+    box.textContent = "";
+    box.className = "fb-msg";
   }
   state.hintWasPaused = false;
+}
+
+function clearFeedback(){
+  closeHintModal(true);
+  const el = $("p-feedback");
+  if(!el) return;
+  el.textContent = "";
+  el.className = "fb-msg";
 }
 
 function finishQuestion(success, delay){

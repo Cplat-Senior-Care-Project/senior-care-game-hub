@@ -85,7 +85,7 @@ const COGNITIVE_AREAS = {
   remove_mismatched_items: ["주의력","범주화","억제력","판단력"],
   guess_situation: ["추론력","의미기억","범주화","상황 인식"],
 };
-const SIT_CHOICES = {easy:3, normal:4, hard:5};
+const SIT_CHOICES = {easy:3, normal:4, hard:6};
 const PRAISE_PICK = ["잘 고르셨어요.","좋아요. 필요한 물건이에요.","맞아요. 잘 챙겼어요."];
 const PRAISE_REMOVE = ["잘 찾았어요.","좋아요. 어울리지 않는 물건이에요.","맞아요. 빼는 게 좋아요."];
 const PRAISE_SIT = ["맞아요. 이 상황에 잘 어울려요.","좋아요. 잘 추론하셨어요.","정확해요."];
