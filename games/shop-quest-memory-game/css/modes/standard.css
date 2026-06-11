@@ -65,6 +65,7 @@ html:is([data-mode="standard"], [data-mode="reminder"]) .result-content {
 }
 
 html:is([data-mode="standard"], [data-mode="reminder"]) .result-content > .eyebrow,
+html:is([data-mode="standard"], [data-mode="reminder"]) .result-message-box > .eyebrow,
 html:is([data-mode="standard"], [data-mode="reminder"]) .result-message {
   display: none;
 }

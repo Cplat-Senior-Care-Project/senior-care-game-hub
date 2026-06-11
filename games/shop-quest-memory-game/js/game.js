@@ -153,7 +153,7 @@
   const imageReadyCache = new Map();
 
   const state = {
-    phase: "start", difficultyKey: "easy", questionIndex: 0, question: null, selectedIds: [], wrongSelectedIds: [], collectedItems: [], correctCount: 0, wrongCount: 0, hintCount: 0, retryCount: 0, pauseCount: 0, interactionCount: 0, touchMissCount: 0, missedItemCount: 0, questionLogs: [],
+    phase: "start", difficultyKey: "easy", questionIndex: 0, question: null, selectedIds: [], wrongSelectedIds: [], collectedItems: [], correctCount: 0, wrongCount: 0, hintCount: 0, retryCount: 0, pauseCount: 0, interactionCount: 0, touchMissCount: 0, questionTouchMissCount: 0, missedItemCount: 0, questionLogs: [],
     startedAt: null, endedAt: null, remainingSeconds: 0, revealRemaining: 0, questionStartedAt: null, firstResponseAt: null, status: "completed", abandonReason: null, externalInputUsed: false,
     startCountdownIntroTimeoutId: null, startCountdownFrameId: null,
     condition: { completed: false, skipped: false, mood: "good", sleepHours: 7 },
@@ -654,7 +654,7 @@
   }
 
   function resetRunState(phase, difficultyKey, startedAt) {
-    Object.assign(state, { phase, difficultyKey: difficultyKey || runtimeConfig.difficultyKey || "easy", questionIndex: 0, question: null, selectedIds: [], wrongSelectedIds: [], collectedItems: [], correctCount: 0, wrongCount: 0, hintCount: 0, retryCount: 0, pauseCount: 0, interactionCount: 0, touchMissCount: 0, missedItemCount: 0, questionLogs: [], startedAt: startedAt || null, endedAt: null, status: "completed", abandonReason: null, externalInputUsed: false });
+    Object.assign(state, { phase, difficultyKey: difficultyKey || runtimeConfig.difficultyKey || "easy", questionIndex: 0, question: null, selectedIds: [], wrongSelectedIds: [], collectedItems: [], correctCount: 0, wrongCount: 0, hintCount: 0, retryCount: 0, pauseCount: 0, interactionCount: 0, touchMissCount: 0, questionTouchMissCount: 0, missedItemCount: 0, questionLogs: [], startedAt: startedAt || null, endedAt: null, status: "completed", abandonReason: null, externalInputUsed: false });
   }
 
   function startReadyCountdown(difficultyKey) {
@@ -738,7 +738,7 @@
     clearTimer("phase"); clearTimer("countdown"); clearTimer("autoHint");
     state.question = generateQuestion();
     const question = state.question;
-    state.selectedIds = []; state.wrongSelectedIds = []; state.collectedItems = []; state.firstResponseAt = null; state.questionStartedAt = null;
+    state.selectedIds = []; state.wrongSelectedIds = []; state.collectedItems = []; state.firstResponseAt = null; state.questionStartedAt = null; state.questionTouchMissCount = 0;
     state.revealRemaining = Math.max(1, Math.ceil(state.question.revealMs / 1000));
     state.phase = "memory";
     updateHud();
@@ -983,6 +983,13 @@
     els.playArea.querySelectorAll(".feedback-bubble").forEach((bubble) => bubble.remove());
   }
 
+  function createFeedbackMessageBox(...nodes) {
+    const box = document.createElement("div");
+    box.className = "feedback-message-box";
+    box.append(...nodes);
+    return box;
+  }
+
   function renderFinalWrongFeedback() {
     clearTimer("feedback");
     els.playArea.innerHTML = "";
@@ -1002,7 +1009,7 @@
     message.className = "feedback-message";
     message.textContent = usesSoftFeedback() ? "괜찮아요. 천천히 다시 같이 가볼까요?" : "다음 문제로 가볼까요?";
 
-    view.append(symbol, title, message);
+    view.append(createFeedbackMessageBox(symbol, title, message));
     els.playArea.appendChild(view);
   }
 
@@ -1025,7 +1032,7 @@
     message.className = "feedback-message";
     message.textContent = usesSoftFeedback() ? "하나만 더 해볼까요? 힘드시면 쉬어도 괜찮아요." : "좋습니다. 다음 문제로 넘어갈게요.";
 
-    view.append(symbol, title, message);
+    view.append(createFeedbackMessageBox(symbol, title, message));
     els.playArea.appendChild(view);
   }
 
@@ -1336,18 +1343,29 @@
     const responseTimeMs = state.questionStartedAt ? now - state.questionStartedAt : 0;
     const firstResponseTimeMs = state.firstResponseAt && state.questionStartedAt ? state.firstResponseAt - state.questionStartedAt : responseTimeMs;
     const missedItemCount = question.targetItems.filter((item) => !state.selectedIds.includes(item.id)).length;
+    const selectedItems = [...state.selectedIds, ...state.wrongSelectedIds];
     state.missedItemCount += missedItemCount;
     state.questionLogs.push({
-      question_id: question.id,
-      question_index: state.questionIndex + 1,
+      question_id: `q${state.questionIndex + 1}`,
+      question_type: "shopping_cart_memory",
+      cognitive_domain: "memory_activity",
       difficulty: state.difficultyKey,
+      prompt_type: "image",
+      correct_answer: question.targetItems.map((item) => item.id),
+      selected_items: selectedItems,
       target_items: question.targetItems.map((item) => item.id),
-      selected_items: [...state.selectedIds, ...state.wrongSelectedIds],
-      choice_items: question.choiceItems.map((item) => item.id),
-      correct: Boolean(isCorrect),
+      target_count: question.targetItems.length,
+      items_shown: question.choiceItems.length,
+      is_correct: Boolean(isCorrect),
+      attempt_count: selectedItems.length,
       hint_used: Boolean(question.hintUsed),
+      hint_count: getQuestionHintLevel(question),
+      replay_count: 0,
       response_time_ms: responseTimeMs,
       first_response_time_ms: firstResponseTimeMs,
+      wrong_tap_count: state.wrongSelectedIds.length,
+      missed_item_count: missedItemCount,
+      touch_miss_count: state.questionTouchMissCount,
       input_type: question.inputType || "touch"
     });
     if (isCorrect) state.correctCount += 1; else state.wrongCount += 1;
@@ -1493,9 +1511,34 @@
       total_touch_miss_count: state.touchMissCount,
       external_input_used: state.externalInputUsed,
       use_drag: state.settings.useDrag,
-      missed_item_count: state.missedItemCount,
+      total_missed_item_count: state.missedItemCount,
       wrong_count: state.wrongCount,
       extra_selected_count: state.retryCount
+    };
+  }
+
+  function createConfigSnapshot() {
+    const ui = runtimeConfig.ui || {};
+    const selectedRunConfig = getSelectedDifficultyRunConfig();
+    return {
+      show_timer: ui.showTimer !== false,
+      show_score: ui.showScore !== false,
+      show_progress: ui.showProgress !== false,
+      show_difficulty_select: shouldShowDifficultySelect(),
+      show_settings: ui.showSettings !== false,
+      show_how_to_play: ui.showTutorial !== false,
+      show_condition_check: shouldShowConditionCheck(),
+      show_finish_check: shouldShowFinishCheck(),
+      question_count: getTotalQuestions(),
+      max_choice_count: selectedRunConfig.maxChoiceCount,
+      max_items_to_remember: selectedRunConfig.maxItemsToRemember,
+      reveal_ms: selectedRunConfig.revealMs,
+      hint_enabled: runtimeConfig.hintEnabled !== false,
+      auto_hint_enabled: runtimeConfig.autoHintEnabled !== false,
+      soft_feedback: runtimeConfig.softFeedback,
+      use_drag: state.settings.useDrag,
+      voice_guide_enabled: runtimeConfig.voiceGuideEnabled !== false,
+      result_log_level: runtimeConfig.resultLogLevel || "detailed"
     };
   }
 
@@ -1504,22 +1547,21 @@
     const endedAt = state.endedAt || new Date();
     const totalQuestions = getTotalQuestions();
     const completedQuestionCount = state.questionLogs.length;
+    const detailed = runtimeConfig.resultLogLevel !== "summary";
     const responseTimes = state.questionLogs.map((log) => log.response_time_ms).filter((value) => Number.isFinite(value));
     const avgResponseTimeMs = responseTimes.length ? Math.round(responseTimes.reduce((sum, value) => sum + value, 0) / responseTimes.length) : 0;
     return {
       session_id: runtimeConfig.sessionId,
       content_id: runtimeConfig.contentId,
       game_key: runtimeConfig.gameKey,
-      game_id: runtimeConfig.gameId,
       mode: runtimeConfig.mode,
       difficulty: state.difficultyKey,
-      config_snapshot: runtimeConfig,
+      config_snapshot: createConfigSnapshot(),
       status: state.status,
       started_at: startedAt.toISOString(),
       ended_at: endedAt.toISOString(),
       duration_ms: Math.max(0, endedAt.getTime() - startedAt.getTime()),
       total_questions: totalQuestions,
-      completed_question_count: completedQuestionCount,
       correct_count: state.correctCount,
       wrong_count: state.wrongCount,
       hint_count: state.hintCount,
@@ -1532,8 +1574,8 @@
       abandon_reason: state.abandonReason,
       error_code: state.status === "error" ? "GAME_RUNTIME_ERROR" : null,
       error_message: null,
-      question_logs: state.questionLogs,
-      result_detail_json: createResultDetailJson()
+      question_logs: detailed ? state.questionLogs : [],
+      result_detail_json: detailed ? createResultDetailJson() : {}
     };
   }
 
@@ -2009,6 +2051,7 @@
       const target = getItemFromEvent(event);
       if (!target && state.phase === "question" && event.target.closest(".choice-card[data-item-id]")) {
         state.touchMissCount += 1;
+        state.questionTouchMissCount += 1;
         return;
       }
       if (target && state.settings.useDrag && state.phase === "question") return;

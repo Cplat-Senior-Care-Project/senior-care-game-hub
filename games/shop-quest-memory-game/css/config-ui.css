@@ -71,13 +71,13 @@ html[data-result-style="care"] .result-content {
   max-height: 100%;
   overflow-y: auto;
   scrollbar-width: none;
-  max-width: calc(1280px - var(--safe-left) - var(--safe-right) - 16px);
-  width: min(940px, 100%);
+  max-width: calc(100% - 96px);
+  width: min(820px, calc(100% - 96px));
   display: grid;
   justify-items: center;
   align-content: center;
   gap: 0;
-  padding: clamp(26px, 36px, 58px) clamp(18px, 64px, 62px);
+  padding: clamp(18px, 28px, 40px) 0;
   border: 0;
   border-radius: 0;
   background: transparent;
@@ -85,7 +85,19 @@ html[data-result-style="care"] .result-content {
 }
 
 html[data-result-style="care"] .standard-result-card {
-  display: contents !important;
+  box-sizing: border-box;
+  display: grid !important;
+  justify-items: center;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  margin: 0 auto;
+  padding: clamp(18px, 24px, 30px) clamp(22px, 36px, 44px) clamp(24px, 34px, 42px);
+  border: 4px solid rgba(205, 169, 100, 0.92);
+  border-radius: 34px;
+  background: var(--message-box-bg);
+  box-shadow: inset 0 2px 0 rgba(255, 255, 255, 0.72);
+  text-align: center;
 }
 
 html[data-result-style="care"] .standard-result-record,
@@ -99,34 +111,38 @@ html[data-result-style="care"] .result-emoji {
   place-items: center;
   width: auto;
   height: auto;
-  margin: 0 auto clamp(12px, 16px, 22px);
+  margin: 0 auto clamp(8px, 12px, 16px);
   border: 0;
   border-radius: 0;
   background: none;
   box-shadow: none;
   font-family: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif;
-  font-size: clamp(88px, 108px, 132px);
+  font-size: clamp(66px, 82px, 96px);
   line-height: 1;
 }
 
-html[data-result-style="care"] .result-content > .eyebrow,
+html[data-result-style="care"] .result-message-box > .eyebrow,
 html[data-result-style="care"] .result-message {
   display: block !important;
 }
 
-html[data-result-style="care"] .result-content > .eyebrow {
-  width: max-content;
-  max-width: none;
+html[data-result-style="care"] .result-message-box > .eyebrow {
+  width: auto;
+  max-width: 100%;
+  margin: 0 auto clamp(12px, 18px, 24px);
   color: #0f6f78;
-  font-size: 60px;
-  line-height: 1;
-  white-space: nowrap;
+  font-size: clamp(34px, 46px, 50px);
+  line-height: 1.05;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+  white-space: normal;
   -webkit-text-stroke: 1px rgba(0, 0, 0, 0.86);
   paint-order: stroke fill;
   text-shadow: 0 2px 0 rgba(72, 35, 8, 0.18);
 }
 
 html[data-result-style="care"] .result-content h2 {
+  max-width: 100%;
   overflow-wrap: anywhere;
   font-weight: 1000;
   -webkit-text-stroke: 1px rgba(0, 0, 0, 0.88);
@@ -136,24 +152,47 @@ html[data-result-style="care"] .result-content h2 {
   padding-bottom: 0;
   border-bottom: 0;
   color: #eee7dc;
-  font-size: clamp(38px, 76.8px, 72px);
+  font-size: clamp(42px, 64px, 66px);
   line-height: 1.08;
   white-space: normal;
   text-shadow: 0 3px 0 rgba(55, 32, 14, 0.28);
 }
 
+html[data-result-style="care"] .result-message-box {
+  box-sizing: border-box;
+  display: grid;
+  justify-items: center;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  margin: 0 auto clamp(18px, 24px, 32px);
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  text-align: center;
+}
+
+html[data-result-style="care"] .result-message-box h2 {
+  color: #5f351a;
+  text-shadow: 0 2px 0 rgba(255, 255, 255, 0.66);
+  -webkit-text-stroke-color: rgba(95, 53, 26, 0.22);
+}
+
 html[data-result-style="care"] .result-message {
-  width: max-content;
-  max-width: calc(var(--stage-width) - 120px);
-  margin: clamp(12px, 17.28px, 22px) auto clamp(22px, 28.8px, 38px);
-  color: #eee7dc;
-  font-size: 44px;
+  width: auto;
+  max-width: 100%;
+  margin: clamp(12px, 17.28px, 22px) auto 0;
+  color: #5f351a;
+  font-size: clamp(32px, 38px, 42px);
   font-weight: 1000;
   line-height: 1.2;
   word-break: keep-all;
-  white-space: nowrap;
-  text-shadow: 0 3px 0 rgba(55, 32, 14, 0.28);
-  -webkit-text-stroke: 1px rgba(0, 0, 0, 0.88);
+  overflow-wrap: anywhere;
+  white-space: normal;
+  text-shadow: 0 2px 0 rgba(255, 255, 255, 0.66);
+  -webkit-text-stroke: 1px rgba(95, 53, 26, 0.22);
   paint-order: stroke fill;
 }
 
@@ -211,7 +250,6 @@ html[data-result-style="care"] .result-actions #result-home-button:hover {
     inset 0 -6px 0 rgba(134, 55, 7, 0.34);
 }
 
-html[data-mode="reminder"][data-result-style="care"] .result-actions,
-html[data-mode="reminder"][data-result-style="care"] .result-actions #result-home-button {
+html[data-mode="reminder"][data-result-style="care"] .result-actions {
   display: none !important;
 }

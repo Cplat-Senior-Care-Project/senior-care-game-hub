@@ -248,13 +248,14 @@
         return normalizeRuntimeConfig(fileConfig, "hub-url");
       }
     }
+    const fileConfig = await loadConfigFile();
+    if (fileConfig) {
+      storeRuntimeConfig(fileConfig);
+      return normalizeRuntimeConfig(fileConfig, "game-file-fallback");
+    }
     const storedConfig = getStoredRuntimeConfig();
     if (storedConfig) {
       return normalizeRuntimeConfig(storedConfig, "hub-storage");
-    }
-    const fileConfig = await loadConfigFile();
-    if (fileConfig) {
-      return normalizeRuntimeConfig(fileConfig, "game-file-fallback");
     }
     throw createConfigError("CONFIG_LOAD_FAILED", `Runtime config file could not be loaded: ${getActiveConfigUrl()}`);
   }

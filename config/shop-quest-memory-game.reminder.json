@@ -10,7 +10,7 @@
                    "show_settings":  true,
                    "show_how_to_play":  true,
                    "show_condition_check":  false,
-                   "show_finish_check":  true,
+                   "show_finish_check":  false,
                    "duration_seconds":  120,
                    "question_count":  10,
                    "max_choice_count":  6,

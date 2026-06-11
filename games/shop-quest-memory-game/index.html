@@ -26,10 +26,10 @@
       document.documentElement.style.setProperty("--game-viewport-side-gutter", String(horizontalGutter) + "px");
     })();
   </script>
-  <link rel="stylesheet" href="css/base.css?v=20260610-start-countdown">
+  <link rel="stylesheet" href="css/base.css?v=20260611-feedback-box-v1">
   <link rel="stylesheet" href="css/start.css?v=20260609-loading-text-white-v25">
   <link rel="stylesheet" href="css/difficulty.css?v=20260608-fixed-stage-layout">
-  <link rel="stylesheet" href="css/game-screen.css?v=20260610-start-countdown">
+  <link rel="stylesheet" href="css/game-screen.css?v=20260611-feedback-box-v1">
   <link rel="stylesheet" href="css/result.css?v=20260605">
   <link rel="stylesheet" href="css/condition.css?v=20260605">
   <link rel="stylesheet" href="css/tutorial-settings-pause.css?v=20260610-tutorial-drag-both-lower-v24">
@@ -168,11 +168,13 @@
 
     <section id="result-screen" class="screen result-screen is-hidden" aria-labelledby="result-title">
       <div class="result-content">
-        <div id="result-emoji" class="result-emoji" aria-hidden="true">🤗</div>
-        <p class="eyebrow">오늘 기억활동 정말 잘하셨어요</p>
         <div class="standard-result-card">
-          <h2 id="result-title">오늘의 기억 활동</h2>
-          <p id="result-message" class="result-message">천천히 집중해주신 것만으로도 참 좋습니다.</p>
+          <div class="result-message-box">
+            <div id="result-emoji" class="result-emoji" aria-hidden="true">🤗</div>
+            <p class="eyebrow">오늘 기억활동 정말 잘하셨어요</p>
+            <h2 id="result-title">오늘의 기억 활동</h2>
+            <p id="result-message" class="result-message">천천히 집중해주신 것만으로도 참 좋습니다.</p>
+          </div>
           <div id="standard-result-record" class="standard-result-record" aria-live="polite">
             <div class="standard-result-score-panel">
               <span class="standard-result-trophy" aria-hidden="true">🏆</span>
@@ -478,7 +480,7 @@
       if (mode !== "standard" && Object.prototype.hasOwnProperty.call(difficultyMap, requestedDifficulty)) {
         configFile = mode + "." + requestedDifficulty + ".config.json";
       }
-      var assetVersion = "20260611-difficulty-configs";
+      var assetVersion = "20260611-result-card-no-shadow";
       window.__SHOP_QUEST_GAME_MODE__ = mode;
       window.__SHOP_QUEST_MODE_ASSETS__ = {
         css: "css/modes/" + mode + ".css",
@@ -497,7 +499,7 @@
     })();
   </script>
   <script src="js/config-normalizer.js?v=20260605"></script>
-  <script src="js/app-bridge.js?v=20260605"></script>
-  <script src="js/game.js?v=20260610-start-countdown-v88"></script>
+  <script src="js/app-bridge.js?v=20260611-config-priority"></script>
+  <script src="js/game.js?v=20260611-feedback-box-v1"></script>
 </body>
 </html>
