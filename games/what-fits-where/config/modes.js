@@ -34,6 +34,11 @@
       voice_guide_enabled: true,
       soft_feedback: true,
       default_difficulty: "easy",
+      question_counts_by_diff: {
+        easy: [5],
+        normal: [3, 2],
+        hard: [2, 2, 1],
+      },
       auto_return_to_hub: true,
     },
     ai_assisted: {
@@ -44,6 +49,11 @@
       voice_guide_enabled: true,
       soft_feedback: true,
       default_difficulty: "easy",
+      question_counts_by_diff: {
+        easy: [5],
+        normal: [3, 2],
+        hard: [2, 2, 1],
+      },
       auto_return_to_hub: true,
     },
   };
@@ -78,6 +88,8 @@ function getMissionSequenceForDiff(diff){
   return MISSION_SEQUENCE_BY_DIFF[diff] || MISSION_SEQUENCE;
 }
 function getQuestionCountsForDiff(diff){
+  const configured = window.GAME_CONFIG && window.GAME_CONFIG.question_counts_by_diff;
+  if(configured && Array.isArray(configured[diff])) return configured[diff];
   return Q_PER_STAGE_BY_DIFF[diff] || Q_PER_STAGE_BY_DIFF.normal;
 }
 const MISSION_INTRO = {
@@ -106,6 +118,7 @@ const SOFT_WRONG_SIT = ["어떤 상황에서 쓰는 물건인지 다시 생각�
 const pickMsg = arr => arr[(Math.random()*arr.length)|0];
 
 const GAME_TIME_LIMIT = 180;
+const AUTO_HINT_DELAY_MS = 20000;
 
 /* ===== CONDITION CHECK CONFIG ===== */
 

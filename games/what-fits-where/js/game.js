@@ -637,7 +637,7 @@ function scheduleAutoHint(){
       trigger: "auto",
     });
   };
-  state.autoHintTimer = setTimeout(showIfReady, 10000);
+  state.autoHintTimer = setTimeout(showIfReady, AUTO_HINT_DELAY_MS);
 }
 
 function updateHintButton(){
