@@ -329,6 +329,112 @@ $("btn-diff-back").addEventListener("click", ()=>{ switchScreen("screen-start");
 applyAppConfig();
 
 /* ===== BUILD QUEUE ===== */
+const QUESTION_RULES_BY_DIFF = {
+  easy: [
+    { choices: 4, answers: 1 },
+    { choices: 4, answers: 1 },
+    { choices: 5, answers: 1 },
+    { choices: 4, answers: 1 },
+    { choices: 4, answers: 1 },
+    { choices: 5, answers: 1 },
+    { choices: 4, answers: 1 },
+    { choices: 4, answers: 1 },
+    { choices: 5, answers: 1 },
+    { choices: 5, answers: 1 },
+  ],
+  normal: [
+    { choices: 5, answers: 2 },
+    { choices: 5, answers: 2 },
+    { choices: 6, answers: 2 },
+    { choices: 5, answers: 2 },
+    { choices: 5, answers: 2 },
+    { choices: 6, answers: 2 },
+    { choices: 5, answers: 1 },
+    { choices: 5, answers: 1 },
+    { choices: 6, answers: 1 },
+    { choices: 6, answers: 1 },
+  ],
+  hard: [
+    { choices: 6, answers: 3 },
+    { choices: 6, answers: 3 },
+    { choices: 7, answers: 3 },
+    { choices: 6, answers: 3 },
+    { choices: 6, answers: 3 },
+    { choices: 7, answers: 3 },
+    { choices: 7, answers: 1 },
+    { choices: 7, answers: 1 },
+    { choices: 8, answers: 1 },
+    { choices: 8, answers: 1 },
+  ],
+};
+
+function collectQuestionItemKeys(){
+  const keys = new Set(Object.keys(I || {}));
+  const addFromStageMap = stageMap => {
+    if(!stageMap) return;
+    Object.values(stageMap).forEach(stage=>{
+      (stage || []).forEach(q=>{
+        (q.items || []).forEach(k=>keys.add(k));
+      });
+    });
+  };
+  Object.values(POOL || {}).forEach(modePool=>{
+    Object.values(modePool || {}).forEach(addFromStageMap);
+  });
+  return Array.from(keys).filter(k => I[k]);
+}
+
+function normalizePackQuestion(q, rule){
+  if(!q || q.kind !== "pack" || !rule) return q;
+  const desiredAnswerCount = Math.min(rule.answers, q.answers.length);
+  const answers = q.answers.slice(0, desiredAnswerCount);
+  const answerSet = new Set(answers);
+  let itemKeys = answers.concat(
+    (q.items || [])
+      .map(item => item.k)
+      .filter(k => !answerSet.has(k))
+  );
+
+  const seen = new Set(itemKeys);
+  const fillers = collectQuestionItemKeys()
+    .filter(k => !seen.has(k) && !answerSet.has(k));
+  itemKeys = itemKeys.concat(shuffle(fillers).slice(0, Math.max(0, rule.choices - itemKeys.length)));
+  itemKeys = itemKeys.slice(0, rule.choices);
+
+  q.answers = answers;
+  q.items = shuffle(itemKeys.map(k => it(k)));
+  return q;
+}
+
+function collectSituationChoiceLabels(){
+  const labels = new Set();
+  Object.values(GUESS_POOL || {}).forEach(stageMap=>{
+    Object.values(stageMap || {}).forEach(stage=>{
+      (stage || []).forEach(q=>{
+        (q.choices || []).forEach(label=>labels.add(label));
+      });
+    });
+  });
+  return Array.from(labels);
+}
+
+function normalizeGuessQuestion(q, rule){
+  if(!q || q.kind !== "guess" || !rule) return q;
+  const answer = q.answer;
+  const seen = new Set(q.choices || []);
+  let choices = [answer].concat((q.choices || []).filter(label => label !== answer));
+  const fillers = collectSituationChoiceLabels()
+    .filter(label => label !== answer && !seen.has(label));
+  choices = choices.concat(shuffle(fillers).slice(0, Math.max(0, rule.choices - choices.length)));
+  q.choices = shuffle(choices.slice(0, rule.choices));
+  return q;
+}
+
+function applyQuestionRules(queue, diff){
+  const rules = QUESTION_RULES_BY_DIFF[diff] || QUESTION_RULES_BY_DIFF.easy;
+  return queue.map((q, idx) => normalizeGuessQuestion(normalizePackQuestion(q, rules[idx]), rules[idx]));
+}
+
 function buildQueue(){
   const q = [];
   const diff = state.diff || "easy";
@@ -340,7 +446,7 @@ function buildQueue(){
     if(count <= 0) return;
     q.push(...getGameMode(mode).buildQuestions({ mode, diff, stageNo, count }));
   });
-  return q;
+  return applyQuestionRules(q, diff);
 }
 
 /* ===== GAME ===== */

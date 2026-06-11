@@ -80,6 +80,17 @@
     explain.textContent = explainText(q.answers.map(k => I[k].n).join(", "));
   }
 
+  function answerCount(q) {
+    if (Array.isArray(q.answers)) return q.answers.length;
+    if (q.answer) return 1;
+    return 0;
+  }
+
+  function countGuide(q, targetText, verbText) {
+    const count = answerCount(q);
+    return count > 0 ? `${targetText} ${count}개를 ${verbText}.` : "";
+  }
+
   const chooseMatchingItems = {
     key: "choose_matching_items",
     markedClass: "picked",
@@ -87,8 +98,8 @@
     buildQuestions({ mode, diff, stageNo, count }) {
       return buildPackQuestions(mode, diff, stageNo, count);
     },
-    getTargetText() {
-      return "";
+    getTargetText(q) {
+      return countGuide(q, "필요한 물건", "골라주세요");
     },
     renderContext() {
       hideSeenItems();
@@ -132,8 +143,8 @@
     buildQuestions({ mode, diff, stageNo, count }) {
       return buildPackQuestions(mode, diff, stageNo, count);
     },
-    getTargetText() {
-      return "";
+    getTargetText(q) {
+      return countGuide(q, "어울리지 않는 물건", "빼주세요");
     },
     renderContext() {
       hideSeenItems();
@@ -176,8 +187,8 @@
     buildQuestions({ mode, diff, stageNo, count }) {
       return buildGuessQuestions(mode, diff, stageNo, count);
     },
-    getTargetText() {
-      return "보이는 물건에 맞는 상황을 골라주세요.";
+    getTargetText(q) {
+      return countGuide(q, "보이는 물건에 맞는 상황", "골라주세요");
     },
     renderContext(q) {
       renderSeenItems(q);
