@@ -85,13 +85,10 @@
     <div class="play">
       <div class="topbar">
         <div class="pills">
-          <span class="pill" id="p-mode">모드</span>
-          <span class="pill" id="p-diff">난이도</span>
-          <span class="pill" id="p-stage">단계 1</span>
           <span class="pill" id="p-qnum">1 / 10</span>
         </div>
+        <div class="activity-label play-label">일상생활 판단 활동</div>
         <div class="actions">
-          <div class="activity-label play-label">일상생활 판단 활동</div>
           <button class="icon-btn hint-btn" id="btn-hint" type="button" title="힌트 보기">힌트</button>
           <span class="timer" id="p-timer">⏱ 03:00</span>
           <button class="icon-btn" id="btn-pause" title="일시정지">⏸ 일시정지</button>
@@ -105,11 +102,10 @@
 
       <div id="p-seen" class="seen-row" style="display:none"></div>
 
-      <div class="fb-area" id="p-feedback-area">
-        <div class="fb-msg" id="p-feedback"></div>
-      </div>
-
       <div class="choices-wrap">
+        <div class="fb-area" id="p-feedback-area">
+          <div class="fb-msg" id="p-feedback"></div>
+        </div>
         <div class="choices" id="p-choices"></div>
       </div>
     </div>
@@ -229,6 +225,9 @@
   <div class="box hint-box">
     <h3 id="hint-title">힌트</h3>
     <div class="hint-list" id="hint-list"></div>
+    <div class="actions">
+      <button class="keep" id="btn-hint-close" type="button">확인</button>
+    </div>
   </div>
 </div>
 
@@ -311,6 +310,10 @@
         <span class="nm">안내음성</span>
         <button class="toggle on" data-sound="voice"><span class="dot"></span><span class="txt">켜짐</span></button>
       </div>
+      <div class="sound-row">
+        <span class="nm">전체화면</span>
+        <button class="toggle" id="btn-fullscreen" type="button" aria-pressed="false"><span class="dot"></span><span class="txt">켜기</span></button>
+      </div>
     </div>
     <div class="actions">
       <button class="keep" id="btn-settings-back">돌아가기</button>
@@ -325,17 +328,6 @@
     <p class="sub">잠시만 기다려주세요.</p>
     <div class="countdown-circle" id="countdown-num">3</div>
     <span class="countdown-warn">ⓘ 준비가 되면 자동으로 시작됩니다.</span>
-  </div>
-</div>
-
-<!-- Mission transition -->
-<div class="modal" id="mission-modal">
-  <div class="box">
-    <h3 id="mission-title">이번 미션</h3>
-    <p id="mission-text" style="font-size:40px;color:#13182A;font-weight:700;line-height:1.5"></p>
-    <div class="actions">
-      <button class="keep" id="btn-mission-start" style="font-size:40px;padding:18px">시작하기</button>
-    </div>
   </div>
 </div>
 

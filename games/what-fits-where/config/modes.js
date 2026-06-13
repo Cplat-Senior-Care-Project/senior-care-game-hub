@@ -35,9 +35,9 @@
       soft_feedback: true,
       default_difficulty: "easy",
       question_counts_by_diff: {
-        easy: [10],
-        normal: [10],
-        hard: [10],
+        easy: [5],
+        normal: [5],
+        hard: [5],
       },
       auto_return_to_hub: true,
     },
@@ -50,9 +50,9 @@
       soft_feedback: true,
       default_difficulty: "easy",
       question_counts_by_diff: {
-        easy: [10],
-        normal: [10],
-        hard: [10],
+        easy: [5],
+        normal: [5],
+        hard: [5],
       },
       auto_return_to_hub: true,
     },
@@ -92,11 +92,6 @@ function getQuestionCountsForDiff(diff){
   if(configured && Array.isArray(configured[diff])) return configured[diff];
   return Q_PER_STAGE_BY_DIFF[diff] || Q_PER_STAGE_BY_DIFF.normal;
 }
-const MISSION_INTRO = {
-  choose_matching_items: "이번에는 필요한 물건을 골라볼게요.",
-  remove_mismatched_items: "이번에는 어울리지 않는 물건을 골라볼게요.",
-  guess_situation: "이번에는 물건을 보고 상황을 맞혀볼게요.",
-};
 const DIFF_LABEL = {easy:"쉬움", normal:"보통", hard:"어려움"};
 const MODE_LABEL = {
   choose_matching_items:"알맞은 물건 고르기",

@@ -1,0 +1,1053 @@
+[
+  {
+    "viewport": {
+      "name": "desktop",
+      "width": 1366,
+      "height": 768,
+      "isMobile": false
+    },
+    "results": [
+      {
+        "stepName": "condition",
+        "screenshot": "C:\\Users\\juhye\\OneDrive\\Desktop\\senior-care-game-hub\\games\\what-fits-where\\tmp\\viewport-desktop-condition.png",
+        "activeScreen": "screen-condition",
+        "bodyScroll": {
+          "width": 1366,
+          "height": 768,
+          "clientWidth": 1366,
+          "clientHeight": 768
+        },
+        "app": {
+          "scrollWidth": 1366,
+          "scrollHeight": 768,
+          "clientWidth": 1366,
+          "clientHeight": 768
+        },
+        "active": {
+          "scrollWidth": 1366,
+          "scrollHeight": 768,
+          "clientWidth": 1366,
+          "clientHeight": 768
+        },
+        "offenders": []
+      },
+      {
+        "stepName": "start",
+        "screenshot": "C:\\Users\\juhye\\OneDrive\\Desktop\\senior-care-game-hub\\games\\what-fits-where\\tmp\\viewport-desktop-start.png",
+        "activeScreen": "screen-start",
+        "bodyScroll": {
+          "width": 1366,
+          "height": 768,
+          "clientWidth": 1366,
+          "clientHeight": 768
+        },
+        "app": {
+          "scrollWidth": 1366,
+          "scrollHeight": 768,
+          "clientWidth": 1366,
+          "clientHeight": 768
+        },
+        "active": {
+          "scrollWidth": 1366,
+          "scrollHeight": 768,
+          "clientWidth": 1366,
+          "clientHeight": 768
+        },
+        "offenders": []
+      },
+      {
+        "stepName": "settings",
+        "screenshot": "C:\\Users\\juhye\\OneDrive\\Desktop\\senior-care-game-hub\\games\\what-fits-where\\tmp\\viewport-desktop-settings.png",
+        "activeScreen": "screen-start",
+        "bodyScroll": {
+          "width": 1366,
+          "height": 768,
+          "clientWidth": 1366,
+          "clientHeight": 768
+        },
+        "app": {
+          "scrollWidth": 1366,
+          "scrollHeight": 768,
+          "clientWidth": 1366,
+          "clientHeight": 768
+        },
+        "active": {
+          "scrollWidth": 1366,
+          "scrollHeight": 768,
+          "clientWidth": 1366,
+          "clientHeight": 768
+        },
+        "offenders": []
+      },
+      {
+        "stepName": "help",
+        "screenshot": "C:\\Users\\juhye\\OneDrive\\Desktop\\senior-care-game-hub\\games\\what-fits-where\\tmp\\viewport-desktop-help.png",
+        "activeScreen": "screen-start",
+        "bodyScroll": {
+          "width": 1366,
+          "height": 768,
+          "clientWidth": 1366,
+          "clientHeight": 768
+        },
+        "app": {
+          "scrollWidth": 1366,
+          "scrollHeight": 768,
+          "clientWidth": 1366,
+          "clientHeight": 768
+        },
+        "active": {
+          "scrollWidth": 1366,
+          "scrollHeight": 768,
+          "clientWidth": 1366,
+          "clientHeight": 768
+        },
+        "offenders": []
+      },
+      {
+        "stepName": "difficulty",
+        "screenshot": "C:\\Users\\juhye\\OneDrive\\Desktop\\senior-care-game-hub\\games\\what-fits-where\\tmp\\viewport-desktop-difficulty.png",
+        "activeScreen": "screen-difficulty",
+        "bodyScroll": {
+          "width": 1366,
+          "height": 768,
+          "clientWidth": 1366,
+          "clientHeight": 768
+        },
+        "app": {
+          "scrollWidth": 1366,
+          "scrollHeight": 768,
+          "clientWidth": 1366,
+          "clientHeight": 768
+        },
+        "active": {
+          "scrollWidth": 1366,
+          "scrollHeight": 768,
+          "clientWidth": 1366,
+          "clientHeight": 768
+        },
+        "offenders": []
+      },
+      {
+        "stepName": "countdown",
+        "screenshot": "C:\\Users\\juhye\\OneDrive\\Desktop\\senior-care-game-hub\\games\\what-fits-where\\tmp\\viewport-desktop-countdown.png",
+        "activeScreen": "screen-play",
+        "bodyScroll": {
+          "width": 1366,
+          "height": 768,
+          "clientWidth": 1366,
+          "clientHeight": 768
+        },
+        "app": {
+          "scrollWidth": 1366,
+          "scrollHeight": 768,
+          "clientWidth": 1366,
+          "clientHeight": 768
+        },
+        "active": {
+          "scrollWidth": 1366,
+          "scrollHeight": 768,
+          "clientWidth": 1366,
+          "clientHeight": 768
+        },
+        "offenders": []
+      },
+      {
+        "stepName": "play",
+        "screenshot": "C:\\Users\\juhye\\OneDrive\\Desktop\\senior-care-game-hub\\games\\what-fits-where\\tmp\\viewport-desktop-play.png",
+        "activeScreen": "screen-play",
+        "bodyScroll": {
+          "width": 1366,
+          "height": 768,
+          "clientWidth": 1366,
+          "clientHeight": 768
+        },
+        "app": {
+          "scrollWidth": 1366,
+          "scrollHeight": 768,
+          "clientWidth": 1366,
+          "clientHeight": 768
+        },
+        "active": {
+          "scrollWidth": 1366,
+          "scrollHeight": 768,
+          "clientWidth": 1366,
+          "clientHeight": 768
+        },
+        "offenders": []
+      },
+      {
+        "stepName": "hint",
+        "screenshot": "C:\\Users\\juhye\\OneDrive\\Desktop\\senior-care-game-hub\\games\\what-fits-where\\tmp\\viewport-desktop-hint.png",
+        "activeScreen": "screen-play",
+        "bodyScroll": {
+          "width": 1366,
+          "height": 768,
+          "clientWidth": 1366,
+          "clientHeight": 768
+        },
+        "app": {
+          "scrollWidth": 1366,
+          "scrollHeight": 768,
+          "clientWidth": 1366,
+          "clientHeight": 768
+        },
+        "active": {
+          "scrollWidth": 1366,
+          "scrollHeight": 768,
+          "clientWidth": 1366,
+          "clientHeight": 768
+        },
+        "offenders": []
+      },
+      {
+        "stepName": "pause",
+        "screenshot": "C:\\Users\\juhye\\OneDrive\\Desktop\\senior-care-game-hub\\games\\what-fits-where\\tmp\\viewport-desktop-pause.png",
+        "activeScreen": "screen-play",
+        "bodyScroll": {
+          "width": 1366,
+          "height": 768,
+          "clientWidth": 1366,
+          "clientHeight": 768
+        },
+        "app": {
+          "scrollWidth": 1366,
+          "scrollHeight": 768,
+          "clientWidth": 1366,
+          "clientHeight": 768
+        },
+        "active": {
+          "scrollWidth": 1366,
+          "scrollHeight": 768,
+          "clientWidth": 1366,
+          "clientHeight": 768
+        },
+        "offenders": []
+      },
+      {
+        "stepName": "exit",
+        "screenshot": "C:\\Users\\juhye\\OneDrive\\Desktop\\senior-care-game-hub\\games\\what-fits-where\\tmp\\viewport-desktop-exit.png",
+        "activeScreen": "screen-play",
+        "bodyScroll": {
+          "width": 1366,
+          "height": 768,
+          "clientWidth": 1366,
+          "clientHeight": 768
+        },
+        "app": {
+          "scrollWidth": 1366,
+          "scrollHeight": 768,
+          "clientWidth": 1366,
+          "clientHeight": 768
+        },
+        "active": {
+          "scrollWidth": 1366,
+          "scrollHeight": 768,
+          "clientWidth": 1366,
+          "clientHeight": 768
+        },
+        "offenders": []
+      },
+      {
+        "stepName": "result",
+        "screenshot": "C:\\Users\\juhye\\OneDrive\\Desktop\\senior-care-game-hub\\games\\what-fits-where\\tmp\\viewport-desktop-result.png",
+        "activeScreen": "screen-result",
+        "bodyScroll": {
+          "width": 1366,
+          "height": 768,
+          "clientWidth": 1366,
+          "clientHeight": 768
+        },
+        "app": {
+          "scrollWidth": 1366,
+          "scrollHeight": 768,
+          "clientWidth": 1366,
+          "clientHeight": 768
+        },
+        "active": {
+          "scrollWidth": 1366,
+          "scrollHeight": 768,
+          "clientWidth": 1366,
+          "clientHeight": 768
+        },
+        "offenders": []
+      },
+      {
+        "stepName": "score",
+        "screenshot": "C:\\Users\\juhye\\OneDrive\\Desktop\\senior-care-game-hub\\games\\what-fits-where\\tmp\\viewport-desktop-score.png",
+        "activeScreen": "screen-score",
+        "bodyScroll": {
+          "width": 1366,
+          "height": 768,
+          "clientWidth": 1366,
+          "clientHeight": 768
+        },
+        "app": {
+          "scrollWidth": 1366,
+          "scrollHeight": 768,
+          "clientWidth": 1366,
+          "clientHeight": 768
+        },
+        "active": {
+          "scrollWidth": 1366,
+          "scrollHeight": 768,
+          "clientWidth": 1366,
+          "clientHeight": 768
+        },
+        "offenders": []
+      },
+      {
+        "stepName": "post1",
+        "screenshot": "C:\\Users\\juhye\\OneDrive\\Desktop\\senior-care-game-hub\\games\\what-fits-where\\tmp\\viewport-desktop-post1.png",
+        "activeScreen": "screen-post-check-1",
+        "bodyScroll": {
+          "width": 1366,
+          "height": 768,
+          "clientWidth": 1366,
+          "clientHeight": 768
+        },
+        "app": {
+          "scrollWidth": 1366,
+          "scrollHeight": 768,
+          "clientWidth": 1366,
+          "clientHeight": 768
+        },
+        "active": {
+          "scrollWidth": 1366,
+          "scrollHeight": 778,
+          "clientWidth": 1366,
+          "clientHeight": 768
+        },
+        "offenders": []
+      },
+      {
+        "stepName": "post2",
+        "screenshot": "C:\\Users\\juhye\\OneDrive\\Desktop\\senior-care-game-hub\\games\\what-fits-where\\tmp\\viewport-desktop-post2.png",
+        "activeScreen": "screen-post-check-2",
+        "bodyScroll": {
+          "width": 1366,
+          "height": 768,
+          "clientWidth": 1366,
+          "clientHeight": 768
+        },
+        "app": {
+          "scrollWidth": 1366,
+          "scrollHeight": 768,
+          "clientWidth": 1366,
+          "clientHeight": 768
+        },
+        "active": {
+          "scrollWidth": 1366,
+          "scrollHeight": 768,
+          "clientWidth": 1366,
+          "clientHeight": 768
+        },
+        "offenders": []
+      }
+    ],
+    "errors": [],
+    "logs": [
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)"
+    ]
+  },
+  {
+    "viewport": {
+      "name": "mobile-landscape",
+      "width": 844,
+      "height": 390,
+      "isMobile": true
+    },
+    "results": [
+      {
+        "stepName": "condition",
+        "screenshot": "C:\\Users\\juhye\\OneDrive\\Desktop\\senior-care-game-hub\\games\\what-fits-where\\tmp\\viewport-mobile-landscape-condition.png",
+        "activeScreen": "screen-condition",
+        "bodyScroll": {
+          "width": 844,
+          "height": 390,
+          "clientWidth": 844,
+          "clientHeight": 390
+        },
+        "app": {
+          "scrollWidth": 844,
+          "scrollHeight": 390,
+          "clientWidth": 844,
+          "clientHeight": 390
+        },
+        "active": {
+          "scrollWidth": 844,
+          "scrollHeight": 390,
+          "clientWidth": 844,
+          "clientHeight": 390
+        },
+        "offenders": []
+      },
+      {
+        "stepName": "start",
+        "screenshot": "C:\\Users\\juhye\\OneDrive\\Desktop\\senior-care-game-hub\\games\\what-fits-where\\tmp\\viewport-mobile-landscape-start.png",
+        "activeScreen": "screen-start",
+        "bodyScroll": {
+          "width": 844,
+          "height": 390,
+          "clientWidth": 844,
+          "clientHeight": 390
+        },
+        "app": {
+          "scrollWidth": 844,
+          "scrollHeight": 390,
+          "clientWidth": 844,
+          "clientHeight": 390
+        },
+        "active": {
+          "scrollWidth": 844,
+          "scrollHeight": 390,
+          "clientWidth": 844,
+          "clientHeight": 390
+        },
+        "offenders": []
+      },
+      {
+        "stepName": "settings",
+        "screenshot": "C:\\Users\\juhye\\OneDrive\\Desktop\\senior-care-game-hub\\games\\what-fits-where\\tmp\\viewport-mobile-landscape-settings.png",
+        "activeScreen": "screen-start",
+        "bodyScroll": {
+          "width": 844,
+          "height": 390,
+          "clientWidth": 844,
+          "clientHeight": 390
+        },
+        "app": {
+          "scrollWidth": 844,
+          "scrollHeight": 390,
+          "clientWidth": 844,
+          "clientHeight": 390
+        },
+        "active": {
+          "scrollWidth": 844,
+          "scrollHeight": 390,
+          "clientWidth": 844,
+          "clientHeight": 390
+        },
+        "offenders": []
+      },
+      {
+        "stepName": "help",
+        "screenshot": "C:\\Users\\juhye\\OneDrive\\Desktop\\senior-care-game-hub\\games\\what-fits-where\\tmp\\viewport-mobile-landscape-help.png",
+        "activeScreen": "screen-start",
+        "bodyScroll": {
+          "width": 844,
+          "height": 390,
+          "clientWidth": 844,
+          "clientHeight": 390
+        },
+        "app": {
+          "scrollWidth": 844,
+          "scrollHeight": 390,
+          "clientWidth": 844,
+          "clientHeight": 390
+        },
+        "active": {
+          "scrollWidth": 844,
+          "scrollHeight": 390,
+          "clientWidth": 844,
+          "clientHeight": 390
+        },
+        "offenders": []
+      },
+      {
+        "stepName": "difficulty",
+        "screenshot": "C:\\Users\\juhye\\OneDrive\\Desktop\\senior-care-game-hub\\games\\what-fits-where\\tmp\\viewport-mobile-landscape-difficulty.png",
+        "activeScreen": "screen-difficulty",
+        "bodyScroll": {
+          "width": 844,
+          "height": 390,
+          "clientWidth": 844,
+          "clientHeight": 390
+        },
+        "app": {
+          "scrollWidth": 844,
+          "scrollHeight": 390,
+          "clientWidth": 844,
+          "clientHeight": 390
+        },
+        "active": {
+          "scrollWidth": 844,
+          "scrollHeight": 390,
+          "clientWidth": 844,
+          "clientHeight": 390
+        },
+        "offenders": []
+      },
+      {
+        "stepName": "countdown",
+        "screenshot": "C:\\Users\\juhye\\OneDrive\\Desktop\\senior-care-game-hub\\games\\what-fits-where\\tmp\\viewport-mobile-landscape-countdown.png",
+        "activeScreen": "screen-play",
+        "bodyScroll": {
+          "width": 844,
+          "height": 390,
+          "clientWidth": 844,
+          "clientHeight": 390
+        },
+        "app": {
+          "scrollWidth": 844,
+          "scrollHeight": 390,
+          "clientWidth": 844,
+          "clientHeight": 390
+        },
+        "active": {
+          "scrollWidth": 844,
+          "scrollHeight": 390,
+          "clientWidth": 844,
+          "clientHeight": 390
+        },
+        "offenders": []
+      },
+      {
+        "stepName": "play",
+        "screenshot": "C:\\Users\\juhye\\OneDrive\\Desktop\\senior-care-game-hub\\games\\what-fits-where\\tmp\\viewport-mobile-landscape-play.png",
+        "activeScreen": "screen-play",
+        "bodyScroll": {
+          "width": 844,
+          "height": 390,
+          "clientWidth": 844,
+          "clientHeight": 390
+        },
+        "app": {
+          "scrollWidth": 844,
+          "scrollHeight": 390,
+          "clientWidth": 844,
+          "clientHeight": 390
+        },
+        "active": {
+          "scrollWidth": 844,
+          "scrollHeight": 390,
+          "clientWidth": 844,
+          "clientHeight": 390
+        },
+        "offenders": []
+      },
+      {
+        "stepName": "hint",
+        "screenshot": "C:\\Users\\juhye\\OneDrive\\Desktop\\senior-care-game-hub\\games\\what-fits-where\\tmp\\viewport-mobile-landscape-hint.png",
+        "activeScreen": "screen-play",
+        "bodyScroll": {
+          "width": 844,
+          "height": 390,
+          "clientWidth": 844,
+          "clientHeight": 390
+        },
+        "app": {
+          "scrollWidth": 844,
+          "scrollHeight": 390,
+          "clientWidth": 844,
+          "clientHeight": 390
+        },
+        "active": {
+          "scrollWidth": 844,
+          "scrollHeight": 390,
+          "clientWidth": 844,
+          "clientHeight": 390
+        },
+        "offenders": []
+      },
+      {
+        "stepName": "pause",
+        "screenshot": "C:\\Users\\juhye\\OneDrive\\Desktop\\senior-care-game-hub\\games\\what-fits-where\\tmp\\viewport-mobile-landscape-pause.png",
+        "activeScreen": "screen-play",
+        "bodyScroll": {
+          "width": 844,
+          "height": 390,
+          "clientWidth": 844,
+          "clientHeight": 390
+        },
+        "app": {
+          "scrollWidth": 844,
+          "scrollHeight": 390,
+          "clientWidth": 844,
+          "clientHeight": 390
+        },
+        "active": {
+          "scrollWidth": 844,
+          "scrollHeight": 390,
+          "clientWidth": 844,
+          "clientHeight": 390
+        },
+        "offenders": []
+      },
+      {
+        "stepName": "exit",
+        "screenshot": "C:\\Users\\juhye\\OneDrive\\Desktop\\senior-care-game-hub\\games\\what-fits-where\\tmp\\viewport-mobile-landscape-exit.png",
+        "activeScreen": "screen-play",
+        "bodyScroll": {
+          "width": 844,
+          "height": 390,
+          "clientWidth": 844,
+          "clientHeight": 390
+        },
+        "app": {
+          "scrollWidth": 844,
+          "scrollHeight": 390,
+          "clientWidth": 844,
+          "clientHeight": 390
+        },
+        "active": {
+          "scrollWidth": 844,
+          "scrollHeight": 390,
+          "clientWidth": 844,
+          "clientHeight": 390
+        },
+        "offenders": []
+      },
+      {
+        "stepName": "result",
+        "screenshot": "C:\\Users\\juhye\\OneDrive\\Desktop\\senior-care-game-hub\\games\\what-fits-where\\tmp\\viewport-mobile-landscape-result.png",
+        "activeScreen": "screen-result",
+        "bodyScroll": {
+          "width": 844,
+          "height": 390,
+          "clientWidth": 844,
+          "clientHeight": 390
+        },
+        "app": {
+          "scrollWidth": 844,
+          "scrollHeight": 390,
+          "clientWidth": 844,
+          "clientHeight": 390
+        },
+        "active": {
+          "scrollWidth": 844,
+          "scrollHeight": 390,
+          "clientWidth": 844,
+          "clientHeight": 390
+        },
+        "offenders": []
+      },
+      {
+        "stepName": "score",
+        "screenshot": "C:\\Users\\juhye\\OneDrive\\Desktop\\senior-care-game-hub\\games\\what-fits-where\\tmp\\viewport-mobile-landscape-score.png",
+        "activeScreen": "screen-score",
+        "bodyScroll": {
+          "width": 844,
+          "height": 390,
+          "clientWidth": 844,
+          "clientHeight": 390
+        },
+        "app": {
+          "scrollWidth": 844,
+          "scrollHeight": 390,
+          "clientWidth": 844,
+          "clientHeight": 390
+        },
+        "active": {
+          "scrollWidth": 844,
+          "scrollHeight": 390,
+          "clientWidth": 844,
+          "clientHeight": 390
+        },
+        "offenders": []
+      },
+      {
+        "stepName": "post1",
+        "screenshot": "C:\\Users\\juhye\\OneDrive\\Desktop\\senior-care-game-hub\\games\\what-fits-where\\tmp\\viewport-mobile-landscape-post1.png",
+        "activeScreen": "screen-post-check-1",
+        "bodyScroll": {
+          "width": 844,
+          "height": 390,
+          "clientWidth": 844,
+          "clientHeight": 390
+        },
+        "app": {
+          "scrollWidth": 844,
+          "scrollHeight": 390,
+          "clientWidth": 844,
+          "clientHeight": 390
+        },
+        "active": {
+          "scrollWidth": 844,
+          "scrollHeight": 390,
+          "clientWidth": 844,
+          "clientHeight": 390
+        },
+        "offenders": []
+      },
+      {
+        "stepName": "post2",
+        "screenshot": "C:\\Users\\juhye\\OneDrive\\Desktop\\senior-care-game-hub\\games\\what-fits-where\\tmp\\viewport-mobile-landscape-post2.png",
+        "activeScreen": "screen-post-check-2",
+        "bodyScroll": {
+          "width": 844,
+          "height": 390,
+          "clientWidth": 844,
+          "clientHeight": 390
+        },
+        "app": {
+          "scrollWidth": 844,
+          "scrollHeight": 390,
+          "clientWidth": 844,
+          "clientHeight": 390
+        },
+        "active": {
+          "scrollWidth": 844,
+          "scrollHeight": 390,
+          "clientWidth": 844,
+          "clientHeight": 390
+        },
+        "offenders": []
+      }
+    ],
+    "errors": [],
+    "logs": [
+      "Failed to load resource: the server responded with a status of 404 (Not Found)"
+    ]
+  },
+  {
+    "viewport": {
+      "name": "mobile-portrait",
+      "width": 390,
+      "height": 844,
+      "isMobile": true
+    },
+    "results": [
+      {
+        "stepName": "condition",
+        "screenshot": "C:\\Users\\juhye\\OneDrive\\Desktop\\senior-care-game-hub\\games\\what-fits-where\\tmp\\viewport-mobile-portrait-condition.png",
+        "activeScreen": "screen-condition",
+        "bodyScroll": {
+          "width": 390,
+          "height": 844,
+          "clientWidth": 390,
+          "clientHeight": 844
+        },
+        "app": {
+          "scrollWidth": 390,
+          "scrollHeight": 844,
+          "clientWidth": 390,
+          "clientHeight": 844
+        },
+        "active": {
+          "scrollWidth": 390,
+          "scrollHeight": 844,
+          "clientWidth": 390,
+          "clientHeight": 844
+        },
+        "offenders": []
+      },
+      {
+        "stepName": "start",
+        "screenshot": "C:\\Users\\juhye\\OneDrive\\Desktop\\senior-care-game-hub\\games\\what-fits-where\\tmp\\viewport-mobile-portrait-start.png",
+        "activeScreen": "screen-start",
+        "bodyScroll": {
+          "width": 390,
+          "height": 844,
+          "clientWidth": 390,
+          "clientHeight": 844
+        },
+        "app": {
+          "scrollWidth": 390,
+          "scrollHeight": 844,
+          "clientWidth": 390,
+          "clientHeight": 844
+        },
+        "active": {
+          "scrollWidth": 390,
+          "scrollHeight": 844,
+          "clientWidth": 390,
+          "clientHeight": 844
+        },
+        "offenders": []
+      },
+      {
+        "stepName": "settings",
+        "screenshot": "C:\\Users\\juhye\\OneDrive\\Desktop\\senior-care-game-hub\\games\\what-fits-where\\tmp\\viewport-mobile-portrait-settings.png",
+        "activeScreen": "screen-start",
+        "bodyScroll": {
+          "width": 390,
+          "height": 844,
+          "clientWidth": 390,
+          "clientHeight": 844
+        },
+        "app": {
+          "scrollWidth": 390,
+          "scrollHeight": 844,
+          "clientWidth": 390,
+          "clientHeight": 844
+        },
+        "active": {
+          "scrollWidth": 390,
+          "scrollHeight": 844,
+          "clientWidth": 390,
+          "clientHeight": 844
+        },
+        "offenders": []
+      },
+      {
+        "stepName": "help",
+        "screenshot": "C:\\Users\\juhye\\OneDrive\\Desktop\\senior-care-game-hub\\games\\what-fits-where\\tmp\\viewport-mobile-portrait-help.png",
+        "activeScreen": "screen-start",
+        "bodyScroll": {
+          "width": 390,
+          "height": 844,
+          "clientWidth": 390,
+          "clientHeight": 844
+        },
+        "app": {
+          "scrollWidth": 390,
+          "scrollHeight": 844,
+          "clientWidth": 390,
+          "clientHeight": 844
+        },
+        "active": {
+          "scrollWidth": 390,
+          "scrollHeight": 844,
+          "clientWidth": 390,
+          "clientHeight": 844
+        },
+        "offenders": []
+      },
+      {
+        "stepName": "difficulty",
+        "screenshot": "C:\\Users\\juhye\\OneDrive\\Desktop\\senior-care-game-hub\\games\\what-fits-where\\tmp\\viewport-mobile-portrait-difficulty.png",
+        "activeScreen": "screen-difficulty",
+        "bodyScroll": {
+          "width": 390,
+          "height": 844,
+          "clientWidth": 390,
+          "clientHeight": 844
+        },
+        "app": {
+          "scrollWidth": 390,
+          "scrollHeight": 844,
+          "clientWidth": 390,
+          "clientHeight": 844
+        },
+        "active": {
+          "scrollWidth": 390,
+          "scrollHeight": 844,
+          "clientWidth": 390,
+          "clientHeight": 844
+        },
+        "offenders": []
+      },
+      {
+        "stepName": "countdown",
+        "screenshot": "C:\\Users\\juhye\\OneDrive\\Desktop\\senior-care-game-hub\\games\\what-fits-where\\tmp\\viewport-mobile-portrait-countdown.png",
+        "activeScreen": "screen-play",
+        "bodyScroll": {
+          "width": 390,
+          "height": 844,
+          "clientWidth": 390,
+          "clientHeight": 844
+        },
+        "app": {
+          "scrollWidth": 390,
+          "scrollHeight": 844,
+          "clientWidth": 390,
+          "clientHeight": 844
+        },
+        "active": {
+          "scrollWidth": 390,
+          "scrollHeight": 844,
+          "clientWidth": 390,
+          "clientHeight": 844
+        },
+        "offenders": []
+      },
+      {
+        "stepName": "play",
+        "screenshot": "C:\\Users\\juhye\\OneDrive\\Desktop\\senior-care-game-hub\\games\\what-fits-where\\tmp\\viewport-mobile-portrait-play.png",
+        "activeScreen": "screen-play",
+        "bodyScroll": {
+          "width": 390,
+          "height": 844,
+          "clientWidth": 390,
+          "clientHeight": 844
+        },
+        "app": {
+          "scrollWidth": 390,
+          "scrollHeight": 844,
+          "clientWidth": 390,
+          "clientHeight": 844
+        },
+        "active": {
+          "scrollWidth": 390,
+          "scrollHeight": 844,
+          "clientWidth": 390,
+          "clientHeight": 844
+        },
+        "offenders": []
+      },
+      {
+        "stepName": "hint",
+        "screenshot": "C:\\Users\\juhye\\OneDrive\\Desktop\\senior-care-game-hub\\games\\what-fits-where\\tmp\\viewport-mobile-portrait-hint.png",
+        "activeScreen": "screen-play",
+        "bodyScroll": {
+          "width": 390,
+          "height": 844,
+          "clientWidth": 390,
+          "clientHeight": 844
+        },
+        "app": {
+          "scrollWidth": 390,
+          "scrollHeight": 844,
+          "clientWidth": 390,
+          "clientHeight": 844
+        },
+        "active": {
+          "scrollWidth": 390,
+          "scrollHeight": 844,
+          "clientWidth": 390,
+          "clientHeight": 844
+        },
+        "offenders": []
+      },
+      {
+        "stepName": "pause",
+        "screenshot": "C:\\Users\\juhye\\OneDrive\\Desktop\\senior-care-game-hub\\games\\what-fits-where\\tmp\\viewport-mobile-portrait-pause.png",
+        "activeScreen": "screen-play",
+        "bodyScroll": {
+          "width": 390,
+          "height": 844,
+          "clientWidth": 390,
+          "clientHeight": 844
+        },
+        "app": {
+          "scrollWidth": 390,
+          "scrollHeight": 844,
+          "clientWidth": 390,
+          "clientHeight": 844
+        },
+        "active": {
+          "scrollWidth": 390,
+          "scrollHeight": 844,
+          "clientWidth": 390,
+          "clientHeight": 844
+        },
+        "offenders": []
+      },
+      {
+        "stepName": "exit",
+        "screenshot": "C:\\Users\\juhye\\OneDrive\\Desktop\\senior-care-game-hub\\games\\what-fits-where\\tmp\\viewport-mobile-portrait-exit.png",
+        "activeScreen": "screen-play",
+        "bodyScroll": {
+          "width": 390,
+          "height": 844,
+          "clientWidth": 390,
+          "clientHeight": 844
+        },
+        "app": {
+          "scrollWidth": 390,
+          "scrollHeight": 844,
+          "clientWidth": 390,
+          "clientHeight": 844
+        },
+        "active": {
+          "scrollWidth": 390,
+          "scrollHeight": 844,
+          "clientWidth": 390,
+          "clientHeight": 844
+        },
+        "offenders": []
+      },
+      {
+        "stepName": "result",
+        "screenshot": "C:\\Users\\juhye\\OneDrive\\Desktop\\senior-care-game-hub\\games\\what-fits-where\\tmp\\viewport-mobile-portrait-result.png",
+        "activeScreen": "screen-result",
+        "bodyScroll": {
+          "width": 390,
+          "height": 844,
+          "clientWidth": 390,
+          "clientHeight": 844
+        },
+        "app": {
+          "scrollWidth": 390,
+          "scrollHeight": 844,
+          "clientWidth": 390,
+          "clientHeight": 844
+        },
+        "active": {
+          "scrollWidth": 390,
+          "scrollHeight": 844,
+          "clientWidth": 390,
+          "clientHeight": 844
+        },
+        "offenders": []
+      },
+      {
+        "stepName": "score",
+        "screenshot": "C:\\Users\\juhye\\OneDrive\\Desktop\\senior-care-game-hub\\games\\what-fits-where\\tmp\\viewport-mobile-portrait-score.png",
+        "activeScreen": "screen-score",
+        "bodyScroll": {
+          "width": 390,
+          "height": 844,
+          "clientWidth": 390,
+          "clientHeight": 844
+        },
+        "app": {
+          "scrollWidth": 390,
+          "scrollHeight": 844,
+          "clientWidth": 390,
+          "clientHeight": 844
+        },
+        "active": {
+          "scrollWidth": 390,
+          "scrollHeight": 844,
+          "clientWidth": 390,
+          "clientHeight": 844
+        },
+        "offenders": []
+      },
+      {
+        "stepName": "post1",
+        "screenshot": "C:\\Users\\juhye\\OneDrive\\Desktop\\senior-care-game-hub\\games\\what-fits-where\\tmp\\viewport-mobile-portrait-post1.png",
+        "activeScreen": "screen-post-check-1",
+        "bodyScroll": {
+          "width": 390,
+          "height": 844,
+          "clientWidth": 390,
+          "clientHeight": 844
+        },
+        "app": {
+          "scrollWidth": 390,
+          "scrollHeight": 844,
+          "clientWidth": 390,
+          "clientHeight": 844
+        },
+        "active": {
+          "scrollWidth": 390,
+          "scrollHeight": 844,
+          "clientWidth": 390,
+          "clientHeight": 844
+        },
+        "offenders": []
+      },
+      {
+        "stepName": "post2",
+        "screenshot": "C:\\Users\\juhye\\OneDrive\\Desktop\\senior-care-game-hub\\games\\what-fits-where\\tmp\\viewport-mobile-portrait-post2.png",
+        "activeScreen": "screen-post-check-2",
+        "bodyScroll": {
+          "width": 390,
+          "height": 844,
+          "clientWidth": 390,
+          "clientHeight": 844
+        },
+        "app": {
+          "scrollWidth": 390,
+          "scrollHeight": 844,
+          "clientWidth": 390,
+          "clientHeight": 844
+        },
+        "active": {
+          "scrollWidth": 390,
+          "scrollHeight": 844,
+          "clientWidth": 390,
+          "clientHeight": 844
+        },
+        "offenders": []
+      }
+    ],
+    "errors": [],
+    "logs": [
+      "Failed to load resource: the server responded with a status of 404 (Not Found)"
+    ]
+  }
+]

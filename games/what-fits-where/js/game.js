@@ -45,11 +45,6 @@ const SCREEN_BGM = {
   "screen-post-check-1": "pregame",
   "screen-post-check-2": "pregame",
 };
-const MISSION_INTRO_VOICE = {
-  choose_matching_items: "chooseMatchingIntro",
-  remove_mismatched_items: "removeMismatchIntro",
-  guess_situation: "guessSituationIntro",
-};
 const QUESTION_PROMPT_VOICE = {
   choose_matching_items: "chooseMatchingPrompt",
   remove_mismatched_items: "removeMismatchPrompt",
@@ -94,8 +89,65 @@ function applyAppConfig(){
 
 /* ===== SETTINGS MODAL ===== */
 const _settingsBtn = $("btn-settings");
-if(_settingsBtn) _settingsBtn.addEventListener("click", ()=>{ $("settings-modal").classList.add("active"); });
+if(_settingsBtn) _settingsBtn.addEventListener("click", ()=>{
+  refreshFullscreenToggle();
+  $("settings-modal").classList.add("active");
+});
 $("btn-settings-back").addEventListener("click", ()=>{ $("settings-modal").classList.remove("active"); });
+
+function getFullscreenElement(){
+  return document.fullscreenElement || document.webkitFullscreenElement || document.msFullscreenElement || null;
+}
+
+function isFullscreenAvailable(){
+  const root = document.documentElement;
+  const allowed = document.fullscreenEnabled !== false &&
+    document.webkitFullscreenEnabled !== false &&
+    document.msFullscreenEnabled !== false;
+  return allowed && !!(root.requestFullscreen || root.webkitRequestFullscreen || root.msRequestFullscreen);
+}
+
+function requestAppFullscreen(){
+  const root = document.documentElement;
+  const request = root.requestFullscreen || root.webkitRequestFullscreen || root.msRequestFullscreen;
+  return request ? request.call(root) : Promise.reject(new Error("Fullscreen is not supported."));
+}
+
+function exitAppFullscreen(){
+  const exit = document.exitFullscreen || document.webkitExitFullscreen || document.msExitFullscreen;
+  return exit ? exit.call(document) : Promise.reject(new Error("Fullscreen exit is not supported."));
+}
+
+function refreshFullscreenToggle(){
+  const btn = $("btn-fullscreen");
+  if(!btn) return;
+  const available = isFullscreenAvailable();
+  const on = !!getFullscreenElement();
+  btn.disabled = !available;
+  btn.classList.toggle("on", available && on);
+  btn.setAttribute("aria-pressed", on ? "true" : "false");
+  const txt = btn.querySelector(".txt");
+  if(txt) txt.textContent = available ? (on ? "켜짐" : "켜기") : "불가";
+}
+
+const _fullscreenBtn = $("btn-fullscreen");
+if(_fullscreenBtn){
+  _fullscreenBtn.addEventListener("click", async ()=>{
+    if(!isFullscreenAvailable()) return;
+    try{
+      if(getFullscreenElement()) await exitAppFullscreen();
+      else await requestAppFullscreen();
+    }catch(e){
+      console.warn("Fullscreen toggle failed", e);
+    }finally{
+      refreshFullscreenToggle();
+    }
+  });
+  ["fullscreenchange", "webkitfullscreenchange", "msfullscreenchange"].forEach(eventName=>{
+    document.addEventListener(eventName, refreshFullscreenToggle);
+  });
+  refreshFullscreenToggle();
+}
 
 /* ===== HELP / TUTORIAL (multi-page) ===== */
 let helpIdx = 0;
@@ -550,6 +602,60 @@ function getPackTemplatePrompt(tpl, answerCount){
   return normalizePackPromptText(source, answerCount);
 }
 
+const SPECIAL_SITUATION_NEED_CLAUSES = {
+  meal_table: "식사할 때",
+  rainy_day_outing: "비 오는 날 밖에 나갈 때",
+};
+
+function normalizeSituationNeedClause(text){
+  let clause = String(text || "")
+    .replace(/\s*무엇을.*$/g, "")
+    .replace(/\s*무엇이.*$/g, "")
+    .replace(/\s*필요한 물건.*$/g, "")
+    .replace(/\s*준비물을 확인해 주세요\.?$/g, "")
+    .replace(/\s*준비물을 확인해 주세요$/g, "")
+    .trim();
+  const parts = clause.split(/[.!?]/).map(part => part.trim()).filter(Boolean);
+  clause = parts.length ? parts[parts.length - 1] : clause;
+
+  return clause
+    .replace(/나가려고 해요$/, "나갈 때")
+    .replace(/가려고 해요$/, "갈 때")
+    .replace(/외출하려면$/, "외출할 때")
+    .replace(/하려면$/, "할 때")
+    .replace(/으려면$/, "을 때")
+    .replace(/기 전$/, "할 때")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function getSituationNeedClause(tpl){
+  if(!tpl) return "생활할 때 필요한 물건";
+  if(SPECIAL_SITUATION_NEED_CLAUSES[tpl.templateId]){
+    return `${SPECIAL_SITUATION_NEED_CLAUSES[tpl.templateId]} 필요한 물건`;
+  }
+
+  const patterns = Array.isArray(tpl.questionPatterns) ? tpl.questionPatterns : [];
+  const source = patterns.find(text => /무엇을|무엇이/.test(text || ""))
+    || patterns[0]
+    || tpl.sit
+    || tpl.situationName
+    || "생활 상황";
+  const clause = normalizeSituationNeedClause(source) || tpl.situationName || "생활할 때";
+  return `${clause} 필요한 물건`;
+}
+
+function joinKoreanClauses(clauses){
+  if(clauses.length <= 1) return clauses[0] || "";
+  if(clauses.length === 2) return `${clauses[0]}과 ${clauses[1]}`;
+  return `${clauses.slice(0, -1).join(", ")}과 ${clauses[clauses.length - 1]}`;
+}
+
+function getCombinedSituationPrompt(templates, answerCount){
+  const clauses = templates.map(getSituationNeedClause).filter(Boolean);
+  return `${joinKoreanClauses(clauses)}, 이렇게 물건 ${answerCount}개를 골라주세요.`;
+}
+
 function buildRegulatedPackQuestion(templates, idx, rule){
   const wantedSituations = Math.max(1, rule.situations || 1);
   const selectedTemplates = templates.filter(Boolean).slice(0, wantedSituations);
@@ -584,6 +690,9 @@ function buildRegulatedPackQuestion(templates, idx, rule){
     const text = getPackTemplatePrompt(tpl, count);
     return wantedSituations > 1 ? `${sitIdx + 1}. ${text}` : text;
   });
+  const promptText = wantedSituations > 1
+    ? getCombinedSituationPrompt(selectedTemplates, answers.length)
+    : situationTexts.join("\n");
   const itemKeys = uniqueValidKeys(selectedTemplates.flatMap(tpl => tpl.items || []));
   const sourceAnswerKeys = uniqueValidKeys(selectedTemplates.flatMap(tpl => tpl.answers || []));
   const filteredItemKeys = uniqueValidKeys(answers.concat(
@@ -595,7 +704,7 @@ function buildRegulatedPackQuestion(templates, idx, rule){
     kind: "pack",
     stage: 1,
     stageIdx: idx,
-    sit: situationTexts.join("\n"),
+    sit: promptText,
     items: shuffle(filteredItemKeys.map(k => it(k))),
     answers,
     sourceAnswerKeys,
@@ -698,7 +807,8 @@ function startGame(){
   state.endedByUser = false; state.timeOver = false;
   state.paused = false;
   switchScreen("screen-play");
-  $("p-diff").textContent = DIFF_LABEL[state.diff];
+  const diffEl = $("p-diff");
+  if(diffEl) diffEl.textContent = DIFF_LABEL[state.diff];
   // 총 문제 수 (난이도별)
   const qps = getQuestionCountsForDiff(state.diff);
   state.totalQ = qps.reduce((a,b)=>a+b,0);
@@ -707,29 +817,9 @@ function startGame(){
   runCountdown(()=>{
     startGlobalTimer();
     sendGameEvent("GAME_STARTED", { mode: state.mode, difficulty: state.diff });
-    // 첫 미션 안내
-    showMissionIntro(getMissionSequenceForDiff(state.diff)[0], ()=>{
-      state.paused = false;
-      renderQuestion();
-    });
-  });
-}
-
-function showMissionIntro(mode, onStart){
-  state.paused = true;
-  $("mission-title").textContent = MODE_LABEL[mode];
-  $("mission-text").textContent = MISSION_INTRO[mode] || "";
-  const modal = $("mission-modal");
-  modal.classList.add("active");
-  playVoice(MISSION_INTRO_VOICE[mode]);
-  const btn = $("btn-mission-start");
-  const handler = ()=>{
-    btn.removeEventListener("click", handler);
-    modal.classList.remove("active");
     state.paused = false;
-    onStart && onStart();
-  };
-  btn.addEventListener("click", handler);
+    renderQuestion();
+  });
 }
 
 function switchScreen(id){
@@ -766,20 +856,20 @@ function renderQuestion(){
   clearAutoHint();
   if(state.qIndex >= state.queue.length){ finishGame(false, false); return; }
   const q = state.queue[state.qIndex];
-  // 문제 모드 갱신 + 미션 그룹 전환 시 인트로
+  // 문제 모드 갱신
   if(q.mode && q.mode !== state.mode){
     state.mode = q.mode;
-    showMissionIntro(q.mode, ()=>renderQuestion());
-    return;
   }
   state.mode = q.mode || state.mode;
-  $("p-mode").textContent = MODE_LABEL[state.mode];
+  const modeEl = $("p-mode");
+  if(modeEl) modeEl.textContent = MODE_LABEL[state.mode];
   const playEl = document.querySelector("#screen-play .play");
   if(playEl) playEl.dataset.mode = state.mode || "";
   // area-badges removed per UI request
   state.current = { q, picked:new Set(), removed:new Set(), guessAnswered:false, wrongCount:0, revealed:false, qStart:Date.now() };
 
-  $("p-stage").textContent = `단계 ${q.stage}`;
+  const stageEl = $("p-stage");
+  if(stageEl) stageEl.textContent = `단계 ${q.stage}`;
   $("p-qnum").textContent = `${state.qIndex+1} / ${state.totalQ || state.queue.length}`;
   const situationEl = $("p-situation");
   renderPromptText(situationEl, q.sit);
@@ -807,6 +897,8 @@ function renderChoices(){
 function setFeedbackVisible(visible){
   const area = $("p-feedback-area");
   if(area) area.classList.toggle("has-feedback", !!visible);
+  const playEl = document.querySelector("#screen-play .play");
+  if(playEl) playEl.classList.toggle("has-feedback", !!visible);
 }
 
 function showFeedback(text, kind){
@@ -838,14 +930,8 @@ function scheduleAutoHint(){
       state.autoHintTimer = setTimeout(showIfReady, 250);
       return;
     }
-    if(isHintPanelOpen()) return;
-    renderHintPanel();
-    playVoice("hint");
-    sendGameEvent("HINT_OPENED", {
-      mode: state.mode,
-      question_index: state.qIndex + 1,
-      trigger: "auto",
-    });
+    if(isHintModalOpen()) return;
+    openHintModal("auto");
   };
   state.autoHintTimer = setTimeout(showIfReady, AUTO_HINT_DELAY_MS);
 }
@@ -856,7 +942,7 @@ function updateHintButton(){
   const show = supportsHintMode();
   btn.style.display = show ? "" : "none";
   btn.disabled = !show || !state.current || state.current.revealed;
-  const active = isHintPanelOpen();
+  const active = isHintModalOpen();
   btn.classList.toggle("active", active);
   btn.setAttribute("aria-pressed", active ? "true" : "false");
 }
@@ -913,36 +999,9 @@ function describeHint(){
   return { title:"힌트", lines:[{ text:"물건들을 하나씩 천천히 살펴보세요." }] };
 }
 
-function isHintPanelOpen(){
-  const box = $("p-feedback");
-  return !!(box && box.classList.contains("hint-panel"));
-}
-
-function renderHintPanel(){
-  const hint = describeHint();
-  const area = $("p-feedback-area");
-  const box = $("p-feedback");
-  if(!box) return;
-  if(area){
-    area.classList.add("hint-open");
-    area.classList.add("has-feedback");
-  }
-  box.className = "fb-msg hint hint-panel";
-  box.innerHTML = "";
-
-  const list = document.createElement("div");
-  list.className = "hint-list";
-  box.appendChild(list);
-
-  (hint.lines || []).forEach(line=>{
-    const row = document.createElement("div");
-    row.className = "hint-line";
-    const text = document.createElement("span");
-    text.textContent = line.text || "";
-    row.appendChild(text);
-    list.appendChild(row);
-  });
-  updateHintButton();
+function isHintModalOpen(){
+  const modal = $("hint-modal");
+  return !!(modal && modal.classList.contains("active"));
 }
 
 function renderHintModal(){
@@ -962,19 +1021,26 @@ function renderHintModal(){
   });
 }
 
-function openHintModal(){
+function openHintModal(trigger = "manual"){
   if(!supportsHintMode() || !state.current || state.current.revealed) return;
-  if(isHintPanelOpen()){
-    closeHintModal(true);
+  if(isHintModalOpen()){
+    closeHintModal(false);
     return;
   }
-  renderHintPanel();
+  renderHintModal();
+  const modal = $("hint-modal");
+  if(!modal) return;
+  state.hintWasPaused = state.paused;
+  state.paused = true;
+  modal.classList.add("active");
+  updateHintButton();
   playVoice("hint");
-  sendGameEvent("HINT_OPENED", { mode: state.mode, question_index: state.qIndex + 1 });
+  sendGameEvent("HINT_OPENED", { mode: state.mode, question_index: state.qIndex + 1, trigger });
 }
 
 function closeHintModal(keepPaused){
   const modal = $("hint-modal");
+  const wasOpen = isHintModalOpen();
   if(modal) modal.classList.remove("active");
   const area = $("p-feedback-area");
   const box = $("p-feedback");
@@ -986,6 +1052,7 @@ function closeHintModal(keepPaused){
     box.className = "fb-msg";
   }
   if(closedHintPanel) setFeedbackVisible(false);
+  if(wasOpen && !keepPaused && !state.hintWasPaused) state.paused = false;
   state.hintWasPaused = false;
   updateHintButton();
 }
@@ -1050,7 +1117,15 @@ function stopTimer(){ if(state.timerId){ clearInterval(state.timerId); state.tim
 
 /* ===== PAUSE MENU ===== */
 const _hintBtn = $("btn-hint");
-if(_hintBtn) _hintBtn.addEventListener("click", openHintModal);
+if(_hintBtn) _hintBtn.addEventListener("click", ()=>openHintModal("manual"));
+const _hintCloseBtn = $("btn-hint-close");
+if(_hintCloseBtn) _hintCloseBtn.addEventListener("click", ()=>closeHintModal(false));
+const _hintModal = $("hint-modal");
+if(_hintModal){
+  _hintModal.addEventListener("click", e=>{
+    if(e.target === _hintModal) closeHintModal(false);
+  });
+}
 
 $("btn-pause").addEventListener("click", ()=>{
   state.paused = true;
@@ -1059,8 +1134,7 @@ $("btn-pause").addEventListener("click", ()=>{
 });
 $("btn-resume").addEventListener("click", ()=>{
   $("pause-modal").classList.remove("active");
-  // 3s countdown before resuming
-  runCountdown(()=>{ state.paused = false; });
+  state.paused = false;
 });
 $("btn-restart").addEventListener("click", ()=>{
   $("pause-modal").classList.remove("active");
@@ -1163,7 +1237,7 @@ $("post-complete-2").addEventListener("click", ()=>{
 
 function resetToStartScreen(){
   stopTimer(); clearAdvance(); clearAutoHint();
-  ["reveal-modal", "hint-modal", "pause-modal", "exit-modal", "help-modal", "countdown-modal", "mission-modal", "error-modal"].forEach(id=>{
+  ["reveal-modal", "hint-modal", "pause-modal", "exit-modal", "help-modal", "countdown-modal", "error-modal"].forEach(id=>{
     const el = $(id);
     if(el) el.classList.remove("active");
   });
