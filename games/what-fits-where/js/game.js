@@ -17,39 +17,14 @@ const state = {
   endedByUser:false, timeOver:false,
   timerId:null, timerLeft:0, paused:false,
   advanceTimer:null, autoHintTimer:null,
-  scoreScreenEnabled:true,
   lastResult:null,
 };
 state.conditionData = null;
 state.postGameConditionData = null;
 
-const SCORE_SCREEN_STORAGE_KEY = "whatFitsWhere.scoreScreenEnabled";
-
-function loadScoreScreenEnabled(defaultValue){
-  try{
-    const saved = localStorage.getItem(SCORE_SCREEN_STORAGE_KEY);
-    if(saved === "true") return true;
-    if(saved === "false") return false;
-  }catch(e){}
-  return defaultValue;
-}
-
-function saveScoreScreenEnabled(value){
-  try{ localStorage.setItem(SCORE_SCREEN_STORAGE_KEY, value ? "true" : "false"); }catch(e){}
-}
-
-function refreshScoreScreenToggle(){
-  const on = state.scoreScreenEnabled !== false;
-  document.querySelectorAll('[data-setting="score-screen"]').forEach(btn=>{
-    btn.classList.toggle("on", on);
-    btn.setAttribute("aria-pressed", on ? "true" : "false");
-    const t = btn.querySelector(".txt");
-    if(t) t.textContent = on ? "켜짐" : "꺼짐";
-  });
-}
-
 function shouldShowScoreScreen(){
-  return (state.appMode || "standard") === "standard" && state.scoreScreenEnabled !== false;
+  const cfg = state.appConfig || DEFAULT_CONFIG;
+  return (state.appMode || "standard") === "standard" && cfg.show_score !== false;
 }
 
 const SCREEN_VOICE = {
@@ -97,17 +72,11 @@ function applyAppConfig(){
   soundSettings.sfx = !!cfg.sound_effect_enabled;
   soundSettings.voice = !!cfg.voice_guide_enabled;
   refreshSoundToggles();
-  state.scoreScreenEnabled = loadScoreScreenEnabled(cfg.show_score !== false);
-  refreshScoreScreenToggle();
   // top buttons visibility
   const sBtn = $("btn-settings"), hBtn = $("btn-howto"), hintBtn = $("btn-hint");
   if(sBtn) sBtn.style.display = cfg.show_settings ? "" : "none";
   if(hBtn) hBtn.style.display = cfg.show_how_to_play ? "" : "none";
   if(hintBtn) hintBtn.style.display = supportsHintMode(appMode) ? "" : "none";
-  ["settings-score-row", "settings-modal-score-row"].forEach(id=>{
-    const scoreRow = $(id);
-    if(scoreRow) scoreRow.style.display = appMode === "standard" ? "" : "none";
-  });
   // difficulty section
   const diffRow = $("diff-row"), diffH = $("diff-heading");
   if(diffRow) diffRow.style.display = cfg.show_difficulty_select ? "" : "none";
@@ -127,13 +96,6 @@ function applyAppConfig(){
 const _settingsBtn = $("btn-settings");
 if(_settingsBtn) _settingsBtn.addEventListener("click", ()=>{ $("settings-modal").classList.add("active"); });
 $("btn-settings-back").addEventListener("click", ()=>{ $("settings-modal").classList.remove("active"); });
-document.querySelectorAll('[data-setting="score-screen"]').forEach(btn=>{
-  btn.addEventListener("click", ()=>{
-    state.scoreScreenEnabled = !(state.scoreScreenEnabled !== false);
-    saveScoreScreenEnabled(state.scoreScreenEnabled);
-    refreshScoreScreenToggle();
-  });
-});
 
 /* ===== HELP / TUTORIAL (multi-page) ===== */
 let helpIdx = 0;
@@ -196,7 +158,8 @@ function runLoading(done){
   }, 90);
 }
 window.addEventListener("DOMContentLoaded", ()=>{
-  runLoading(()=>{ maybeShowConditionCheck(); });
+  const templateReady = loadSituationTemplates();
+  runLoading(()=>{ templateReady.finally(()=>{ maybeShowConditionCheck(); }); });
 });
 
 /* ===== CONDITION CHECK ===== */
@@ -363,10 +326,110 @@ applyAppConfig();
 
 /* ===== BUILD QUEUE ===== */
 const QUESTION_RULES_BY_DIFF = {
-  easy: Array.from({ length: 10 }, () => ({ choices: 2, answers: 1 })),
-  normal: Array.from({ length: 10 }, () => ({ choices: 3, answers: 1 })),
-  hard: Array.from({ length: 10 }, () => ({ choices: 4, answers: 1 })),
+  easy: Array.from({ length: 10 }, () => ({ choices: 2, answers: 1, situations: 1 })),
+  normal: Array.from({ length: 10 }, () => ({ choices: 3, answers: 2, situations: 1 })),
+  hard: Array.from({ length: 10 }, (_, idx) => ({ choices: 4, answers: idx >= 7 ? 3 : 2, situations: 2 })),
 };
+const SITUATION_TEMPLATE_PATH = "docs/situation-templates-draft.json";
+
+async function loadSituationTemplates(){
+  const status = {
+    path: SITUATION_TEMPLATE_PATH,
+    loaded: false,
+    applied: false,
+    count: 0,
+    missingItems: [],
+  };
+  window.SITUATION_TEMPLATE_STATUS = status;
+
+  try{
+    const response = await fetch(SITUATION_TEMPLATE_PATH, { cache: "no-store" });
+    if(!response.ok) throw new Error(`HTTP ${response.status}`);
+    const data = await response.json();
+    applySituationTemplateData(data, status);
+  }catch(error){
+    if(window.SITUATION_TEMPLATE_DATA){
+      status.fallbackReason = error && error.message ? error.message : String(error);
+      try{
+        applySituationTemplateData(window.SITUATION_TEMPLATE_DATA, status);
+        return status;
+      }catch(fallbackError){
+        status.error = fallbackError && fallbackError.message ? fallbackError.message : String(fallbackError);
+        console.warn("Using built-in question pool because embedded situation templates could not be applied.", fallbackError);
+      }
+    }else{
+      status.error = error && error.message ? error.message : String(error);
+      console.warn("Using built-in question pool because situation templates could not be loaded.", error);
+    }
+  }
+
+  return status;
+}
+
+function applySituationTemplateData(data, status){
+  const templates = Array.isArray(data && data.templates) ? data.templates : [];
+  const allTemplateItems = templates.flatMap(tpl => [
+    ...(Array.isArray(tpl.requiredPool) ? tpl.requiredPool : []),
+    ...(Array.isArray(tpl.wrongPool) ? tpl.wrongPool : []),
+  ]);
+  status.missingItems = Array.from(new Set(allTemplateItems.filter(key => !I[key])));
+
+  const packs = templates
+    .map(templateToPackQuestion)
+    .filter(Boolean);
+
+  if(!packs.length) throw new Error("No usable situation templates");
+
+  ["easy", "normal", "hard"].forEach(diff => {
+    POOL.choose_matching_items[diff] = stageTemplatePacks(packs);
+  });
+
+  status.loaded = true;
+  status.applied = true;
+  status.count = packs.length;
+  status.version = data.version || null;
+  status.sourceStatus = data.status || null;
+  status.source = window.SITUATION_TEMPLATE_DATA === data ? "embedded" : "fetch";
+  if(status.missingItems.length){
+    console.warn("Some situation template items are not registered:", status.missingItems);
+  }
+  console.info(`Applied ${packs.length} situation templates to the game.`);
+}
+
+function templateToPackQuestion(template){
+  if(!template) return null;
+  const answers = uniqueValidKeys(template.requiredPool || []);
+  if(!answers.length) return null;
+  const answerSet = new Set(answers);
+  const wrongItems = uniqueValidKeys(template.wrongPool || [])
+    .filter(key => !answerSet.has(key));
+
+  return {
+    sit: template.questionPatterns && template.questionPatterns[0]
+      ? template.questionPatterns[0]
+      : `${template.situationName || "생활 상황"}에 필요한 물건을 골라주세요.`,
+    questionPatterns: Array.isArray(template.questionPatterns) ? template.questionPatterns.slice() : [],
+    items: uniqueValidKeys(answers.concat(wrongItems)),
+    answers,
+    templateId: template.id || "",
+    situationName: template.situationName || "",
+    source: "situation_template",
+  };
+}
+
+function stageTemplatePacks(packs){
+  const cloned = packs.map(pack => Object.assign({}, pack, {
+    questionPatterns: (pack.questionPatterns || []).slice(),
+    items: (pack.items || []).slice(),
+    answers: (pack.answers || []).slice(),
+  }));
+  const perStage = Math.ceil(cloned.length / 3);
+  return {
+    1: cloned.slice(0, perStage),
+    2: cloned.slice(perStage, perStage * 2),
+    3: cloned.slice(perStage * 2),
+  };
+}
 
 function collectQuestionItemKeys(){
   const keys = new Set(Object.keys(I || {}));
@@ -384,25 +447,31 @@ function collectQuestionItemKeys(){
   return Array.from(keys).filter(k => I[k]);
 }
 
+// In two-situation hard questions, a distractor can be correct for the other situation.
+function filterPackDistractorKeys(itemKeys, sourceAnswerKeys){
+  const sourceAnswerSet = new Set(uniqueValidKeys(sourceAnswerKeys || []));
+  return uniqueValidKeys(itemKeys || []).filter(key => !sourceAnswerSet.has(key));
+}
+
 function normalizePackQuestion(q, rule){
   if(!q || q.kind !== "pack" || !rule) return q;
   const desiredAnswerCount = Math.min(rule.answers, q.answers.length);
   const answers = q.answers.slice(0, desiredAnswerCount);
-  const originalAnswerSet = new Set(q.answers);
-  let itemKeys = answers.concat(
-    (q.items || [])
-      .map(item => item.k)
-      .filter(k => !originalAnswerSet.has(k))
-  );
+  const sourceAnswerKeys = q.sourceAnswerKeys || q.answers;
+  const sourceAnswerSet = new Set(uniqueValidKeys(sourceAnswerKeys));
+  let itemKeys = answers.concat(filterPackDistractorKeys(
+    (q.items || []).map(item => item && item.k),
+    sourceAnswerKeys
+  ));
 
   const seen = new Set(itemKeys);
   const fillers = collectQuestionItemKeys()
-    .filter(k => !seen.has(k) && !originalAnswerSet.has(k));
+    .filter(k => !seen.has(k) && !sourceAnswerSet.has(k));
   itemKeys = itemKeys.concat(shuffle(fillers).slice(0, Math.max(0, rule.choices - itemKeys.length)));
   itemKeys = itemKeys.slice(0, rule.choices);
 
   q.answers = answers;
-  q.sit = normalizePackPromptText(q.sit, answers.length);
+  if(!q.promptNormalized) q.sit = normalizePackPromptText(q.sit, answers.length);
   q.items = shuffle(itemKeys.map(k => it(k)));
   return q;
 }
@@ -412,11 +481,146 @@ function normalizePackPromptText(text, answerCount){
   const countText = `${answerCount}개`;
   return text
     .replace(/필요한 [두세네] 가지를/g, `필요한 물건 ${countText}를`)
+    .replace(/필요한 물건을/g, `필요한 물건 ${countText}를`)
     .replace(/[두세네] 가지를/g, `${countText}를`)
     .replace(/\d+개를/g, `${countText}를`)
     .replace(/필요한 것을/g, `필요한 물건 ${countText}를`)
     .replace(/어울리지 않는 것을/g, `어울리지 않는 물건 ${countText}를`)
+    .replace(/무엇을 (챙기면|준비하면) 좋을까요\?/g, `필요한 물건 ${countText}를 골라주세요.`)
     .replace(/빼주세요|빼세요/g, "골라주세요");
+}
+
+function renderPromptText(el, text){
+  const source = String(text || "");
+  const countPattern = /( 물건 \d+개)/g;
+  let lastIndex = 0;
+  let match;
+  el.textContent = "";
+
+  while((match = countPattern.exec(source))){
+    if(match.index > lastIndex){
+      el.appendChild(document.createTextNode(source.slice(lastIndex, match.index)));
+    }
+    const countSpan = document.createElement("span");
+    countSpan.className = "count-highlight";
+    countSpan.textContent = match[0];
+    el.appendChild(countSpan);
+    lastIndex = match.index + match[0].length;
+  }
+
+  if(lastIndex === 0){
+    el.textContent = source;
+    return;
+  }
+  if(lastIndex < source.length){
+    el.appendChild(document.createTextNode(source.slice(lastIndex)));
+  }
+}
+
+function flattenQuestionStages(stageMap){
+  return Object.keys(stageMap || {})
+    .sort((a, b) => Number(a) - Number(b))
+    .reduce((all, key) => all.concat(stageMap[key] || []), []);
+}
+
+function uniqueValidKeys(keys){
+  const seen = new Set();
+  return (keys || []).filter(key => {
+    if(!key || !I[key] || seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
+
+function takePackTemplate(pool, used, minAnswers){
+  const candidates = pool.filter(tpl => uniqueValidKeys(tpl.answers).length >= minAnswers);
+  const source = candidates.length ? candidates : pool;
+  const unused = source.filter(tpl => !used.has(tpl));
+  const chosen = pick(unused.length ? unused : source, 1)[0];
+  if(chosen) used.add(chosen);
+  return chosen;
+}
+
+function getPackTemplatePrompt(tpl, answerCount){
+  const patterns = Array.isArray(tpl.questionPatterns) ? tpl.questionPatterns : [];
+  const preferredPatterns = patterns.filter(text => /필요한 물건|무엇을/.test(text || ""));
+  const source = (preferredPatterns.length ? pick(preferredPatterns, 1)[0] : patterns[0])
+    || tpl.sit
+    || `${tpl.situationName || "생활 상황"}에 필요한 물건을 골라주세요.`;
+  return normalizePackPromptText(source, answerCount);
+}
+
+function buildRegulatedPackQuestion(templates, idx, rule){
+  const wantedSituations = Math.max(1, rule.situations || 1);
+  const selectedTemplates = templates.filter(Boolean).slice(0, wantedSituations);
+  const answers = [];
+  const answerSeen = new Set();
+  const answersByTemplate = new Map();
+  const addAnswer = tpl => {
+    for(const key of uniqueValidKeys(tpl.answers)){
+      if(answerSeen.has(key)) continue;
+      answerSeen.add(key);
+      answers.push(key);
+      if(!answersByTemplate.has(tpl)) answersByTemplate.set(tpl, []);
+      answersByTemplate.get(tpl).push(key);
+      return true;
+    }
+    return false;
+  };
+
+  selectedTemplates.forEach(tpl => {
+    if(answers.length < rule.answers) addAnswer(tpl);
+  });
+  let fillIdx = 0;
+  while(answers.length < rule.answers && selectedTemplates.length){
+    const tpl = selectedTemplates[fillIdx % selectedTemplates.length];
+    addAnswer(tpl);
+    fillIdx++;
+    if(fillIdx > selectedTemplates.length * 8) break;
+  }
+
+  const situationTexts = selectedTemplates.map((tpl, sitIdx) => {
+    const count = (answersByTemplate.get(tpl) || []).length || 1;
+    const text = getPackTemplatePrompt(tpl, count);
+    return wantedSituations > 1 ? `${sitIdx + 1}. ${text}` : text;
+  });
+  const itemKeys = uniqueValidKeys(selectedTemplates.flatMap(tpl => tpl.items || []));
+  const sourceAnswerKeys = uniqueValidKeys(selectedTemplates.flatMap(tpl => tpl.answers || []));
+  const filteredItemKeys = uniqueValidKeys(answers.concat(
+    filterPackDistractorKeys(itemKeys, sourceAnswerKeys)
+  ));
+
+  return {
+    mode: "choose_matching_items",
+    kind: "pack",
+    stage: 1,
+    stageIdx: idx,
+    sit: situationTexts.join("\n"),
+    items: shuffle(filteredItemKeys.map(k => it(k))),
+    answers,
+    sourceAnswerKeys,
+    situationCount: wantedSituations,
+    promptNormalized: true,
+  };
+}
+
+function buildChooseMatchingQueue(diff, count){
+  const rules = QUESTION_RULES_BY_DIFF[diff] || QUESTION_RULES_BY_DIFF.easy;
+  const total = count || rules.length;
+  const pool = flattenQuestionStages((POOL.choose_matching_items || {})[diff]);
+  const used = new Set();
+  if(!pool.length) return [];
+
+  return Array.from({ length: total }, (_, idx) => {
+    const rule = rules[idx] || rules[rules.length - 1];
+    const situationCount = Math.max(1, rule.situations || 1);
+    const primaryNeed = situationCount > 1 ? Math.max(1, rule.answers - (situationCount - 1)) : rule.answers;
+    const templates = [takePackTemplate(pool, used, primaryNeed)];
+    for(let i = 1; i < situationCount; i++){
+      templates.push(takePackTemplate(pool, used, 1));
+    }
+    return normalizePackQuestion(buildRegulatedPackQuestion(templates, idx, rule), rule);
+  });
 }
 
 function collectSituationChoiceLabels(){
@@ -456,6 +660,10 @@ function buildQueue(){
   const diff = state.diff || "easy";
   const qps = getQuestionCountsForDiff(diff);
   const missionSequence = getMissionSequenceForDiff(diff);
+  const totalCount = qps.reduce((sum, count) => sum + count, 0);
+  if(missionSequence.length === 1 && missionSequence[0] === "choose_matching_items"){
+    return buildChooseMatchingQueue(diff, totalCount);
+  }
   // 각 미션마다 모드별 문제 빌더를 사용해 순서대로 진행
   missionSequence.forEach((mode, mi)=>{
     const stageNo = mi + 1;
@@ -573,7 +781,9 @@ function renderQuestion(){
 
   $("p-stage").textContent = `단계 ${q.stage}`;
   $("p-qnum").textContent = `${state.qIndex+1} / ${state.totalQ || state.queue.length}`;
-  $("p-situation").textContent = q.sit;
+  const situationEl = $("p-situation");
+  renderPromptText(situationEl, q.sit);
+  situationEl.classList.toggle("multi-situation", (q.situationCount || 1) > 1);
   clearFeedback();
   updateHintButton();
 
@@ -608,7 +818,7 @@ function showFeedback(text, kind){
 }
 
 function supportsHintMode(appMode = state.appMode || "standard"){
-  return appMode === "standard" || appMode === "reminder";
+  return appMode === "standard" || appMode === "reminder" || appMode === "care" || appMode === "ai_assisted";
 }
 
 function supportsAutoHintMode(appMode = state.appMode || "standard"){
@@ -835,7 +1045,6 @@ function startGlobalTimer(){
 function updateTimerDisplay(){
   const el = $("p-timer");
   el.textContent = `⏱ ${fmtTime(state.timerLeft)}`;
-  el.classList.toggle("warn", state.timerLeft<=20);
 }
 function stopTimer(){ if(state.timerId){ clearInterval(state.timerId); state.timerId=null; } }
 

@@ -35,9 +35,9 @@
       soft_feedback: true,
       default_difficulty: "easy",
       question_counts_by_diff: {
-        easy: [5],
-        normal: [3, 2],
-        hard: [2, 2, 1],
+        easy: [10],
+        normal: [10],
+        hard: [10],
       },
       auto_return_to_hub: true,
     },
@@ -50,9 +50,9 @@
       soft_feedback: true,
       default_difficulty: "easy",
       question_counts_by_diff: {
-        easy: [5],
-        normal: [3, 2],
-        hard: [2, 2, 1],
+        easy: [10],
+        normal: [10],
+        hard: [10],
       },
       auto_return_to_hub: true,
     },
@@ -72,17 +72,17 @@ const DEFAULT_CONFIG = {
 
 /* ===== GAME FLOW CONFIG ===== */
 
-const STAGES = 3;
+const STAGES = 1;
 const Q_PER_STAGE_BY_DIFF = {
   easy:   [10],
-  normal: [5, 5],
-  hard:   [3, 3, 4],
+  normal: [10],
+  hard:   [10],
 };
-const MISSION_SEQUENCE = ["choose_matching_items","remove_mismatched_items","guess_situation"];
+const MISSION_SEQUENCE = ["choose_matching_items"];
 const MISSION_SEQUENCE_BY_DIFF = {
   easy: ["choose_matching_items"],
-  normal: ["choose_matching_items","remove_mismatched_items"],
-  hard: MISSION_SEQUENCE,
+  normal: ["choose_matching_items"],
+  hard: ["choose_matching_items"],
 };
 function getMissionSequenceForDiff(diff){
   return MISSION_SEQUENCE_BY_DIFF[diff] || MISSION_SEQUENCE;
@@ -139,7 +139,5 @@ const SLEEP_STEPS = [
 const HELP_PAGES = [
   { t:"오늘의 준비물은 어떤 게임인가요?", b:"상황을 보고 알맞은 물건을 고르는 인지활동 게임입니다.\n천천히 보고 필요한 물건을 골라 주세요." },
   { t:"알맞은 물건 고르기", b:"상황을 보고 필요한 물건을 골라 주세요.\n\n예시) \"비 오는 날 외출해요.\"\n→ 우산을 고르면 좋아요." },
-  { t:"어울리지 않는 물건 고르기", b:"상황에 맞지 않는 물건을 찾아 고르는 활동입니다.\n\n예시) \"병원에 가요.\"\n→ 수영복처럼 어울리지 않는 물건을 골라요." },
-  { t:"상황 맞추기", b:"보이는 물건들을 보고 어떤 상황인지 골라 주세요.\n\n예시) 우산, 장화, 비옷\n→ 비 오는 날 외출" },
   { t:"천천히 해도 괜찮아요", b:"잘 모르겠으면 힌트를 눌러도 괜찮아요.\n틀려도 괜찮습니다.\n천천히 다시 보면 됩니다." },
 ];
