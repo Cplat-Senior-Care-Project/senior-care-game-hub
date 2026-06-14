@@ -841,7 +841,7 @@ window.SITUATION_TEMPLATE_DATA = {
       "situationName": "현금 전달하기",
       "questionPatterns": [
         "현금을 전달하러 가려고 해요. 필요한 물건을 골라주세요.",
-        "돈을 안전하게 전해줄 때 무엇을 챙기면 좋을까요?",
+        "돈을 전해주려고 합니다. 필요한 물건을 고르세요.",
         "현금 전달 전 준비물을 확인해 주세요."
       ],
       "requiredPool": [
@@ -885,13 +885,12 @@ window.SITUATION_TEMPLATE_DATA = {
       "id": "plant_watering",
       "situationName": "화분 물주기",
       "questionPatterns": [
-        "화분에 물을 주려고 해요. 필요한 물건을 골라주세요.",
-        "화분에 물을 줄 때 무엇을 준비하면 좋을까요?",
-        "화분에 물을 주기 전 준비물을 확인해 주세요."
+        "물을 주어야 할 물건을 골라주세요.",
+        "물을 줄 대상이 되는 물건을 골라주세요.",
+        "물을 주어야 할 물건을 확인해 주세요."
       ],
       "requiredPool": [
-        "화분",
-        "물뿌리개"
+        "화분"
       ],
       "wrongPool": [
         "진료카드",

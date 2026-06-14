@@ -542,6 +542,8 @@ function normalizePackPromptText(text, answerCount){
   if(!text) return text;
   const countText = `${answerCount}개`;
   return text
+    .replace(/물을 주어야 할 물건을/g, `물을 주어야 할 물건 ${countText}를`)
+    .replace(/물을 줄 대상이 되는 물건을/g, `물을 줄 대상이 되는 물건 ${countText}를`)
     .replace(/필요한 [두세네] 가지를/g, `필요한 물건 ${countText}를`)
     .replace(/필요한 물건을/g, `필요한 물건 ${countText}를`)
     .replace(/[두세네] 가지를/g, `${countText}를`)
@@ -611,7 +613,7 @@ function takePackTemplate(pool, used, minAnswers){
 
 function getPackTemplatePrompt(tpl, answerCount){
   const patterns = Array.isArray(tpl.questionPatterns) ? tpl.questionPatterns : [];
-  const preferredPatterns = patterns.filter(text => /필요한 물건|무엇을/.test(text || ""));
+  const preferredPatterns = patterns.filter(text => /필요한 물건|무엇을|물을 주어야 할 물건|물을 줄 대상/.test(text || ""));
   const source = (preferredPatterns.length ? pick(preferredPatterns, 1)[0] : patterns[0])
     || tpl.sit
     || `${tpl.situationName || "생활 상황"}에 필요한 물건을 골라주세요.`;
@@ -621,6 +623,7 @@ function getPackTemplatePrompt(tpl, answerCount){
 const SPECIAL_SITUATION_NEED_CLAUSES = {
   meal_table: "식사할 때",
   rainy_day_outing: "비 오는 날 밖에 나갈 때",
+  plant_watering: "물을 주어야 할 물건",
 };
 
 function normalizeSituationNeedClause(text){
@@ -648,7 +651,8 @@ function normalizeSituationNeedClause(text){
 function getSituationNeedClause(tpl){
   if(!tpl) return "생활할 때 필요한 물건";
   if(SPECIAL_SITUATION_NEED_CLAUSES[tpl.templateId]){
-    return `${SPECIAL_SITUATION_NEED_CLAUSES[tpl.templateId]} 필요한 물건`;
+    const specialClause = SPECIAL_SITUATION_NEED_CLAUSES[tpl.templateId];
+    return /물건$/.test(specialClause) ? specialClause : `${specialClause} 필요한 물건`;
   }
 
   const patterns = Array.isArray(tpl.questionPatterns) ? tpl.questionPatterns : [];
@@ -1363,7 +1367,7 @@ function finishGame(userExit, timeOver){
     returnBtn.textContent = "다음";
   } else {
     againBtn.style.display = "none";
-    returnBtn.textContent = "허브로 돌아가기";
+    returnBtn.textContent = "효담콜로 돌아가기";
   }
   switchScreen("screen-result");
 
