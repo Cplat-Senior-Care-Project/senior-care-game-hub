@@ -502,23 +502,33 @@ function collectQuestionItemKeys(){
 // In two-situation hard questions, a distractor can be correct for the other situation.
 function filterPackDistractorKeys(itemKeys, sourceAnswerKeys){
   const sourceAnswerSet = new Set(uniqueValidKeys(sourceAnswerKeys || []));
-  return uniqueValidKeys(itemKeys || []).filter(key => !sourceAnswerSet.has(key));
+  const sourceAnswerSignatures = new Set(uniqueValidKeys(sourceAnswerKeys || []).map(itemVisualSignature));
+  return uniqueValidKeys(itemKeys || []).filter(key => (
+    !sourceAnswerSet.has(key) && !sourceAnswerSignatures.has(itemVisualSignature(key))
+  ));
 }
 
 function normalizePackQuestion(q, rule){
   if(!q || q.kind !== "pack" || !rule) return q;
-  const desiredAnswerCount = Math.min(rule.answers, q.answers.length);
-  const answers = q.answers.slice(0, desiredAnswerCount);
+  const answerKeys = uniqueValidKeys(q.answers || []);
+  const desiredAnswerCount = Math.min(rule.answers, answerKeys.length);
+  const answers = answerKeys.slice(0, desiredAnswerCount);
   const sourceAnswerKeys = q.sourceAnswerKeys || q.answers;
   const sourceAnswerSet = new Set(uniqueValidKeys(sourceAnswerKeys));
-  let itemKeys = answers.concat(filterPackDistractorKeys(
+  const sourceAnswerSignatures = new Set(uniqueValidKeys(sourceAnswerKeys).map(itemVisualSignature));
+  let itemKeys = uniqueValidKeys(answers.concat(filterPackDistractorKeys(
     (q.items || []).map(item => item && item.k),
     sourceAnswerKeys
-  ));
+  )));
 
   const seen = new Set(itemKeys);
+  const seenSignatures = new Set(itemKeys.map(itemVisualSignature));
   const fillers = collectQuestionItemKeys()
-    .filter(k => !seen.has(k) && !sourceAnswerSet.has(k));
+    .filter(k => {
+      const signature = itemVisualSignature(k);
+      return !seen.has(k) && !sourceAnswerSet.has(k) &&
+        !seenSignatures.has(signature) && !sourceAnswerSignatures.has(signature);
+    });
   itemKeys = itemKeys.concat(shuffle(fillers).slice(0, Math.max(0, rule.choices - itemKeys.length)));
   itemKeys = itemKeys.slice(0, rule.choices);
 
@@ -575,11 +585,17 @@ function flattenQuestionStages(stageMap){
     .reduce((all, key) => all.concat(stageMap[key] || []), []);
 }
 
+function itemVisualSignature(key){
+  const item = I[key];
+  return item ? (item.img || item.n || key) : String(key || "");
+}
+
 function uniqueValidKeys(keys){
   const seen = new Set();
   return (keys || []).filter(key => {
-    if(!key || !I[key] || seen.has(key)) return false;
-    seen.add(key);
+    const signature = itemVisualSignature(key);
+    if(!key || !I[key] || seen.has(signature)) return false;
+    seen.add(signature);
     return true;
   });
 }
@@ -664,8 +680,9 @@ function buildRegulatedPackQuestion(templates, idx, rule){
   const answersByTemplate = new Map();
   const addAnswer = tpl => {
     for(const key of uniqueValidKeys(tpl.answers)){
-      if(answerSeen.has(key)) continue;
-      answerSeen.add(key);
+      const signature = itemVisualSignature(key);
+      if(answerSeen.has(signature)) continue;
+      answerSeen.add(signature);
       answers.push(key);
       if(!answersByTemplate.has(tpl)) answersByTemplate.set(tpl, []);
       answersByTemplate.get(tpl).push(key);

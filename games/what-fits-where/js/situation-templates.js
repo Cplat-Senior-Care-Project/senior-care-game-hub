@@ -157,8 +157,7 @@ window.SITUATION_TEMPLATE_DATA = {
         "공책",
         "연필",
         "휴대폰",
-        "교통카드",
-        "돈봉투"
+        "교통카드"
       ],
       "wrongPool": [
         "수영복",
@@ -396,7 +395,7 @@ window.SITUATION_TEMPLATE_DATA = {
         "씨앗",
         "성경",
         "프라이팬",
-        "돈봉투"
+        "현금"
       ]
     },
     {
@@ -846,7 +845,6 @@ window.SITUATION_TEMPLATE_DATA = {
         "현금 전달 전 준비물을 확인해 주세요."
       ],
       "requiredPool": [
-        "돈봉투",
         "현금",
         "휴대폰",
         "지갑",
