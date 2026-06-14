@@ -1,0 +1,178 @@
+﻿/* Base tokens, reset, app shell, reusable controls. */
+:root {
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-right: env(safe-area-inset-right, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-left: env(safe-area-inset-left, 0px);
+  --stage-width: 1280px;
+  --stage-height: 720px;
+  --game-scale: 1;
+  --game-viewport-top-gutter: 0px;
+
+  --bg: #f7fbff;
+  --ink: #173047;
+  --muted: #516a7d;
+  --line: #c9d9e7;
+  --panel: rgba(255, 255, 255, 0.88);
+  --primary: #0f8b8d;
+  --primary-dark: #096b70;
+  --coral: #ff7a59;
+  --green: #28b46a;
+  --yellow: #ffd34e;
+  --red: #e74242;
+  --blue: #2878d7;
+  --purple: #8e59d7;
+  --shadow: 0 18px 38px rgba(26, 57, 87, 0.18);
+  --soft-shadow: 0 10px 24px rgba(26, 57, 87, 0.14);
+
+  /* Fluid sizes via vmin, matching the landscape-first WebView strategy. */
+  --pad: clamp(140px, 31vmin, 260px);
+  --pad-label: clamp(17px, 2.6vmin, 24px);
+  --symbol-main: clamp(124px, 33vmin, 252px);
+  --symbol-preview: clamp(82px, 19vmin, 148px);
+  --topbar-min: clamp(56px, 12vmin, 76px);
+  --button-min: clamp(50px, 8.5vmin, 70px);
+
+  --t-xs: clamp(11px, 1.6vmin, 14px);
+  --t-sm: clamp(13px, 1.9vmin, 17px);
+  --t-base: clamp(15px, 2.1vmin, 20px);
+  --t-md: clamp(17px, 2.5vmin, 23px);
+  --t-lg: clamp(20px, 3vmin, 28px);
+  --t-xl: clamp(24px, 3.8vmin, 36px);
+  --t-2xl: clamp(30px, 5.2vmin, 52px);
+  --t-hero: clamp(42px, 8vmin, 86px);
+
+  --s-xs: clamp(4px, 0.8vmin, 8px);
+  --s-sm: clamp(8px, 1.3vmin, 14px);
+  --s-md: clamp(12px, 1.9vmin, 22px);
+  --s-lg: clamp(18px, 3vmin, 36px);
+  --s-xl: clamp(24px, 4vmin, 48px);
+
+  --r-sm: clamp(10px, 1.6vmin, 16px);
+  --r-md: clamp(14px, 2.2vmin, 22px);
+  --r-lg: clamp(18px, 3vmin, 28px);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  width: 100%;
+  height: 100vh;
+  height: 100dvh;
+  margin: 0;
+  overflow: hidden;
+  overscroll-behavior: none;
+  background:
+    linear-gradient(180deg, rgba(255, 250, 238, 0.08), rgba(255, 246, 225, 0.2)),
+    url("../assets/images/background.png") center / cover no-repeat,
+    #f7ead2;
+  color: var(--ink);
+  font-family: "Malgun Gothic", "Apple SD Gothic Neo", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: var(--t-base);
+  line-height: 1.4;
+  -webkit-user-select: none;
+  user-select: none;
+  touch-action: manipulation;
+}
+
+body[data-active-screen="play"] {
+  background: #f8e9c8;
+}
+
+button,
+input {
+  font: inherit;
+}
+
+button {
+  border: 0;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+img {
+  -webkit-user-drag: none;
+  user-drag: none;
+  pointer-events: none;
+}
+
+.app {
+  --safe-top: 0px;
+  --safe-right: 0px;
+  --safe-bottom: 0px;
+  --safe-left: 0px;
+  position: fixed;
+  left: 50%;
+  top: 50%;
+  width: var(--stage-width);
+  height: var(--stage-height);
+  min-width: var(--stage-width);
+  min-height: var(--stage-height);
+  max-width: none;
+  max-height: none;
+  aspect-ratio: 16 / 9;
+  transform: translate(-50%, -50%) scale(var(--game-scale));
+  transform-origin: center center;
+  container-type: size;
+  padding: calc(var(--safe-top) + var(--s-sm))
+           calc(var(--safe-right) + var(--s-md))
+           calc(var(--safe-bottom) + var(--s-sm))
+           calc(var(--safe-left) + var(--s-md));
+  overflow: hidden;
+  background: transparent;
+
+  --pad: clamp(140px, 31cqmin, 260px);
+  --pad-label: clamp(17px, 2.6cqmin, 24px);
+  --symbol-main: clamp(124px, 33cqmin, 252px);
+  --symbol-preview: clamp(82px, 19cqmin, 148px);
+  --topbar-min: clamp(56px, 12cqmin, 76px);
+  --button-min: clamp(50px, 8.5cqmin, 70px);
+
+  --t-xs: clamp(11px, 1.6cqmin, 14px);
+  --t-sm: clamp(13px, 1.9cqmin, 17px);
+  --t-base: clamp(15px, 2.1cqmin, 20px);
+  --t-md: clamp(17px, 2.5cqmin, 23px);
+  --t-lg: clamp(20px, 3cqmin, 28px);
+  --t-xl: clamp(24px, 3.8cqmin, 36px);
+  --t-2xl: clamp(30px, 5.2cqmin, 52px);
+  --t-hero: clamp(42px, 8cqmin, 86px);
+
+  --s-xs: clamp(4px, 0.8cqmin, 8px);
+  --s-sm: clamp(8px, 1.3cqmin, 14px);
+  --s-md: clamp(12px, 1.9cqmin, 22px);
+  --s-lg: clamp(18px, 3cqmin, 36px);
+  --s-xl: clamp(24px, 4cqmin, 48px);
+
+  --r-sm: clamp(10px, 1.6cqmin, 16px);
+  --r-md: clamp(14px, 2.2cqmin, 22px);
+  --r-lg: clamp(18px, 3cqmin, 28px);
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+}
+
+.is-hidden,
+.hidden {
+  display: none !important;
+}
+
+body.reduce-motion *,
+body.reduce-motion *::before,
+body.reduce-motion *::after,
+body.reduced *,
+body.reduced *::before,
+body.reduced *::after {
+  animation-duration: 0.001ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.001ms !important;
+}

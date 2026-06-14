@@ -1,0 +1,264 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+  <title>딩동 멜로디 연주하기</title>
+  <script>
+    (function () {
+      var stageWidth = 1280;
+      var stageHeight = 720;
+      var visualViewport = window.visualViewport;
+      var viewportWidth = visualViewport && visualViewport.width ? visualViewport.width : window.innerWidth || document.documentElement.clientWidth || stageWidth;
+      var viewportHeight = visualViewport && visualViewport.height ? visualViewport.height : window.innerHeight || document.documentElement.clientHeight || stageHeight;
+      var scale = Math.max(0.01, Math.min(viewportWidth / stageWidth, viewportHeight / stageHeight));
+      var verticalGutter = Math.max(0, (viewportHeight - (stageHeight * scale)) / (2 * scale));
+      document.documentElement.style.setProperty("--game-scale", String(scale));
+      document.documentElement.style.setProperty("--game-viewport-top-gutter", String(Math.min(verticalGutter, 120)) + "px");
+    })();
+  </script>
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/screens.css">
+  <link rel="stylesheet" href="css/game-layout.css">
+  <link rel="stylesheet" href="css/feedback.css">
+  <link rel="stylesheet" href="css/modes.css">
+  <link rel="stylesheet" href="css/responsive.css">
+</head>
+<body>
+  <div id="orientationNotice" class="orientation-notice" aria-live="polite">
+    <div class="rotate-icon" aria-hidden="true"></div>
+    <p>이 게임은 가로 화면에 최적화되어 있어요.<br>기기를 가로로 돌려주세요.</p>
+  </div>
+
+  <main id="app" class="app" aria-label="딩동 멜로디 연주하기 게임">
+    <section id="loadingScreen" class="screen screen-loading is-active" data-screen="loading">
+      <img class="title-logo loading-logo" src="assets/images/title.png" alt="딩동 멜로디 연주하기">
+      <p class="lead loading-lead">게임을 준비하고 있어요</p>
+      <div class="loading-panel" role="status" aria-live="polite" aria-label="로딩 중">
+        <div class="loading-track" aria-hidden="true">
+          <div id="loadingFill" class="loading-fill"></div>
+        </div>
+        <div id="loadingPercent" class="loading-percent">0%</div>
+      </div>
+    </section>
+
+    <section id="homeScreen" class="screen screen-home" data-screen="home" aria-labelledby="homeTitle">
+      <div class="home-stage">
+        <img id="homeTitle" class="title-logo home-logo" src="assets/images/title.png" alt="딩동 멜로디 연주하기">
+        <p class="lead home-lead">집중 판단 활동</p>
+        <button id="startGameButton" class="primary-button start-button" type="button"><span>게임 시작</span></button>
+      </div>
+
+      <nav class="menu-actions" aria-label="시작 메뉴">
+        <button class="secondary-button" type="button" data-go="settings">설정</button>
+        <button id="exitGameButton" class="secondary-button" type="button">게임 종료</button>
+        <button class="secondary-button" type="button" data-go="howto">게임 방법</button>
+      </nav>
+    </section>
+
+    <section id="difficultyScreen" class="screen difficulty-screen" data-screen="difficulty" aria-labelledby="difficultyTitle">
+      <div class="difficulty-content">
+        <button class="difficulty-nav-button" type="button" data-go="home" aria-label="처음 화면으로">
+          <svg class="difficulty-back-icon" viewBox="0 0 64 64" aria-hidden="true" focusable="false">
+            <path d="M29 11 C31.4 13.4 31.4 17.2 29 19.6 L22.6 26 H53 C56.4 26 59 28.6 59 32 C59 35.4 56.4 38 53 38 H22.6 L29 44.4 C31.4 46.8 31.4 50.6 29 53 C26.6 55.4 22.8 55.4 20.4 53 L3.6 36.2 C1.3 33.9 1.3 30.1 3.6 27.8 L20.4 11 C22.8 8.6 26.6 8.6 29 11 Z" />
+          </svg>
+        </button>
+        <h2 id="difficultyTitle">난이도 선택</h2>
+        <div class="difficulty-options" id="difficultyGrid" role="group" aria-label="난이도 선택">
+          <button class="difficulty-card difficulty-option is-selected" type="button" data-difficulty="easy" data-difficulty-index="0">
+            <strong class="difficulty-name">쉬움</strong>
+            <span class="difficulty-stars" aria-hidden="true"><span>★</span><i>★</i><i>★</i></span>
+            <span class="difficulty-info-card">
+              <span class="difficulty-desc">도형 2개<br>짧은 패턴</span>
+              <span class="difficulty-pad-row" aria-hidden="true">
+                <svg class="difficulty-pad-svg pad-red" viewBox="0 0 170 130" focusable="false"><ellipse class="mini-pad-ground" cx="85" cy="112" rx="58" ry="11" /><ellipse class="mini-pad-base" cx="85" cy="79" rx="60" ry="30" /><path class="mini-pad-side" d="M27 54 C27 32 51 17 85 17 C119 17 143 32 143 54 L143 72 C143 95 119 110 85 110 C51 110 27 95 27 72 Z" /><ellipse class="mini-pad-face" cx="85" cy="52" rx="58" ry="40" /></svg>
+                <svg class="difficulty-pad-svg pad-blue" viewBox="0 0 170 130" focusable="false"><ellipse class="mini-pad-ground" cx="85" cy="112" rx="58" ry="11" /><ellipse class="mini-pad-base" cx="85" cy="79" rx="60" ry="30" /><path class="mini-pad-side" d="M27 54 C27 32 51 17 85 17 C119 17 143 32 143 54 L143 72 C143 95 119 110 85 110 C51 110 27 95 27 72 Z" /><ellipse class="mini-pad-face" cx="85" cy="52" rx="58" ry="40" /></svg>
+              </span>
+            </span>
+          </button>
+          <button class="difficulty-card difficulty-option" type="button" data-difficulty="normal" data-difficulty-index="1">
+            <strong class="difficulty-name">보통</strong>
+            <span class="difficulty-stars" aria-hidden="true"><span>★</span><span>★</span><i>★</i></span>
+            <span class="difficulty-info-card">
+              <span class="difficulty-desc">도형 3개<br>보통 패턴</span>
+              <span class="difficulty-pad-row" aria-hidden="true">
+                <svg class="difficulty-pad-svg pad-red" viewBox="0 0 170 130" focusable="false"><ellipse class="mini-pad-ground" cx="85" cy="112" rx="58" ry="11" /><ellipse class="mini-pad-base" cx="85" cy="79" rx="60" ry="30" /><path class="mini-pad-side" d="M27 54 C27 32 51 17 85 17 C119 17 143 32 143 54 L143 72 C143 95 119 110 85 110 C51 110 27 95 27 72 Z" /><ellipse class="mini-pad-face" cx="85" cy="52" rx="58" ry="40" /></svg>
+                <svg class="difficulty-pad-svg pad-blue" viewBox="0 0 170 130" focusable="false"><ellipse class="mini-pad-ground" cx="85" cy="112" rx="58" ry="11" /><ellipse class="mini-pad-base" cx="85" cy="79" rx="60" ry="30" /><path class="mini-pad-side" d="M27 54 C27 32 51 17 85 17 C119 17 143 32 143 54 L143 72 C143 95 119 110 85 110 C51 110 27 95 27 72 Z" /><ellipse class="mini-pad-face" cx="85" cy="52" rx="58" ry="40" /></svg>
+                <svg class="difficulty-pad-svg pad-green" viewBox="0 0 170 130" focusable="false"><ellipse class="mini-pad-ground" cx="85" cy="112" rx="58" ry="11" /><ellipse class="mini-pad-base" cx="85" cy="79" rx="60" ry="30" /><path class="mini-pad-side" d="M27 54 C27 32 51 17 85 17 C119 17 143 32 143 54 L143 72 C143 95 119 110 85 110 C51 110 27 95 27 72 Z" /><ellipse class="mini-pad-face" cx="85" cy="52" rx="58" ry="40" /></svg>
+              </span>
+            </span>
+          </button>
+          <button class="difficulty-card difficulty-option" type="button" data-difficulty="hard" data-difficulty-index="2">
+            <strong class="difficulty-name">어려움</strong>
+            <span class="difficulty-stars" aria-hidden="true"><span>★</span><span>★</span><span>★</span></span>
+            <span class="difficulty-info-card">
+              <span class="difficulty-desc">도형 4개<br>긴 패턴</span>
+              <span class="difficulty-pad-row" aria-hidden="true">
+                <svg class="difficulty-pad-svg pad-red" viewBox="0 0 170 130" focusable="false"><ellipse class="mini-pad-ground" cx="85" cy="112" rx="58" ry="11" /><ellipse class="mini-pad-base" cx="85" cy="79" rx="60" ry="30" /><path class="mini-pad-side" d="M27 54 C27 32 51 17 85 17 C119 17 143 32 143 54 L143 72 C143 95 119 110 85 110 C51 110 27 95 27 72 Z" /><ellipse class="mini-pad-face" cx="85" cy="52" rx="58" ry="40" /></svg>
+                <svg class="difficulty-pad-svg pad-blue" viewBox="0 0 170 130" focusable="false"><ellipse class="mini-pad-ground" cx="85" cy="112" rx="58" ry="11" /><ellipse class="mini-pad-base" cx="85" cy="79" rx="60" ry="30" /><path class="mini-pad-side" d="M27 54 C27 32 51 17 85 17 C119 17 143 32 143 54 L143 72 C143 95 119 110 85 110 C51 110 27 95 27 72 Z" /><ellipse class="mini-pad-face" cx="85" cy="52" rx="58" ry="40" /></svg>
+                <svg class="difficulty-pad-svg pad-green" viewBox="0 0 170 130" focusable="false"><ellipse class="mini-pad-ground" cx="85" cy="112" rx="58" ry="11" /><ellipse class="mini-pad-base" cx="85" cy="79" rx="60" ry="30" /><path class="mini-pad-side" d="M27 54 C27 32 51 17 85 17 C119 17 143 32 143 54 L143 72 C143 95 119 110 85 110 C51 110 27 95 27 72 Z" /><ellipse class="mini-pad-face" cx="85" cy="52" rx="58" ry="40" /></svg>
+                <svg class="difficulty-pad-svg pad-yellow" viewBox="0 0 170 130" focusable="false"><ellipse class="mini-pad-ground" cx="85" cy="112" rx="58" ry="11" /><ellipse class="mini-pad-base" cx="85" cy="79" rx="60" ry="30" /><path class="mini-pad-side" d="M27 54 C27 32 51 17 85 17 C119 17 143 32 143 54 L143 72 C143 95 119 110 85 110 C51 110 27 95 27 72 Z" /><ellipse class="mini-pad-face" cx="85" cy="52" rx="58" ry="40" /></svg>
+              </span>
+            </span>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <section id="howtoScreen" class="screen" data-screen="howto" aria-labelledby="howtoTitle">
+      <header class="screen-header">
+        <button class="icon-button" type="button" data-go="home" aria-label="처음 화면으로">‹</button>
+        <h2 id="howtoTitle">게임 방법</h2>
+      </header>
+      <ol class="howto-list">
+        <li><span class="step-mark">1</span>화면의 표시를 잘 봅니다.</li>
+        <li><span class="step-mark">2</span>같은 모양의 멜로디 패드를 눌러주세요.</li>
+        <li><span class="step-mark">3</span>정답을 누르면 노래가 더 길게 이어집니다.</li>
+        <li><span class="step-mark">4</span>빨간 X가 나오면 누르지 말고 기다리세요.</li>
+        <li><span class="step-mark">5</span>제한 시간 안에 많이 맞혀 보세요.</li>
+      </ol>
+      <button class="primary-button wide-action" type="button" data-go="home">알겠어요</button>
+    </section>
+
+    <section id="settingsScreen" class="screen" data-screen="settings" aria-labelledby="settingsTitle">
+      <div class="settings-card">
+        <div class="settings-layout">
+          <section class="settings-sound-panel" aria-labelledby="settingsTitle">
+            <h2 id="settingsTitle" class="settings-panel-title">
+              <span class="settings-title-icon settings-title-icon-sound" aria-hidden="true">
+                <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                  <path d="M9 18V5l12-2v13"></path>
+                  <circle cx="6" cy="18" r="3"></circle>
+                  <circle cx="18" cy="16" r="3"></circle>
+                </svg>
+              </span>
+              <span>소리 설정</span>
+            </h2>
+            <div class="settings-options">
+              <label class="setting-row">
+                <span class="setting-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                    <path d="M9 18V5l12-2v13"></path>
+                    <circle cx="6" cy="18" r="3"></circle>
+                    <circle cx="18" cy="16" r="3"></circle>
+                  </svg>
+                </span>
+                <span class="setting-copy">
+                  <strong id="background-sound-label">배경음 켬</strong>
+                </span>
+                <input id="background-sound-toggle" class="setting-toggle" type="checkbox" checked>
+              </label>
+              <label class="setting-row">
+                <span class="setting-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                    <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+                    <path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+                    <path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path>
+                  </svg>
+                </span>
+                <span class="setting-copy">
+                  <strong id="sound-label">효과음 켬</strong>
+                </span>
+                <input id="sound-toggle" class="setting-toggle" type="checkbox" checked>
+              </label>
+              <label class="setting-row">
+                <span class="setting-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                    <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+                    <path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+                    <path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path>
+                  </svg>
+                </span>
+                <span class="setting-copy">
+                  <strong id="voice-guide-label">안내음성 켬</strong>
+                </span>
+                <input id="voice-guide-toggle" class="setting-toggle" type="checkbox" checked>
+              </label>
+            </div>
+          </section>
+        </div>
+        <div class="settings-close-actions">
+          <button id="settingsCloseButton" class="secondary-button difficulty-back-button settings-close-button" type="button" data-go="home">닫기</button>
+        </div>
+      </div>
+    </section>
+
+    <section id="playScreen" class="screen screen-play" data-screen="play" aria-labelledby="playTitle">
+      <h2 id="playTitle" class="sr-only">플레이 화면</h2>
+      <header class="play-topbar">
+        <div class="progress-wrap">
+          <span class="progress-label">집중 판단형</span>
+          <div class="progress-track" aria-label="남은 시간">
+            <div id="progressFill" class="progress-fill"></div>
+            <span id="timeText" class="progress-time">01:00</span>
+          </div>
+          <button id="pauseButton" class="pause-button" type="button">일시정지</button>
+        </div>
+      </header>
+
+      <div class="play-center">
+        <div class="current-card">
+          <p id="promptMessage" class="prompt-message"></p>
+          <div id="currentSymbol" class="current-symbol" aria-live="polite"></div>
+        </div>
+        <div id="previewCard" class="preview-card">
+          <span>다음 표시</span>
+          <div id="nextSymbol" class="preview-symbol"></div>
+        </div>
+      </div>
+
+      <div id="padArea" class="pad-area" aria-label="멜로디 패드"></div>
+
+      <div id="feedbackOverlay" class="feedback-overlay" aria-live="assertive"></div>
+
+      <div id="pauseOverlay" class="pause-overlay" aria-live="polite">
+        <div class="pause-panel">
+          <h3>잠시 쉬는 중이에요</h3>
+          <button id="resumeButton" class="primary-button" type="button">계속하기</button>
+          <button id="quitButton" class="secondary-button" type="button">처음으로</button>
+        </div>
+      </div>
+    </section>
+
+    <section id="resultScreen" class="screen" data-screen="result" aria-labelledby="resultTitle">
+      <header class="screen-header">
+        <button class="icon-button" type="button" data-go="home" aria-label="처음 화면으로">‹</button>
+        <h2 id="resultTitle">연주 결과</h2>
+      </header>
+      <div class="result-summary">
+        <div>
+          <span>연주한 노래</span>
+          <strong id="resultSongTitle">아직 기록 없음</strong>
+        </div>
+        <div>
+          <span>연주 진행률</span>
+          <strong id="resultProgress">0%</strong>
+        </div>
+      </div>
+      <div class="result-grid">
+        <div class="result-item"><span>정답 수</span><strong id="resultCorrect">0</strong></div>
+        <div class="result-item"><span>오답 수</span><strong id="resultWrong">0</strong></div>
+        <div class="result-item"><span>놓친 수</span><strong id="resultMissed">0</strong></div>
+        <div class="result-item"><span>성공률</span><strong id="resultSuccessRate">0%</strong></div>
+        <div class="result-item"><span>평균 반응 시간</span><strong id="resultAverageTime">0ms</strong></div>
+        <div class="result-item"><span>X 참기 성공</span><strong id="resultXSuccess">0</strong></div>
+        <div class="result-item"><span>X 실수</span><strong id="resultXFail">0</strong></div>
+      </div>
+      <div class="result-actions">
+        <button id="retryButton" class="primary-button" type="button">다시하기</button>
+        <button id="homeButton" class="secondary-button" type="button">처음으로</button>
+      </div>
+    </section>
+  </main>
+  <script src="config/gameConfig.js"></script>
+  <script src="assets/data/melodyData.js"></script>
+  <script src="js/core-config.js"></script>
+  <script src="js/audio.js"></script>
+  <script src="js/audio-display.js"></script>
+  <script src="js/result.js"></script>
+  <script src="js/result-bridge.js"></script>
+  <script src="js/game.js"></script>
+  <script src="js/screen-flow.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>

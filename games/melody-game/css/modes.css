@@ -1,0 +1,90 @@
+﻿/* Mode-level presentation. JS applies body.mode-* and body.hide-* classes. */
+body.mode-standard {
+  --mode-accent: var(--primary);
+}
+
+body.mode-reminder {
+  --mode-accent: #2878d7;
+}
+
+body.mode-care {
+  --mode-accent: #28b46a;
+}
+
+body.mode-ai {
+  --mode-accent: #8e59d7;
+}
+body.mode-reminder .app {
+  --pad: clamp(128px, 28cqmin, 238px);
+  --symbol-main: clamp(118px, 30cqmin, 232px);
+}
+
+body.mode-care .app,
+body.mode-ai .app {
+  --pad: clamp(148px, 33cqmin, 276px);
+  --symbol-main: clamp(140px, 35cqmin, 270px);
+}
+
+body.mode-reminder .brand-badge,
+body.mode-care .brand-badge,
+body.mode-ai .brand-badge {
+  background: color-mix(in srgb, var(--mode-accent) 14%, #ffffff);
+  color: var(--ink);
+}
+
+body.mode-reminder .primary-button,
+body.mode-care .primary-button,
+body.mode-ai .primary-button {
+  background: linear-gradient(180deg, color-mix(in srgb, var(--mode-accent) 78%, #ffffff), var(--mode-accent));
+}
+
+body.hide-difficulty-select [data-go="difficulty"],
+body.hide-settings [data-go="settings"],
+body.hide-help [data-go="howto"],
+body.hide-replay #retryButton {
+  display: none !important;
+}
+
+body.hide-progress .progress-wrap,
+body.hide-score .result-item:nth-child(4) {
+  display: none;
+}
+
+body.mode-reminder .menu-actions,
+body.mode-care .menu-actions,
+body.mode-ai .menu-actions {
+  grid-template-columns: minmax(220px, 420px);
+  justify-content: center;
+}
+
+body.mode-reminder .screen-home,
+body.mode-care .screen-home,
+body.mode-ai .screen-home {
+  justify-content: center;
+}
+
+body.mode-reminder .play-topbar,
+body.mode-care .play-topbar,
+body.mode-ai .play-topbar {
+  grid-template-columns: 1fr;
+}
+
+body.hide-progress .play-topbar {
+  grid-template-columns: 1fr;
+}
+
+body.mode-care .prompt-message,
+body.mode-ai .prompt-message {
+  font-size: clamp(24px, 4.8cqmin, 40px);
+}
+
+body.mode-care .pad-area,
+body.mode-ai .pad-area {
+  gap: clamp(8px, 3cqmin, 30px);
+}
+
+body.mode-reminder .result-actions,
+body.mode-care .result-actions,
+body.mode-ai .result-actions {
+  grid-template-columns: minmax(220px, 420px);
+}

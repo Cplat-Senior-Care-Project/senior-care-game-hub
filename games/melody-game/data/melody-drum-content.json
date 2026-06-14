@@ -1,0 +1,38 @@
+{
+    "game_key":  "kungjak_melody_drum",
+    "title":  "Kungjak Melody Drum",
+    "supported_modes":  [
+                            "standard",
+                            "reminder",
+                            "care",
+                            "ai_assisted"
+                        ],
+    "mode_defaults":  {
+                          "standard":  {
+                                           "difficulty":  "normal",
+                                           "auto_start":  false,
+                                           "show_difficulty_select":  true,
+                                           "allow_replay":  true
+                                       },
+                          "reminder":  {
+                                           "difficulty":  "normal",
+                                           "auto_start":  true,
+                                           "auto_return_ms":  2500,
+                                           "allow_replay":  false
+                                       },
+                          "care":  {
+                                       "difficulty":  "easy",
+                                       "auto_start":  true,
+                                       "session_time":  40,
+                                       "target_note_count":  8,
+                                       "allow_replay":  false
+                                   },
+                          "ai_assisted":  {
+                                              "difficulty":  "easy",
+                                              "auto_start":  true,
+                                              "session_time":  35,
+                                              "target_note_count":  8,
+                                              "allow_replay":  false
+                                          }
+                      }
+}

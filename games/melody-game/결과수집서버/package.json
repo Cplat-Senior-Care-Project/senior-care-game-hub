@@ -1,0 +1,11 @@
+{
+    "name":  "melody-drum-result-api",
+    "version":  "1.0.0",
+    "private":  true,
+    "description":  "Small result collection API for the melody drum WebView game.",
+    "main":  "server.js",
+    "scripts":  {
+                    "start":  "node server.js"
+                },
+    "license":  "UNLICENSED"
+}
