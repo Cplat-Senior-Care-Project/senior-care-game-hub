@@ -1289,6 +1289,8 @@ function returnToHub(){
     window.location.href = window.HUB_RETURN_URL;
   }
 }
+const hubReturnBtn = $("btn-hub-return");
+if(hubReturnBtn) hubReturnBtn.addEventListener("click", returnToHub);
 
 function finishGame(userExit, timeOver){
   stopTimer(); clearAdvance(); clearAutoHint();
