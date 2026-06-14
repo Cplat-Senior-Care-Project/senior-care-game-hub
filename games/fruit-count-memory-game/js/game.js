@@ -923,6 +923,12 @@
     return !shouldShowScoreResult();
   }
 
+  function shouldAutoReturnToHubAfterResult() {
+    return runtimeConfig.mode === "reminder"
+      || runtimeConfig.mode === "care"
+      || runtimeConfig.mode === "ai_assisted";
+  }
+
   function shouldShowScoreResult() {
     return !runtimeConfig.ui || runtimeConfig.ui.showScore !== false;
   }
@@ -3969,7 +3975,7 @@
   }
 
   function getCareResultVoiceGuideType(resultMessage) {
-    if (shouldUseDirectFeedback() || !isCareResultMode() || !resultMessage) {
+    if (shouldAutoReturnToHubAfterResult() || shouldUseDirectFeedback() || !isCareResultMode() || !resultMessage) {
       return null;
     }
 
@@ -4458,7 +4464,7 @@
 
   function scheduleResultAutoReturn() {
     clearResultAutoReturnTimer();
-    if (runtimeConfig.mode !== "reminder") {
+    if (!shouldAutoReturnToHubAfterResult()) {
       return;
     }
 

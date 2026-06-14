@@ -172,6 +172,7 @@
   let dragSession = null;
   let suppressNextClick = false;
   let memoryLayoutFrame = null;
+  let memoryProgressFrame = null;
   let preloadGameAssetsPromise = null;
   let phaseTimerDueAt = 0;
   let phaseTimerCallback = null;
@@ -437,6 +438,7 @@
   function clearAllTimers() {
     Object.keys(timers).forEach(clearTimer);
     clearStartCountdown();
+    cancelMemoryProgressAnimation();
     stopVoiceGuide();
   }
 
@@ -862,6 +864,7 @@
   function usesSoftFeedback() { return runtimeConfig && runtimeConfig.softFeedback === true; }
   function shouldUseDirectFeedback() { return runtimeConfig && runtimeConfig.softFeedback === false; }
   function isCareResultMode() { return runtimeConfig && (runtimeConfig.mode === "reminder" || (runtimeConfig.ui && runtimeConfig.ui.showScore === false)); }
+  function shouldAutoReturnToHubAfterResult() { return runtimeConfig && ["reminder", "care", "ai_assisted"].includes(runtimeConfig.mode); }
   function getMemoryVoiceGuideType() { return shouldUseDirectFeedback() ? "voiceMemory" : "voiceSoftFeedbackMemory"; }
   function getQuestionVoiceGuideType() { return shouldUseDirectFeedback() ? "voiceQuestion" : "voiceSoftFeedbackQuestion"; }
   function getRetryVoiceGuideType(wrongAttempts) {
@@ -874,6 +877,7 @@
     return getRetryVoiceGuideType(state.wrongSelectedIds.length);
   }
   function getCareResultVoiceGuideType() {
+    if (shouldAutoReturnToHubAfterResult()) return null;
     if (shouldUseDirectFeedback() || !isCareResultMode()) return null;
     return state.questionLogs.length > 0 ? "voiceCareResult2" : "voiceCareResult1";
   }
@@ -1266,24 +1270,48 @@
     progress.setAttribute("aria-valuenow", String(Math.round(ratio * state.question.revealMs)));
   }
 
+  function cancelMemoryProgressAnimation() {
+    if (!memoryProgressFrame) return;
+    window.cancelAnimationFrame(memoryProgressFrame);
+    memoryProgressFrame = null;
+  }
+
+  function setMemoryProgressVisual(progress, fill, remainingMs) {
+    const totalMs = Math.max(1, state.question ? state.question.revealMs : 1);
+    const safeRemainingMs = Math.max(0, Math.min(totalMs, Number(remainingMs) || 0));
+    const ratio = safeRemainingMs / totalMs;
+    fill.style.transition = "none";
+    fill.style.width = "100%";
+    fill.style.transform = `scaleX(${ratio})`;
+    progress.setAttribute("aria-valuenow", String(Math.round(safeRemainingMs)));
+  }
+
   function animateMemoryProgress(remainingMs, shouldAnimate = true) {
     const progress = els.playArea.querySelector(".memory-progress");
     const fill = progress && progress.querySelector(".memory-progress-fill");
     if (!progress || !fill || !state.question) return;
+    cancelMemoryProgressAnimation();
     const totalMs = Math.max(1, state.question.revealMs);
     const safeRemainingMs = Math.max(0, Math.min(totalMs, Number(remainingMs) || 0));
-    const ratio = safeRemainingMs / totalMs;
-    fill.style.transition = "none";
-    fill.style.width = `${ratio * 100}%`;
-    progress.setAttribute("aria-valuenow", String(Math.round(safeRemainingMs)));
+    const startedAt = window.performance && window.performance.now ? window.performance.now() : Date.now();
+    const endsAt = startedAt + safeRemainingMs;
+    setMemoryProgressVisual(progress, fill, safeRemainingMs);
     if (!shouldAnimate || safeRemainingMs <= 0) return;
-    window.requestAnimationFrame(() => {
-      window.requestAnimationFrame(() => {
-        if (state.phase !== "memory" || !fill.isConnected) return;
-        fill.style.transition = `width ${safeRemainingMs}ms linear`;
-        fill.style.width = "0%";
-      });
-    });
+
+    const tick = (now) => {
+      if (state.phase !== "memory" || !fill.isConnected) {
+        memoryProgressFrame = null;
+        return;
+      }
+      const remaining = Math.max(0, endsAt - now);
+      setMemoryProgressVisual(progress, fill, remaining);
+      if (remaining <= 0) {
+        memoryProgressFrame = null;
+        return;
+      }
+      memoryProgressFrame = window.requestAnimationFrame(tick);
+    };
+    memoryProgressFrame = window.requestAnimationFrame(tick);
   }
 
   function getMemoryGridClass(count) {
@@ -1933,12 +1961,12 @@
     const payload = createResultPayload();
     try { window.localStorage.setItem(`${STORAGE_KEY_PREFIX}:${runtimeConfig.mode}`, JSON.stringify(payload)); } catch (error) {}
     sendBridge(["sendGameCompleteResult", "sendComplete"], payload);
-    scheduleReminderResultReturn();
+    scheduleResultAutoReturn();
   }
 
-  function scheduleReminderResultReturn() {
+  function scheduleResultAutoReturn() {
     clearTimer("resultReturn");
-    if (!runtimeConfig || runtimeConfig.mode !== "reminder") return;
+    if (!shouldAutoReturnToHubAfterResult()) return;
     timers.resultReturn = window.setTimeout(() => {
       timers.resultReturn = null;
       if (state.phase === "result") returnToHub();

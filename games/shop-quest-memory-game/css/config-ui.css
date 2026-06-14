@@ -250,6 +250,6 @@ html[data-result-style="care"] .result-actions #result-home-button:hover {
     inset 0 -6px 0 rgba(134, 55, 7, 0.34);
 }
 
-html[data-mode="reminder"][data-result-style="care"] .result-actions {
+html:is([data-mode="reminder"], [data-mode="care"], [data-mode="ai_assisted"])[data-result-style="care"] .result-actions {
   display: none !important;
 }
