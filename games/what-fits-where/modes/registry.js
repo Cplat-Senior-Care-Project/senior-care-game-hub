@@ -94,7 +94,7 @@
   const chooseMatchingItems = {
     key: "choose_matching_items",
     markedClass: "picked",
-    resultText: "오늘은 기억력과 주의집중력 훈련을 했어요. 상황에 맞는 물건을 고르며 일상생활 판단력도 함께 연습했어요.",
+    resultText: "오늘은 언어·의미 활동과 집중 활동을 함께 해보셨어요. 상황에 맞는 물건을 고르며 일상생활 판단을 차분히 살펴보셨어요.",
     buildQuestions({ mode, diff, stageNo, count }) {
       return buildPackQuestions(mode, diff, stageNo, count);
     },
@@ -115,6 +115,14 @@
       if (!cur || cur.revealed || state.paused || cur.picked.has(key)) return;
       const q = cur.q;
       const isAnswer = q.answers.includes(key);
+      if (typeof recordChoiceAction === "function") {
+        recordChoiceAction({
+          action: "select_item",
+          key,
+          item_name: I[key] ? I[key].n : key,
+          correct: isAnswer,
+        });
+      }
       if (isAnswer) {
         cur.picked.add(key);
         state.selectedRequired++;
@@ -139,7 +147,7 @@
   const removeMismatchedItems = {
     key: "remove_mismatched_items",
     markedClass: "removed-state",
-    resultText: "오늘은 주의집중력과 판단력 훈련을 했어요. 어울리지 않는 물건을 가려내며 일상생활 판단력도 함께 연습했어요.",
+    resultText: "오늘은 집중 활동과 언어·의미 활동을 함께 해보셨어요. 어울리지 않는 물건을 가려내며 일상생활 판단을 차분히 살펴보셨어요.",
     buildQuestions({ mode, diff, stageNo, count }) {
       return buildPackQuestions(mode, diff, stageNo, count);
     },
@@ -160,6 +168,14 @@
       if (!cur || cur.revealed || state.paused || cur.removed.has(key)) return;
       const q = cur.q;
       const isAnswer = q.answers.includes(key);
+      if (typeof recordChoiceAction === "function") {
+        recordChoiceAction({
+          action: "remove_item",
+          key,
+          item_name: I[key] ? I[key].n : key,
+          correct: isAnswer,
+        });
+      }
       if (isAnswer) {
         cur.removed.add(key);
         state.removedMismatched++;
@@ -183,7 +199,7 @@
 
   const guessSituation = {
     key: "guess_situation",
-    resultText: "오늘은 추론력과 상황 인식 훈련을 했어요. 상황에 맞는 물건을 떠올리며 일상생활 판단력도 함께 연습했어요.",
+    resultText: "오늘은 언어·의미 활동과 기억 활동을 함께 해보셨어요. 상황에 맞는 물건을 떠올리며 일상생활 판단을 차분히 살펴보셨어요.",
     buildQuestions({ mode, diff, stageNo, count }) {
       return buildGuessQuestions(mode, diff, stageNo, count);
     },
@@ -209,7 +225,16 @@
       const cur = state.current;
       if (!cur || cur.revealed || cur.guessAnswered || state.paused) return;
       const q = cur.q;
-      const rt = (Date.now() - cur.qStart) / 1000;
+      const rt = typeof getQuestionElapsedMs === "function"
+        ? getQuestionElapsedMs(cur) / 1000
+        : (Date.now() - cur.qStart) / 1000;
+      if (typeof recordChoiceAction === "function") {
+        recordChoiceAction({
+          action: "choose_situation",
+          label,
+          correct: label === q.answer,
+        });
+      }
       if (label === q.answer) {
         cur.guessAnswered = true;
         btn.classList.add("picked");

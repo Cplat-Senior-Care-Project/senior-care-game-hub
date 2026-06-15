@@ -5,7 +5,8 @@ const pick = (arr,n) => shuffle(arr).slice(0,n);
 const state = {
   mode:null, diff:null, diffSource:"user_selected",
   queue:[], qIndex:0,
-  startedAt:0,
+  startedAt:0, startedAtIso:null,
+  sessionId:null,
   correct:0, wrong:0,
   selectedRequired:0, selectedUnnecessary:0,
   removedMismatched:0, wronglyRemovedMatched:0,
@@ -13,6 +14,8 @@ const state = {
   situationResponses:[],
   stageStats:[{c:0,w:0},{c:0,w:0},{c:0,w:0}],
   responses:[],
+  questionLogs:[],
+  hintCount:0, retryCount:0,
   current:null,
   endedByUser:false, timeOver:false,
   timerId:null, timerLeft:0, paused:false,
@@ -21,6 +24,61 @@ const state = {
 };
 state.conditionData = null;
 state.postGameConditionData = null;
+
+function generateSessionId(){
+  return `session_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+}
+
+function getSessionId(){
+  const cfg = Object.assign({}, window.GAME_CONFIG || {}, state.appConfig || {});
+  if(!state.sessionId) state.sessionId = cfg.session_id || generateSessionId();
+  return state.sessionId;
+}
+
+function getAppMode(){
+  return state.appMode || window.GAME_MODE || "standard";
+}
+
+function getAppConfig(){
+  return Object.assign({}, DEFAULT_CONFIG, window.GAME_CONFIG || {}, state.appConfig || {});
+}
+
+function getConfigSnapshot(){
+  const cfg = getAppConfig();
+  return JSON.parse(JSON.stringify(Object.assign({}, cfg, {
+    mode: getAppMode(),
+    difficulty: state.diff || cfg.default_difficulty || "easy",
+    game_key: cfg.game_key || window.GAME_KEY || "what_fits_where",
+    game_version: cfg.game_version || window.GAME_VERSION || "1.0.0",
+    session_id: getSessionId(),
+  })));
+}
+
+function getTimeLimitSec(){
+  const value = Number((state.appConfig || DEFAULT_CONFIG).time_limit_sec);
+  return Number.isFinite(value) && value > 0 ? Math.floor(value) : GAME_TIME_LIMIT;
+}
+
+function setPaused(paused){
+  if(state.paused === paused) return;
+  const cur = state.current;
+  if(cur){
+    if(paused && !cur.pauseStartedAt){
+      cur.pauseStartedAt = Date.now();
+    }else if(!paused && cur.pauseStartedAt){
+      cur.pausedMs = (cur.pausedMs || 0) + Date.now() - cur.pauseStartedAt;
+      cur.pauseStartedAt = null;
+    }
+  }
+  state.paused = paused;
+}
+
+function getQuestionElapsedMs(cur = state.current){
+  if(!cur || !cur.qStart) return 0;
+  let pausedMs = cur.pausedMs || 0;
+  if(cur.pauseStartedAt) pausedMs += Date.now() - cur.pauseStartedAt;
+  return Math.max(0, Date.now() - cur.qStart - pausedMs);
+}
 
 function shouldShowScoreScreen(){
   const cfg = state.appConfig || DEFAULT_CONFIG;
@@ -58,20 +116,32 @@ function playQuestionPromptVoice(){
 function applyAppConfig(){
   const appMode = (window.GAME_MODE || "standard");
   const cfg = Object.assign({}, DEFAULT_CONFIG, window.GAME_CONFIG || {});
+  document.body.classList.remove("mode-standard", "mode-reminder", "mode-care", "mode-ai-assisted");
+  document.body.classList.add(`mode-${appMode.replace("_", "-")}`);
   if(!state.diff && ["easy", "normal", "hard"].includes(cfg.default_difficulty)){
     state.diff = cfg.default_difficulty;
     state.diffSource = appMode + "_default";
   }
+  if(cfg.session_id) state.sessionId = cfg.session_id;
   // sound defaults from config
   soundSettings.bgm = !!cfg.background_music_enabled;
   soundSettings.sfx = !!cfg.sound_effect_enabled;
   soundSettings.voice = !!cfg.voice_guide_enabled;
   refreshSoundToggles();
   // top buttons visibility
-  const sBtn = $("btn-settings"), hBtn = $("btn-howto"), hintBtn = $("btn-hint");
+  const sBtn = $("btn-settings"), hBtn = $("btn-howto"), hintBtn = $("btn-hint"), pauseBtn = $("btn-pause"), qnum = $("p-qnum");
+  const pills = document.querySelector(".topbar .pills");
+  const actions = document.querySelector(".topbar .actions");
   if(sBtn) sBtn.style.display = cfg.show_settings ? "" : "none";
   if(hBtn) hBtn.style.display = cfg.show_how_to_play ? "" : "none";
   if(hintBtn) hintBtn.style.display = supportsHintMode(appMode) ? "" : "none";
+  if(pauseBtn) pauseBtn.style.display = cfg.show_pause !== false ? "" : "none";
+  if(qnum) qnum.style.display = cfg.show_question_counter !== false ? "" : "none";
+  if(pills) pills.style.display = cfg.show_question_counter !== false ? "" : "none";
+  if(actions){
+    const hasVisibleAction = supportsHintMode(appMode) || cfg.show_timer !== false || cfg.show_pause !== false;
+    actions.style.display = hasVisibleAction ? "" : "none";
+  }
   // difficulty section
   const diffRow = $("diff-row"), diffH = $("diff-heading");
   if(diffRow) diffRow.style.display = cfg.show_difficulty_select ? "" : "none";
@@ -80,7 +150,6 @@ function applyAppConfig(){
   const tEl = $("p-timer"); if(tEl) tEl.style.display = cfg.show_timer ? "" : "none";
   // care mode tweaks
   if(appMode === "care"){
-    document.body.classList.add("mode-care");
     if(!state.diff){ state.diff = "easy"; state.diffSource = "care_default"; }
   }
   state.appMode = appMode;
@@ -189,6 +258,134 @@ function sendGameEvent(type, payload = {}){
   }catch(e){ console.warn("sendGameEvent error", e); }
 }
 
+function normalizeIncomingConfig(payload){
+  const source = payload && payload.config && typeof payload.config === "object"
+    ? Object.assign({}, payload, payload.config)
+    : Object.assign({}, payload || {});
+  delete source.config;
+  if(source.mode === "ai-assisted") source.mode = "ai_assisted";
+  if(source.difficulty && !source.default_difficulty) source.default_difficulty = source.difficulty;
+  if(source.question_count){
+    const count = Number(source.question_count);
+    if(Number.isFinite(count) && count > 0){
+      source.question_count = Math.floor(count);
+      source.question_counts_by_diff = {
+        easy: [source.question_count],
+        normal: [source.question_count],
+        hard: [source.question_count],
+      };
+    }
+  }
+  ["show_condition_check", "show_settings", "show_how_to_play", "show_timer", "show_score",
+    "show_difficulty_select", "show_pause", "show_hint", "show_question_counter",
+    "background_music_enabled", "sound_effect_enabled", "voice_guide_enabled",
+    "auto_start", "auto_return_to_hub"].forEach(key=>{
+    if(typeof source[key] === "string"){
+      source[key] = source[key] === "true" || source[key] === "1" || source[key] === "yes";
+    }
+  });
+  return source;
+}
+
+function applyRuntimeConfig(payload = {}, source = "host"){
+  const incoming = normalizeIncomingConfig(payload);
+  let incomingMode = null;
+  if(incoming.mode){
+    const allowed = { standard:true, reminder:true, care:true, ai_assisted:true };
+    incomingMode = allowed[incoming.mode] ? incoming.mode : null;
+    window.GAME_MODE = incomingMode || (window.GAME_MODE || "standard");
+  }
+  const modeDefaults = incomingMode && window.GAME_MODE_CONFIGS
+    ? (window.GAME_MODE_CONFIGS[incomingMode] || {})
+    : {};
+  window.GAME_CONFIG = Object.assign({}, window.GAME_CONFIG || {}, modeDefaults, incoming);
+  if(incoming.session_id) state.sessionId = incoming.session_id;
+  if(incoming.default_difficulty && ["easy", "normal", "hard"].includes(incoming.default_difficulty)){
+    state.diff = incoming.default_difficulty;
+    state.diffSource = source + "_config";
+  }
+  applyAppConfig();
+  sendGameEvent("CONFIG_APPLIED", {
+    source,
+    session_id: getSessionId(),
+    mode: getAppMode(),
+    difficulty: state.diff || (state.appConfig || {}).default_difficulty || "easy",
+    config_snapshot: getConfigSnapshot(),
+  });
+}
+
+function parseHostMessage(data){
+  if(typeof data === "string"){
+    try{ return JSON.parse(data); }catch(e){ return null; }
+  }
+  return data && typeof data === "object" ? data : null;
+}
+
+function escapeSelectorValue(value){
+  if(window.CSS && typeof window.CSS.escape === "function") return window.CSS.escape(String(value));
+  return String(value).replace(/["\\]/g, "\\$&");
+}
+
+function handleExternalAnswer(payload = {}){
+  const grid = $("p-choices");
+  const cur = state.current;
+  if(!grid || !cur || cur.revealed){
+    sendGameEvent("EXTERNAL_ANSWER_IGNORED", { reason:"not_ready" });
+    return;
+  }
+  const value = payload.item_key || payload.key || payload.value || payload.answer || payload.label || payload.text;
+  if(!value){
+    sendGameEvent("EXTERNAL_ANSWER_IGNORED", { reason:"missing_value" });
+    return;
+  }
+  let btn = grid.querySelector(`[data-key="${escapeSelectorValue(value)}"]`);
+  if(!btn){
+    btn = Array.from(grid.querySelectorAll("button")).find(candidate => (
+      (candidate.textContent || "").trim() === String(value).trim()
+    ));
+  }
+  if(!btn || btn.disabled){
+    sendGameEvent("EXTERNAL_ANSWER_IGNORED", { reason:"not_found", value });
+    return;
+  }
+  btn.click();
+  sendGameEvent("EXTERNAL_ANSWER_APPLIED", {
+    value,
+    mode: state.mode,
+    question_index: state.qIndex + 1,
+  });
+}
+
+function handleHostMessage(event){
+  const message = parseHostMessage(event && event.data !== undefined ? event.data : event);
+  if(!message) return;
+  const type = message.type || message.event || (message.config || message.mode ? "APP_CONFIG" : "");
+  const payload = message.payload || message.data || message;
+  switch(type){
+    case "APP_CONFIG":
+    case "GAME_CONFIG":
+    case "CONFIG":
+      applyRuntimeConfig(payload, "postMessage");
+      break;
+    case "PAUSE_GAME":
+      setPaused(true);
+      sendGameEvent("GAME_PAUSED", { source:"postMessage" });
+      break;
+    case "RESUME_GAME":
+      setPaused(false);
+      sendGameEvent("GAME_RESUMED", { source:"postMessage" });
+      break;
+    case "EXTERNAL_ANSWER":
+    case "EXTERNAL_ITEM_SELECT":
+      handleExternalAnswer(payload);
+      break;
+  }
+}
+
+window.applyGameRuntimeConfig = payload => applyRuntimeConfig(payload, "direct");
+window.addEventListener("message", handleHostMessage);
+document.addEventListener("message", handleHostMessage);
+
 /* ===== LOADING ===== */
 function runLoading(done){
   const fill = $("loading-bar-fill");
@@ -202,7 +399,16 @@ function runLoading(done){
     p += 12 + Math.random()*18;
     if(p >= 100){
       p = 100; fill.style.width = "100%"; if(percent) percent.textContent = "100%"; clearInterval(id);
-      setTimeout(()=>{ screen.classList.remove("active"); sendGameEvent("GAME_READY"); done && done(); }, 200);
+      setTimeout(()=>{
+        screen.classList.remove("active");
+        sendGameEvent("GAME_READY", {
+          session_id: getSessionId(),
+          mode: getAppMode(),
+          difficulty: state.diff || (state.appConfig || {}).default_difficulty || "easy",
+          config_snapshot: getConfigSnapshot(),
+        });
+        done && done();
+      }, 200);
     } else {
       fill.style.width = p + "%";
       if(percent) percent.textContent = Math.floor(p) + "%";
@@ -296,6 +502,20 @@ document.getElementById("cc-skip").addEventListener("click", ()=>{
   };
   switchScreen("screen-start");
 });
+let _pausedByVisibility = false;
+document.addEventListener("visibilitychange", ()=>{
+  if(document.hidden){
+    if(!state.paused && state.current && !state.current.revealed){
+      _pausedByVisibility = true;
+      setPaused(true);
+      sendGameEvent("GAME_PAUSED", { source:"visibilitychange", session_id:getSessionId() });
+    }
+  }else if(_pausedByVisibility){
+    _pausedByVisibility = false;
+    setPaused(false);
+    sendGameEvent("GAME_RESUMED", { source:"visibilitychange", session_id:getSessionId() });
+  }
+});
 window.addEventListener("error", e=>{
   showError(e?.message || "알 수 없는 오류가 발생했어요.");
 });
@@ -324,9 +544,24 @@ function runCountdown(onDone){
 
 /* ===== ERROR ===== */
 function showError(msg){
-  $("error-msg").textContent = msg || "잠시 후 다시 시도해주세요.";
+  const message = msg || "잠시 후 다시 시도해주세요.";
+  $("error-msg").textContent = message;
   $("error-modal").classList.add("active");
-  sendGameEvent("GAME_ERROR", { message: msg || "unknown" });
+  const now = new Date().toISOString();
+  sendGameEvent("GAME_ERROR", {
+    session_id: getSessionId(),
+    content_id: (state.appConfig || {}).content_id || null,
+    game_key: (state.appConfig || {}).game_key || window.GAME_KEY || "what_fits_where",
+    game_version: (state.appConfig || {}).game_version || window.GAME_VERSION || "1.0.0",
+    mode: getAppMode(),
+    difficulty: state.diff || (state.appConfig || {}).default_difficulty || "easy",
+    status: "error",
+    error_code: "GAME_ERROR",
+    message,
+    started_at: state.startedAtIso,
+    ended_at: now,
+    config_snapshot: getConfigSnapshot(),
+  });
 }
 $("btn-error-retry").addEventListener("click", ()=>{
   $("error-modal").classList.remove("active");
@@ -339,6 +574,7 @@ $("btn-error-exit").addEventListener("click", ()=>{
 /* ===== START ===== */
 $("btn-start").addEventListener("click", ()=>{
   const appMode = state.appMode || "standard";
+  const cfg = state.appConfig || DEFAULT_CONFIG;
   if(appMode === "reminder" || appMode === "care" || appMode === "ai_assisted"){
     if(!state.diff){
       state.diff = "easy";
@@ -352,6 +588,13 @@ $("btn-start").addEventListener("click", ()=>{
     startGame(); return;
   }
   if((appMode === "reminder" || appMode === "ai_assisted") && state.diff){
+    startGame(); return;
+  }
+  if(cfg.show_difficulty_select === false){
+    if(!state.diff){
+      state.diff = cfg.default_difficulty || "easy";
+      state.diffSource = "config_default";
+    }
     startGame(); return;
   }
   // standard: 난이도 선택 화면으로 이동
@@ -817,6 +1060,7 @@ function startGame(){
   }
   state.qIndex = 0;
   state.startedAt = Date.now();
+  state.startedAtIso = new Date(state.startedAt).toISOString();
   state.correct = 0; state.wrong = 0;
   state.selectedRequired=0; state.selectedUnnecessary=0;
   state.removedMismatched=0; state.wronglyRemovedMatched=0;
@@ -824,9 +1068,11 @@ function startGame(){
   state.situationResponses=[];
   state.stageStats = getQuestionCountsForDiff(state.diff).map(()=>({c:0,w:0}));
   state.responses = [];
+  state.questionLogs = [];
+  state.hintCount = 0; state.retryCount = 0;
   state.postGameConditionData = null;
   state.endedByUser = false; state.timeOver = false;
-  state.paused = false;
+  setPaused(false);
   switchScreen("screen-play");
   const diffEl = $("p-diff");
   if(diffEl) diffEl.textContent = DIFF_LABEL[state.diff];
@@ -834,11 +1080,18 @@ function startGame(){
   const qps = getQuestionCountsForDiff(state.diff);
   state.totalQ = qps.reduce((a,b)=>a+b,0);
   // Pause until countdown completes
-  state.paused = true;
+  setPaused(true);
   runCountdown(()=>{
     startGlobalTimer();
-    sendGameEvent("GAME_STARTED", { mode: state.mode, difficulty: state.diff });
-    state.paused = false;
+    sendGameEvent("GAME_STARTED", {
+      session_id: getSessionId(),
+      mode: getAppMode(),
+      game_mode: state.mode,
+      difficulty: state.diff,
+      started_at: state.startedAtIso,
+      config_snapshot: getConfigSnapshot(),
+    });
+    setPaused(false);
     renderQuestion();
   });
 }
@@ -887,7 +1140,20 @@ function renderQuestion(){
   const playEl = document.querySelector("#screen-play .play");
   if(playEl) playEl.dataset.mode = state.mode || "";
   // area-badges removed per UI request
-  state.current = { q, picked:new Set(), removed:new Set(), guessAnswered:false, wrongCount:0, revealed:false, qStart:Date.now() };
+  state.current = {
+    q,
+    picked:new Set(),
+    removed:new Set(),
+    guessAnswered:false,
+    wrongCount:0,
+    revealed:false,
+    qStart:Date.now(),
+    pausedMs:0,
+    pauseStartedAt:null,
+    attempts:[],
+    hintCount:0,
+    logRecorded:false,
+  };
 
   const stageEl = $("p-stage");
   if(stageEl) stageEl.textContent = `단계 ${q.stage}`;
@@ -931,11 +1197,14 @@ function showFeedback(text, kind){
 }
 
 function supportsHintMode(appMode = state.appMode || "standard"){
+  const cfg = state.appConfig || window.GAME_CONFIG || DEFAULT_CONFIG;
+  if(cfg.show_hint === false) return false;
   return appMode === "standard" || appMode === "reminder" || appMode === "care" || appMode === "ai_assisted";
 }
 
 function supportsAutoHintMode(appMode = state.appMode || "standard"){
-  return appMode === "care" || appMode === "ai_assisted";
+  const cfg = state.appConfig || window.GAME_CONFIG || DEFAULT_CONFIG;
+  return cfg.auto_hint_enabled !== false && supportsHintMode(appMode) && (appMode === "care" || appMode === "ai_assisted");
 }
 
 function scheduleAutoHint(){
@@ -1052,7 +1321,9 @@ function openHintModal(trigger = "manual"){
   const modal = $("hint-modal");
   if(!modal) return;
   state.hintWasPaused = state.paused;
-  state.paused = true;
+  state.hintCount++;
+  if(state.current) state.current.hintCount = (state.current.hintCount || 0) + 1;
+  setPaused(true);
   modal.classList.add("active");
   updateHintButton();
   playVoice("hint");
@@ -1073,7 +1344,7 @@ function closeHintModal(keepPaused){
     box.className = "fb-msg";
   }
   if(closedHintPanel) setFeedbackVisible(false);
-  if(wasOpen && !keepPaused && !state.hintWasPaused) state.paused = false;
+  if(wasOpen && !keepPaused && !state.hintWasPaused) setPaused(false);
   state.hintWasPaused = false;
   updateHintButton();
 }
@@ -1087,11 +1358,70 @@ function clearFeedback(){
   el.className = "fb-msg";
 }
 
+function recordChoiceAction(action){
+  const cur = state.current;
+  if(!cur) return;
+  const entry = Object.assign({
+    elapsed_ms: getQuestionElapsedMs(cur),
+    at: new Date().toISOString(),
+  }, action || {});
+  cur.attempts.push(entry);
+  if(entry.correct === false) state.retryCount++;
+}
+
+function answerNames(keys){
+  return (keys || []).map(key => I[key] ? I[key].n : key);
+}
+
+function buildQuestionLog(success, status){
+  const cur = state.current;
+  if(!cur || !cur.q || cur.logRecorded) return null;
+  const q = cur.q;
+  const responseMs = getQuestionElapsedMs(cur);
+  const answerKeys = Array.isArray(q.answers) ? q.answers.slice() : (q.answer ? [q.answer] : []);
+  const selectedKeys = state.mode === "remove_mismatched_items"
+    ? Array.from(cur.removed)
+    : state.mode === "choose_matching_items"
+      ? Array.from(cur.picked)
+      : (cur.guessAnswered ? [q.answer] : []);
+  cur.logRecorded = true;
+  return {
+    question_index: state.qIndex + 1,
+    stage: q.stage || 1,
+    game_mode: q.mode || state.mode,
+    question_type: q.kind || "pack",
+    situation: q.sit || "",
+    item_keys: (q.items || []).map(item => item.k).filter(Boolean),
+    item_names: (q.items || []).map(item => item.n).filter(Boolean),
+    answer_keys: answerKeys,
+    answer_names: answerNames(answerKeys),
+    selected_keys: selectedKeys,
+    selected_names: answerNames(selectedKeys),
+    attempts: (cur.attempts || []).slice(),
+    hint_count: cur.hintCount || 0,
+    retry_count: cur.wrongCount || 0,
+    response_ms: responseMs,
+    response_sec: +(responseMs / 1000).toFixed(2),
+    correct: !!success,
+    status: status || (success ? "correct" : "wrong"),
+  };
+}
+
+function recordQuestionCompletion(success, status){
+  const cur = state.current;
+  if(!cur) return 0;
+  const log = buildQuestionLog(success, status);
+  const responseSec = log ? log.response_sec : +(getQuestionElapsedMs(cur) / 1000).toFixed(2);
+  if(log) state.questionLogs.push(log);
+  state.responses.push(responseSec);
+  return responseSec;
+}
+
 function finishQuestion(success, delay){
   const cur = state.current; const q = cur.q;
   cur.revealed = true;
   clearAutoHint();
-  state.responses.push((Date.now()-cur.qStart)/1000);
+  recordQuestionCompletion(success, success ? "correct" : "wrong");
   if(success){ state.correct++; state.stageStats[q.stage-1].c++; }
   else { state.wrong++; state.stageStats[q.stage-1].w++; }
   updateHintButton();
@@ -1104,7 +1434,7 @@ function revealAndAdvance(){
   clearAutoHint();
   updateHintButton();
   state.wrong++; state.stageStats[q.stage-1].w++;
-  state.responses.push((Date.now()-cur.qStart)/1000);
+  recordQuestionCompletion(false, "revealed");
 
   const modal = $("reveal-modal");
   const content = $("reveal-content");
@@ -1121,7 +1451,7 @@ function revealAndAdvance(){
 function fmtTime(s){ s=Math.max(0,s|0); const m=(s/60)|0, r=s%60; return `${String(m).padStart(2,"0")}:${String(r).padStart(2,"0")}`; }
 function startGlobalTimer(){
   stopTimer();
-  state.timerLeft = GAME_TIME_LIMIT;
+  state.timerLeft = getTimeLimitSec();
   updateTimerDisplay();
   state.timerId = setInterval(()=>{
     if(state.paused) return;
@@ -1149,13 +1479,13 @@ if(_hintModal){
 }
 
 $("btn-pause").addEventListener("click", ()=>{
-  state.paused = true;
+  setPaused(true);
   $("pause-modal").classList.add("active");
   playVoice("pause");
 });
 $("btn-resume").addEventListener("click", ()=>{
   $("pause-modal").classList.remove("active");
-  state.paused = false;
+  setPaused(false);
 });
 $("btn-restart").addEventListener("click", ()=>{
   $("pause-modal").classList.remove("active");
@@ -1230,6 +1560,7 @@ function finishPostGameConditionCheck(skipped){
     data.needed_help = null;
     data.want_replay = null;
   }
+  data.session_id = getSessionId();
   state.postGameConditionData = data;
   sendGameEvent(skipped ? "POST_GAME_CONDITION_SKIPPED" : "POST_GAME_CONDITION_COMPLETED", data);
   resetToStartScreen();
@@ -1266,7 +1597,7 @@ function resetToStartScreen(){
   state.queue = [];
   state.qIndex = 0;
   state.current = null;
-  state.paused = false;
+  setPaused(false);
   state.endedByUser = false;
   state.timeOver = false;
   switchScreen("screen-start");
@@ -1282,11 +1613,12 @@ function recommendNext(){
 
 function returnToHub(){
   const appMode = state.appMode || "standard";
-  sendGameEvent("RETURN_TO_HUB", { app_mode: appMode });
+  if(typeof stopAllAudio === "function") stopAllAudio(true);
+  sendGameEvent("RETURN_TO_HUB", { app_mode: appMode, mode: appMode, session_id: getSessionId() });
   try{
     if(window.ReactNativeWebView){
-      window.ReactNativeWebView.postMessage(JSON.stringify({ type:"RETURN_TO_HUB", app_mode: appMode }));
-      window.ReactNativeWebView.postMessage(JSON.stringify({ type:"RETURN_TO_HYODAM_CALL", app_mode: appMode }));
+      window.ReactNativeWebView.postMessage(JSON.stringify({ type:"RETURN_TO_HUB", app_mode: appMode, mode: appMode, session_id: getSessionId() }));
+      window.ReactNativeWebView.postMessage(JSON.stringify({ type:"RETURN_TO_HYODAM_CALL", app_mode: appMode, mode: appMode, session_id: getSessionId() }));
     }
   }catch(e){ console.warn(e); }
   if(window.HUB_RETURN_URL){
@@ -1303,29 +1635,24 @@ function finishGame(userExit, timeOver){
   $("pause-modal").classList.remove("active");
   $("exit-modal").classList.remove("active");
 
+  const endedAt = new Date();
+  const endedAtIso = endedAt.toISOString();
+  const durationMs = Math.max(0, endedAt.getTime() - (state.startedAt || endedAt.getTime()));
   const answeredQs = state.correct + state.wrong;
-  const duration = Math.round((Date.now()-state.startedAt)/1000);
+  const duration = Math.round(durationMs/1000);
   const avg = state.responses.length ? +(state.responses.reduce((a,b)=>a+b,0)/state.responses.length).toFixed(1) : 0;
   const accuracy = answeredQs ? Math.round(state.correct/answeredQs*100) : 0;
   const nextDiff = recommendNext();
   const avgSit = state.situationResponses.length ? +(state.situationResponses.reduce((a,b)=>a+b,0)/state.situationResponses.length).toFixed(1) : 0;
   const qps = getQuestionCountsForDiff(state.diff);
-
-  const result = {
-    game_mode: state.mode, game_mode_label: MODE_LABEL[state.mode],
-    mode: state.mode, mode_label: MODE_LABEL[state.mode],
-    cognitive_areas: COGNITIVE_AREAS[state.mode],
-    start_difficulty: state.diff, difficulty_label: DIFF_LABEL[state.diff],
-    difficulty_source: state.diffSource,
-    total_stages: qps.length, questions_per_stage: qps, total_questions: (state.totalQ||state.queue.length),
-    answered_questions: answeredQs,
-    correct_count: state.correct, wrong_count: state.wrong, accuracy_percent: accuracy,
-    avg_response_sec: avg, duration_sec: duration,
-    completed: !userExit && !timeOver, ended_by_user: userExit, time_over: timeOver,
-    time_limit_sec: GAME_TIME_LIMIT, remaining_time_sec: Math.max(0, state.timerLeft|0),
-    exit_reason: userExit ? "user_exit" : (timeOver ? "time_over" : "completed"),
-    status: userExit ? "abandoned" : (timeOver ? "time_over" : "completed"),
-    app_mode: state.appMode || "standard",
+  const cfg = getAppConfig();
+  const status = userExit || timeOver ? "abandoned" : "completed";
+  const exitReason = userExit ? "user_exit" : (timeOver ? "time_over" : "completed");
+  if((userExit || timeOver) && state.current && !state.current.revealed && !state.current.logRecorded){
+    const partialLog = buildQuestionLog(false, timeOver ? "time_over" : "abandoned");
+    if(partialLog) state.questionLogs.push(partialLog);
+  }
+  const resultDetail = {
     selected_required_items: state.selectedRequired,
     selected_unnecessary_items: state.selectedUnnecessary,
     removed_mismatched_items: state.removedMismatched,
@@ -1337,7 +1664,64 @@ function finishGame(userExit, timeOver){
     recommended_next_difficulty_label: DIFF_LABEL[nextDiff],
     stage_results: state.stageStats.map((s,i)=>({stage:i+1, total_questions:qps[i]||0, correct_count:s.c, wrong_count:s.w})),
     condition_data: state.conditionData || null,
+    post_game_condition_data: state.postGameConditionData || null,
     score_screen_enabled: shouldShowScoreScreen(),
+  };
+
+  const result = {
+    game_mode: state.mode, game_mode_label: MODE_LABEL[state.mode],
+    mission_mode: state.mode,
+    mode: getAppMode(),
+    app_mode: getAppMode(),
+    cognitive_areas: COGNITIVE_AREAS[state.mode],
+    session_id: getSessionId(),
+    content_id: cfg.content_id || null,
+    game_key: cfg.game_key || window.GAME_KEY || "what_fits_where",
+    game_version: cfg.game_version || window.GAME_VERSION || "1.0.0",
+    senior_id: cfg.senior_id || null,
+    guardian_id: cfg.guardian_id || null,
+    assignment_id: cfg.assignment_id || null,
+    alarm_id: cfg.alarm_id || null,
+    play_source: cfg.play_source || (getAppMode() === "standard" ? "manual" : getAppMode()),
+    difficulty: state.diff,
+    start_difficulty: state.diff, difficulty_label: DIFF_LABEL[state.diff],
+    difficulty_source: state.diffSource,
+    config_snapshot: getConfigSnapshot(),
+    total_stages: qps.length, questions_per_stage: qps, total_questions: (state.totalQ||state.queue.length),
+    answered_questions: answeredQs,
+    correct_count: state.correct, wrong_count: state.wrong, accuracy_percent: accuracy,
+    hint_count: state.hintCount,
+    retry_count: state.retryCount,
+    avg_response_sec: avg,
+    started_at: state.startedAtIso,
+    ended_at: endedAtIso,
+    duration_ms: durationMs,
+    duration_sec: duration,
+    completed: !userExit && !timeOver, ended_by_user: userExit, time_over: timeOver,
+    time_limit_sec: getTimeLimitSec(), remaining_time_sec: Math.max(0, state.timerLeft|0),
+    exit_reason: exitReason,
+    status,
+    legacy_status: timeOver ? "time_over" : status,
+    question_logs: state.questionLogs.slice(),
+    voice_context: {
+      voice_id: cfg.voice_id || null,
+      voice_owner_type: cfg.voice_owner_type || "system",
+      voice_owner_id: cfg.voice_owner_id || null,
+    },
+    result_detail_json: resultDetail,
+    selected_required_items: resultDetail.selected_required_items,
+    selected_unnecessary_items: resultDetail.selected_unnecessary_items,
+    removed_mismatched_items: resultDetail.removed_mismatched_items,
+    wrongly_removed_matched_items: resultDetail.wrongly_removed_matched_items,
+    guessed_situations_count: resultDetail.guessed_situations_count,
+    wrong_situation_choices: resultDetail.wrong_situation_choices,
+    average_situation_response_time_sec: resultDetail.average_situation_response_time_sec,
+    recommended_next_difficulty: resultDetail.recommended_next_difficulty,
+    recommended_next_difficulty_label: resultDetail.recommended_next_difficulty_label,
+    stage_results: resultDetail.stage_results,
+    condition_data: resultDetail.condition_data,
+    post_game_condition_data: resultDetail.post_game_condition_data,
+    score_screen_enabled: resultDetail.score_screen_enabled,
   };
   state.lastResult = result;
 
@@ -1371,11 +1755,9 @@ function finishGame(userExit, timeOver){
   }
   switchScreen("screen-result");
 
-  try{
-    if(window.ReactNativeWebView){ window.ReactNativeWebView.postMessage(JSON.stringify(result)); }
-    else { console.log("GAME_RESULT", result); }
-  }catch(e){ console.warn(e); }
-  sendGameEvent("GAME_COMPLETED", result);
+  const resultEventType = status === "completed" ? "GAME_COMPLETED" : "GAME_ABANDONED";
+  if(!window.ReactNativeWebView) console.log("GAME_RESULT", result);
+  sendGameEvent(resultEventType, result);
   if((state.appConfig || {}).auto_return_to_hub){
     window.setTimeout(()=>{ returnToHub(); }, 1200);
   }

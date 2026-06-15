@@ -1,35 +1,143 @@
 "use strict";
 (function () {
+  const GAME_KEY = "what_fits_where";
+  const GAME_VERSION = "1.0.0";
   const allowedModes = { standard: true, reminder: true, care: true, ai_assisted: true };
   const params = new URLSearchParams(window.location.search || "");
-  let mode = params.get("mode") || "standard";
-  if (mode === "ai-assisted") mode = "ai_assisted";
-  if (!allowedModes[mode]) mode = "standard";
-  window.GAME_MODE = window.GAME_MODE || mode;
+  const difficultyMap = { low: "easy", middle: "normal", high: "hard" };
+  const allowedDifficulties = { easy: true, normal: true, hard: true };
+
+  function normalizeMode(value) {
+    let mode = (value || "standard").trim();
+    if (mode === "ai-assisted") mode = "ai_assisted";
+    return allowedModes[mode] ? mode : "standard";
+  }
+
+  function normalizeDifficulty(value) {
+    const raw = (value || "").trim();
+    const mapped = difficultyMap[raw] || raw;
+    return allowedDifficulties[mapped] ? mapped : null;
+  }
+
+  function parseConfigParam(value) {
+    if (!value) return {};
+    try {
+      const parsed = JSON.parse(value);
+      return parsed && typeof parsed === "object" ? parsed : {};
+    } catch (error) {
+      console.warn("Invalid game config parameter", error);
+      return {};
+    }
+  }
+
+  function readQueryConfig() {
+    const config = Object.assign({},
+      parseConfigParam(params.get("config")),
+      parseConfigParam(params.get("gameConfig")),
+      parseConfigParam(params.get("appConfig")),
+    );
+
+    [
+      "session_id", "content_id", "senior_id", "guardian_id",
+      "assignment_id", "alarm_id", "play_source", "voice_id",
+      "voice_owner_type", "voice_owner_id",
+    ].forEach(key => {
+      if (params.has(key)) config[key] = params.get(key);
+    });
+
+    ["show_condition_check", "show_settings", "show_how_to_play", "show_timer", "show_score",
+      "show_difficulty_select", "show_pause", "show_hint", "show_question_counter",
+      "background_music_enabled", "sound_effect_enabled", "voice_guide_enabled",
+      "auto_start", "auto_return_to_hub"].forEach(key => {
+      if (!params.has(key)) return;
+      const value = params.get(key);
+      config[key] = value === "true" || value === "1" || value === "yes";
+    });
+
+    ["question_count", "time_limit_sec"].forEach(key => {
+      if (!params.has(key)) return;
+      const value = Number(params.get(key));
+      if (Number.isFinite(value) && value > 0) config[key] = Math.floor(value);
+    });
+
+    const diff = normalizeDifficulty(params.get("difficulty") || params.get("userDifficultyGroup"));
+    if (diff) config.default_difficulty = diff;
+
+    return config;
+  }
+
+  function normalizeConfig(config) {
+    const normalized = Object.assign({}, config);
+    ["show_condition_check", "show_settings", "show_how_to_play", "show_timer", "show_score",
+      "show_difficulty_select", "show_pause", "show_hint", "show_question_counter",
+      "background_music_enabled", "sound_effect_enabled", "voice_guide_enabled",
+      "auto_start", "auto_return_to_hub"].forEach(key => {
+      if (typeof normalized[key] === "string") {
+        normalized[key] = normalized[key] === "true" || normalized[key] === "1" || normalized[key] === "yes";
+      }
+    });
+
+    const diff = normalizeDifficulty(normalized.default_difficulty || normalized.difficulty);
+    if (diff) normalized.default_difficulty = diff;
+
+    const questionCount = Number(normalized.question_count);
+    if (Number.isFinite(questionCount) && questionCount > 0) {
+      const count = Math.floor(questionCount);
+      normalized.question_count = count;
+      normalized.question_counts_by_diff = {
+        easy: [count],
+        normal: [count],
+        hard: [count],
+      };
+    }
+
+    const timeLimit = Number(normalized.time_limit_sec);
+    if (Number.isFinite(timeLimit) && timeLimit > 0) {
+      normalized.time_limit_sec = Math.floor(timeLimit);
+    }
+
+    return normalized;
+  }
+
+  const requestedMode = normalizeMode(params.get("mode"));
+  const mode = normalizeMode(window.GAME_MODE || requestedMode);
+  window.GAME_KEY = window.GAME_KEY || GAME_KEY;
+  window.GAME_VERSION = window.GAME_VERSION || GAME_VERSION;
+  window.GAME_MODE = mode;
   window.HUB_RETURN_URL = window.HUB_RETURN_URL || params.get("returnUrl") || "../../index.html";
 
-  const difficulty = params.get("difficulty") || params.get("userDifficultyGroup");
+  const difficulty = normalizeDifficulty(params.get("difficulty") || params.get("userDifficultyGroup"));
   if (difficulty) {
     window.USER_DIFFICULTY_GROUP = difficulty;
   }
 
   const modeConfigs = {
-    standard: {},
+    standard: {
+      play_source: "manual",
+    },
     reminder: {
       show_condition_check: false,
       show_settings: false,
-      show_how_to_play: true,
+      show_how_to_play: false,
+      show_difficulty_select: false,
+      show_score: false,
       background_music_enabled: true,
       voice_guide_enabled: true,
       soft_feedback: true,
       default_difficulty: "easy",
       auto_start: true,
       auto_return_to_hub: true,
+      play_source: "reminder",
     },
     care: {
       show_condition_check: false,
-      show_settings: true,
-      show_how_to_play: true,
+      show_settings: false,
+      show_how_to_play: false,
+      show_timer: false,
+      show_score: false,
+      show_difficulty_select: false,
+      show_pause: false,
+      show_question_counter: false,
       background_music_enabled: true,
       voice_guide_enabled: true,
       soft_feedback: true,
@@ -40,11 +148,16 @@
         hard: [5],
       },
       auto_return_to_hub: true,
+      play_source: "care_session",
     },
     ai_assisted: {
       show_condition_check: false,
-      show_settings: true,
-      show_how_to_play: true,
+      show_settings: false,
+      show_how_to_play: false,
+      show_timer: false,
+      show_score: false,
+      show_difficulty_select: false,
+      show_pause: false,
       background_music_enabled: true,
       voice_guide_enabled: true,
       soft_feedback: true,
@@ -55,19 +168,28 @@
         hard: [5],
       },
       auto_return_to_hub: true,
+      play_source: "ai_recommendation",
     },
   };
-  window.GAME_CONFIG = Object.assign({}, modeConfigs[mode], window.GAME_CONFIG || {});
+  window.GAME_MODE_CONFIGS = modeConfigs;
+  const queryConfig = readQueryConfig();
+  window.GAME_CONFIG = normalizeConfig(Object.assign({
+    game_key: window.GAME_KEY,
+    game_version: window.GAME_VERSION,
+    mode,
+  }, modeConfigs[mode], queryConfig, window.GAME_CONFIG || {}));
 })();
 
 /* ===== APP MODE CONFIG ===== */
 
 const DEFAULT_CONFIG = {
   show_settings:true, show_how_to_play:true, show_timer:true, show_score:true,
-  show_difficulty_select:true,
+  show_difficulty_select:true, show_pause:true, show_hint:true, show_question_counter:true,
   background_music_enabled:true, sound_effect_enabled:true, voice_guide_enabled:true,
   soft_feedback:false,
   show_condition_check:true, default_mood:null, default_sleep_hours:null,
+  auto_start:false, auto_return_to_hub:false, play_source:"manual",
+  time_limit_sec:180, game_key:window.GAME_KEY || "what_fits_where", game_version:window.GAME_VERSION || "1.0.0",
 };
 
 /* ===== GAME FLOW CONFIG ===== */
@@ -99,9 +221,9 @@ const MODE_LABEL = {
   guess_situation:"상황 맞추기",
 };
 const COGNITIVE_AREAS = {
-  choose_matching_items: ["주의력","의미기억","범주화","실행 기능"],
-  remove_mismatched_items: ["주의력","범주화","억제력","판단력"],
-  guess_situation: ["추론력","의미기억","범주화","상황 인식"],
+  choose_matching_items: ["언어·의미 활동","집중 활동","손 조작 활동"],
+  remove_mismatched_items: ["집중 활동","언어·의미 활동","손 조작 활동"],
+  guess_situation: ["언어·의미 활동","기억 활동","집중 활동"],
 };
 const SIT_CHOICES = {easy:3, normal:4, hard:6};
 const PRAISE_PICK = ["잘 고르셨어요.","좋아요. 필요한 물건이에요.","맞아요. 잘 챙겼어요."];
@@ -134,5 +256,5 @@ const SLEEP_STEPS = [
 const HELP_PAGES = [
   { t:"오늘의 준비물은 어떤 게임인가요?", b:"상황을 보고 알맞은 물건을 고르는 인지활동 게임입니다.\n천천히 보고 필요한 물건을 골라 주세요." },
   { t:"알맞은 물건 고르기", b:"상황을 보고 필요한 물건을 골라 주세요.\n\n예시) \"비 오는 날 외출해요.\"\n→ 우산을 고르면 좋아요." },
-  { t:"천천히 해도 괜찮아요", b:"잘 모르겠으면 힌트를 눌러도 괜찮아요.\n틀려도 괜찮습니다.\n천천히 다시 보면 됩니다." },
+  { t:"천천히 해도 괜찮아요", b:"잘 모르겠으면 힌트를 눌러도 괜찮아요.\n다시 봐도 괜찮습니다.\n천천히 살펴보면 됩니다." },
 ];

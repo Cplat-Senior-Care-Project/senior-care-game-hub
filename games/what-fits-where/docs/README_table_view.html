@@ -1,0 +1,409 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>오늘의 준비물 README / 실행 가이드</title>
+  <style>
+    body {
+      margin: 32px auto;
+      max-width: 1120px;
+      padding: 0 28px 48px;
+      color: #1f2933;
+      font-family: "Malgun Gothic", "Apple SD Gothic Neo", Arial, sans-serif;
+      line-height: 1.65;
+      background: #ffffff;
+    }
+    h1 {
+      margin: 0 0 8px;
+      color: #173b62;
+      font-size: 28px;
+      line-height: 1.3;
+    }
+    h2 {
+      margin: 34px 0 12px;
+      color: #245f96;
+      font-size: 21px;
+      border-bottom: 2px solid #d9e5f2;
+      padding-bottom: 6px;
+    }
+    h3 {
+      margin: 22px 0 10px;
+      color: #245f96;
+      font-size: 17px;
+    }
+    p {
+      margin: 7px 0 12px;
+      font-size: 15px;
+    }
+    .note {
+      margin: 12px 0 18px;
+      padding: 12px 14px;
+      border: 1px solid #d9e5f2;
+      background: #f6f9fc;
+      border-radius: 6px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 10px 0 22px;
+      table-layout: fixed;
+      font-size: 14px;
+    }
+    th,
+    td {
+      border: 1px solid #b9c8d8;
+      padding: 8px 10px;
+      vertical-align: middle;
+      word-break: keep-all;
+      overflow-wrap: anywhere;
+    }
+    th {
+      background: #e8eef5;
+      color: #172b4d;
+      font-weight: 700;
+      text-align: center;
+    }
+    td:first-child {
+      background: #f7f9fc;
+      font-weight: 600;
+    }
+    .wide td:first-child {
+      width: 24%;
+    }
+    .small {
+      font-size: 13px;
+      color: #52616f;
+    }
+    code {
+      font-family: Consolas, "Malgun Gothic", monospace;
+      background: #f2f4f7;
+      padding: 1px 4px;
+      border-radius: 4px;
+    }
+  </style>
+</head>
+<body>
+  <h1>오늘의 준비물 README / 실행 가이드</h1>
+  <p class="small">작성 기준: what-fits-where 폴더의 실제 실행 구조와 index.html, config/modes.js, js/game.js, modes/registry.js에서 확인되는 게임 흐름을 기준으로 정리했습니다.</p>
+
+  <h2>1. 개요</h2>
+  <p>오늘의 준비물은 WebView 기반 일상생활 판단 활동 게임입니다. 사용자는 병원 방문, 장보기, 비 오는 날 외출처럼 익숙한 상황 문장을 보고, 그 상황에 필요한 물건을 고릅니다.</p>
+  <p>현재 기본 미션은 알맞은 물건 고르기입니다. 게임 엔진에는 아래 세 가지 미션 타입이 등록되어 있습니다.</p>
+  <table>
+    <thead>
+      <tr><th>미션 타입</th><th>화면 표시명</th><th>설명</th><th>현재 사용 상태</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>choose_matching_items</td><td>알맞은 물건 고르기</td><td>상황에 맞는 필요한 물건을 고릅니다.</td><td>현재 기본 사용</td></tr>
+      <tr><td>remove_mismatched_items</td><td>어울리지 않는 물건 고르기</td><td>상황에 어울리지 않는 물건을 고릅니다.</td><td>엔진 등록</td></tr>
+      <tr><td>guess_situation</td><td>상황 맞추기</td><td>제시된 물건들을 보고 알맞은 상황을 고릅니다.</td><td>엔진 등록</td></tr>
+    </tbody>
+  </table>
+  <div class="note">문제 데이터는 docs/situation-templates-draft.json을 우선 불러오고, 로드에 실패하면 js/situation-templates.js의 내장 데이터와 js/questions.js의 기본 문제 풀이 fallback으로 사용됩니다.</div>
+
+  <h2>2. 지원 모드</h2>
+  <table>
+    <thead>
+      <tr><th>앱 모드</th><th>용도</th><th>주요 동작</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>standard</td><td>기본 실행 모드</td><td>컨디션 체크, 난이도 선택, 설정, 게임 방법, 점수 화면, 게임 후 상태 체크를 제공합니다.</td></tr>
+      <tr><td>reminder</td><td>알림 진입 모드</td><td>기본 난이도로 자동 시작하고, 완료 후 효담콜로 자동 복귀합니다.</td></tr>
+      <tr><td>care</td><td>케어 모드</td><td>기본 쉬움 난이도와 짧은 문항 수로 실행하며, 자동 힌트와 자동 복귀를 사용합니다.</td></tr>
+      <tr><td>ai_assisted</td><td>AI 연동 진입용 모드</td><td>현재 게임 내부에서 STT나 AI 판정은 직접 수행하지 않으며, care와 유사한 UI/진행 설정을 사용합니다.</td></tr>
+    </tbody>
+  </table>
+
+  <h2>3. 폴더 구조</h2>
+  <table class="wide">
+    <thead>
+      <tr><th>경로</th><th>역할</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>index.html</td><td>화면 구조와 스크립트 로딩 순서</td></tr>
+      <tr><td>assets/</td><td>로고, 배경, 물건 이미지, UI 이미지, 사운드 파일</td></tr>
+      <tr><td>config/modes.js</td><td>앱 모드, 기본 난이도, UI 표시 여부, 자동 시작/복귀 설정</td></tr>
+      <tr><td>css/styles.css</td><td>전체 UI 스타일</td></tr>
+      <tr><td>js/game.js</td><td>게임 진행, 타이머, 힌트, 결과 payload, WebView 이벤트 전송</td></tr>
+      <tr><td>js/items.js</td><td>물건 이름, 이미지 경로, 힌트 문구</td></tr>
+      <tr><td>js/questions.js</td><td>기본 문제 풀</td></tr>
+      <tr><td>js/situation-templates.js</td><td>JSON 로드 실패 시 사용하는 내장 상황 템플릿</td></tr>
+      <tr><td>docs/situation-templates-draft.json</td><td>우선 적용되는 상황 템플릿 데이터</td></tr>
+      <tr><td>modes/registry.js</td><td>미션 타입별 문제 렌더링과 정답 처리</td></tr>
+      <tr><td>tools/server.js</td><td>로컬 정적 서버</td></tr>
+    </tbody>
+  </table>
+
+  <h2>4. 실행 방법</h2>
+  <table>
+    <thead>
+      <tr><th>실행 방식</th><th>명령</th><th>접속 주소</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Node 정적 서버</td><td>node tools/server.js</td><td>http://127.0.0.1:8080/</td></tr>
+      <tr><td>Node 정적 서버, 포트 변경</td><td>PowerShell에서 $env:PORT=8090 입력 후 node tools/server.js 실행</td><td>http://127.0.0.1:8090/</td></tr>
+      <tr><td>Python 서버, 게임 폴더에서 실행</td><td>py -m http.server 8000</td><td>http://127.0.0.1:8000/</td></tr>
+      <tr><td>Python 서버, senior-care-game-hub 루트에서 실행</td><td>py -m http.server 8000</td><td>http://127.0.0.1:8000/games/what-fits-where/</td></tr>
+    </tbody>
+  </table>
+  <div class="note">file:// 방식으로 index.html을 직접 열면 브라우저 보안 정책 때문에 docs/situation-templates-draft.json 파일을 불러오지 못할 수 있습니다. 개발 확인과 WebView 검증은 정적 서버 실행을 권장합니다.</div>
+
+  <h2>5. 모드별 실행 URL</h2>
+  <table>
+    <thead>
+      <tr><th>모드</th><th>URL 예시</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>standard</td><td>http://127.0.0.1:8080/?mode=standard</td></tr>
+      <tr><td>reminder</td><td>http://127.0.0.1:8080/?mode=reminder</td></tr>
+      <tr><td>care</td><td>http://127.0.0.1:8080/?mode=care</td></tr>
+      <tr><td>ai_assisted</td><td>http://127.0.0.1:8080/?mode=ai_assisted</td></tr>
+      <tr><td>ai-assisted</td><td>http://127.0.0.1:8080/?mode=ai-assisted</td></tr>
+    </tbody>
+  </table>
+
+  <h2>6. 난이도 전달 방식</h2>
+  <table>
+    <thead>
+      <tr><th>목적</th><th>URL 예시</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>표준 모드에서 낮은 난이도 그룹 적용</td><td>http://127.0.0.1:8080/?mode=standard&amp;userDifficultyGroup=low</td></tr>
+      <tr><td>케어 모드에서 낮은 난이도 그룹 적용</td><td>http://127.0.0.1:8080/?mode=care&amp;userDifficultyGroup=low</td></tr>
+    </tbody>
+  </table>
+  <table>
+    <thead>
+      <tr><th>userDifficultyGroup</th><th>적용 난이도</th><th>화면 표시</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>low</td><td>easy</td><td>쉬움</td></tr>
+      <tr><td>middle</td><td>normal</td><td>보통</td></tr>
+      <tr><td>high</td><td>hard</td><td>어려움</td></tr>
+    </tbody>
+  </table>
+  <div class="note">config/modes.js는 difficulty query parameter도 읽어 window.USER_DIFFICULTY_GROUP에 넣지만, 현재 매핑 함수는 low, middle, high만 실제 난이도로 적용합니다. easy, normal, hard를 직접 고정하려면 window.GAME_CONFIG.default_difficulty를 주입하거나 매핑 코드를 확장해야 합니다.</div>
+
+  <h2>7. 효담콜 복귀 주소</h2>
+  <table>
+    <thead>
+      <tr><th>항목</th><th>내용</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>전달 값</td><td>returnUrl</td></tr>
+      <tr><td>예시</td><td>http://127.0.0.1:8080/?mode=care&amp;returnUrl=../../index.html</td></tr>
+      <tr><td>동작</td><td>게임 완료 후 자동 복귀가 켜져 있으면 결과 화면이 잠시 표시된 뒤 해당 주소로 이동합니다.</td></tr>
+    </tbody>
+  </table>
+
+  <h2>8. Config 수정 방법</h2>
+  <p>기본 config는 config/modes.js 파일에서 수정합니다. 모드별 기본값은 modeConfigs에 정의되어 있고, 공통 기본값은 DEFAULT_CONFIG에 정의되어 있습니다.</p>
+  <table>
+    <thead>
+      <tr><th>항목</th><th>예시 값</th><th>설명</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>window.GAME_MODE</td><td>care</td><td>실행할 앱 모드</td></tr>
+      <tr><td>window.HUB_RETURN_URL</td><td>../../index.html</td><td>효담콜 복귀 주소</td></tr>
+      <tr><td>window.USER_DIFFICULTY_GROUP</td><td>low</td><td>사용자 난이도 그룹</td></tr>
+      <tr><td>window.GAME_CONFIG</td><td>별도 객체</td><td>화면 표시 여부, 기본 난이도, 자동 시작/복귀 등을 담는 설정 객체</td></tr>
+    </tbody>
+  </table>
+  <div class="note">현재 구현은 window.GAME_CONFIG를 사용합니다. 전구 게임 예시의 window.__GAME_CONFIG__ 또는 runtimeConfig 형태를 그대로 읽는 코드는 아직 없습니다. 호스트 앱이 __GAME_CONFIG__를 사용한다면 게임 로드 전에 window.GAME_CONFIG 형태로 변환해 주입해야 합니다.</div>
+
+  <h2>9. Config 예시</h2>
+  <h3>케어 모드 설정 예시</h3>
+  <table>
+    <thead><tr><th>항목</th><th>값</th></tr></thead>
+    <tbody>
+      <tr><td>GAME_MODE</td><td>care</td></tr>
+      <tr><td>HUB_RETURN_URL</td><td>../../index.html</td></tr>
+      <tr><td>show_condition_check</td><td>false</td></tr>
+      <tr><td>show_settings</td><td>true</td></tr>
+      <tr><td>show_how_to_play</td><td>true</td></tr>
+      <tr><td>show_timer</td><td>true</td></tr>
+      <tr><td>show_score</td><td>false</td></tr>
+      <tr><td>show_difficulty_select</td><td>false</td></tr>
+      <tr><td>background_music_enabled</td><td>true</td></tr>
+      <tr><td>sound_effect_enabled</td><td>true</td></tr>
+      <tr><td>voice_guide_enabled</td><td>true</td></tr>
+      <tr><td>soft_feedback</td><td>true</td></tr>
+      <tr><td>default_difficulty</td><td>easy</td></tr>
+      <tr><td>easy 문항 수</td><td>5</td></tr>
+      <tr><td>normal 문항 수</td><td>5</td></tr>
+      <tr><td>hard 문항 수</td><td>5</td></tr>
+      <tr><td>auto_start</td><td>true</td></tr>
+      <tr><td>auto_return_to_hub</td><td>true</td></tr>
+    </tbody>
+  </table>
+
+  <h3>표준 모드 컨디션 체크 기본값 예시</h3>
+  <table>
+    <thead><tr><th>항목</th><th>값</th></tr></thead>
+    <tbody>
+      <tr><td>GAME_MODE</td><td>standard</td></tr>
+      <tr><td>show_condition_check</td><td>true</td></tr>
+      <tr><td>default_mood</td><td>normal</td></tr>
+      <tr><td>default_sleep_hours</td><td>8</td></tr>
+      <tr><td>show_score</td><td>true</td></tr>
+      <tr><td>show_difficulty_select</td><td>true</td></tr>
+    </tbody>
+  </table>
+
+  <h2>10. 주요 Config 항목</h2>
+  <table class="wide">
+    <thead><tr><th>항목</th><th>설명</th></tr></thead>
+    <tbody>
+      <tr><td>show_settings</td><td>시작 화면의 설정 버튼 표시 여부</td></tr>
+      <tr><td>show_how_to_play</td><td>게임 방법 버튼 표시 여부</td></tr>
+      <tr><td>show_timer</td><td>플레이 화면 타이머 표시 여부</td></tr>
+      <tr><td>show_score</td><td>표준 모드 결과 후 점수 화면 표시 여부</td></tr>
+      <tr><td>show_difficulty_select</td><td>난이도 선택 화면 사용 여부</td></tr>
+      <tr><td>show_condition_check</td><td>게임 전 컨디션 체크 사용 여부</td></tr>
+      <tr><td>default_mood</td><td>컨디션 체크 기본 기분값</td></tr>
+      <tr><td>default_sleep_hours</td><td>컨디션 체크 기본 수면시간</td></tr>
+      <tr><td>background_music_enabled</td><td>배경음 기본 활성화 여부</td></tr>
+      <tr><td>sound_effect_enabled</td><td>효과음 기본 활성화 여부</td></tr>
+      <tr><td>voice_guide_enabled</td><td>안내 음성 기본 활성화 여부</td></tr>
+      <tr><td>soft_feedback</td><td>부드러운 피드백 문구 사용 여부</td></tr>
+      <tr><td>default_difficulty</td><td>기본 난이도</td></tr>
+      <tr><td>question_counts_by_diff</td><td>난이도별 문항 수 배열</td></tr>
+      <tr><td>auto_start</td><td>시작 화면 진입 후 자동 게임 시작 여부</td></tr>
+      <tr><td>auto_return_to_hub</td><td>결과 화면 표시 후 효담콜 자동 복귀 여부</td></tr>
+    </tbody>
+  </table>
+  <table>
+    <thead><tr><th>항목</th><th>현재 값</th></tr></thead>
+    <tbody>
+      <tr><td>GAME_TIME_LIMIT</td><td>180초</td></tr>
+      <tr><td>AUTO_HINT_DELAY_MS</td><td>20,000ms, 즉 20초</td></tr>
+    </tbody>
+  </table>
+
+  <h2>11. 모드별 기본값 요약</h2>
+  <table>
+    <thead><tr><th>모드</th><th>컨디션 체크</th><th>설정 버튼</th><th>난이도</th><th>문항 수</th><th>힌트</th><th>완료 후 동작</th></tr></thead>
+    <tbody>
+      <tr><td>standard</td><td>사용</td><td>표시</td><td>사용자 선택</td><td>기본 10문항</td><td>수동 힌트</td><td>점수/상태 체크 후 시작 화면</td></tr>
+      <tr><td>reminder</td><td>숨김</td><td>숨김</td><td>기본 easy</td><td>기본 10문항</td><td>수동 힌트</td><td>효담콜 자동 복귀</td></tr>
+      <tr><td>care</td><td>숨김</td><td>표시</td><td>기본 easy</td><td>난이도별 5문항</td><td>수동 힌트 + 20초 자동 힌트</td><td>효담콜 자동 복귀</td></tr>
+      <tr><td>ai_assisted</td><td>숨김</td><td>표시</td><td>기본 easy</td><td>난이도별 5문항</td><td>수동 힌트 + 20초 자동 힌트</td><td>효담콜 자동 복귀</td></tr>
+    </tbody>
+  </table>
+
+  <h2>12. 앱 / WebView 연동 구조</h2>
+  <p>게임은 주요 진행 상태를 호스트 앱에 이벤트로 전달합니다. React Native WebView 환경에서는 window.ReactNativeWebView.postMessage를 우선 사용합니다. 로컬 브라우저처럼 브리지가 없는 환경에서는 콘솔에 Game Event 형태로 출력됩니다.</p>
+  <table>
+    <thead><tr><th>이벤트 타입</th><th>발생 시점</th><th>전달 내용</th></tr></thead>
+    <tbody>
+      <tr><td>GAME_READY</td><td>로딩 완료</td><td>기본 이벤트 정보</td></tr>
+      <tr><td>GAME_STARTED</td><td>게임 시작</td><td>미션 모드, 난이도</td></tr>
+      <tr><td>HINT_OPENED</td><td>수동 또는 자동 힌트 열림</td><td>미션 모드, 문항 번호, 힌트 트리거</td></tr>
+      <tr><td>GAME_RESTARTED</td><td>일시정지 메뉴에서 다시하기 선택</td><td>미션 모드, 난이도</td></tr>
+      <tr><td>GAME_ERROR</td><td>게임 로드 또는 실행 오류</td><td>오류 메시지</td></tr>
+      <tr><td>GAME_COMPLETED</td><td>완료, 시간 종료, 사용자 중단</td><td>전체 결과 payload</td></tr>
+      <tr><td>POST_GAME_CONDITION_COMPLETED</td><td>게임 후 상태 체크 완료</td><td>게임 후 상태 체크 응답</td></tr>
+      <tr><td>POST_GAME_CONDITION_SKIPPED</td><td>게임 후 상태 체크 건너뛰기</td><td>건너뛰기 여부</td></tr>
+      <tr><td>RETURN_TO_HUB</td><td>효담콜 복귀 요청</td><td>앱 모드</td></tr>
+    </tbody>
+  </table>
+  <div class="note">현재 구현에서는 사용자 중단도 별도 GAME_ABANDONED 이벤트가 아니라 GAME_COMPLETED 이벤트 안에서 status 값을 abandoned로 전달합니다.</div>
+
+  <h2>13. 결과 payload 주요 항목</h2>
+  <p>정상 완료, 사용자 중단, 시간 종료 모두 GAME_COMPLETED 이벤트로 전달됩니다.</p>
+  <table>
+    <thead><tr><th>항목</th><th>설명</th><th>예시</th></tr></thead>
+    <tbody>
+      <tr><td>game_mode</td><td>실행된 미션 모드</td><td>choose_matching_items</td></tr>
+      <tr><td>game_mode_label</td><td>미션 모드 표시명</td><td>알맞은 물건 고르기</td></tr>
+      <tr><td>cognitive_areas</td><td>관련 인지 영역</td><td>주의력, 의미기억, 범주화, 실행 기능</td></tr>
+      <tr><td>start_difficulty</td><td>시작 난이도</td><td>easy</td></tr>
+      <tr><td>difficulty_label</td><td>난이도 표시명</td><td>쉬움</td></tr>
+      <tr><td>difficulty_source</td><td>난이도 결정 방식</td><td>user_selected, profile_based, care_default 등</td></tr>
+      <tr><td>total_questions</td><td>전체 문항 수</td><td>10</td></tr>
+      <tr><td>answered_questions</td><td>응답한 문항 수</td><td>10</td></tr>
+      <tr><td>correct_count</td><td>정답 문항 수</td><td>8</td></tr>
+      <tr><td>wrong_count</td><td>오답 문항 수</td><td>2</td></tr>
+      <tr><td>accuracy_percent</td><td>정답률</td><td>80</td></tr>
+      <tr><td>avg_response_sec</td><td>평균 응답 시간</td><td>3.4</td></tr>
+      <tr><td>duration_sec</td><td>총 진행 시간</td><td>78</td></tr>
+      <tr><td>completed</td><td>정상 완료 여부</td><td>true 또는 false</td></tr>
+      <tr><td>ended_by_user</td><td>사용자 중단 여부</td><td>true 또는 false</td></tr>
+      <tr><td>time_over</td><td>시간 종료 여부</td><td>true 또는 false</td></tr>
+      <tr><td>exit_reason</td><td>종료 사유</td><td>completed, user_exit, time_over</td></tr>
+      <tr><td>status</td><td>상태</td><td>completed, abandoned, time_over</td></tr>
+      <tr><td>app_mode</td><td>앱 모드</td><td>standard, reminder, care, ai_assisted</td></tr>
+      <tr><td>recommended_next_difficulty</td><td>추천 다음 난이도</td><td>normal</td></tr>
+      <tr><td>condition_data</td><td>게임 전 컨디션 정보</td><td>기분, 수면시간 등</td></tr>
+      <tr><td>score_screen_enabled</td><td>점수 화면 사용 여부</td><td>true 또는 false</td></tr>
+    </tbody>
+  </table>
+  <table>
+    <thead><tr><th>상태</th><th>status</th><th>completed</th><th>ended_by_user</th><th>time_over</th><th>exit_reason</th></tr></thead>
+    <tbody>
+      <tr><td>정상 완료</td><td>completed</td><td>true</td><td>false</td><td>false</td><td>completed</td></tr>
+      <tr><td>사용자 중단</td><td>abandoned</td><td>false</td><td>true</td><td>false</td><td>user_exit</td></tr>
+      <tr><td>시간 종료</td><td>time_over</td><td>false</td><td>false</td><td>true</td><td>time_over</td></tr>
+    </tbody>
+  </table>
+
+  <h2>14. AI 연동 모드</h2>
+  <table>
+    <thead><tr><th>항목</th><th>현재 동작</th></tr></thead>
+    <tbody>
+      <tr><td>컨디션 체크</td><td>숨김</td></tr>
+      <tr><td>기본 난이도</td><td>easy</td></tr>
+      <tr><td>문항 수</td><td>난이도별 5문항</td></tr>
+      <tr><td>힌트 버튼</td><td>사용</td></tr>
+      <tr><td>자동 힌트</td><td>20초 후 열림</td></tr>
+      <tr><td>완료 후 동작</td><td>효담콜 자동 복귀</td></tr>
+    </tbody>
+  </table>
+  <div class="note">현재 게임 내부에는 마이크 권한 요청, STT 처리, AI 판정, 외부 답변 적용 이벤트 리스너가 구현되어 있지 않습니다. 따라서 AI가 음성 인식 결과를 선택값으로 변환하더라도, 현재 코드 기준으로는 게임에 자동 반영되지 않습니다.</div>
+  <table>
+    <thead><tr><th>단계</th><th>담당</th><th>구현 내용</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td>호스트 앱 또는 AI 레이어</td><td>음성을 인식합니다.</td></tr>
+      <tr><td>2</td><td>호스트 앱 또는 AI 레이어</td><td>인식 결과를 물건 선택값으로 변환합니다.</td></tr>
+      <tr><td>3</td><td>게임</td><td>window.postMessage 또는 전용 브리지 이벤트 리스너를 추가합니다.</td></tr>
+      <tr><td>4</td><td>게임</td><td>수신한 선택값을 현재 문제의 물건 버튼 클릭과 동일하게 처리합니다.</td></tr>
+    </tbody>
+  </table>
+
+  <h2>15. 개발 확인용 콘솔 명령</h2>
+  <table>
+    <thead><tr><th>확인 항목</th><th>콘솔 명령</th></tr></thead>
+    <tbody>
+      <tr><td>현재 적용된 앱 모드</td><td>window.GAME_MODE</td></tr>
+      <tr><td>현재 적용된 config</td><td>window.GAME_CONFIG</td></tr>
+      <tr><td>상황 템플릿 로드 상태</td><td>window.SITUATION_TEMPLATE_STATUS</td></tr>
+    </tbody>
+  </table>
+
+  <h2>16. 콘텐츠 수정 위치</h2>
+  <table>
+    <thead><tr><th>수정 대상</th><th>확인할 파일 또는 폴더</th></tr></thead>
+    <tbody>
+      <tr><td>물건 목록과 이미지 경로</td><td>js/items.js, assets/goods/</td></tr>
+      <tr><td>상황 템플릿</td><td>docs/situation-templates-draft.json, js/situation-templates.js</td></tr>
+      <tr><td>기본 문제 풀</td><td>js/questions.js</td></tr>
+      <tr><td>미션 타입별 정답 처리와 화면 렌더링</td><td>modes/registry.js</td></tr>
+      <tr><td>음성 안내와 사운드 파일</td><td>docs/audio.md, assets/audio/</td></tr>
+    </tbody>
+  </table>
+
+  <h2>17. 주의사항</h2>
+  <table>
+    <thead><tr><th>항목</th><th>주의 내용</th></tr></thead>
+    <tbody>
+      <tr><td>Config 주입 순서</td><td>config/modes.js는 index.html 하단에서 가장 먼저 로드됩니다. WebView에서 전역 config를 주입하려면 이 스크립트보다 먼저 적용되어야 합니다.</td></tr>
+      <tr><td>JSON 로드</td><td>docs/situation-templates-draft.json은 서버 환경에서 fetch됩니다. 직접 파일 열기보다 정적 서버 실행을 권장합니다.</td></tr>
+      <tr><td>안내 음성</td><td>voice_guide_enabled는 안내 음성 재생 여부만 제어하며, AI 음성 인식 기능을 의미하지 않습니다.</td></tr>
+      <tr><td>AI 모드</td><td>ai_assisted 모드는 이름상 AI 연동용이지만, 현재 구현은 UI/진행 설정만 제공합니다.</td></tr>
+      <tr><td>자동 복귀</td><td>care와 ai_assisted는 자동 복귀가 켜져 있으므로 결과 화면이 약 1.2초 표시된 뒤 효담콜 복귀가 요청됩니다.</td></tr>
+      <tr><td>모드 구조</td><td>모드별 폴더가 따로 있는 구조가 아니라, 단일 index.html과 query parameter/config 조합으로 모드를 전환합니다.</td></tr>
+    </tbody>
+  </table>
+</body>
+</html>

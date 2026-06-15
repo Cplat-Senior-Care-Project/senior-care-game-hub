@@ -180,6 +180,24 @@ function playVoice(name){
     if(activeVoice === audio) activeVoice = null;
   }
 }
+
+function stopAllAudio(reset = false){
+  stopVoice();
+  stopBgm(reset);
+  Object.values(sfxPlayers).forEach(audio=>{
+    try{
+      audio.pause();
+      if(reset) audio.currentTime = 0;
+    }catch(e){}
+  });
+  pendingVoice = null;
+  pendingBgmName = null;
+}
+
+function pauseManagedAudio(){
+  stopVoice();
+  stopBgm(false);
+}
 function retryPendingVoice(){
   if(!pendingVoice || !soundSettings.voice) return;
   const name = pendingVoice;
@@ -223,3 +241,13 @@ document.addEventListener("pointerdown", retryPendingBgm, true);
 document.addEventListener("keydown", retryPendingBgm, true);
 document.addEventListener("pointerdown", retryPendingVoice, true);
 document.addEventListener("keydown", retryPendingVoice, true);
+
+document.addEventListener("visibilitychange", ()=>{
+  if(document.hidden){
+    pauseManagedAudio();
+  }else{
+    applySoundSettings();
+  }
+});
+window.addEventListener("pagehide", ()=>stopAllAudio(true));
+window.addEventListener("beforeunload", ()=>stopAllAudio(true));
