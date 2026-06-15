@@ -1,0 +1,10 @@
+{"at":"2026-06-15T02:50:12.273Z","session_id":"e7ebcc39-d0a7-47a3-bc34-c8329dda6b31","event_type":"SESSION_ABORT","duplicate":false}
+{"at":"2026-06-15T06:16:32.710Z","result_id":"fbda73c8-49a6-4428-9f26-ed1f5987dccf","senior_id":"senior_001","session_id":"sample-counting-fruits-completed","event_type":"GAME_RESULT_SAVE","status":"completed","duplicate":false}
+{"at":"2026-06-15T06:16:32.720Z","result_id":"ceacdeb9-1a7f-4e79-beb5-c1d2bd7cc99b","senior_id":"senior_001","session_id":"sample-counting-fruits-abandoned","event_type":"GAME_RESULT_SAVE","status":"abandoned","duplicate":false}
+{"at":"2026-06-15T06:16:32.728Z","result_id":"fc0d61f1-40f4-49ec-99db-d3907040940a","senior_id":"senior_001","session_id":"sample-counting-fruits-error","event_type":"GAME_RESULT_SAVE","status":"error","duplicate":false}
+{"at":"2026-06-15T06:16:47.042Z","result_id":"9325fb89-4590-46e0-9048-adb246b77c06","senior_id":"senior_001","session_id":"sample-counting-fruits-completed","event_type":"GAME_RESULT_SAVE","status":"completed","duplicate":true}
+{"at":"2026-06-15T06:16:47.048Z","result_id":"b77d341b-ec5e-484a-a93f-6ba2f8275e12","senior_id":"senior_001","session_id":"sample-counting-fruits-abandoned","event_type":"GAME_RESULT_SAVE","status":"abandoned","duplicate":true}
+{"at":"2026-06-15T06:16:47.053Z","result_id":"54cca19a-5f1f-4884-9d83-8333bb7129f3","senior_id":"senior_001","session_id":"sample-counting-fruits-error","event_type":"GAME_RESULT_SAVE","status":"error","duplicate":true}
+{"at":"2026-06-15T06:18:51.308Z","result_id":"ea17f6e7-cf1d-497e-bff3-348de57d99cb","senior_id":"senior_001","session_id":"sample-counting-fruits-completed","event_type":"GAME_RESULT_SAVE","status":"completed","duplicate":true}
+{"at":"2026-06-15T06:18:51.313Z","result_id":"97873453-7042-42ad-9c99-8fd5a57c3b6e","senior_id":"senior_001","session_id":"sample-counting-fruits-abandoned","event_type":"GAME_RESULT_SAVE","status":"abandoned","duplicate":true}
+{"at":"2026-06-15T06:18:51.318Z","result_id":"9c7d4ddb-29a6-4bf8-b6c7-74f20ff3d22e","senior_id":"senior_001","session_id":"sample-counting-fruits-error","event_type":"GAME_RESULT_SAVE","status":"error","duplicate":true}

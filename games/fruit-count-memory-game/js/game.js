@@ -39,8 +39,14 @@
     contentId: "cognitive_count_fruit_001",
     gameKey: "counting_fruits",
     sessionId: null,
+    seniorId: "",
     userId: "",
     anonymousUserId: "",
+    guardianId: null,
+    playSource: "manual",
+    assignmentId: null,
+    alarmId: null,
+    scheduleId: null,
     deviceId: "",
     appVersion: "",
     gameVersion: "",
@@ -77,6 +83,8 @@
     previousResult: null,
     previousRecord: null,
     lastResult: null,
+    clientContext: null,
+    voiceContext: null,
     configSource: "unknown",
     schemaVersion: "mock-v1"
   });
@@ -336,11 +344,17 @@
     wrongAttempts: 0,
     phase: "start",
     isPaused: false,
+    orientationAutoPauseActive: false,
+    wasPausedBeforeOrientation: false,
     timerId: null,
     phaseTimerId: null,
     phaseCountdownId: null,
     startCountdownIntroTimeoutId: null,
     startCountdownFrameId: null,
+    startCountdownIntroStartedAt: 0,
+    startCountdownIntroRemaining: 0,
+    startCountdownRemaining: 0,
+    startCountdownPausedAt: 0,
     hintTimerId: null,
     autoHintTimerId: null,
     resultAutoReturnTimerId: null,
@@ -434,11 +448,50 @@
   function updateOrientationGuard(viewportWidth, viewportHeight) {
     const width = Number(viewportWidth) || window.innerWidth || document.documentElement.clientWidth || STAGE_WIDTH;
     const height = Number(viewportHeight) || window.innerHeight || document.documentElement.clientHeight || STAGE_HEIGHT;
-    const isPortrait = height > width;
+    const isPortrait = isPortraitViewport(width, height);
 
     document.body.classList.toggle("is-portrait-orientation", isPortrait);
     if (els.orientationGuard) {
       els.orientationGuard.setAttribute("aria-hidden", isPortrait ? "false" : "true");
+    }
+    syncOrientationGuardPause(isPortrait);
+  }
+
+  function isPortraitViewport(viewportWidth, viewportHeight) {
+    const width = Number(viewportWidth) || window.innerWidth || document.documentElement.clientWidth || STAGE_WIDTH;
+    const height = Number(viewportHeight) || window.innerHeight || document.documentElement.clientHeight || STAGE_HEIGHT;
+    return height > width;
+  }
+
+  function canPauseForOrientationGuard() {
+    return ["countdown", "ready", "memory", "recall", "question", "feedback"].includes(state.phase);
+  }
+
+  function clearOrientationGuardPauseState() {
+    state.orientationAutoPauseActive = false;
+    state.wasPausedBeforeOrientation = false;
+  }
+
+  function syncOrientationGuardPause(isPortrait) {
+    if (isPortrait) {
+      if (!state.orientationAutoPauseActive && canPauseForOrientationGuard()) {
+        state.orientationAutoPauseActive = true;
+        state.wasPausedBeforeOrientation = state.isPaused;
+        if (!state.isPaused) {
+          pauseGame({ showPauseModal: false, recordPause: false, focusPauseModal: false });
+        }
+      }
+      return;
+    }
+
+    if (!state.orientationAutoPauseActive) {
+      return;
+    }
+
+    const shouldResume = !state.wasPausedBeforeOrientation && state.isPaused;
+    clearOrientationGuardPauseState();
+    if (shouldResume) {
+      resumeGame({ hidePauseModal: false });
     }
   }
 
@@ -560,8 +613,13 @@
     state.wrongAttempts = 0;
     state.phase = "start";
     state.isPaused = false;
+    clearOrientationGuardPauseState();
     state.phaseRemaining = 0;
     state.phaseCallback = null;
+    state.startCountdownIntroStartedAt = 0;
+    state.startCountdownIntroRemaining = 0;
+    state.startCountdownRemaining = 0;
+    state.startCountdownPausedAt = 0;
     state.reachedDifficultyIndex = 0;
     state.reachedQuestion = 0;
     state.postConditionChecked = false;
@@ -578,6 +636,7 @@
     state.timeLeft = runtimeConfig.durationSeconds;
     state.phase = "countdown";
     state.isPaused = false;
+    clearOrientationGuardPauseState();
     state.reachedDifficultyIndex = index;
     updateTopUi();
     updateCareHintButtonState();
@@ -597,15 +656,26 @@
 
     if (!els.gameCountdownMessage) {
       beginReadyCountdown(index);
+      syncOrientationGuardPause(isPortraitViewport());
       return;
     }
 
     els.gameCountdownMessage.textContent = "게임이 곧 시작돼요!";
     playVoiceGuide("voiceReady", { delayMs: VOICE_GUIDE_STAGE_DELAY_MS });
+    scheduleReadyCountdownIntro(index, START_READY_MESSAGE_TIME);
+    syncOrientationGuardPause(isPortraitViewport());
+  }
+
+  function scheduleReadyCountdownIntro(index, delay) {
+    const remaining = Math.max(0, Number(delay) || 0);
+    state.startCountdownIntroRemaining = remaining;
+    state.startCountdownIntroStartedAt = performance.now();
     state.startCountdownIntroTimeoutId = window.setTimeout(() => {
       state.startCountdownIntroTimeoutId = null;
+      state.startCountdownIntroStartedAt = 0;
+      state.startCountdownIntroRemaining = 0;
       beginReadyCountdown(index);
-    }, START_READY_MESSAGE_TIME);
+    }, remaining);
   }
 
   function beginReadyCountdown(index) {
@@ -613,16 +683,32 @@
       return;
     }
 
-    const startedAt = performance.now();
+    state.startCountdownRemaining = START_COUNTDOWN_TIME;
+    state.startCountdownPausedAt = 0;
+    let startedAt = performance.now();
     els.gameCountdown.classList.remove("is-intro");
     let lastDisplaySeconds = null;
 
     function updateCountdown(now) {
+      if (state.isPaused) {
+        if (!state.startCountdownPausedAt) {
+          state.startCountdownPausedAt = now;
+        }
+        state.startCountdownFrameId = window.requestAnimationFrame(updateCountdown);
+        return;
+      }
+
+      if (state.startCountdownPausedAt) {
+        startedAt += now - state.startCountdownPausedAt;
+        state.startCountdownPausedAt = 0;
+      }
+
       const elapsed = Math.max(0, now - startedAt);
       const remaining = Math.max(0, START_COUNTDOWN_TIME - elapsed);
       const displaySeconds = Math.max(1, Math.ceil(remaining / 1000));
       const secondProgress = (elapsed % 1000) / 1000;
       const angle = secondProgress * 360;
+      state.startCountdownRemaining = remaining;
 
       els.gameCountdownNumber.textContent = String(displaySeconds);
       els.gameCountdownTimer.style.setProperty("--countdown-angle", `${angle}deg`);
@@ -652,6 +738,7 @@
     state.timeLeft = runtimeConfig.durationSeconds;
     state.phase = "ready";
     state.isPaused = false;
+    clearOrientationGuardPauseState();
     state.reachedDifficultyIndex = index;
     updateTopUi();
     syncBackgroundMusic();
@@ -660,6 +747,7 @@
     sendGameStarted();
     startDifficultyTimer();
     showNextQuestion();
+    syncOrientationGuardPause(isPortraitViewport());
   }
 
   function showNextQuestion() {
@@ -1875,6 +1963,10 @@
       window.clearTimeout(state.startCountdownIntroTimeoutId);
       state.startCountdownIntroTimeoutId = null;
     }
+    state.startCountdownIntroStartedAt = 0;
+    state.startCountdownIntroRemaining = 0;
+    state.startCountdownRemaining = 0;
+    state.startCountdownPausedAt = 0;
     if (els.gameCountdown) {
       els.gameCountdown.classList.add("is-hidden");
       els.gameCountdown.classList.remove("is-intro");
@@ -2028,20 +2120,33 @@
     }
   }
 
-  function pauseGame() {
+  function pauseGame(options = {}) {
+    const showPauseModal = options.showPauseModal !== false;
+    const recordPause = options.recordPause !== false;
+    const focusPauseModal = options.focusPauseModal !== false;
+
     if (state.phase !== "question" && isQuestionViewVisible() && state.currentQuestion && !state.isPaused) {
       state.phase = "question";
       updateCareHintButtonState();
     }
 
-    if (state.phase === "start" || state.phase === "difficulty" || state.phase === "countdown" || state.phase === "postCondition" || state.phase === "result" || state.isPaused) {
+    if (
+      state.phase === "start"
+      || state.phase === "difficulty"
+      || (state.phase === "countdown" && showPauseModal)
+      || state.phase === "postCondition"
+      || state.phase === "result"
+      || state.isPaused
+    ) {
       return;
     }
 
     state.isPaused = true;
     syncBackgroundMusic();
     stopVoiceGuide();
-    recordQuestionPause();
+    if (recordPause) {
+      recordQuestionPause();
+    }
     els.pauseButton.classList.add("is-paused");
     if (els.carePauseButton) {
       els.carePauseButton.classList.add("is-paused");
@@ -2054,16 +2159,32 @@
     state.timerId = null;
     clearAutoHintTimer();
 
+    if (state.startCountdownIntroTimeoutId) {
+      state.startCountdownIntroRemaining = Math.max(
+        0,
+        state.startCountdownIntroRemaining - (performance.now() - state.startCountdownIntroStartedAt)
+      );
+      window.clearTimeout(state.startCountdownIntroTimeoutId);
+      state.startCountdownIntroTimeoutId = null;
+      state.startCountdownIntroStartedAt = 0;
+    }
+
     if (state.phaseTimerId) {
       state.phaseRemaining = Math.max(0, state.phaseDuration - (Date.now() - state.phaseStartedAt));
       clearPhaseTimer();
     }
 
-    els.pauseModal.classList.remove("is-hidden");
-    els.resumeButton.focus();
+    if (showPauseModal) {
+      els.pauseModal.classList.remove("is-hidden");
+      if (focusPauseModal) {
+        els.resumeButton.focus();
+      }
+    }
   }
 
-  function resumeGame() {
+  function resumeGame(options = {}) {
+    const hidePauseModal = options.hidePauseModal !== false;
+
     if (!state.isPaused) {
       return;
     }
@@ -2077,11 +2198,17 @@
     if (els.app) {
       els.app.classList.remove("is-care-paused");
     }
-    els.pauseModal.classList.add("is-hidden");
+    if (hidePauseModal) {
+      els.pauseModal.classList.add("is-hidden");
+    }
     updateCareHintButtonState();
     startDifficultyTimer();
     if (state.phase === "question") {
       scheduleAutoHint();
+    }
+
+    if (state.phase === "countdown" && state.startCountdownIntroRemaining > 0 && !state.startCountdownIntroTimeoutId) {
+      scheduleReadyCountdownIntro(state.difficultyIndex, state.startCountdownIntroRemaining);
     }
 
     if ((state.phase === "memory" || state.phase === "recall" || state.phase === "feedback") && state.phaseCallback) {
@@ -2091,6 +2218,7 @@
 
   function quitGame() {
     state.isPaused = false;
+    clearOrientationGuardPauseState();
     pauseBackgroundMusic(true);
     els.pauseButton.classList.remove("is-paused");
     if (els.carePauseButton) {
@@ -2107,6 +2235,7 @@
   function restartPausedGame() {
     const difficultyIndex = state.difficultyIndex;
     state.isPaused = false;
+    clearOrientationGuardPauseState();
     pauseBackgroundMusic(true);
     els.pauseButton.classList.remove("is-paused");
     if (els.carePauseButton) {
@@ -2447,8 +2576,14 @@
       contentId: typeof source.contentId === "string" && source.contentId ? source.contentId : DEFAULT_RUN_CONFIG.contentId,
       gameKey: typeof source.gameKey === "string" && source.gameKey ? source.gameKey : DEFAULT_RUN_CONFIG.gameKey,
       sessionId: typeof source.sessionId === "string" && source.sessionId ? source.sessionId : DEFAULT_RUN_CONFIG.sessionId,
+      seniorId: typeof source.seniorId === "string" ? source.seniorId : DEFAULT_RUN_CONFIG.seniorId,
       userId: typeof source.userId === "string" ? source.userId : DEFAULT_RUN_CONFIG.userId,
       anonymousUserId: typeof source.anonymousUserId === "string" ? source.anonymousUserId : DEFAULT_RUN_CONFIG.anonymousUserId,
+      guardianId: typeof source.guardianId === "string" && source.guardianId ? source.guardianId : DEFAULT_RUN_CONFIG.guardianId,
+      playSource: normalizePlaySource(source.playSource, mode),
+      assignmentId: typeof source.assignmentId === "string" && source.assignmentId ? source.assignmentId : DEFAULT_RUN_CONFIG.assignmentId,
+      alarmId: typeof source.alarmId === "string" && source.alarmId ? source.alarmId : DEFAULT_RUN_CONFIG.alarmId,
+      scheduleId: typeof source.scheduleId === "string" && source.scheduleId ? source.scheduleId : DEFAULT_RUN_CONFIG.scheduleId,
       deviceId: typeof source.deviceId === "string" ? source.deviceId : DEFAULT_RUN_CONFIG.deviceId,
       appVersion: typeof source.appVersion === "string" ? source.appVersion : DEFAULT_RUN_CONFIG.appVersion,
       gameVersion: typeof source.gameVersion === "string" ? source.gameVersion : DEFAULT_RUN_CONFIG.gameVersion,
@@ -2475,6 +2610,8 @@
       previousResult: source.previousResult && typeof source.previousResult === "object" ? source.previousResult : DEFAULT_RUN_CONFIG.previousResult,
       previousRecord: source.previousRecord && typeof source.previousRecord === "object" ? source.previousRecord : DEFAULT_RUN_CONFIG.previousRecord,
       lastResult: source.lastResult && typeof source.lastResult === "object" ? source.lastResult : DEFAULT_RUN_CONFIG.lastResult,
+      clientContext: source.clientContext && typeof source.clientContext === "object" && !Array.isArray(source.clientContext) ? source.clientContext : DEFAULT_RUN_CONFIG.clientContext,
+      voiceContext: source.voiceContext && typeof source.voiceContext === "object" && !Array.isArray(source.voiceContext) ? source.voiceContext : DEFAULT_RUN_CONFIG.voiceContext,
       configSource: typeof source.configSource === "string" && source.configSource ? source.configSource : DEFAULT_RUN_CONFIG.configSource,
       schemaVersion: typeof source.schemaVersion === "string" && source.schemaVersion ? source.schemaVersion : DEFAULT_RUN_CONFIG.schemaVersion,
       difficulties
@@ -2483,6 +2620,26 @@
 
   function getDefaultSoftFeedback(mode) {
     return mode !== "standard";
+  }
+
+  function normalizePlaySource(value, mode) {
+    const playSource = typeof value === "string" ? value.trim() : "";
+    const allowedSources = ["reminder", "manual", "history_replay", "ai_recommendation", "care_session"];
+    if (allowedSources.includes(playSource)) {
+      return playSource;
+    }
+
+    if (mode === "reminder") {
+      return "reminder";
+    }
+    if (mode === "care") {
+      return "care_session";
+    }
+    if (mode === "ai_assisted") {
+      return "ai_recommendation";
+    }
+
+    return DEFAULT_RUN_CONFIG.playSource;
   }
 
   function normalizeExternalInputConfig(source, mode) {
@@ -2959,6 +3116,7 @@
     clearAllTimers();
     state.phase = "error";
     state.isPaused = false;
+    clearOrientationGuardPauseState();
 
     if (els.pauseModal) {
       els.pauseModal.classList.add("is-hidden");
@@ -3053,13 +3211,41 @@
       telemetryState.questionResults.map((record) => record.responseTimeMs)
     );
 
+    const configSnapshot = createConfigSnapshot();
+    const resultDetailJson = detailed ? createResultDetailJson() : {};
+    const gameResult = {
+      mode: runtimeConfig.mode || DEFAULT_RUN_CONFIG.mode,
+      difficulty: getSelectedDifficultyKey(),
+      config_snapshot: configSnapshot,
+      total_questions: totalQuestions,
+      completed_question_count: completedQuestionCount,
+      correct_count: correctCount,
+      wrong_count: wrongCount,
+      hint_count: hintCount,
+      retry_count: retryCount,
+      pause_count: telemetryState.pauseCount,
+      interaction_count: createInteractionCount(),
+      avg_response_time_ms: avgResponseTimeMs,
+      completion_rate: createCompletionRate(completedQuestionCount, totalQuestions),
+      question_logs: questionLogs,
+      result_detail_json: resultDetailJson,
+      condition: createConditionResult()
+    };
+
     const payload = {
+      senior_id: getSeniorIdForResult(),
+      guardian_id: runtimeConfig.guardianId || null,
       session_id: runtimeConfig.sessionId || null,
       content_id: runtimeConfig.contentId || DEFAULT_RUN_CONFIG.contentId,
       game_key: runtimeConfig.gameKey || DEFAULT_RUN_CONFIG.gameKey,
+      game_version: runtimeConfig.gameVersion || DEFAULT_RUN_CONFIG.gameVersion,
+      play_source: runtimeConfig.playSource || DEFAULT_RUN_CONFIG.playSource,
+      assignment_id: runtimeConfig.assignmentId || null,
+      alarm_id: runtimeConfig.alarmId || null,
+      schedule_id: runtimeConfig.scheduleId || null,
       mode: runtimeConfig.mode || DEFAULT_RUN_CONFIG.mode,
       difficulty: getSelectedDifficultyKey(),
-      config_snapshot: createConfigSnapshot(),
+      config_snapshot: configSnapshot,
       status: finalStatus,
       started_at: telemetryState.startedAt,
       ended_at: telemetryState.endedAt,
@@ -3076,10 +3262,51 @@
       abandoned_at: finalStatus === "abandoned" ? telemetryState.endedAt : null,
       abandon_reason: finalStatus === "abandoned" ? options.abandonReason || getAbandonReason(telemetryState.exitReason) : null,
       question_logs: questionLogs,
-      result_detail_json: detailed ? createResultDetailJson() : {}
+      result_detail_json: resultDetailJson,
+      game_result: gameResult,
+      game_result_json: gameResult,
+      client_context: createClientContext(),
+      voice_context: createVoiceContext()
     };
 
     return Object.assign(payload, createResultErrorFields(finalStatus, options));
+  }
+
+  function getSeniorIdForResult() {
+    return runtimeConfig.seniorId || runtimeConfig.userId || runtimeConfig.anonymousUserId || null;
+  }
+
+  function createClientContext() {
+    const base = runtimeConfig.clientContext && typeof runtimeConfig.clientContext === "object"
+      ? { ...runtimeConfig.clientContext }
+      : {};
+    return {
+      device_id: base.device_id || base.deviceId || runtimeConfig.deviceId || null,
+      platform: base.platform || "react-native-webview",
+      app_version: base.app_version || base.appVersion || runtimeConfig.appVersion || null,
+      timezone: base.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone || null,
+      ...base
+    };
+  }
+
+  function createVoiceContext() {
+    if (!runtimeConfig.voiceContext || typeof runtimeConfig.voiceContext !== "object") {
+      return null;
+    }
+
+    return { ...runtimeConfig.voiceContext };
+  }
+
+  function createConditionResult() {
+    return {
+      mood_before: state.conditionCheckSkipped ? null : state.conditionMood,
+      sleep_hours: state.conditionCheckSkipped ? null : CONDITION_SLEEP_HOURS[state.conditionSleepIndex],
+      mood_after: state.postConditionSkipped ? null : state.postCondition.moodAfter,
+      fatigue: state.postConditionSkipped ? null : state.postCondition.fatigue,
+      perceived_difficulty: state.postConditionSkipped ? null : state.postCondition.perceivedDifficulty,
+      needed_help: state.postConditionSkipped ? null : state.postCondition.neededHelp,
+      replay_intent: state.postConditionSkipped ? null : state.postCondition.replayIntent
+    };
   }
 
   function createResultErrorFields(status, options = {}) {
@@ -3121,7 +3348,8 @@
 
   function createQuestionLog(record) {
     return {
-      question_id: `q${record.questionIndex}`,
+      question_id: record.questionInstanceId || `q${record.questionIndex}`,
+      question_index: record.questionIndex,
       question_type: "count_choice",
       cognitive_domain: "memory_activity",
       difficulty: record.difficulty.key,
@@ -3141,7 +3369,20 @@
       changed_answer_count: record.changedAnswerCount || 0,
       wrong_tap_count: record.wrongTapCount || record.internal.wrongAnswers.length,
       touch_miss_count: record.touchMissCount || 0,
-      input_type: record.inputType || "touch"
+      input_type: record.inputType || "touch",
+      raw_log_json: {
+        question_instance_id: record.questionInstanceId,
+        target_fruit_id: record.targetFruitId,
+        target_fruit_name: record.targetFruitName,
+        answer_options: Array.isArray(record.answerOptions) ? [...record.answerOptions] : [],
+        final_state: record.finalState,
+        wrong_answers: [...record.internal.wrongAnswers],
+        under_count_answer: Boolean(record.internal.underCountAnswer),
+        over_count_answer: Boolean(record.internal.overCountAnswer),
+        hint_click_time_ms: [...record.internal.hintClickTimeMs],
+        paused_in_question: Boolean(record.internal.pausedInQuestion),
+        external_input: record.externalInput || null
+      }
     };
   }
 
@@ -3549,6 +3790,7 @@
     state.postConditionCheckShown = true;
     state.phase = "postCondition";
     state.isPaused = false;
+    clearOrientationGuardPauseState();
     syncBackgroundMusic();
     state.postConditionStep = 0;
     els.pauseModal.classList.add("is-hidden");
@@ -4428,6 +4670,8 @@
   function showResult() {
     clearAllTimers();
     state.phase = "result";
+    state.isPaused = false;
+    clearOrientationGuardPauseState();
     pauseBackgroundMusic(true);
     closePostConditionCheck();
     els.pauseModal.classList.add("is-hidden");

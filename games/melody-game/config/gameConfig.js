@@ -4,8 +4,8 @@
   window.GAME_CONFIG = {
     easy: {
       label: "쉬움",
-      padCount: 3,
-      symbolCount: 3,
+      padCount: 2,
+      symbolCount: 2,
       previewEnabled: true,
       xPatternEnabled: false,
       sessionTime: 60,
@@ -13,8 +13,8 @@
     },
     normal: {
       label: "보통",
-      padCount: 4,
-      symbolCount: 4,
+      padCount: 3,
+      symbolCount: 3,
       previewEnabled: true,
       xPatternEnabled: false,
       sessionTime: 60,

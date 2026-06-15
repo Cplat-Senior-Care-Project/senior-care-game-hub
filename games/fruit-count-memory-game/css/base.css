@@ -143,16 +143,26 @@ button {
 }
 
 .orientation-guard-card strong {
+  display: block;
+  inline-size: 10ch;
+  max-inline-size: 100%;
   font-size: 34px;
   font-weight: 1000;
   line-height: 1.18;
+  text-wrap: balance;
+  word-break: keep-all;
 }
 
 .orientation-guard-card span {
+  display: block;
+  inline-size: 16ch;
+  max-inline-size: 100%;
   color: var(--ink-muted);
   font-size: 22px;
   font-weight: 800;
   line-height: 1.35;
+  text-wrap: balance;
+  word-break: keep-all;
 }
 
 .orientation-phone {

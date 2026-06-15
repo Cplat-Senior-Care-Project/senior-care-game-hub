@@ -99,7 +99,7 @@ h3 {
     inset 0 0 0 2px rgba(157, 101, 40, 0.12),
     inset 0 3px 0 rgba(255, 255, 244, 0.64),
     inset 0 -5px 0 rgba(214, 161, 39, 0.42);
-  transform: translateY(-64px);
+  transform: translateY(-8px);
 }
 
 .loading-track {
@@ -184,7 +184,7 @@ h3 {
 .loading-logo {
   width: min(900px, 82cqw);
   max-height: 62cqh;
-  transform: translateY(-42px);
+  transform: translateY(28px);
 }
 
 .loading-lead {
@@ -193,12 +193,13 @@ h3 {
   font-size: 50px;
   line-height: 1;
   text-shadow: 0 2px 0 rgba(255, 255, 255, 0.9);
-  transform: translateY(-64px);
+  transform: translateY(-8px);
 }
 
 .home-logo {
-  width: min(900px, 82cqw);
+  width: min(980px, 88cqw);
   max-height: 62cqh;
+  transform: translateY(32px);
 }
 
 .home-lead {
@@ -211,10 +212,10 @@ h3 {
   margin-top: calc(-1 * clamp(30px, 5.2cqh, 70px));
   color: #4a2d18;
   overflow: visible;
-  font-size: 35px;
+  font-size: 50px;
   line-height: 1;
   text-shadow: none;
-  transform: translateY(-34px);
+  transform: translateY(18px);
   white-space: nowrap;
   -webkit-text-stroke: 0.8px #fffdf3;
   paint-order: stroke fill;
@@ -241,6 +242,28 @@ h3 {
 
 .home-settings {
   right: clamp(8px, 1.5cqw, 18px);
+}
+
+.settings-gear-button {
+  position: absolute;
+  top: 24px;
+  right: 0;
+  z-index: 3;
+  display: grid;
+  place-items: center;
+  width: 82px;
+  height: 82px;
+  min-height: 82px;
+  padding: 0 0 3px;
+  border: 0;
+  border-radius: 50%;
+  color: #fffdf3;
+  background: #7f65b4;
+  box-shadow: inset 0 3px 0 rgba(255, 255, 255, 0.28), inset 0 -4px 0 rgba(48, 37, 88, 0.28);
+  font-size: 56px;
+  font-weight: 1000;
+  line-height: 1;
+  transition: transform 120ms ease, box-shadow 120ms ease, filter 120ms ease;
 }
 
 .home-stage {
@@ -342,12 +365,14 @@ h3 {
 
 .menu-actions {
   display: grid;
-  grid-template-columns: repeat(3, minmax(250px, 1fr));
+  grid-template-columns: minmax(260px, 320px) minmax(400px, 440px) minmax(260px, 320px);
   position: absolute;
   left: 50%;
   bottom: clamp(68px, 10cqh, 88px);
-  width: min(1040px, 92cqw);
-  gap: clamp(34px, 5cqw, 64px);
+  width: min(1160px, 96cqw);
+  gap: clamp(20px, 3cqw, 36px);
+  align-items: center;
+  justify-content: center;
   transform: translateX(-50%);
 }
 
@@ -372,10 +397,10 @@ h3 {
 .start-button {
   display: inline-grid;
   align-content: center;
-  justify-self: center;
+  justify-self: stretch;
   place-items: center;
-  min-width: min(380px, 48cqw);
-  min-height: clamp(96px, 13cqh, 132px);
+  min-width: 0;
+  min-height: clamp(136px, 18cqh, 178px);
   padding: 0 clamp(30px, 5cqw, 56px);
   border-color: #defca6;
   border-radius: 999px;
@@ -388,7 +413,7 @@ h3 {
     inset 0 0 0 1px #3f8f14,
     inset 0 clamp(3px, 0.55cqh, 5px) 0 rgba(255, 255, 244, 0.48),
     inset 0 clamp(-6px, -7.2px, -4px) 0 rgba(42, 105, 13, 0.38);
-  font-size: 50px;
+  font-size: 62px;
   text-shadow:
     0 2px 0 rgba(40, 91, 13, 0.72),
     0 0 4px rgba(40, 91, 13, 0.42);
@@ -408,6 +433,7 @@ h3 {
   display: inline-grid;
   place-items: center;
   line-height: 1;
+  white-space: nowrap;
 }
 
 .secondary-button {
@@ -420,7 +446,8 @@ h3 {
 }
 
 .menu-actions .secondary-button {
-  min-height: clamp(82px, 11.5cqh, 100px);
+  min-height: clamp(116px, 15cqh, 144px);
+  justify-self: stretch;
   border-color: transparent;
   background:
     linear-gradient(180deg, rgba(255, 250, 225, 0.42) 0%, rgba(255, 250, 225, 0.1) 32%, rgba(204, 158, 62, 0.08) 100%),
@@ -432,7 +459,7 @@ h3 {
     inset 0 3px 0 rgba(255, 255, 244, 0.3),
     inset 0 clamp(-6px, -7.2px, -4px) 0 rgba(174, 124, 35, 0.18);
   color: #5a3b21;
-  font-size: 40px;
+  font-size: 50px;
   text-shadow:
     0 2px 0 rgba(255, 255, 244, 0.62);
 }
@@ -488,9 +515,9 @@ h3 {
     0 clamp(5px, 7.2px, 9px) clamp(12px, 15.84px, 22px) rgba(63, 114, 20, 0.24),
     0 0 0 1px #3f8f14,
     inset 0 0 0 1px #3f8f14,
-    inset 0 clamp(3px, 0.55cqh, 5px) 0 rgba(255, 255, 244, 0.48),
-    inset 0 clamp(-6px, -7.2px, -4px) 0 rgba(42, 105, 13, 0.38);
-  font-size: clamp(20px, 1.8cqw, 26px);
+    inset 0 2px 0 rgba(255, 255, 244, 0.42),
+    inset 0 -3px 0 rgba(42, 105, 13, 0.3);
+  font-size: 35px;
   text-shadow:
     0 2px 0 rgba(40, 91, 13, 0.72),
     0 0 4px rgba(40, 91, 13, 0.42);
@@ -503,8 +530,8 @@ h3 {
     0 3px 9px rgba(63, 114, 20, 0.22),
     0 0 0 1px #3f8f14,
     inset 0 0 0 1px #3f8f14,
-    inset 0 2px 0 rgba(255, 255, 244, 0.34),
-    inset 0 -3px 0 rgba(42, 105, 13, 0.34);
+    inset 0 1px 0 rgba(255, 255, 244, 0.3),
+    inset 0 -2px 0 rgba(42, 105, 13, 0.28);
 }
 
 .icon-button {
@@ -520,6 +547,7 @@ h3 {
 .secondary-button:active,
 .pause-button:active,
 .icon-button:active,
+.settings-gear-button:active,
 .drum-pad:active {
   transform: translateY(3px) scale(0.98);
 }

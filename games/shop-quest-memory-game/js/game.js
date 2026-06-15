@@ -180,6 +180,8 @@
   let autoHintTimerCallback = null;
   let pausedPhaseTimerCallback = null;
   let pausedAutoHintTimerCallback = null;
+  let orientationAutoPauseActive = false;
+  let wasPausedBeforeOrientation = false;
   let reopenPauseAfterTutorial = false;
   const imageReadyCache = new Map();
   const audioPools = new Map();
@@ -196,7 +198,7 @@
   const state = {
     phase: "start", difficultyKey: "easy", questionIndex: 0, question: null, selectedIds: [], wrongSelectedIds: [], collectedItems: [], correctCount: 0, wrongCount: 0, hintCount: 0, retryCount: 0, pauseCount: 0, interactionCount: 0, touchMissCount: 0, questionTouchMissCount: 0, missedItemCount: 0, questionLogs: [],
     startedAt: null, endedAt: null, remainingSeconds: 0, revealRemaining: 0, questionStartedAt: null, firstResponseAt: null, status: "completed", abandonReason: null, externalInputUsed: false,
-    startCountdownIntroTimeoutId: null, startCountdownFrameId: null,
+    startCountdownIntroTimeoutId: null, startCountdownFrameId: null, startCountdownIntroStartedAt: 0, startCountdownIntroRemainingMs: 0, startCountdownPausedAt: 0,
     condition: { completed: false, skipped: false, mood: "good", sleepHours: 7 },
     conditionSleepIndex: 3,
     postCondition: { completed: false, skipped: false, step: 0, moodAfter: "good", fatigue: "low", perceivedDifficulty: "justRight", neededHelp: "none", replayIntent: "yes" },
@@ -219,6 +221,41 @@
     document.documentElement.style.setProperty("--hud-fit-scale", String(hudFitScale));
     document.documentElement.style.setProperty("--game-viewport-top-gutter", `${verticalGutter}px`);
     document.documentElement.style.setProperty("--game-viewport-side-gutter", `${horizontalGutter}px`);
+    syncOrientationWarningPause(isPortraitViewport(viewportWidth, viewportHeight));
+  }
+
+  function isPortraitViewport(viewportWidth, viewportHeight) {
+    const width = Number(viewportWidth) || window.innerWidth || document.documentElement.clientWidth || STAGE_WIDTH;
+    const height = Number(viewportHeight) || window.innerHeight || document.documentElement.clientHeight || STAGE_HEIGHT;
+    return height > width;
+  }
+
+  function canPauseForOrientationWarning() {
+    return ["countdown", "memory", "transition", "question"].includes(state.phase);
+  }
+
+  function clearOrientationWarningPauseState() {
+    orientationAutoPauseActive = false;
+    wasPausedBeforeOrientation = false;
+  }
+
+  function syncOrientationWarningPause(isPortrait) {
+    if (isPortrait) {
+      if (!orientationAutoPauseActive && canPauseForOrientationWarning()) {
+        orientationAutoPauseActive = true;
+        wasPausedBeforeOrientation = state.phase === "pause";
+        if (state.phase !== "pause") {
+          pauseGame({ showPauseModal: false, countPause: false });
+        }
+      }
+      return;
+    }
+
+    if (!orientationAutoPauseActive) return;
+
+    const shouldResume = !wasPausedBeforeOrientation && state.phase === "pause";
+    clearOrientationWarningPauseState();
+    if (shouldResume) resumeGame({ hidePauseModal: false });
   }
 
   function isMobileLandscape() {
@@ -426,6 +463,9 @@
       window.clearTimeout(state.startCountdownIntroTimeoutId);
       state.startCountdownIntroTimeoutId = null;
     }
+    state.startCountdownIntroStartedAt = 0;
+    state.startCountdownIntroRemainingMs = 0;
+    state.startCountdownPausedAt = 0;
     if (els.gameCountdown) {
       els.gameCountdown.classList.add("is-hidden");
       els.gameCountdown.classList.remove("is-intro");
@@ -1086,6 +1126,7 @@
   }
 
   function startGame(difficultyKey) {
+    clearOrientationWarningPauseState();
     startReadyCountdown(difficultyKey);
   }
 
@@ -1117,24 +1158,47 @@
 
     if (!els.gameCountdownMessage) {
       beginReadyCountdown(nextDifficultyKey);
+      syncOrientationWarningPause(isPortraitViewport());
       return;
     }
 
     els.gameCountdownMessage.textContent = "\uAC8C\uC784\uC774 \uACE7 \uC2DC\uC791\uB3FC\uC694!";
     playVoiceGuide("voiceReady", { delayMs: VOICE_GUIDE_STAGE_DELAY_MS });
+    scheduleReadyCountdownIntro(nextDifficultyKey, START_READY_MESSAGE_TIME);
+    syncOrientationWarningPause(isPortraitViewport());
+  }
+
+  function scheduleReadyCountdownIntro(difficultyKey, delay) {
+    const remaining = Math.max(0, Number(delay) || 0);
+    state.startCountdownIntroRemainingMs = remaining;
+    state.startCountdownIntroStartedAt = performance.now();
     state.startCountdownIntroTimeoutId = window.setTimeout(() => {
       state.startCountdownIntroTimeoutId = null;
-      beginReadyCountdown(nextDifficultyKey);
-    }, START_READY_MESSAGE_TIME);
+      state.startCountdownIntroStartedAt = 0;
+      state.startCountdownIntroRemainingMs = 0;
+      beginReadyCountdown(difficultyKey);
+    }, remaining);
   }
 
   function beginReadyCountdown(difficultyKey) {
     if (state.phase !== "countdown" || !els.gameCountdown || !els.gameCountdownTimer || !els.gameCountdownNumber) return;
-    const startedAt = performance.now();
+    let startedAt = performance.now();
+    state.startCountdownPausedAt = 0;
     els.gameCountdown.classList.remove("is-intro");
     let lastDisplaySeconds = null;
 
     function updateCountdown(now) {
+      if (state.phase === "pause") {
+        if (!state.startCountdownPausedAt) state.startCountdownPausedAt = now;
+        state.startCountdownFrameId = window.requestAnimationFrame(updateCountdown);
+        return;
+      }
+
+      if (state.startCountdownPausedAt) {
+        startedAt += now - state.startCountdownPausedAt;
+        state.startCountdownPausedAt = 0;
+      }
+
       const elapsed = Math.max(0, now - startedAt);
       const remaining = Math.max(0, START_COUNTDOWN_TIME - elapsed);
       const displaySeconds = Math.max(1, Math.ceil(remaining / 1000));
@@ -1171,6 +1235,7 @@
     playSound("start");
     startGameTimer(true);
     beginQuestion();
+    syncOrientationWarningPause(isPortraitViewport());
   }
 
   function beginQuestion() {
@@ -1829,13 +1894,14 @@
     const missedItemCount = question.targetItems.filter((item) => !state.selectedIds.includes(item.id)).length;
     const selectedItems = [...state.selectedIds, ...state.wrongSelectedIds];
     state.missedItemCount += missedItemCount;
-    state.questionLogs.push({
+    const questionLog = {
       question_id: `q${state.questionIndex + 1}`,
       question_type: "shopping_cart_memory",
       cognitive_domain: "memory_activity",
       difficulty: state.difficultyKey,
       prompt_type: "image",
       correct_answer: question.targetItems.map((item) => item.id),
+      selected_answer: selectedItems,
       selected_items: selectedItems,
       target_items: question.targetItems.map((item) => item.id),
       target_count: question.targetItems.length,
@@ -1850,7 +1916,9 @@
       missed_item_count: missedItemCount,
       touch_miss_count: state.questionTouchMissCount,
       input_type: question.inputType || "touch"
-    });
+    };
+    questionLog.raw_log_json = { ...questionLog };
+    state.questionLogs.push(questionLog);
     if (isCorrect) state.correctCount += 1; else state.wrongCount += 1;
     updateHud();
     if (state.questionIndex + 1 >= getTotalQuestions()) { schedulePhaseTimer(() => finishGame("completed", null), 700); return; }
@@ -1883,32 +1951,43 @@
     showHintItemsFeedback(remainingItems, 3000);
   }
 
-  function pauseGame() {
-    if (!["memory", "transition", "question"].includes(state.phase)) return;
+  function pauseGame(options = {}) {
+    const showPauseModal = options.showPauseModal !== false;
+    const countPause = options.countPause !== false;
+    if (!["countdown", "memory", "transition", "question"].includes(state.phase)) return;
     const previousPhase = state.phase;
     state.pause.previousPhase = previousPhase;
     state.pause.phaseRemainingMs = pauseTimerRemaining(timers.phase, phaseTimerDueAt);
     state.pause.autoHintRemainingMs = pauseTimerRemaining(timers.autoHint, autoHintTimerDueAt);
+    if (state.startCountdownIntroTimeoutId) {
+      state.startCountdownIntroRemainingMs = Math.max(0, state.startCountdownIntroRemainingMs - (performance.now() - state.startCountdownIntroStartedAt));
+      window.clearTimeout(state.startCountdownIntroTimeoutId);
+      state.startCountdownIntroTimeoutId = null;
+      state.startCountdownIntroStartedAt = 0;
+    }
     state.pause.startedAt = Date.now();
     pausedPhaseTimerCallback = phaseTimerCallback;
     pausedAutoHintTimerCallback = autoHintTimerCallback;
     if (previousPhase === "memory") animateMemoryProgress(state.pause.phaseRemainingMs, false);
     state.phase = "pause";
-    state.pauseCount += 1;
+    if (countPause) state.pauseCount += 1;
     clearTimer("game"); clearTimer("countdown"); clearTimer("phase"); clearTimer("autoHint");
     stopVoiceGuide();
     syncBackgroundMusic();
     els.pauseButton.classList.add("is-paused");
     updatePauseSoundButtons();
-    window.requestAnimationFrame(() => {
-      if (state.phase === "pause") els.pauseModal.classList.remove("is-hidden");
-    });
+    if (showPauseModal) {
+      window.requestAnimationFrame(() => {
+        if (state.phase === "pause") els.pauseModal.classList.remove("is-hidden");
+      });
+    }
   }
 
-  function resumeGame() {
+  function resumeGame(options = {}) {
+    const hidePauseModal = options.hidePauseModal !== false;
     const previousPhase = state.pause.previousPhase;
     const pausedForMs = state.pause.startedAt ? Date.now() - state.pause.startedAt : 0;
-    els.pauseModal.classList.add("is-hidden");
+    if (hidePauseModal) els.pauseModal.classList.add("is-hidden");
     els.pauseButton.classList.remove("is-paused");
     state.pause.previousPhase = null;
     state.pause.startedAt = 0;
@@ -1919,8 +1998,11 @@
     syncBackgroundMusic();
     if (state.questionStartedAt && previousPhase === "question") state.questionStartedAt += pausedForMs;
     if (state.firstResponseAt && previousPhase === "question") state.firstResponseAt += pausedForMs;
-    startGameTimer(false);
+    if (previousPhase === "question") startGameTimer(false);
 
+    if (previousPhase === "countdown" && state.startCountdownIntroRemainingMs > 0 && !state.startCountdownIntroTimeoutId) {
+      scheduleReadyCountdownIntro(state.difficultyKey, state.startCountdownIntroRemainingMs);
+    }
     if (previousPhase === "memory") {
       startMemoryCountdownTimer();
       animateMemoryProgress(state.pause.phaseRemainingMs);
@@ -1940,6 +2022,7 @@
 
   function finishGame(status, abandonReason) {
     clearAllTimers();
+    clearOrientationWarningPauseState();
     state.status = status || "completed";
     state.abandonReason = abandonReason || null;
     state.endedAt = new Date();
@@ -1951,6 +2034,7 @@
   }
 
   function completeGameFinish() {
+    clearOrientationWarningPauseState();
     state.phase = "result";
     setScreen("result");
     closePostConditionCheck();
@@ -2030,26 +2114,36 @@
     };
   }
 
-  function createResultPayload() {
-    const startedAt = state.startedAt || new Date();
-    const endedAt = state.endedAt || new Date();
-    const totalQuestions = getTotalQuestions();
-    const completedQuestionCount = state.questionLogs.length;
-    const detailed = runtimeConfig.resultLogLevel !== "summary";
-    const responseTimes = state.questionLogs.map((log) => log.response_time_ms).filter((value) => Number.isFinite(value));
-    const avgResponseTimeMs = responseTimes.length ? Math.round(responseTimes.reduce((sum, value) => sum + value, 0) / responseTimes.length) : 0;
+  function createClientContext() {
     return {
-      session_id: runtimeConfig.sessionId,
-      content_id: runtimeConfig.contentId,
-      game_key: runtimeConfig.gameKey,
+      device_id: runtimeConfig.deviceId || null,
+      platform: runtimeConfig.platform || "react-native-webview",
+      app_version: runtimeConfig.appVersion || null,
+      timezone: runtimeConfig.timezone || (Intl.DateTimeFormat().resolvedOptions().timeZone || null),
+      ...(runtimeConfig.clientContext || {})
+    };
+  }
+
+  function createVoiceContext() {
+    if (!runtimeConfig.voiceContext || typeof runtimeConfig.voiceContext !== "object") {
+      return null;
+    }
+    const context = runtimeConfig.voiceContext;
+    return {
+      voice_profile_id: context.voice_profile_id || context.voiceProfileId || null,
+      voice_owner_type: context.voice_owner_type || context.voiceOwnerType || null,
+      voice_owner_id: context.voice_owner_id || context.voiceOwnerId || null,
+      ...context
+    };
+  }
+
+  function createGameResultJson(totalQuestions, completedQuestionCount, avgResponseTimeMs, detailed) {
+    return {
       mode: runtimeConfig.mode,
       difficulty: state.difficultyKey,
       config_snapshot: createConfigSnapshot(),
-      status: state.status,
-      started_at: startedAt.toISOString(),
-      ended_at: endedAt.toISOString(),
-      duration_ms: Math.max(0, endedAt.getTime() - startedAt.getTime()),
       total_questions: totalQuestions,
+      completed_question_count: completedQuestionCount,
       correct_count: state.correctCount,
       wrong_count: state.wrongCount,
       hint_count: state.hintCount,
@@ -2058,12 +2152,71 @@
       interaction_count: state.interactionCount,
       avg_response_time_ms: avgResponseTimeMs,
       completion_rate: totalQuestions > 0 ? Number((completedQuestionCount / totalQuestions).toFixed(2)) : 0,
-      abandoned_at: state.status === "abandoned" ? endedAt.toISOString() : null,
+      abandoned_at: state.status === "abandoned" && state.endedAt ? state.endedAt.toISOString() : null,
+      abandon_reason: state.abandonReason,
+      question_logs: detailed ? state.questionLogs : [],
+      result_detail_json: detailed ? createResultDetailJson() : {}
+    };
+  }
+
+  function createResultPayload() {
+    const startedAt = state.startedAt || new Date();
+    const endedAt = state.endedAt || new Date();
+    const totalQuestions = getTotalQuestions();
+    const completedQuestionCount = state.questionLogs.length;
+    const detailed = runtimeConfig.resultLogLevel !== "summary";
+    const responseTimes = state.questionLogs.map((log) => log.response_time_ms).filter((value) => Number.isFinite(value));
+    const avgResponseTimeMs = responseTimes.length ? Math.round(responseTimes.reduce((sum, value) => sum + value, 0) / responseTimes.length) : 0;
+    const gameResult = createGameResultJson(totalQuestions, completedQuestionCount, avgResponseTimeMs, detailed);
+    const payload = {
+      senior_id: runtimeConfig.seniorId || runtimeConfig.userId || runtimeConfig.anonymousUserId,
+      guardian_id: runtimeConfig.guardianId || null,
+      session_id: runtimeConfig.sessionId,
+      content_id: runtimeConfig.contentId,
+      game_key: runtimeConfig.gameKey,
+      game_version: runtimeConfig.gameVersion,
+      play_source: runtimeConfig.playSource,
+      assignment_id: runtimeConfig.assignmentId || null,
+      alarm_id: runtimeConfig.alarmId || null,
+      schedule_id: runtimeConfig.scheduleId || null,
+      mode: runtimeConfig.mode,
+      difficulty: state.difficultyKey,
+      status: state.status,
+      started_at: startedAt.toISOString(),
+      ended_at: endedAt.toISOString(),
+      duration_ms: Math.max(0, endedAt.getTime() - startedAt.getTime()),
+      game_result: gameResult,
+      game_result_json: gameResult,
+      client_context: createClientContext(),
+      voice_context: createVoiceContext(),
+      config_snapshot: gameResult.config_snapshot,
+      total_questions: totalQuestions,
+      correct_count: state.correctCount,
+      wrong_count: state.wrongCount,
+      hint_count: state.hintCount,
+      retry_count: state.retryCount,
+      pause_count: state.pauseCount,
+      interaction_count: state.interactionCount,
+      avg_response_time_ms: avgResponseTimeMs,
+      completion_rate: gameResult.completion_rate,
+      abandoned_at: gameResult.abandoned_at,
       abandon_reason: state.abandonReason,
       error_code: state.status === "error" ? "GAME_RUNTIME_ERROR" : null,
       error_message: null,
-      question_logs: detailed ? state.questionLogs : [],
-      result_detail_json: detailed ? createResultDetailJson() : {}
+      question_logs: gameResult.question_logs,
+      result_detail_json: gameResult.result_detail_json
+    };
+    return Object.assign(payload, createResultErrorFields(state.status));
+  }
+
+  function createResultErrorFields(status, options = {}) {
+    const isError = status === "error";
+    const errorCode = isError ? options.errorCode || "GAME_RUNTIME_ERROR" : null;
+    return {
+      error_code: errorCode,
+      error_message: isError ? options.errorMessage || null : null,
+      error_phase: isError ? options.errorPhase || null : null,
+      complete_send_failed: errorCode === "COMPLETE_SEND_FAILED"
     };
   }
 
@@ -2132,6 +2285,7 @@
   }
 
   function goHome() {
+    clearOrientationWarningPauseState();
     clearAllTimers();
     stopVoiceGuide();
     Object.assign(state, { phase: "start", question: null, selectedIds: [], wrongSelectedIds: [], collectedItems: [] });
@@ -2236,6 +2390,7 @@
   }
 
   function openPostConditionCheck() {
+    clearOrientationWarningPauseState();
     state.phase = "post-condition";
     state.postCondition.step = 0;
     syncBackgroundMusic();

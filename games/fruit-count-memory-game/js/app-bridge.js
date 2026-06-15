@@ -18,8 +18,14 @@
     contentId: "cognitive_count_fruit_001",
     gameKey: "counting_fruits",
     sessionId: "",
+    seniorId: "",
     userId: "",
     anonymousUserId: "mock-user",
+    guardianId: null,
+    playSource: "manual",
+    assignmentId: null,
+    alarmId: null,
+    scheduleId: null,
     deviceId: "mock-device",
     appVersion: "mock-app",
     gameVersion: "mock-game",
@@ -42,6 +48,8 @@
     previousResult: null,
     previousRecord: null,
     lastResult: null,
+    clientContext: null,
+    voiceContext: null,
     ui: {
       showTimer: true,
       showProgress: true,
@@ -177,8 +185,14 @@
       contentId: readString(merged, "contentId", DEFAULT_MOCK_CONFIG.contentId),
       gameKey: readString(merged, "gameKey", DEFAULT_MOCK_CONFIG.gameKey),
       sessionId: readString(merged, "sessionId", "") || createSessionId(),
+      seniorId: readString(merged, "seniorId", readString(merged, "userId", "")),
       userId: readString(merged, "userId", ""),
       anonymousUserId: readString(merged, "anonymousUserId", readString(merged, "userId", "")),
+      guardianId: readString(merged, "guardianId", "") || null,
+      playSource: readString(merged, "playSource", DEFAULT_MOCK_CONFIG.playSource),
+      assignmentId: readString(merged, "assignmentId", "") || null,
+      alarmId: readString(merged, "alarmId", "") || null,
+      scheduleId: readString(merged, "scheduleId", "") || null,
       deviceId: readString(merged, "deviceId", ""),
       appVersion: readString(merged, "appVersion", ""),
       gameVersion: readString(merged, "gameVersion", ""),
@@ -199,6 +213,8 @@
       previousResult: isPlainObject(merged.previousResult) ? merged.previousResult : DEFAULT_MOCK_CONFIG.previousResult,
       previousRecord: isPlainObject(merged.previousRecord) ? merged.previousRecord : DEFAULT_MOCK_CONFIG.previousRecord,
       lastResult: isPlainObject(merged.lastResult) ? merged.lastResult : DEFAULT_MOCK_CONFIG.lastResult,
+      clientContext: isPlainObject(merged.clientContext) ? merged.clientContext : DEFAULT_MOCK_CONFIG.clientContext,
+      voiceContext: isPlainObject(merged.voiceContext) ? merged.voiceContext : DEFAULT_MOCK_CONFIG.voiceContext,
       ui: isPlainObject(merged.ui) ? merged.ui : DEFAULT_MOCK_CONFIG.ui,
       softFeedbackConfigured: hasExplicitSoftFeedback,
       configSource: typeof configSource === "string" && configSource ? configSource : "unknown",
@@ -337,6 +353,79 @@
     }
   }
 
+  function getQueryValue(name) {
+    if (!global.location || !global.location.search) {
+      return "";
+    }
+    return String(new URLSearchParams(global.location.search).get(name) || "").trim().toLowerCase();
+  }
+
+  function createLocalFallbackConfig() {
+    const modeValues = { standard: true, reminder: true, care: true, ai_assisted: true };
+    const mode = modeValues[getQueryValue("mode")] ? getQueryValue("mode") : "standard";
+    const difficulty = getQueryValue("difficulty") || (mode === "standard" ? null : "easy");
+
+    if (mode === "care" || mode === "ai_assisted") {
+      const fallbackConfig = {
+        mode,
+        difficulty,
+        difficultyKey: difficulty,
+        config: {
+          show_timer: false,
+          show_progress: false,
+          show_score: false,
+          show_difficulty_select: false,
+          show_settings: false,
+          show_how_to_play: false,
+          show_condition_check: false,
+          show_finish_check: false,
+          duration_seconds: 60,
+          reveal_ms: 5000,
+          question_count: 5,
+          choice_count: 2,
+          max_items_to_remember: 4,
+          hint_enabled: true,
+          auto_hint_enabled: true,
+          soft_feedback: true,
+          voice_guide_enabled: true,
+          result_log_level: "detailed"
+        },
+        play_source: mode === "care" ? "care_session" : "ai_recommendation"
+      };
+      if (mode === "ai_assisted") {
+        fallbackConfig.external_input = { enabled: true, source: "app_or_ai" };
+      }
+      return fallbackConfig;
+    }
+
+    return {
+      mode,
+      difficulty,
+      difficultyKey: difficulty,
+      config: {
+        show_timer: true,
+        show_progress: true,
+        show_score: mode === "standard",
+        show_difficulty_select: mode === "standard",
+        show_settings: mode === "standard",
+        show_how_to_play: true,
+        show_condition_check: mode === "standard",
+        show_finish_check: mode === "standard",
+        duration_seconds: 120,
+        reveal_ms: 3000,
+        question_count: 10,
+        choice_count: 4,
+        max_items_to_remember: 7,
+        hint_enabled: true,
+        auto_hint_enabled: false,
+        soft_feedback: false,
+        voice_guide_enabled: true,
+        result_log_level: "detailed"
+      },
+      play_source: mode === "reminder" ? "reminder" : "manual"
+    };
+  }
+
   async function getRuntimeConfig() {
     // TODO: 내부 개발팀에서 확정한 postMessage 메시지명으로 교체
     const inlineConfig = getInlineConfig();
@@ -362,10 +451,16 @@
       return normalizeRuntimeConfig(fileConfig, getFileConfigSource(getActiveConfigUrl()));
     }
 
-    throw createConfigLoadError(getActiveConfigUrl());
+    return normalizeRuntimeConfig(createLocalFallbackConfig(), "local-fallback");
   }
 
   function sendMockMessage(name, payload) {
+    if (global.parent && global.parent !== global && typeof global.parent.postMessage === "function") {
+      global.parent.postMessage({ type: name, payload }, "*");
+    }
+    if (global.opener && !global.opener.closed && typeof global.opener.postMessage === "function") {
+      global.opener.postMessage({ type: name, payload }, "*");
+    }
     // TODO: 결과 JSON schemaVersion 확정 후 필드명 조정
     if (!global.console) {
       return;

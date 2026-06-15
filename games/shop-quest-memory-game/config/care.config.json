@@ -11,7 +11,7 @@
     "show_how_to_play": false,
     "show_condition_check": false,
     "show_finish_check": false,
-    "duration_seconds": 90,
+    "duration_seconds": 60,
     "question_count": 5,
     "max_choice_count": 2,
     "max_items_to_remember": 1,

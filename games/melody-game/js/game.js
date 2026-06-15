@@ -246,10 +246,6 @@
         return;
       }
 
-      if (!this.state.hintShownThisTrial && this.state.noTouchElapsed >= 3) {
-        this.showHint();
-      }
-
       this.render();
     }
 
@@ -298,12 +294,7 @@
       this.state.consecutiveWrong += 1;
       this.flashPad(button, "is-wrong");
 
-      const shouldHint = this.state.consecutiveWrong >= 2;
-      this.showFeedback("아쉬워요! 다시 해볼까요?", "gentle", 1000, () => {
-        if (shouldHint) {
-          this.showHint(true);
-        }
-      });
+      this.showFeedback("아쉬워요! 다시 해볼까요?", "gentle", 1000);
       this.render();
     }
 
@@ -436,13 +427,13 @@
       }
 
       const progressRate = this.state.config.sessionTime > 0
-        ? Math.max(0, Math.round((this.state.sessionRemaining / this.state.config.sessionTime) * 100))
+        ? Math.max(0, Math.min(1, this.state.sessionRemaining / this.state.config.sessionTime))
         : 0;
       const remainingSeconds = Math.max(0, Math.ceil(this.state.sessionRemaining));
       const minutes = String(Math.floor(remainingSeconds / 60)).padStart(2, "0");
       const seconds = String(remainingSeconds % 60).padStart(2, "0");
       this.elements.timeText.textContent = `${minutes}:${seconds}`;
-      this.elements.progressFill.style.width = `${progressRate}%`;
+      this.elements.progressFill.style.transform = `scaleX(${progressRate})`;
 
       if (this.state.currentPrompt) {
         this.elements.promptMessage.textContent = "";

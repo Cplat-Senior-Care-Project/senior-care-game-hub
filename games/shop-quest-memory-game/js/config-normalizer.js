@@ -2,9 +2,20 @@
   "use strict";
 
   const ROOT_FIELD_MAP = Object.freeze({
+    senior_id: "seniorId",
+    user_id: "userId",
+    guardian_id: "guardianId",
     session_id: "sessionId",
     content_id: "contentId",
     game_key: "gameKey",
+    game_version: "gameVersion",
+    play_source: "playSource",
+    assignment_id: "assignmentId",
+    alarm_id: "alarmId",
+    schedule_id: "scheduleId",
+    anonymous_user_id: "anonymousUserId",
+    device_id: "deviceId",
+    app_version: "appVersion",
     question_count: "totalQuestions",
     duration_seconds: "durationSeconds",
     memory_item_count: "memoryItemCount",
@@ -60,6 +71,12 @@
     }
     if (hasConfigValue(config, "external_input") && !hasConfigValue(normalized, "externalInput")) {
       normalized.externalInput = config.external_input;
+    }
+    if (hasConfigValue(config, "client_context") && !hasConfigValue(normalized, "clientContext")) {
+      normalized.clientContext = config.client_context;
+    }
+    if (hasConfigValue(config, "voice_context") && !hasConfigValue(normalized, "voiceContext")) {
+      normalized.voiceContext = config.voice_context;
     }
 
     copyMappedFields(config, normalized, ROOT_FIELD_MAP);

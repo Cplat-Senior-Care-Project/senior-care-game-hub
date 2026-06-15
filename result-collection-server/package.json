@@ -1,0 +1,15 @@
+{
+  "name": "senior-care-result-api",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Lightweight result collection API for Senior Care WebView games.",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "test:samples": "node scripts/smoke-test.js"
+  },
+  "engines": {
+    "node": ">=24"
+  },
+  "license": "UNLICENSED"
+}

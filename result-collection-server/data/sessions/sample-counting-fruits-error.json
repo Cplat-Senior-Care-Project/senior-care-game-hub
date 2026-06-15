@@ -1,0 +1,64 @@
+{
+  "result_id": "fc0d61f1-40f4-49ec-99db-d3907040940a",
+  "session_id": "sample-counting-fruits-error",
+  "senior_id": "senior_001",
+  "content_id": "cognitive_count_fruit_001",
+  "game_key": "counting_fruits",
+  "game_version": "1.0.0",
+  "play_source": "care_session",
+  "status": "error",
+  "saved_to_db": true,
+  "raw_request_json": {
+    "senior_id": "senior_001",
+    "guardian_id": null,
+    "content_id": "cognitive_count_fruit_001",
+    "game_key": "counting_fruits",
+    "game_version": "1.0.0",
+    "session_id": "sample-counting-fruits-error",
+    "play_source": "care_session",
+    "mode": "care",
+    "difficulty": "easy",
+    "status": "error",
+    "started_at": "2026-06-15T12:00:00+09:00",
+    "ended_at": "2026-06-15T12:00:05+09:00",
+    "duration_ms": 5000,
+    "total_questions": 5,
+    "correct_count": 0,
+    "wrong_count": 0,
+    "hint_count": 0,
+    "retry_count": 0,
+    "pause_count": 0,
+    "interaction_count": 0,
+    "avg_response_time_ms": null,
+    "completion_rate": 0,
+    "error_code": "RESOURCE_LOAD_FAILED",
+    "error_message": "Fruit image asset failed to load",
+    "error_phase": "loading",
+    "game_result": {
+      "mode": "care",
+      "difficulty": "easy",
+      "config_snapshot": {
+        "duration_seconds": 60,
+        "question_count": 5,
+        "reveal_ms": 5000
+      },
+      "total_questions": 5,
+      "correct_count": 0,
+      "wrong_count": 0,
+      "hint_count": 0,
+      "completion_rate": 0,
+      "error_code": "RESOURCE_LOAD_FAILED",
+      "error_message": "Fruit image asset failed to load",
+      "question_logs": [],
+      "result_detail_json": {
+        "reveal_ms": 5000,
+        "external_input_used": false
+      }
+    },
+    "client_context": {
+      "platform": "react-native-webview",
+      "timezone": "Asia/Seoul"
+    },
+    "voice_context": null
+  }
+}

@@ -1,0 +1,82 @@
+{
+  "senior_id": "senior_001",
+  "guardian_id": "guardian_001",
+  "content_id": "cognitive_count_fruit_001",
+  "game_key": "counting_fruits",
+  "game_version": "1.0.0",
+  "session_id": "sample-counting-fruits-completed",
+  "play_source": "reminder",
+  "assignment_id": "assign_001",
+  "alarm_id": "alarm_001",
+  "schedule_id": "schedule_001",
+  "mode": "reminder",
+  "difficulty": "easy",
+  "status": "completed",
+  "started_at": "2026-06-15T10:00:00+09:00",
+  "ended_at": "2026-06-15T10:01:24+09:00",
+  "duration_ms": 84000,
+  "total_questions": 10,
+  "correct_count": 8,
+  "wrong_count": 2,
+  "hint_count": 2,
+  "retry_count": 1,
+  "pause_count": 0,
+  "interaction_count": 13,
+  "avg_response_time_ms": 6200,
+  "completion_rate": 1,
+  "game_result": {
+    "mode": "reminder",
+    "difficulty": "easy",
+    "config_snapshot": {
+      "duration_seconds": 120,
+      "question_count": 10,
+      "reveal_ms": 3000,
+      "choice_count": 4,
+      "result_log_level": "detailed"
+    },
+    "total_questions": 10,
+    "correct_count": 8,
+    "wrong_count": 2,
+    "hint_count": 2,
+    "question_logs": [
+      {
+        "question_id": "q1",
+        "question_type": "count_choice",
+        "cognitive_domain": "memory_activity",
+        "difficulty": "easy",
+        "prompt_type": "image",
+        "items_shown": 3,
+        "target_item": "apple",
+        "target_count": 3,
+        "correct_answer": "3",
+        "selected_answer": "3",
+        "is_correct": true,
+        "attempt_count": 1,
+        "hint_used": false,
+        "hint_count": 0,
+        "response_time_ms": 5200,
+        "first_response_time_ms": 3600,
+        "input_type": "touch"
+      }
+    ],
+    "result_detail_json": {
+      "choice_count": 4,
+      "max_items_to_remember": 4,
+      "auto_hint_enabled": false,
+      "reveal_ms": 3000,
+      "difficulty_downshifted": false,
+      "total_touch_miss_count": 0,
+      "external_input_used": false
+    }
+  },
+  "client_context": {
+    "platform": "react-native-webview",
+    "app_version": "1.0.0",
+    "timezone": "Asia/Seoul"
+  },
+  "voice_context": {
+    "voice_profile_id": "voice_guardian_001",
+    "voice_owner_type": "guardian",
+    "voice_owner_id": "guardian_001"
+  }
+}

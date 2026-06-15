@@ -10,9 +10,17 @@
     contentId: "cognitive_shopping_cart_001",
     gameKey: "shopping_cart_memory",
     sessionId: "",
+    seniorId: "",
+    guardianId: null,
+    playSource: "",
+    assignmentId: null,
+    alarmId: null,
+    scheduleId: null,
     userId: "",
     anonymousUserId: "mock-user",
     deviceId: "mock-device",
+    platform: "react-native-webview",
+    timezone: "Asia/Seoul",
     appVersion: "mock-app",
     gameVersion: "1.0.0",
     difficultyKey: null,
@@ -35,6 +43,8 @@
     mode: "standard",
     previousResult: null,
     lastResult: null,
+    clientContext: null,
+    voiceContext: null,
     ui: {
       showTimer: true,
       showProgress: true,
@@ -89,6 +99,10 @@
     return hasConfigValue(source, key) && typeof source[key] === "boolean" ? source[key] : fallback;
   }
 
+  function readNullableString(source, key, fallback = null) {
+    return hasConfigValue(source, key) && typeof source[key] === "string" ? source[key] : fallback;
+  }
+
   function readPositiveInteger(source, key, fallback) {
     if (!hasConfigValue(source, key)) {
       return fallback;
@@ -126,6 +140,20 @@
     return mode !== "standard";
   }
 
+  function getDefaultPlaySource(mode) {
+    if (mode === "standard") return "manual";
+    if (mode === "care") return "care_session";
+    if (mode === "ai_assisted") return "ai_recommendation";
+    return "reminder";
+  }
+
+  function normalizePlaySource(value, mode) {
+    const playSource = typeof value === "string" ? value.trim().toLowerCase() : "";
+    return ["reminder", "manual", "history_replay", "ai_recommendation", "care_session"].includes(playSource)
+      ? playSource
+      : getDefaultPlaySource(mode);
+  }
+
   function normalizeGameMode(value) {
     const mode = typeof value === "string" ? value.trim().toLowerCase() : "";
     return ["standard", "reminder", "care", "ai_assisted"].includes(mode) ? mode : DEFAULT_CONFIG.mode;
@@ -146,9 +174,17 @@
       contentId: readString(merged, "contentId", DEFAULT_CONFIG.contentId),
       gameKey: readString(merged, "gameKey", DEFAULT_CONFIG.gameKey),
       sessionId: readString(merged, "sessionId", "") || createSessionId(),
+      seniorId: readString(merged, "seniorId", readString(merged, "userId", "")),
+      guardianId: readNullableString(merged, "guardianId", null),
+      playSource: normalizePlaySource(readString(merged, "playSource", ""), mode),
+      assignmentId: readNullableString(merged, "assignmentId", null),
+      alarmId: readNullableString(merged, "alarmId", null),
+      scheduleId: readNullableString(merged, "scheduleId", null),
       userId: readString(merged, "userId", ""),
       anonymousUserId: readString(merged, "anonymousUserId", readString(merged, "userId", "")),
       deviceId: readString(merged, "deviceId", ""),
+      platform: readString(merged, "platform", DEFAULT_CONFIG.platform),
+      timezone: readString(merged, "timezone", DEFAULT_CONFIG.timezone),
       appVersion: readString(merged, "appVersion", ""),
       gameVersion: readString(merged, "gameVersion", DEFAULT_CONFIG.gameVersion),
       difficultyKey: readString(merged, "difficultyKey", "") || null,
@@ -171,6 +207,8 @@
       mode,
       ui: isPlainObject(merged.ui) ? deepMerge(DEFAULT_CONFIG.ui, merged.ui) : DEFAULT_CONFIG.ui,
       externalInput: isPlainObject(merged.externalInput) ? merged.externalInput : { enabled: false, source: "none" },
+      clientContext: isPlainObject(merged.clientContext) ? merged.clientContext : null,
+      voiceContext: isPlainObject(merged.voiceContext) ? merged.voiceContext : null,
       configSource: typeof configSource === "string" && configSource ? configSource : "unknown",
       schemaVersion: SCHEMA_VERSION,
       receivedAt: new Date().toISOString()
@@ -236,6 +274,89 @@
     }
   }
 
+  function getQueryValue(name) {
+    if (!global.location || !global.location.search) {
+      return "";
+    }
+    return String(new URLSearchParams(global.location.search).get(name) || "").trim().toLowerCase();
+  }
+
+  function getLocalDifficultyConfig(difficulty, mode) {
+    const key = ["easy", "normal", "hard"].includes(difficulty) ? difficulty : "easy";
+    const reminder = {
+      easy: { maxChoiceCount: 6, maxItemsToRemember: 3 },
+      normal: { maxChoiceCount: 8, maxItemsToRemember: 4 },
+      hard: { maxChoiceCount: 10, maxItemsToRemember: 6 }
+    };
+    const guided = {
+      easy: { maxChoiceCount: 2, maxItemsToRemember: 1 },
+      normal: { maxChoiceCount: 4, maxItemsToRemember: 2 },
+      hard: { maxChoiceCount: 6, maxItemsToRemember: 4 }
+    };
+    return (mode === "reminder" ? reminder : guided)[key];
+  }
+
+  function createLocalFallbackConfig() {
+    const modeValues = { standard: true, reminder: true, care: true, ai_assisted: true };
+    const mode = modeValues[getQueryValue("mode")] ? getQueryValue("mode") : "standard";
+    const difficulty = getQueryValue("difficulty") || (mode === "standard" ? null : "easy");
+
+    if (mode === "standard") {
+      return {
+        mode,
+        difficulty,
+        config: {
+          show_timer: true,
+          show_progress: true,
+          show_score: true,
+          show_difficulty_select: true,
+          show_settings: true,
+          show_how_to_play: true,
+          show_condition_check: true,
+          show_finish_check: true,
+          duration_seconds: 120,
+          question_count: 10,
+          max_choice_count: 4,
+          max_items_to_remember: 3,
+          hint_enabled: true,
+          auto_hint_enabled: false,
+          soft_feedback: false,
+          use_drag: true,
+          voice_guide_enabled: true,
+          result_log_level: "detailed"
+        }
+      };
+    }
+
+    const difficultyConfig = getLocalDifficultyConfig(difficulty, mode);
+    const guidedMode = mode === "care" || mode === "ai_assisted";
+    return {
+      mode,
+      difficulty,
+      difficultyKey: difficulty,
+      config: {
+        show_timer: !guidedMode,
+        show_progress: !guidedMode,
+        show_score: mode === "reminder",
+        show_difficulty_select: false,
+        show_settings: true,
+        show_how_to_play: mode === "reminder",
+        show_condition_check: false,
+        show_finish_check: false,
+        duration_seconds: guidedMode ? 60 : 120,
+        question_count: guidedMode ? 5 : 10,
+        max_choice_count: difficultyConfig.maxChoiceCount,
+        max_items_to_remember: difficultyConfig.maxItemsToRemember,
+        hint_enabled: true,
+        auto_hint_enabled: guidedMode,
+        soft_feedback: guidedMode,
+        use_drag: false,
+        voice_guide_enabled: true,
+        result_log_level: "detailed"
+      }
+    };
+  }
+
   async function getRuntimeConfig() {
     const inlineConfig = getInlineConfig();
     if (inlineConfig) {
@@ -257,7 +378,7 @@
     if (storedConfig) {
       return normalizeRuntimeConfig(storedConfig, "hub-storage");
     }
-    throw createConfigError("CONFIG_LOAD_FAILED", `Runtime config file could not be loaded: ${getActiveConfigUrl()}`);
+    return normalizeRuntimeConfig(createLocalFallbackConfig(), "local-fallback");
   }
 
   function postToNative(type, payload) {

@@ -208,9 +208,173 @@
       line-height: 1.5;
     }
 
+    .result-lab {
+      display: grid;
+      grid-template-columns: minmax(0, 1.15fr) minmax(360px, 0.85fr);
+      gap: 18px;
+      margin-top: 24px;
+      padding: 18px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+      box-shadow: var(--shadow);
+    }
+
+    .result-lab h2,
+    .result-lab h3 {
+      margin: 0;
+      letter-spacing: 0;
+    }
+
+    .result-lab-head {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 14px;
+      margin-bottom: 12px;
+    }
+
+    .result-lab-head p,
+    .result-meta {
+      margin: 6px 0 0;
+      color: var(--muted);
+      font-size: 14px;
+      font-weight: 650;
+      line-height: 1.45;
+    }
+
+    .run-frame-wrap {
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #eef3ea;
+    }
+
+    .run-frame {
+      display: block;
+      width: 100%;
+      aspect-ratio: 16 / 9;
+      min-height: 420px;
+      border: 0;
+      background: #fff;
+    }
+
+    .result-tools {
+      display: grid;
+      gap: 10px;
+    }
+
+    .api-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 8px;
+    }
+
+    .api-row input {
+      min-width: 0;
+      height: 42px;
+      padding: 0 12px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      color: var(--ink);
+      font: inherit;
+      font-size: 14px;
+      font-weight: 650;
+    }
+
+    .tool-button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 42px;
+      padding: 0 14px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      color: var(--ink);
+      background: #f8faf6;
+      font: inherit;
+      font-size: 14px;
+      font-weight: 850;
+      text-decoration: none;
+      cursor: pointer;
+    }
+
+    .tool-button:disabled {
+      color: #8f978c;
+      background: var(--disabled);
+      cursor: not-allowed;
+    }
+
+    .event-log {
+      display: grid;
+      max-height: 250px;
+      overflow: auto;
+      gap: 8px;
+      padding-right: 4px;
+    }
+
+    .event-row {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fbfcfa;
+    }
+
+    .event-row summary {
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr) auto;
+      gap: 10px;
+      align-items: center;
+      padding: 10px 12px;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 850;
+    }
+
+    .event-row pre,
+    .result-json {
+      overflow: auto;
+      margin: 0;
+      padding: 12px;
+      border-top: 1px solid var(--line);
+      color: #203026;
+      background: #f4f7f1;
+      font-size: 12px;
+      line-height: 1.45;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .result-json {
+      max-height: 300px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+    }
+
+    .empty-log {
+      padding: 14px;
+      border: 1px dashed var(--line);
+      border-radius: 8px;
+      color: var(--muted);
+      background: #fbfcfa;
+      font-size: 14px;
+      font-weight: 650;
+      line-height: 1.45;
+    }
+
+    .server-state {
+      min-height: 20px;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 700;
+    }
+
     @media (max-width: 1120px) {
       .games {
         grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .result-lab {
+        grid-template-columns: 1fr;
       }
     }
 
@@ -241,6 +405,14 @@
 
       .mode-grid {
         grid-template-columns: 1fr;
+      }
+
+      .api-row {
+        grid-template-columns: 1fr;
+      }
+
+      .run-frame {
+        min-height: 320px;
       }
     }
   </style>
@@ -341,6 +513,46 @@
       </article>
     </section>
 
+    <section class="result-lab" aria-labelledby="result-lab-title">
+      <div>
+        <div class="result-lab-head">
+          <div>
+            <h2 id="result-lab-title">결과 수집 확인</h2>
+            <p>모드 버튼을 누르면 이 영역에서 게임을 실행하고 완료 이벤트를 수집합니다.</p>
+          </div>
+          <a id="open-current-run" class="tool-button" href="#" target="_blank" rel="noopener" aria-disabled="true">새 창 열기</a>
+        </div>
+        <div class="run-frame-wrap">
+          <iframe id="hub-run-frame" class="run-frame" title="게임 실행 화면"></iframe>
+        </div>
+        <p id="run-meta" class="result-meta">아직 실행한 게임이 없습니다.</p>
+      </div>
+
+      <aside class="result-tools" aria-label="결과 수집 로그">
+        <div>
+          <h3>수집 서버</h3>
+          <p class="result-meta">제출정리/결과수집서버가 실행 중이면 최종 결과를 저장해볼 수 있습니다.</p>
+        </div>
+        <div class="api-row">
+          <input id="result-api-url" type="url" value="http://127.0.0.1:8787/api/game-results" aria-label="결과 수집 API 주소">
+          <button id="save-result-button" class="tool-button" type="button" disabled>서버 저장 확인</button>
+        </div>
+        <div id="server-state" class="server-state" role="status" aria-live="polite"></div>
+
+        <div>
+          <h3>최종 결과</h3>
+          <pre id="latest-result-json" class="result-json">아직 SESSION_COMPLETE / SESSION_ABORT 이벤트가 없습니다.</pre>
+        </div>
+
+        <div>
+          <h3>이벤트 로그</h3>
+          <div id="hub-event-log" class="event-log">
+            <div class="empty-log">게임에서 이벤트가 오면 여기에 표시됩니다.</div>
+          </div>
+        </div>
+      </aside>
+    </section>
+
     <p class="guide">
       새 게임은 허브에 공간을 먼저 마련한 뒤, 실제 실행 파일이 준비되면 버튼 링크만 해당 경로로 연결하면 됩니다.
     </p>
@@ -393,6 +605,245 @@
             });
         });
       });
+    })();
+  </script>
+  <script id="hub-result-collector">
+    (function () {
+      "use strict";
+
+      var frame = document.getElementById("hub-run-frame");
+      var runMeta = document.getElementById("run-meta");
+      var openCurrentRun = document.getElementById("open-current-run");
+      var eventLog = document.getElementById("hub-event-log");
+      var resultJson = document.getElementById("latest-result-json");
+      var apiUrlInput = document.getElementById("result-api-url");
+      var saveResultButton = document.getElementById("save-result-button");
+      var serverState = document.getElementById("server-state");
+      var latestResult = null;
+      var latestResultType = null;
+      var events = [];
+
+      var runtimeConfigStorageKeys = {
+        "fruit-count-memory-game": "fruit-count-memory-game:runtime-config:v2",
+        "shop-quest-memory-game": "shop-quest-memory-game:runtime-config:v1"
+      };
+
+      var eventLabels = {
+        READY: "준비 완료",
+        SESSION_START: "세션 시작",
+        SESSION_COMPLETE: "정상 완료",
+        SESSION_ABORT: "중단 종료",
+        RETURN_TO_APP: "복귀 요청",
+        ERROR: "오류"
+      };
+
+      function fetchRuntimeConfig(configUrl) {
+        return window.fetch(configUrl, { cache: "no-store" }).then(function (response) {
+          if (!response.ok) {
+            throw new Error("Runtime config could not be loaded: " + configUrl);
+          }
+          return response.json();
+        });
+      }
+
+      function clearRuntimeConfig(storageKey) {
+        try {
+          window.sessionStorage.removeItem(storageKey);
+        } catch (error) {}
+      }
+
+      function prepareRuntimeConfig(link) {
+        var storageKey = runtimeConfigStorageKeys[link.dataset.gameKey];
+        var configUrl = link.dataset.configUrl;
+        if (!storageKey || !configUrl || !window.sessionStorage || !window.fetch) {
+          return Promise.resolve();
+        }
+
+        return fetchRuntimeConfig(configUrl)
+          .then(function (config) {
+            window.sessionStorage.setItem(storageKey, JSON.stringify(config));
+          })
+          .catch(function (error) {
+            clearRuntimeConfig(storageKey);
+            if (window.console) {
+              window.console.warn("[hub] failed to prepare runtime config", error);
+            }
+          });
+      }
+
+      function normalizeMessage(raw) {
+        var message = raw;
+        if (typeof message === "string") {
+          try {
+            message = JSON.parse(message);
+          } catch (error) {
+            return null;
+          }
+        }
+        if (message && message.message) {
+          message = message.message;
+        }
+        if (!message || typeof message !== "object" || !message.type) {
+          return null;
+        }
+
+        var payload = message.payload || {};
+        var type = message.type;
+        if (type === "GAME_READY") type = "READY";
+        if (type === "GAME_STARTED") type = "SESSION_START";
+        if (type === "GAME_EXIT_REQUESTED") type = "RETURN_TO_APP";
+        if (type === "GAME_ERROR") type = "ERROR";
+        if (type === "GAME_COMPLETED") {
+          type = payload.status === "abandoned" || payload.status === "error" ? "SESSION_ABORT" : "SESSION_COMPLETE";
+        }
+
+        return {
+          type: type,
+          rawType: message.type,
+          payload: payload
+        };
+      }
+
+      function eventSummary(message) {
+        var payload = message.payload || {};
+        if (message.type === "SESSION_START") {
+          return [payload.game_key || payload.gameId || "", payload.mode || "", payload.difficulty || ""].filter(Boolean).join(" · ");
+        }
+        if (message.type === "SESSION_COMPLETE" || message.type === "SESSION_ABORT") {
+          var logs = payload.question_logs || (payload.result_detail_json && payload.result_detail_json.question_logs) || [];
+          return [payload.status || "", payload.game_key || "", logs.length ? logs.length + "문항" : ""].filter(Boolean).join(" · ");
+        }
+        if (message.type === "ERROR") {
+          return payload.error_code || payload.errorCode || "";
+        }
+        return "";
+      }
+
+      function renderEventLog() {
+        if (!events.length) {
+          eventLog.innerHTML = '<div class="empty-log">게임에서 이벤트가 오면 여기에 표시됩니다.</div>';
+          return;
+        }
+
+        eventLog.innerHTML = "";
+        events.slice().reverse().forEach(function (item, index) {
+          var row = document.createElement("details");
+          var summary = document.createElement("summary");
+          var pre = document.createElement("pre");
+          var label = eventLabels[item.message.type] || item.message.type;
+          var summaryText = eventSummary(item.message);
+          row.className = "event-row";
+          summary.innerHTML = "<span>" + (events.length - index) + "</span><strong>" + label + (summaryText ? " <em>" + summaryText + "</em>" : "") + "</strong><time>" + item.at + "</time>";
+          pre.textContent = JSON.stringify(item.message.payload || {}, null, 2);
+          row.append(summary, pre);
+          eventLog.appendChild(row);
+        });
+      }
+
+      function renderResult() {
+        if (!latestResult) {
+          resultJson.textContent = "아직 SESSION_COMPLETE / SESSION_ABORT 이벤트가 없습니다.";
+          saveResultButton.disabled = true;
+          return;
+        }
+
+        resultJson.textContent = JSON.stringify({ type: latestResultType, payload: latestResult }, null, 2);
+        saveResultButton.disabled = false;
+      }
+
+      function resetRunState() {
+        latestResult = null;
+        latestResultType = null;
+        events = [];
+        serverState.textContent = "";
+        renderResult();
+        renderEventLog();
+      }
+
+      function launchGame(link) {
+        resetRunState();
+        runMeta.textContent = "게임을 불러오는 중입니다.";
+        prepareRuntimeConfig(link).then(function () {
+          frame.src = link.href;
+          openCurrentRun.href = link.href;
+          openCurrentRun.setAttribute("aria-disabled", "false");
+          runMeta.textContent = (link.dataset.gameKey || "game") + " · " + (link.dataset.mode || "mode") + " 실행 중";
+        });
+      }
+
+      document.querySelectorAll(".mode-link").forEach(function (link) {
+        link.addEventListener("click", function (event) {
+          event.preventDefault();
+          event.stopImmediatePropagation();
+          launchGame(link);
+        }, true);
+      });
+
+      window.addEventListener("message", function (event) {
+        if (event.source !== frame.contentWindow) {
+          return;
+        }
+
+        var message = normalizeMessage(event.data);
+        if (!message) {
+          return;
+        }
+
+        events.push({
+          at: new Date().toLocaleTimeString(),
+          message: message
+        });
+
+        if (message.type === "SESSION_COMPLETE" || message.type === "SESSION_ABORT") {
+          latestResult = message.payload || {};
+          latestResultType = message.type;
+          renderResult();
+        }
+
+        renderEventLog();
+      });
+
+      saveResultButton.addEventListener("click", function () {
+        if (!latestResult || !latestResultType) {
+          return;
+        }
+
+        var apiUrl = apiUrlInput.value.trim();
+        if (!apiUrl) {
+          serverState.textContent = "API 주소를 입력해주세요.";
+          return;
+        }
+
+        saveResultButton.disabled = true;
+        serverState.textContent = "저장 요청 중입니다.";
+        window.fetch(apiUrl, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ type: latestResultType, payload: latestResult })
+        })
+          .then(function (response) {
+            return response.json().then(function (body) {
+              return { response: response, body: body };
+            });
+          })
+          .then(function (result) {
+            serverState.textContent = result.response.ok
+              ? "저장 확인 완료: " + JSON.stringify(result.body)
+              : "저장 실패: " + JSON.stringify(result.body);
+          })
+          .catch(function (error) {
+            serverState.textContent = "저장 실패: 결과수집서버 실행 여부와 CORS를 확인해주세요.";
+            if (window.console) {
+              window.console.warn("[hub] result API save failed", error);
+            }
+          })
+          .then(function () {
+            saveResultButton.disabled = !latestResult;
+          });
+      });
+
+      renderResult();
+      renderEventLog();
     })();
   </script>
 </body>
