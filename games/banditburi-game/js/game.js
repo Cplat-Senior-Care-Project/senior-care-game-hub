@@ -1,5 +1,5 @@
     const IMAGES = {"off":"assets/images/image-02-6e6b97b5.png","yellow":"assets/images/image-03-b8c398ec.png","flower":"assets/images/image-04-5ed55c22.png"};
-    const TEXT = {"lang":"마다","title":"빛나는 전구를 찾아라","startIntro":"난이도를 고르면 곧바로 시작됩니다.","start":"시작하기","next":"다음 문제","reset":"홈으로","level":"난이도","high":"HARD","middle":"NORMAL","low":"EASY","choose":"골라주세요.","selecting":"선택","correct":"정답입니다.","wrong":"잘 찾아 보세요. 기억하실 수 있을 거예요.","done":"정말 잘하셨어요.","yellow":"빛나는 전구","offBulb":"불이 꺼진 전구","flower":"무궁화","objectBase":"등장 오브젝트: 불이 꺼진 전구, 빛나는 전구","objectOne":"6번째부터 무궁화가 나와요.","remaining":"남은 개수","round":"진행","time":"남은 시간","pause":"일시정지","resume":"계속하기","restart":"다시 시작하기","paused":"잠시 쉬는 중입니다.","timeUp":"괜찮아요. 다음 문제로 천천히 이어가볼게요.","final":"오늘은 기억력 훈련을 했어요. 끝까지 함께해 주셔서 감사합니다.","chooseDifficulty":"난이도를 골라주세요.","homeConfirm":"초기 화면으로 가시겠습니까?","yes":"네","no":"아니오","wrongLimit":"괜찮아요. 다음 문제로 천천히 넘어가볼게요.","wrongLimitFinal":"괜찮아요. 결과화면으로 넘어가겠습니다."};
+    const TEXT = {"lang":"마다","title":"빛나는 전구를 찾아라","startIntro":"난이도를 고르면 곧바로 시작됩니다.","start":"시작하기","next":"다음 문제","reset":"홈으로","level":"난이도","high":"HARD","middle":"NORMAL","low":"EASY","choose":"골라주세요.","selecting":"선택","correct":"정답입니다.","wrong":"잘 찾아 보세요. 기억하실 수 있을 거예요.","done":"정말 잘하셨어요.","yellow":"빛나는 전구","offBulb":"불이 꺼진 전구","flower":"무궁화","objectBase":"등장 오브젝트: 불이 꺼진 전구, 빛나는 전구","objectOne":"모든 라운드에서 빛나는 전구를 찾아요.","remaining":"남은 개수","round":"진행","time":"남은 시간","pause":"일시정지","resume":"계속하기","restart":"다시 시작하기","paused":"잠시 쉬는 중입니다.","timeUp":"괜찮아요. 다음 문제로 천천히 이어가볼게요.","final":"오늘은 기억력 훈련을 했어요. 끝까지 함께해 주셔서 감사합니다.","chooseDifficulty":"난이도를 골라주세요.","homeConfirm":"초기 화면으로 가시겠습니까?","yes":"네","no":"아니오","wrongLimit":"괜찮아요. 다음 문제로 천천히 넘어가볼게요.","wrongLimitFinal":"괜찮아요. 결과화면으로 넘어가겠습니다."};
 
     const svgData = (svg) => `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
     const THEME_IMAGES = {
@@ -109,7 +109,8 @@
         auto_return: false,
         soft_feedback: false,
         voice_guide_enabled: true,
-        music_volume: 70,
+        repeat_voice_guide: false,
+        music_volume: 35,
         effect_volume: 100,
         voice_volume: 100,
         high_contrast: false,
@@ -306,7 +307,7 @@
     let musicEnabled = true;
     let soundEnabled = true;
     let voiceEnabled = true;
-    let musicVolume = 0.72;
+    let musicVolume = 0.35;
     let soundVolume = 1;
     let voiceVolume = 1;
     const sleepHourOptions = [4, 5, 6, 7, 8, 9, 10, 11, 12];
@@ -351,6 +352,7 @@
     playMusic.loop = false;
     playMusic.volume = musicVolume;
     let currentMusicMode = "";
+    const spokenScreenGuideKeys = new Set();
 
     function normalizeVolume(value, fallback = 1) {
       const parsed = Number(value);
@@ -368,12 +370,8 @@
       return copy;
     }
 
-    function targetPool(roundNumber = currentRound) {
-      const pool = ["yellow"];
-      if (currentDifficulty === "high" && roundNumber > 5) {
-        pool.push("flower");
-      }
-      return pool;
+    function targetPool() {
+      return ["yellow"];
     }
 
     function distractorPool(roundNumber = currentRound) {
@@ -393,17 +391,10 @@
     function updateGuide() {
       const setting = difficultySettings[currentDifficulty];
       guideTitle.textContent = "안내";
-      if (currentDifficulty === "high") {
-        guideText.textContent = `4 x 4 격자에서\n${setting.targetCount}개를 찾아요.\n\n${TEXT.objectOne}`;
-        return;
-      }
-      guideText.textContent = `${setting.gridSize} x ${setting.gridSize} 격자에서\n${objectTypes.yellow.label} ${setting.targetCount}개를 찾아요.`;
+      guideText.textContent = `${setting.gridSize} x ${setting.gridSize} 격자에서\n빛나는 전구 ${setting.targetCount}개를 찾아요.`;
     }
 
     function targetPhrase(count) {
-      if (targetType === "flower") return `빛나는 무궁화 ${count}송이`;
-      if (currentTheme === "bird") return `빛나는 새 ${count}마리`;
-      if (currentTheme === "phone") return `빛나는 휴대폰 ${count}개`;
       return `빛나는 전구 ${count}개`;
     }
 
@@ -511,8 +502,29 @@
         .replace(/10\s*번째/g, "열 번째");
     }
 
+    function screenGuideKeyForText(text) {
+      const value = String(text || "");
+      if (value.includes("설정 화면입니다")) return "settings";
+      if (value.includes("테마를 골라주세요")) return "theme";
+      if (value.includes("게임을 시작하기 전에 오늘의 기분과 수면시간")) return "preCheckin";
+      if (value.includes("난이도를 골라주세요")) return "difficulty";
+      if (value.includes("마무리 상태를 선택")) return "finishStatus";
+      if (value.includes("마지막으로 도움이 필요")) return "postHelp";
+      return "";
+    }
+
+    function shouldSkipRepeatedScreenGuide(text) {
+      const key = screenGuideKeyForText(text);
+      if (!key) return false;
+      if (appliedGameConfig.repeat_voice_guide === true) return false;
+      if (spokenScreenGuideKeys.has(key)) return true;
+      spokenScreenGuideKeys.add(key);
+      return false;
+    }
+
     function speakGuide(text, interrupt = true) {
       if (!voiceEnabled || !("speechSynthesis" in window) || !text) return;
+      if (shouldSkipRepeatedScreenGuide(text)) return;
       const cleanText = normalizeVoiceText(text).replace(/[_<>]/g, "").replace(/\s+/g, " ").trim();
       if (!cleanText) return;
       if (interrupt) window.speechSynthesis.cancel();
@@ -740,7 +752,7 @@
           targetCountPerRound: difficultySettings[currentDifficulty].targetCount,
           timeLimitSec: roundTimeLimit,
           maxWrongPerRound: 3,
-          flowerEnabledFromRound: currentDifficulty === "high" ? 6 : null,
+          targetPolicy: "bulb_only",
           rounds: telemetry.rounds,
         },
         ...extra,
@@ -910,6 +922,10 @@
 
     function applyModeUi() {
       document.body.dataset.mode = gameMode;
+      document.body.classList.toggle("mode-care", gameMode === "care");
+      document.body.classList.toggle("mode-reminder", gameMode === "reminder");
+      document.body.classList.toggle("mode-ai-assisted", gameMode === "ai_assisted");
+      document.body.classList.toggle("mode-soft-feedback", Boolean(appliedGameConfig.soft_feedback));
       document.body.classList.toggle("mode-high-contrast", Boolean(appliedGameConfig.high_contrast));
       setElementVisible(timeText.closest(".stat"), appliedGameConfig.show_timer);
       setElementVisible(roundText.closest(".stat"), appliedGameConfig.show_score);
@@ -918,6 +934,7 @@
       setElementVisible(introHowToButton, appliedGameConfig.show_how_to_play);
       setElementVisible(howToButton, appliedGameConfig.show_how_to_play);
       setElementVisible(hintButton, appliedGameConfig.hint_enabled);
+      setElementVisible(themeOpenButton, false);
       setElementVisible(musicToggleButton, appliedGameConfig.show_settings);
       setElementVisible(effectToggleButton, appliedGameConfig.show_settings);
       setElementVisible(voiceToggleButton, appliedGameConfig.show_settings);
@@ -991,11 +1008,11 @@
 
     window.__reloadGameConfig = reloadRuntimeConfigIfChanged;
 
-    function applyTheme(theme) {
-      currentTheme = theme;
+    function applyTheme() {
+      currentTheme = "bulb";
       document.body.classList.remove("theme-bulb", "theme-bird", "theme-phone");
-      document.body.classList.add(`theme-${theme}`);
-      const selected = THEME_IMAGES[theme];
+      document.body.classList.add("theme-bulb");
+      const selected = THEME_IMAGES.bulb;
       objectTypes.yellow.label = selected.label;
       objectTypes.yellow.src = selected.on;
       objectTypes.off.label = selected.offLabel;
@@ -1056,7 +1073,7 @@
         if (type && type !== "off" && !isChosenAnswer) cell.classList.add(`object-${type}`);
         if (isChosenAnswer) cell.classList.add("correct");
         if (isWrongChoice) cell.classList.add("wrong");
-        cell.disabled = mode === "preview" || !roundActive;
+        cell.disabled = mode === "preview" || mode === "hint" || !roundActive;
 
         const labelType = type || "off";
         cell.setAttribute("aria-label", objectTypes[labelType].label);
@@ -1552,12 +1569,7 @@
       currentRound = nextRound;
       startRoundTelemetry(currentRound);
       updateRoundDisplay();
-      if (currentDifficulty === "high" && currentRound > 5) {
-        guideTitle.textContent = "안내";
-        guideText.textContent = `${objectTypes[targetType].label}를 골라주세요.`;
-      } else {
-        updateGuide();
-      }
+      updateGuide();
       roundActive = false;
       isPreviewing = true;
       isHinting = false;
@@ -1578,7 +1590,7 @@
     }
 
     function chooseCell(index) {
-      if (!roundActive || isPreviewing || isPaused) return;
+      if (!roundActive || isPreviewing || isHinting || isPaused) return;
       const cell = board.children[index];
       if (cell.classList.contains("correct") || cell.classList.contains("wrong")) return;
 
@@ -1739,18 +1751,18 @@
       if (roundTelemetry) roundTelemetry.hintCount += 1;
       clearHintTimer();
       isHinting = true;
-      currentPhase = "playing";
-      roundActive = true;
+      currentPhase = "hint";
+      roundActive = false;
       startButton.classList.add("is-hidden");
       startButton.disabled = true;
       hintButton.disabled = true;
       setPauseReady(true);
       hintSecondsLeft = 5;
       const updateHintMessage = () => {
-        message.textContent = `힌트입니다. 남은 정답이 깜박입니다. ${hintSecondsLeft}초 안에도 고를 수 있어요.`;
+        message.textContent = `힌트입니다. 남은 정답이 깜박입니다. ${hintSecondsLeft}초 뒤 다시 골라주세요.`;
       };
       updateHintMessage();
-      speakGuide("힌트입니다. 아직 고르지 않은 정답 위치가 깜박입니다. 지금 눌러도 선택됩니다.");
+      speakGuide("힌트입니다. 아직 고르지 않은 정답 위치가 깜박입니다. 힌트가 끝난 뒤 다시 골라주세요.");
       renderBoard("hint");
       hintCountdownTimer = setInterval(() => {
         if (isPaused) return;
@@ -1791,20 +1803,20 @@
         currentPhase = "playing";
         isHinting = true;
         renderBoard("hint");
-        message.textContent = `힌트입니다. 남은 정답이 깜박입니다. ${hintSecondsLeft}초 안에도 고를 수 있어요.`;
-        speakGuide("계속합니다. 힌트를 보고 고르셔도 괜찮아요.");
+        message.textContent = `힌트입니다. 남은 정답이 깜박입니다. ${hintSecondsLeft}초 뒤 다시 골라주세요.`;
+        speakGuide("계속합니다. 힌트가 끝난 뒤 다시 골라주세요.");
         return;
       }
       if (isHinting) {
         currentPhase = "playing";
         roundActive = true;
         renderBoard("hint");
-        message.textContent = `힌트입니다. 남은 정답이 깜박입니다. ${hintSecondsLeft}초 안에도 고를 수 있어요.`;
-        speakGuide("계속합니다. 힌트를 보고 고르셔도 괜찮아요.");
+        message.textContent = `힌트입니다. 남은 정답이 깜박입니다. ${hintSecondsLeft}초 뒤 다시 골라주세요.`;
+        speakGuide("계속합니다. 힌트가 끝난 뒤 다시 골라주세요.");
         return;
       }
-      currentPhase = "playing";
-      roundActive = true;
+      currentPhase = "hint";
+      roundActive = false;
       startButton.classList.add("is-hidden");
       startButton.disabled = true;
       hintButton.disabled = false;
@@ -1869,7 +1881,7 @@
     introStartButton.addEventListener("click", showCheckinScreen);
     introSettingsButton.addEventListener("click", () => {
       settingsModal.classList.add("open");
-      speakGuide("설정 화면입니다. 테마, 음악, 효과음, 음성 안내를 바꿀 수 있습니다.");
+      speakGuide("설정 화면입니다. 음악, 효과음, 음성 안내를 바꿀 수 있습니다.");
     });
     introHowToButton.addEventListener("click", () => {
       openTutorial("intro");
@@ -1881,7 +1893,7 @@
     themeOpenButton.addEventListener("click", () => {
       settingsModal.classList.remove("open");
       themeModal.classList.add("open");
-      speakGuide("테마를 골라주세요. 전구, 새, 휴대폰 중에서 고를 수 있습니다.");
+      speakGuide("이 게임은 빛나는 전구로 진행됩니다.");
     });
     settingsBackButton.addEventListener("click", () => {
       settingsModal.classList.remove("open");

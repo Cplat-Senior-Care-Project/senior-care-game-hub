@@ -5866,3 +5866,54 @@ body.mode-ai-assisted .board {
     linear-gradient(145deg, #dff4c9 0%, #a9d783 52%, #6bae62 100%) !important;
   border-color: #276f40 !important;
 }
+
+/* Requirements feedback pass: AI-assisted mode should be a single, low-clutter task surface. */
+body.mode-ai-assisted {
+  height: 100dvh !important;
+  min-height: 100dvh !important;
+  overflow: hidden !important;
+}
+
+body.mode-ai-assisted .app {
+  width: 100% !important;
+  height: 100dvh !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  grid-template-columns: minmax(0, 1fr) !important;
+  grid-template-rows: minmax(0, 1fr) !important;
+  padding:
+    max(8px, env(safe-area-inset-top))
+    max(8px, env(safe-area-inset-right))
+    max(8px, env(safe-area-inset-bottom))
+    max(8px, env(safe-area-inset-left)) !important;
+  overflow: hidden !important;
+}
+
+body.mode-ai-assisted .panel {
+  display: none !important;
+}
+
+body.mode-ai-assisted .board-wrap:not(.result-mode) {
+  width: 100% !important;
+  height: 100% !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  overflow: hidden !important;
+}
+
+body.mode-ai-assisted .message {
+  width: min(100%, 900px) !important;
+  max-width: 100% !important;
+  min-height: clamp(54px, 10dvh, 96px) !important;
+  padding: clamp(8px, 1.8dvh, 18px) clamp(12px, 3vw, 24px) !important;
+  font-size: clamp(20px, min(5vw, 5.2dvh), 34px) !important;
+  line-height: 1.16 !important;
+  overflow: visible !important;
+}
+
+body.mode-ai-assisted .board {
+  width: min(100%, calc(100dvh - 150px), 620px) !important;
+  max-width: 100% !important;
+  height: auto !important;
+  aspect-ratio: 1 / 1 !important;
+}

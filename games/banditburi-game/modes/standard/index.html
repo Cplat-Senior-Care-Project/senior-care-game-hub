@@ -110,7 +110,7 @@
     <div class="modal-card">
       <h2 id="settingsTitle">설정하기</h2>
       <div class="settings-actions">
-        <button id="themeOpenButton" class="primary" type="button">테마 변경하기</button>
+        <button id="themeOpenButton" class="primary" type="button" hidden>전구 테마 고정</button>
         <button id="musicToggleButton" type="button">음악 On</button>
         <button id="effectToggleButton" type="button">효과음 On</button>
         <button id="voiceToggleButton" type="button">음성안내 On</button>
@@ -122,11 +122,9 @@
 
   <div id="themeModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="themeTitle">
     <div class="modal-card">
-      <h2 id="themeTitle">테마를 골라주세요.</h2>
+      <h2 id="themeTitle">전구 테마로 진행됩니다.</h2>
       <div class="theme-actions">
         <button type="button" data-theme-option="bulb">전구</button>
-        <button type="button" data-theme-option="bird">새</button>
-        <button type="button" data-theme-option="phone">휴대폰</button>
       </div>
       <div class="modal-actions single-action" style="margin-top: 18px;">
         <button id="themeBackButton" type="button">설정으로 돌아가기</button>

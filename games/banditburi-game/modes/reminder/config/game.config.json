@@ -28,8 +28,7 @@
       "targetCount": 4,
       "roundCount": 10,
       "timeLimitSec": 0,
-      "totalTimeLimitSec": 360,
-      "flowerStartsFromRound": 6
+      "totalTimeLimitSec": 360
     }
   },
   "runtimeConfig": {
@@ -52,11 +51,13 @@
     "auto_return_url": "file:///C:/Users/juhye/OneDrive/Desktop/senior-care-game-hub/index.html",
     "soft_feedback": false,
     "voice_guide_enabled": true,
-    "music_volume": 70,
+    "music_volume": 35,
     "effect_volume": 100,
     "voice_volume": 100,
     "high_contrast": false,
-    "result_log_level": "summary"
+    "result_log_level": "summary",
+    "repeat_voice_guide": false
   },
-  "runtimeConfigNote": "이 파일의 runtimeConfig 값을 수정하면 알림 모드 실행에 반영됩니다."
+  "runtimeConfigNote": "이 파일의 runtimeConfig 값을 수정하면 알림 모드 실행에 반영됩니다.",
+  "thumbnail": "../../assets/images/thumbnail-4x3.png"
 }

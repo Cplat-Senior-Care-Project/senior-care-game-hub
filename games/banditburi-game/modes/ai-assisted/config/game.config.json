@@ -25,15 +25,14 @@
       "gridSize": 4,
       "targetCount": 4,
       "roundCount": 10,
-      "timeLimitSec": 60,
-      "flowerStartsFromRound": 6
+      "timeLimitSec": 60
     }
   },
   "runtimeConfig": {
     "show_timer": false,
     "show_score": false,
     "show_difficulty_select": false,
-    "show_settings": true,
+    "show_settings": false,
     "show_how_to_play": false,
     "show_condition_check": false,
     "show_finish_check": false,
@@ -43,7 +42,7 @@
     "target_count": 1,
     "exposure_time_ms": 8000,
     "round_time_limit_sec": 0,
-    "total_time_limit_sec": 240,
+    "total_time_limit_sec": 180,
     "hint_enabled": true,
     "auto_start": false,
     "auto_hint_enabled": true,
@@ -54,10 +53,12 @@
     "flash_effect_level": "low",
     "high_contrast": true,
     "voice_guide_enabled": true,
-    "music_volume": 70,
+    "music_volume": 35,
     "effect_volume": 100,
     "voice_volume": 100,
-    "result_log_level": "detailed"
+    "result_log_level": "detailed",
+    "repeat_voice_guide": false
   },
-  "runtimeConfigNote": "이 파일의 runtimeConfig 값을 수정하면 AI 연동 모드 실행에 반영됩니다."
+  "runtimeConfigNote": "이 파일의 runtimeConfig 값을 수정하면 AI 연동 모드 실행에 반영됩니다.",
+  "thumbnail": "../../assets/images/thumbnail-4x3.png"
 }
