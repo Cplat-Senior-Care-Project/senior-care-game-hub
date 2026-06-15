@@ -481,6 +481,10 @@
     sendMockMessage("GAME_COMPLETED", result);
   }
 
+  function sendGameAbandonedResult(result) {
+    sendMockMessage("GAME_ABANDONED", result);
+  }
+
   function sendGameExit(payload) {
     sendMockMessage("GAME_EXIT_REQUESTED", payload);
   }
@@ -498,6 +502,7 @@
     sendGameReady,
     sendGameStarted,
     sendGameCompleteResult,
+    sendGameAbandonedResult,
     sendGameExit,
     sendGameErrorResult,
 
@@ -506,6 +511,7 @@
     sendReady: sendGameReady,
     sendStarted: sendGameStarted,
     sendComplete: sendGameCompleteResult,
+    sendAbandoned: sendGameAbandonedResult,
     sendExit: sendGameExit,
     exitGame: sendGameExit,
     closeGame: sendGameExit,

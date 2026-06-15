@@ -523,17 +523,64 @@ function appendEvent(row, duplicate) {
   }) + "\n");
 }
 
-function listResults() {
+function listResults(searchParams = new URLSearchParams()) {
+  const filters = [];
+  const params = [];
+  const filterFields = [
+    "senior_id",
+    "guardian_id",
+    "content_id",
+    "game_key",
+    "game_version",
+    "play_source",
+    "status",
+    "mode",
+    "difficulty",
+    "assignment_id",
+    "alarm_id",
+    "schedule_id",
+  ];
+
+  for (const field of filterFields) {
+    const value = searchParams.get(field);
+    if (value) {
+      filters.push(`${field} = ?`);
+      params.push(value);
+    }
+  }
+
+  const startedFrom = searchParams.get("started_from") || searchParams.get("date_from");
+  const startedTo = searchParams.get("started_to") || searchParams.get("date_to");
+  if (startedFrom) {
+    filters.push("started_at >= ?");
+    params.push(startedFrom);
+  }
+  if (startedTo) {
+    filters.push("started_at <= ?");
+    params.push(startedTo);
+  }
+
+  const limit = normalizeListLimit(searchParams.get("limit"));
+  params.push(limit);
+
+  const where = filters.length ? `WHERE ${filters.join(" AND ")}` : "";
   const rows = db.prepare(`
     SELECT id, senior_id, guardian_id, content_id, game_key, game_version, session_id,
            play_source, mode, difficulty, status, started_at, ended_at, duration_ms,
            total_questions, correct_count, wrong_count, hint_count, created_at
       FROM game_play_results
+     ${where}
      ORDER BY created_at DESC
-     LIMIT 200
-  `).all();
+     LIMIT ?
+  `).all(...params);
 
   return rows.map(rowToPublicSummary);
+}
+
+function normalizeListLimit(value) {
+  const parsed = Number(value || 200);
+  if (!Number.isFinite(parsed)) return 200;
+  return Math.min(Math.max(Math.trunc(parsed), 1), 500);
 }
 
 function rowToPublicSummary(row) {
@@ -648,7 +695,7 @@ async function handle(req, res) {
   }
 
   if (req.method === "GET" && isGameResultsCollectionPath(url.pathname)) {
-    return send(res, 200, { ok: true, results: listResults() });
+    return send(res, 200, { ok: true, results: listResults(url.searchParams) });
   }
 
   const sessionId = parseGameResultSessionPath(url.pathname);

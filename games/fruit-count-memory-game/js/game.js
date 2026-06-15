@@ -3026,6 +3026,36 @@
     }
   }
 
+  function sendGameAbandoned(result) {
+    const abandonedMethods = ["sendGameAbandonedResult", "sendAbandoned"];
+    const completeFallbackMethods = ["sendGameCompleteResult", "sendComplete"];
+    const bridge = getAppBridge();
+    const hasAbandonedMethod = bridge && abandonedMethods.some((name) => typeof bridge[name] === "function");
+    const hasFallbackMethod = bridge && completeFallbackMethods.some((name) => typeof bridge[name] === "function");
+    telemetryState.resultSent = true;
+    const sent = sendBridgeEvent(abandonedMethods, result, "ABANDONED_SEND_FAILED");
+    if (sent) {
+      return;
+    }
+
+    const fallbackSent = sendBridgeEvent(completeFallbackMethods, result, "ABANDONED_SEND_FAILED");
+    if (!fallbackSent && !hasAbandonedMethod && !hasFallbackMethod) {
+      reportAppError("ABANDONED_SEND_FAILED", createGameError(
+        "ABANDONED_SEND_FAILED",
+        "Failed to send abandoned result to app bridge."
+      ));
+    }
+  }
+
+  function sendGameResult(result) {
+    if (result && result.status === "abandoned") {
+      sendGameAbandoned(result);
+      return;
+    }
+
+    sendGameComplete(result);
+  }
+
   function sendGameExit(payload) {
     return sendBridgeEvent(["sendGameExit", "sendExit", "exitGame", "closeGame"], payload, "EXIT_SEND_FAILED");
   }
@@ -3106,7 +3136,7 @@
       finalizeCurrentQuestion("quit", false);
     }
     endTelemetrySession(reason || "unknown");
-    sendGameComplete(createResultPayload("abandoned", {
+    sendGameAbandoned(createResultPayload("abandoned", {
       abandonReason: getAbandonReason(reason || "unknown")
     }));
   }
@@ -4697,7 +4727,7 @@
     }
 
     try {
-      sendGameComplete(createCompleteResult(resultTotal, rate));
+      sendGameResult(createCompleteResult(resultTotal, rate));
     } catch (error) {
       handleFatalError("RESULT_CREATE_FAILED", error);
       return;
