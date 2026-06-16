@@ -39,13 +39,27 @@
 
     [
       "session_id", "content_id", "senior_id", "guardian_id",
-      "assignment_id", "alarm_id", "play_source", "voice_id",
-      "voice_owner_type", "voice_owner_id",
+      "assignment_id", "alarm_id", "schedule_id", "play_source",
+      "voice_id", "voice_profile_id", "voice_owner_type", "voice_owner_id",
+      "device_id", "platform", "app_version", "timezone",
+      "user_id", "anonymous_user_id",
+      "tenant_id", "facility_id", "program_id", "reward_id", "recommendation_id",
     ].forEach(key => {
       if (params.has(key)) config[key] = params.get(key);
     });
 
-    ["show_condition_check", "show_settings", "show_how_to_play", "show_timer", "show_score",
+    [
+      ["client_context", "client_context"],
+      ["clientContext", "client_context"],
+      ["voice_context", "voice_context"],
+      ["voiceContext", "voice_context"],
+    ].forEach(([paramName, configKey]) => {
+      if (!params.has(paramName)) return;
+      const parsed = parseConfigParam(params.get(paramName));
+      if (Object.keys(parsed).length) config[configKey] = parsed;
+    });
+
+    ["show_condition_check", "show_finish_check", "show_settings", "show_how_to_play", "show_timer", "show_score",
       "show_difficulty_select", "show_pause", "show_hint", "show_question_counter",
       "background_music_enabled", "sound_effect_enabled", "voice_guide_enabled",
       "auto_start", "auto_return_to_hub"].forEach(key => {
@@ -68,7 +82,7 @@
 
   function normalizeConfig(config) {
     const normalized = Object.assign({}, config);
-    ["show_condition_check", "show_settings", "show_how_to_play", "show_timer", "show_score",
+    ["show_condition_check", "show_finish_check", "show_settings", "show_how_to_play", "show_timer", "show_score",
       "show_difficulty_select", "show_pause", "show_hint", "show_question_counter",
       "background_music_enabled", "sound_effect_enabled", "voice_guide_enabled",
       "auto_start", "auto_return_to_hub"].forEach(key => {
@@ -135,6 +149,7 @@
       show_how_to_play: false,
       show_timer: false,
       show_score: false,
+      show_finish_check: false,
       show_difficulty_select: false,
       show_pause: false,
       show_question_counter: false,
@@ -156,6 +171,7 @@
       show_how_to_play: false,
       show_timer: false,
       show_score: false,
+      show_finish_check: false,
       show_difficulty_select: false,
       show_pause: false,
       background_music_enabled: true,
@@ -187,7 +203,7 @@ const DEFAULT_CONFIG = {
   show_difficulty_select:true, show_pause:true, show_hint:true, show_question_counter:true,
   background_music_enabled:true, sound_effect_enabled:true, voice_guide_enabled:true,
   soft_feedback:false,
-  show_condition_check:true, default_mood:null, default_sleep_hours:null,
+  show_condition_check:true, show_finish_check:true, default_mood:null, default_sleep_hours:null,
   auto_start:false, auto_return_to_hub:false, play_source:"manual",
   time_limit_sec:180, game_key:window.GAME_KEY || "what_fits_where", game_version:window.GAME_VERSION || "1.0.0",
 };
@@ -226,12 +242,12 @@ const COGNITIVE_AREAS = {
   guess_situation: ["언어·의미 활동","기억 활동","집중 활동"],
 };
 const SIT_CHOICES = {easy:3, normal:4, hard:6};
-const PRAISE_PICK = ["잘 고르셨어요.","좋아요. 필요한 물건이에요.","맞아요. 잘 챙겼어요."];
-const PRAISE_REMOVE = ["잘 찾았어요.","좋아요. 어울리지 않는 물건이에요.","맞아요. 빼는 게 좋아요."];
-const PRAISE_SIT = ["맞아요. 이 상황에 잘 어울려요.","좋아요. 잘 추론하셨어요.","정확해요."];
-const SOFT_WRONG_PICK = ["다시 한 번 살펴볼까요?","다른 물건도 살펴봐요.","천천히 골라보세요."];
-const SOFT_WRONG_REMOVE = ["이 물건은 이 상황에 필요해요.","다른 물건을 살펴봐요.","다시 한 번 살펴볼까요?"];
-const SOFT_WRONG_SIT = ["어떤 상황에서 쓰는 물건인지 다시 생각해봐요.","다른 상황도 살펴볼까요?"];
+const PRAISE_PICK = ["잘 고르셨어요.","좋아요. 잘 찾았어요.","맞아요."];
+const PRAISE_REMOVE = ["잘 찾았어요.","좋아요.","맞아요."];
+const PRAISE_SIT = ["맞아요.","좋아요.","잘 고르셨어요."];
+const SOFT_WRONG_PICK = ["천천히 골라보세요."];
+const SOFT_WRONG_REMOVE = ["천천히 골라보세요."];
+const SOFT_WRONG_SIT = ["천천히 골라보세요."];
 const pickMsg = arr => arr[(Math.random()*arr.length)|0];
 
 const GAME_TIME_LIMIT = 180;
@@ -240,7 +256,7 @@ const AUTO_HINT_DELAY_MS = 20000;
 /* ===== CONDITION CHECK CONFIG ===== */
 
 const SLEEP_STEPS = [
-  {range:"4_or_less", hours:4, label:"4시간 이하"},
+  {range:"4", hours:4, label:"4시간"},
   {range:"5",         hours:5, label:"5시간"},
   {range:"6",         hours:6, label:"6시간"},
   {range:"7",         hours:7, label:"7시간"},
@@ -248,7 +264,7 @@ const SLEEP_STEPS = [
   {range:"9",         hours:9, label:"9시간"},
   {range:"10",        hours:10, label:"10시간"},
   {range:"11",        hours:11, label:"11시간"},
-  {range:"12_or_more", hours:12, label:"12시간 이상"},
+  {range:"12", hours:12, label:"12시간"},
 ];
 
 /* ===== HELP CONFIG ===== */

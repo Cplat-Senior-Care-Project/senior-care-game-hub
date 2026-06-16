@@ -2,6 +2,26 @@ const $ = id => document.getElementById(id);
 const shuffle = a => {const x=a.slice();for(let i=x.length-1;i>0;i--){const j=(Math.random()*(i+1))|0;[x[i],x[j]]=[x[j],x[i]]}return x};
 const pick = (arr,n) => shuffle(arr).slice(0,n);
 
+const STAGE_WIDTH = 1280;
+const STAGE_HEIGHT = 720;
+
+function updateStageScale(){
+  const viewport = window.visualViewport;
+  const width = viewport ? viewport.width : window.innerWidth;
+  const height = viewport ? viewport.height : window.innerHeight;
+  const scale = Math.min(width / STAGE_WIDTH, height / STAGE_HEIGHT);
+  document.documentElement.style.setProperty("--stage-scale", Math.max(0.1, scale).toFixed(4));
+}
+
+window.__updateStageScale = updateStageScale;
+updateStageScale();
+window.addEventListener("resize", updateStageScale);
+window.addEventListener("orientationchange", updateStageScale);
+if(window.visualViewport){
+  window.visualViewport.addEventListener("resize", updateStageScale);
+  window.visualViewport.addEventListener("scroll", updateStageScale);
+}
+
 const state = {
   mode:null, diff:null, diffSource:"user_selected",
   queue:[], qIndex:0,
@@ -19,7 +39,7 @@ const state = {
   current:null,
   endedByUser:false, timeOver:false,
   timerId:null, timerLeft:0, paused:false,
-  advanceTimer:null, autoHintTimer:null,
+  advanceTimer:null, autoHintTimer:null, feedbackTimer:null, feedbackToken:0,
   lastResult:null,
 };
 state.conditionData = null;
@@ -48,10 +68,96 @@ function getConfigSnapshot(){
   return JSON.parse(JSON.stringify(Object.assign({}, cfg, {
     mode: getAppMode(),
     difficulty: state.diff || cfg.default_difficulty || "easy",
-    game_key: cfg.game_key || window.GAME_KEY || "what_fits_where",
-    game_version: cfg.game_version || window.GAME_VERSION || "1.0.0",
+    content_id: getContentIdForResult(cfg),
+    game_key: getGameKeyForResult(cfg),
+    game_version: getGameVersionForResult(cfg),
     session_id: getSessionId(),
   })));
+}
+
+function parseObjectConfig(value){
+  if(!value) return null;
+  if(typeof value === "object" && !Array.isArray(value)) return Object.assign({}, value);
+  if(typeof value !== "string") return null;
+  try{
+    const parsed = JSON.parse(value);
+    return parsed && typeof parsed === "object" && !Array.isArray(parsed) ? parsed : null;
+  }catch(e){
+    return null;
+  }
+}
+
+function getConfigObject(cfg, snakeKey, camelKey){
+  return parseObjectConfig(cfg && (cfg[snakeKey] || cfg[camelKey])) || {};
+}
+
+function getConfigValue(cfg, snakeKey, camelKey, fallback = null){
+  if(cfg && cfg[snakeKey] !== undefined && cfg[snakeKey] !== null && cfg[snakeKey] !== "") return cfg[snakeKey];
+  if(cfg && camelKey && cfg[camelKey] !== undefined && cfg[camelKey] !== null && cfg[camelKey] !== "") return cfg[camelKey];
+  return fallback;
+}
+
+function getSeniorIdForResult(cfg = getAppConfig()){
+  return getConfigValue(cfg, "senior_id", "seniorId")
+    || getConfigValue(cfg, "user_id", "userId")
+    || getConfigValue(cfg, "anonymous_user_id", "anonymousUserId");
+}
+
+function getContentIdForResult(cfg = getAppConfig()){
+  return getConfigValue(cfg, "content_id", "contentId");
+}
+
+function getGameKeyForResult(cfg = getAppConfig()){
+  return getConfigValue(cfg, "game_key", "gameKey", window.GAME_KEY || "what_fits_where");
+}
+
+function getGameVersionForResult(cfg = getAppConfig()){
+  return getConfigValue(cfg, "game_version", "gameVersion", window.GAME_VERSION || "1.0.0");
+}
+
+function createExtensionMeta(cfg = getAppConfig()){
+  const pairs = [
+    ["tenant_id", "tenantId"],
+    ["facility_id", "facilityId"],
+    ["program_id", "programId"],
+    ["reward_id", "rewardId"],
+    ["recommendation_id", "recommendationId"],
+  ];
+  const meta = {};
+  pairs.forEach(([snakeKey, camelKey])=>{
+    const value = getConfigValue(cfg, snakeKey, camelKey);
+    if(value !== null && value !== undefined && value !== "") meta[snakeKey] = value;
+  });
+  return Object.keys(meta).length ? meta : null;
+}
+
+function getLocalTimezone(){
+  try{
+    return Intl.DateTimeFormat().resolvedOptions().timeZone || null;
+  }catch(e){
+    return null;
+  }
+}
+
+function createClientContext(cfg = getAppConfig()){
+  const base = getConfigObject(cfg, "client_context", "clientContext");
+  return Object.assign({
+    device_id: base.device_id || base.deviceId || cfg.device_id || cfg.deviceId || null,
+    platform: base.platform || cfg.platform || (window.ReactNativeWebView ? "react-native-webview" : "browser"),
+    app_version: base.app_version || base.appVersion || cfg.app_version || cfg.appVersion || null,
+    timezone: base.timezone || cfg.timezone || getLocalTimezone(),
+  }, base);
+}
+
+function createVoiceContext(cfg = getAppConfig()){
+  const base = getConfigObject(cfg, "voice_context", "voiceContext");
+  const voiceProfileId = base.voice_profile_id || base.voiceProfileId || cfg.voice_profile_id || cfg.voiceProfileId || cfg.voice_id || null;
+  return Object.assign({
+    voice_profile_id: voiceProfileId,
+    voice_id: base.voice_id || voiceProfileId,
+    voice_owner_type: base.voice_owner_type || base.voiceOwnerType || cfg.voice_owner_type || cfg.voiceOwnerType || "system",
+    voice_owner_id: base.voice_owner_id || base.voiceOwnerId || cfg.voice_owner_id || cfg.voiceOwnerId || null,
+  }, base);
 }
 
 function getTimeLimitSec(){
@@ -83,6 +189,15 @@ function getQuestionElapsedMs(cur = state.current){
 function shouldShowScoreScreen(){
   const cfg = state.appConfig || DEFAULT_CONFIG;
   return (state.appMode || "standard") === "standard" && cfg.show_score !== false;
+}
+
+function isCareMessageResultMode(mode = getAppMode()){
+  return mode === "care" || mode === "ai_assisted";
+}
+
+function shouldShowFinishCheck(){
+  const cfg = state.appConfig || DEFAULT_CONFIG;
+  return cfg.show_finish_check !== false;
 }
 
 const SCREEN_VOICE = {
@@ -187,6 +302,110 @@ function exitAppFullscreen(){
   return exit ? exit.call(document) : Promise.reject(new Error("Fullscreen exit is not supported."));
 }
 
+function isAutoViewportModeEnabled(){
+  const cfg = getAppConfig();
+  return cfg.fullscreen_on_start !== false &&
+    cfg.auto_fullscreen !== false &&
+    cfg.lock_orientation !== false &&
+    cfg.orientation_lock !== false;
+}
+
+let hostViewportRequestSent = false;
+function requestHostViewportMode(source = "auto"){
+  if(hostViewportRequestSent) return;
+  hostViewportRequestSent = true;
+  sendGameEvent("REQUEST_VIEWPORT_MODE", {
+    fullscreen: true,
+    orientation: "landscape",
+    source,
+    session_id: getSessionId(),
+  });
+}
+
+async function lockLandscapeOrientation(){
+  const orientation = window.screen && window.screen.orientation;
+  if(orientation && typeof orientation.lock === "function"){
+    let lastError = null;
+    for(const lockType of ["landscape", "landscape-primary"]){
+      try{
+        await orientation.lock(lockType);
+        return true;
+      }catch(error){
+        lastError = error;
+      }
+    }
+    throw lastError || new Error("Landscape orientation lock failed.");
+  }
+
+  const legacyLock = window.screen && (
+    window.screen.lockOrientation ||
+    window.screen.mozLockOrientation ||
+    window.screen.msLockOrientation
+  );
+  if(typeof legacyLock === "function"){
+    const result = legacyLock.call(window.screen, "landscape");
+    if(result && typeof result.then === "function") await result;
+    return !!result;
+  }
+  return false;
+}
+
+function refreshViewportScaleSoon(){
+  updateStageScale();
+  window.setTimeout(updateStageScale, 120);
+  window.setTimeout(updateStageScale, 360);
+}
+
+function logViewportModeWarning(source, message, error){
+  if(source === "settings_button") console.warn(message, error);
+}
+
+async function enterFullscreenAndLockLandscape(source = "auto"){
+  if(!isAutoViewportModeEnabled()) return false;
+  requestHostViewportMode(source);
+  let applied = false;
+
+  if(isFullscreenAvailable() && !getFullscreenElement()){
+    try{
+      await requestAppFullscreen();
+      applied = true;
+    }catch(error){
+      logViewportModeWarning(source, "Fullscreen request failed", error);
+    }
+  }
+
+  try{
+    applied = (await lockLandscapeOrientation()) || applied;
+  }catch(error){
+    logViewportModeWarning(source, "Landscape orientation lock failed", error);
+  }finally{
+    refreshFullscreenToggle();
+    refreshViewportScaleSoon();
+  }
+
+  return applied;
+}
+
+function installAutoViewportMode(){
+  if(!isAutoViewportModeEnabled()) return;
+  requestHostViewportMode("load");
+  window.setTimeout(()=>{ enterFullscreenAndLockLandscape("load"); }, 0);
+
+  let retried = false;
+  const retryOnInteraction = () => {
+    if(retried) return;
+    retried = true;
+    enterFullscreenAndLockLandscape("user_interaction");
+  };
+  ["pointerdown", "touchstart", "keydown"].forEach(eventName=>{
+    document.addEventListener(eventName, retryOnInteraction, {
+      capture: true,
+      once: true,
+      passive: true,
+    });
+  });
+}
+
 function refreshFullscreenToggle(){
   const btn = $("btn-fullscreen");
   if(!btn) return;
@@ -205,18 +424,25 @@ if(_fullscreenBtn){
     if(!isFullscreenAvailable()) return;
     try{
       if(getFullscreenElement()) await exitAppFullscreen();
-      else await requestAppFullscreen();
+      else await enterFullscreenAndLockLandscape("settings_button");
     }catch(e){
       console.warn("Fullscreen toggle failed", e);
     }finally{
       refreshFullscreenToggle();
     }
   });
-  ["fullscreenchange", "webkitfullscreenchange", "msfullscreenchange"].forEach(eventName=>{
-    document.addEventListener(eventName, refreshFullscreenToggle);
-  });
   refreshFullscreenToggle();
 }
+
+["fullscreenchange", "webkitfullscreenchange", "msfullscreenchange"].forEach(eventName=>{
+  document.addEventListener(eventName, ()=>{
+    refreshFullscreenToggle();
+    if(getFullscreenElement() && isAutoViewportModeEnabled()){
+      lockLandscapeOrientation().catch(()=>{});
+    }
+    refreshViewportScaleSoon();
+  });
+});
 
 /* ===== HELP / TUTORIAL (multi-page) ===== */
 let helpIdx = 0;
@@ -276,13 +502,20 @@ function normalizeIncomingConfig(payload){
       };
     }
   }
-  ["show_condition_check", "show_settings", "show_how_to_play", "show_timer", "show_score",
+  ["show_condition_check", "show_finish_check", "show_settings", "show_how_to_play", "show_timer", "show_score",
     "show_difficulty_select", "show_pause", "show_hint", "show_question_counter",
     "background_music_enabled", "sound_effect_enabled", "voice_guide_enabled",
     "auto_start", "auto_return_to_hub"].forEach(key=>{
     if(typeof source[key] === "string"){
       source[key] = source[key] === "true" || source[key] === "1" || source[key] === "yes";
     }
+  });
+  [
+    ["client_context", "clientContext"],
+    ["voice_context", "voiceContext"],
+  ].forEach(([snakeKey, camelKey])=>{
+    const parsed = parseObjectConfig(source[snakeKey] || source[camelKey]);
+    if(parsed) source[snakeKey] = parsed;
   });
   return source;
 }
@@ -348,6 +581,7 @@ function handleExternalAnswer(payload = {}){
     sendGameEvent("EXTERNAL_ANSWER_IGNORED", { reason:"not_found", value });
     return;
   }
+  cur.inputType = "external";
   btn.click();
   sendGameEvent("EXTERNAL_ANSWER_APPLIED", {
     value,
@@ -416,6 +650,7 @@ function runLoading(done){
   }, 90);
 }
 window.addEventListener("DOMContentLoaded", ()=>{
+  installAutoViewportMode();
   const templateReady = loadSituationTemplates();
   runLoading(()=>{ templateReady.finally(()=>{ maybeShowConditionCheck(); }); });
 });
@@ -423,6 +658,7 @@ window.addEventListener("DOMContentLoaded", ()=>{
 /* ===== CONDITION CHECK ===== */
 let _ccMood = null;
 let _ccSleepIdx = 4; // default 8시간
+let _ccSleepDragStartY = null;
 function maybeShowConditionCheck(){
   const cfg = state.appConfig || DEFAULT_CONFIG;
   const appMode = state.appMode || "standard";
@@ -453,23 +689,29 @@ function maybeShowConditionCheck(){
   if(skipBtn) skipBtn.style.display = appMode === "standard" ? "" : "none";
   switchScreen("screen-condition");
 }
+function setConditionSleepIndex(nextIdx){
+  const len = SLEEP_STEPS.length;
+  _ccSleepIdx = ((nextIdx % len) + len) % len;
+  renderConditionSel();
+}
 function renderConditionSel(){
   document.querySelectorAll("#cc-mood-row .mood-btn").forEach(b=>{
     b.classList.toggle("sel", b.dataset.mood === _ccMood);
   });
-  // sleep stepper: show idx-1 / idx / idx+1
-  const up   = SLEEP_STEPS[_ccSleepIdx + 1];
+  // sleep stepper: show idx-1 / idx / idx+1, wrapping at both ends.
+  const len = SLEEP_STEPS.length;
+  const up   = SLEEP_STEPS[(_ccSleepIdx + 1) % len];
   const mid  = SLEEP_STEPS[_ccSleepIdx];
-  const down = SLEEP_STEPS[_ccSleepIdx - 1];
+  const down = SLEEP_STEPS[(_ccSleepIdx - 1 + len) % len];
   const upEl = $("cc-sleep-up"), midEl = $("cc-sleep-mid"), downEl = $("cc-sleep-down");
   if(upEl)   upEl.textContent   = up   ? up.label   : "";
   if(midEl)  midEl.textContent  = mid  ? mid.label  : "";
   if(downEl) downEl.textContent = down ? down.label : "";
-  if(upEl)   upEl.classList.toggle("empty", !up);
-  if(downEl) downEl.classList.toggle("empty", !down);
+  if(upEl)   upEl.classList.remove("empty");
+  if(downEl) downEl.classList.remove("empty");
   const upBtn = $("cc-sleep-up-btn"), downBtn = $("cc-sleep-down-btn");
-  if(upBtn)   upBtn.disabled   = _ccSleepIdx >= SLEEP_STEPS.length - 1;
-  if(downBtn) downBtn.disabled = _ccSleepIdx <= 0;
+  if(upBtn)   upBtn.disabled   = false;
+  if(downBtn) downBtn.disabled = false;
   // 수면시간은 기본값(8시간)으로 항상 선택된 상태 → 기분만 선택되면 활성화
   $("cc-confirm").disabled = !_ccMood;
 }
@@ -478,10 +720,24 @@ document.getElementById("cc-mood-row").addEventListener("click", e=>{
   _ccMood = b.dataset.mood; renderConditionSel();
 });
 document.getElementById("cc-sleep-up-btn").addEventListener("click", ()=>{
-  if(_ccSleepIdx < SLEEP_STEPS.length - 1){ _ccSleepIdx++; renderConditionSel(); }
+  setConditionSleepIndex(_ccSleepIdx + 1);
 });
 document.getElementById("cc-sleep-down-btn").addEventListener("click", ()=>{
-  if(_ccSleepIdx > 0){ _ccSleepIdx--; renderConditionSel(); }
+  setConditionSleepIndex(_ccSleepIdx - 1);
+});
+document.getElementById("cc-sleep-rows").addEventListener("pointerdown", e=>{
+  _ccSleepDragStartY = e.clientY;
+  e.currentTarget.setPointerCapture?.(e.pointerId);
+});
+document.getElementById("cc-sleep-rows").addEventListener("pointerup", e=>{
+  if(_ccSleepDragStartY == null) return;
+  const deltaY = e.clientY - _ccSleepDragStartY;
+  _ccSleepDragStartY = null;
+  if(Math.abs(deltaY) < 28) return;
+  setConditionSleepIndex(_ccSleepIdx + (deltaY < 0 ? -1 : 1));
+});
+document.getElementById("cc-sleep-rows").addEventListener("pointercancel", ()=>{
+  _ccSleepDragStartY = null;
 });
 document.getElementById("cc-confirm").addEventListener("click", ()=>{
   if(!_ccMood) return;
@@ -547,21 +803,78 @@ function showError(msg){
   const message = msg || "잠시 후 다시 시도해주세요.";
   $("error-msg").textContent = message;
   $("error-modal").classList.add("active");
+  const cfg = getAppConfig();
   const now = new Date().toISOString();
-  sendGameEvent("GAME_ERROR", {
+  const startedAt = state.startedAtIso || now;
+  const durationMs = state.startedAt ? Math.max(0, Date.now() - state.startedAt) : 0;
+  const questionLogs = state.questionLogs.slice();
+  const extensionMeta = createExtensionMeta(cfg);
+  const resultDetail = {
+    error_code: "GAME_ERROR",
+    error_message: message,
+    error_phase: "runtime",
+    extension_meta: extensionMeta,
+    condition_data: state.conditionData || null,
+    post_game_condition_data: state.postGameConditionData || null,
+  };
+  const gameResult = {
     session_id: getSessionId(),
-    content_id: (state.appConfig || {}).content_id || null,
-    game_key: (state.appConfig || {}).game_key || window.GAME_KEY || "what_fits_where",
-    game_version: (state.appConfig || {}).game_version || window.GAME_VERSION || "1.0.0",
+    content_id: getContentIdForResult(cfg),
+    game_key: getGameKeyForResult(cfg),
+    game_version: getGameVersionForResult(cfg),
+    senior_id: getSeniorIdForResult(cfg),
+    guardian_id: getConfigValue(cfg, "guardian_id", "guardianId"),
+    assignment_id: getConfigValue(cfg, "assignment_id", "assignmentId"),
+    alarm_id: getConfigValue(cfg, "alarm_id", "alarmId"),
+    schedule_id: getConfigValue(cfg, "schedule_id", "scheduleId"),
+    play_source: getConfigValue(cfg, "play_source", "playSource", getAppMode() === "standard" ? "manual" : getAppMode()),
     mode: getAppMode(),
-    difficulty: state.diff || (state.appConfig || {}).default_difficulty || "easy",
+    app_mode: getAppMode(),
+    game_mode: state.mode || null,
+    difficulty: state.diff || cfg.default_difficulty || "easy",
+    config_snapshot: getConfigSnapshot(),
+    status: "error",
+    error_code: "GAME_ERROR",
+    error_message: message,
+    started_at: startedAt,
+    ended_at: now,
+    duration_ms: durationMs,
+    meta: extensionMeta,
+    question_logs: questionLogs,
+    result_detail_json: resultDetail,
+  };
+  const errorResult = {
+    session_id: getSessionId(),
+    content_id: getContentIdForResult(cfg),
+    game_key: getGameKeyForResult(cfg),
+    game_version: getGameVersionForResult(cfg),
+    senior_id: getSeniorIdForResult(cfg),
+    guardian_id: getConfigValue(cfg, "guardian_id", "guardianId"),
+    assignment_id: getConfigValue(cfg, "assignment_id", "assignmentId"),
+    alarm_id: getConfigValue(cfg, "alarm_id", "alarmId"),
+    schedule_id: getConfigValue(cfg, "schedule_id", "scheduleId"),
+    play_source: getConfigValue(cfg, "play_source", "playSource", getAppMode() === "standard" ? "manual" : getAppMode()),
+    mode: getAppMode(),
+    app_mode: getAppMode(),
+    difficulty: state.diff || cfg.default_difficulty || "easy",
     status: "error",
     error_code: "GAME_ERROR",
     message,
-    started_at: state.startedAtIso,
+    error_message: message,
+    started_at: startedAt,
     ended_at: now,
+    duration_ms: durationMs,
+    meta: extensionMeta,
     config_snapshot: getConfigSnapshot(),
-  });
+    question_logs: questionLogs,
+    result_detail_json: resultDetail,
+    game_result: gameResult,
+    game_result_json: gameResult,
+    client_context: createClientContext(cfg),
+    voice_context: createVoiceContext(cfg),
+  };
+  state.lastResult = errorResult;
+  sendGameEvent("GAME_ERROR", errorResult);
 }
 $("btn-error-retry").addEventListener("click", ()=>{
   $("error-modal").classList.remove("active");
@@ -573,6 +886,7 @@ $("btn-error-exit").addEventListener("click", ()=>{
 
 /* ===== START ===== */
 $("btn-start").addEventListener("click", ()=>{
+  enterFullscreenAndLockLandscape("start_button");
   const appMode = state.appMode || "standard";
   const cfg = state.appConfig || DEFAULT_CONFIG;
   if(appMode === "reminder" || appMode === "care" || appMode === "ai_assisted"){
@@ -622,8 +936,8 @@ applyAppConfig();
 /* ===== BUILD QUEUE ===== */
 const QUESTION_RULES_BY_DIFF = {
   easy: Array.from({ length: 10 }, () => ({ choices: 2, answers: 1, situations: 1 })),
-  normal: Array.from({ length: 10 }, () => ({ choices: 3, answers: 2, situations: 1 })),
-  hard: Array.from({ length: 10 }, (_, idx) => ({ choices: 4, answers: idx >= 7 ? 3 : 2, situations: 2 })),
+  normal: Array.from({ length: 10 }, () => ({ choices: 3, answers: 1, situations: 1 })),
+  hard: Array.from({ length: 10 }, () => ({ choices: 4, answers: 2, situations: 2 })),
 };
 const SITUATION_TEMPLATE_PATH = "docs/situation-templates-draft.json";
 
@@ -797,16 +1111,30 @@ function normalizePackPromptText(text, answerCount){
     .replace(/빼주세요|빼세요/g, "골라주세요");
 }
 
-function renderPromptText(el, text){
-  const source = String(text || "");
-  const countPattern = /( 물건 \d+개)/g;
+function formatPromptDisplayText(text){
+  return String(text || "")
+    .replace(/,\s*이렇게 물건 (\d+)개를 골라주세요\.$/, "\n필요한 물건 $1개를 골라주세요.")
+    .replace(/\s+(필요한 물건 \d+개를 골라주세요\.)$/, "\n$1")
+    .replace(/\s+(물을 주어야 할 물건 \d+개를 골라주세요\.)$/, "\n$1")
+    .replace(/\s+(물을 줄 대상이 되는 물건 \d+개를 골라주세요\.)$/, "\n$1");
+}
+
+function appendPromptLine(el, source, highlightSituation){
+  const countPattern = /물건 \d+개/g;
   let lastIndex = 0;
   let match;
-  el.textContent = "";
 
   while((match = countPattern.exec(source))){
     if(match.index > lastIndex){
-      el.appendChild(document.createTextNode(source.slice(lastIndex, match.index)));
+      const text = source.slice(lastIndex, match.index);
+      if(highlightSituation){
+        const situationSpan = document.createElement("span");
+        situationSpan.className = "situation-highlight";
+        situationSpan.textContent = text;
+        el.appendChild(situationSpan);
+      }else{
+        el.appendChild(document.createTextNode(text));
+      }
     }
     const countSpan = document.createElement("span");
     countSpan.className = "count-highlight";
@@ -816,12 +1144,34 @@ function renderPromptText(el, text){
   }
 
   if(lastIndex === 0){
-    el.textContent = source;
+    if(highlightSituation){
+      const situationSpan = document.createElement("span");
+      situationSpan.className = "situation-highlight";
+      situationSpan.textContent = source;
+      el.appendChild(situationSpan);
+    }else{
+      el.textContent = source;
+    }
     return;
   }
   if(lastIndex < source.length){
     el.appendChild(document.createTextNode(source.slice(lastIndex)));
   }
+}
+
+function renderPromptText(el, text){
+  const source = formatPromptDisplayText(text);
+  const lines = source.split(/\n+/).map(line => line.trim()).filter(Boolean);
+  el.textContent = "";
+
+  lines.forEach(line => {
+    const lineEl = document.createElement("span");
+    lineEl.className = "prompt-line";
+    const isActionLine = /골라주세요\.$/.test(line);
+    if(isActionLine) lineEl.classList.add("prompt-line-action");
+    appendPromptLine(lineEl, line, !isActionLine);
+    el.appendChild(lineEl);
+  });
 }
 
 function flattenQuestionStages(stageMap){
@@ -908,6 +1258,36 @@ function getSituationNeedClause(tpl){
   return `${clause} 필요한 물건`;
 }
 
+function getSituationPromptClause(tpl){
+  if(!tpl) return "생활";
+  const patterns = Array.isArray(tpl.questionPatterns) ? tpl.questionPatterns : [];
+  const source = patterns.find(text => /무엇을|무엇이/.test(text || ""))
+    || patterns[0]
+    || tpl.sit
+    || tpl.situationName
+    || "생활";
+  const clause = normalizeSituationNeedClause(source)
+    .replace(/\s*필요한 물건$/g, "")
+    .trim();
+  if(/골라주세요/.test(clause)) return tpl.situationName || "생활";
+  return clause || tpl.situationName || "생활";
+}
+
+function toSituationPhrase(clause){
+  const phrase = String(clause || "생활")
+    .replace(/받을 때$/, "받는 상황")
+    .replace(/할 때$/, "하는 상황")
+    .replace(/갈 때$/, "갈 상황")
+    .replace(/챙길 때$/, "챙길 상황")
+    .replace(/보낼 때$/, "보낼 상황")
+    .replace(/부치러 갈 때$/, "부치러 갈 상황")
+    .replace(/줄 때$/, "줄 상황")
+    .replace(/때$/, "상황")
+    .replace(/상황 상황$/, "상황")
+    .trim();
+  return /상황$/.test(phrase) ? phrase : `${phrase} 상황`;
+}
+
 function joinKoreanClauses(clauses){
   if(clauses.length <= 1) return clauses[0] || "";
   if(clauses.length === 2) return `${clauses[0]}과 ${clauses[1]}`;
@@ -915,8 +1295,8 @@ function joinKoreanClauses(clauses){
 }
 
 function getCombinedSituationPrompt(templates, answerCount){
-  const clauses = templates.map(getSituationNeedClause).filter(Boolean);
-  return `${joinKoreanClauses(clauses)}, 이렇게 물건 ${answerCount}개를 골라주세요.`;
+  const clauses = templates.map(getSituationPromptClause).map(toSituationPhrase).filter(Boolean);
+  return `${joinKoreanClauses(clauses)}이에요.\n필요한 물건 ${answerCount}개를 골라주세요.`;
 }
 
 function buildRegulatedPackQuestion(templates, idx, rule){
@@ -950,12 +1330,14 @@ function buildRegulatedPackQuestion(templates, idx, rule){
   }
 
   const situationTexts = selectedTemplates.map((tpl, sitIdx) => {
+    if(wantedSituations > 1){
+      return `${sitIdx + 1}. ${toSituationPhrase(getSituationPromptClause(tpl))}`;
+    }
     const count = (answersByTemplate.get(tpl) || []).length || 1;
-    const text = getPackTemplatePrompt(tpl, count);
-    return wantedSituations > 1 ? `${sitIdx + 1}. ${text}` : text;
+    return getPackTemplatePrompt(tpl, count);
   });
   const promptText = wantedSituations > 1
-    ? getCombinedSituationPrompt(selectedTemplates, answers.length)
+    ? `${situationTexts.join("\n")}\n필요한 물건 ${answers.length}개를 골라주세요.`
     : situationTexts.join("\n");
   const itemKeys = uniqueValidKeys(selectedTemplates.flatMap(tpl => tpl.items || []));
   const sourceAnswerKeys = uniqueValidKeys(selectedTemplates.flatMap(tpl => tpl.answers || []));
@@ -973,6 +1355,8 @@ function buildRegulatedPackQuestion(templates, idx, rule){
     answers,
     sourceAnswerKeys,
     situationCount: wantedSituations,
+    templateIds: selectedTemplates.map(tpl => tpl.templateId).filter(Boolean),
+    situationNames: selectedTemplates.map(tpl => tpl.situationName).filter(Boolean),
     promptNormalized: true,
   };
 }
@@ -1118,6 +1502,7 @@ function switchScreen(id){
 
 function clearAdvance(){ if(state.advanceTimer){ clearTimeout(state.advanceTimer); state.advanceTimer=null; } }
 function clearAutoHint(){ if(state.autoHintTimer){ clearTimeout(state.autoHintTimer); state.autoHintTimer=null; } }
+function clearFeedbackTimer(){ if(state.feedbackTimer){ clearTimeout(state.feedbackTimer); state.feedbackTimer=null; } }
 
 function getGameMode(mode){
   const modeDef = window.GAME_MODES && window.GAME_MODES[mode];
@@ -1157,7 +1542,8 @@ function renderQuestion(){
 
   const stageEl = $("p-stage");
   if(stageEl) stageEl.textContent = `단계 ${q.stage}`;
-  $("p-qnum").textContent = `${state.qIndex+1} / ${state.totalQ || state.queue.length}`;
+  const totalQuestions = state.totalQ || state.queue.length;
+  $("p-qnum").textContent = `진행 단계 ${Math.min(state.qIndex, totalQuestions)}/${totalQuestions}`;
   const situationEl = $("p-situation");
   renderPromptText(situationEl, q.sit);
   situationEl.classList.toggle("multi-situation", (q.situationCount || 1) > 1);
@@ -1188,12 +1574,30 @@ function setFeedbackVisible(visible){
   if(playEl) playEl.classList.toggle("has-feedback", !!visible);
 }
 
-function showFeedback(text, kind){
+function hideFeedbackMessage(){
+  setFeedbackVisible(false);
+  const el = $("p-feedback");
+  if(!el) return;
+  el.textContent = "";
+  el.className = "fb-msg";
+}
+
+function showFeedback(text, kind, duration = 1200){
   closeHintModal(true);
+  clearFeedbackTimer();
+  const token = ++state.feedbackToken;
   const el = $("p-feedback");
   el.textContent = text;
   el.className = "fb-msg " + kind;
   setFeedbackVisible(true);
+  if(duration > 0){
+    state.feedbackTimer = setTimeout(()=>{
+      if(state.feedbackToken !== token) return;
+      clearFeedbackTimer();
+      state.feedbackToken++;
+      hideFeedbackMessage();
+    }, duration);
+  }
 }
 
 function supportsHintMode(appMode = state.appMode || "standard"){
@@ -1351,11 +1755,9 @@ function closeHintModal(keepPaused){
 
 function clearFeedback(){
   closeHintModal(true);
-  setFeedbackVisible(false);
-  const el = $("p-feedback");
-  if(!el) return;
-  el.textContent = "";
-  el.className = "fb-msg";
+  clearFeedbackTimer();
+  state.feedbackToken++;
+  hideFeedbackMessage();
 }
 
 function recordChoiceAction(action){
@@ -1385,26 +1787,50 @@ function buildQuestionLog(success, status){
       ? Array.from(cur.picked)
       : (cur.guessAnswered ? [q.answer] : []);
   cur.logRecorded = true;
-  return {
+  const log = {
+    question_id: q.questionId || q.id || `${getSessionId()}_q${state.qIndex + 1}`,
     question_index: state.qIndex + 1,
     stage: q.stage || 1,
     game_mode: q.mode || state.mode,
     question_type: q.kind || "pack",
+    difficulty: state.diff || null,
     situation: q.sit || "",
+    situation_count: q.situationCount || 1,
+    template_ids: q.templateIds || (q.templateId ? [q.templateId] : []),
+    situation_names: q.situationNames || (q.situationName ? [q.situationName] : []),
     item_keys: (q.items || []).map(item => item.k).filter(Boolean),
     item_names: (q.items || []).map(item => item.n).filter(Boolean),
     answer_keys: answerKeys,
     answer_names: answerNames(answerKeys),
+    correct_answer: answerKeys,
     selected_keys: selectedKeys,
     selected_names: answerNames(selectedKeys),
+    selected_answer: selectedKeys,
     attempts: (cur.attempts || []).slice(),
+    attempt_count: (cur.attempts || []).length,
     hint_count: cur.hintCount || 0,
     retry_count: cur.wrongCount || 0,
     response_ms: responseMs,
+    response_time_ms: responseMs,
     response_sec: +(responseMs / 1000).toFixed(2),
     correct: !!success,
+    is_correct: !!success,
+    input_type: status === "time_over" ? "auto" : (cur.inputType || "touch"),
     status: status || (success ? "correct" : "wrong"),
   };
+  log.raw_log_json = {
+    question_index: log.question_index,
+    game_mode: log.game_mode,
+    question_type: log.question_type,
+    template_ids: log.template_ids,
+    situation_names: log.situation_names,
+    item_keys: log.item_keys,
+    answer_keys: log.answer_keys,
+    selected_keys: log.selected_keys,
+    attempts: log.attempts,
+    status: log.status,
+  };
+  return log;
 }
 
 function recordQuestionCompletion(success, status){
@@ -1562,8 +1988,14 @@ function finishPostGameConditionCheck(skipped){
   }
   data.session_id = getSessionId();
   state.postGameConditionData = data;
+  if(state.lastResult){
+    state.lastResult.post_game_condition_data = data;
+    if(state.lastResult.result_detail_json){
+      state.lastResult.result_detail_json.post_game_condition_data = data;
+    }
+  }
   sendGameEvent(skipped ? "POST_GAME_CONDITION_SKIPPED" : "POST_GAME_CONDITION_COMPLETED", data);
-  resetToStartScreen();
+  renderResultScreen();
 }
 
 document.querySelectorAll("[data-post-group]").forEach(group=>{
@@ -1648,6 +2080,7 @@ function finishGame(userExit, timeOver){
   const cfg = getAppConfig();
   const status = userExit || timeOver ? "abandoned" : "completed";
   const exitReason = userExit ? "user_exit" : (timeOver ? "time_over" : "completed");
+  const extensionMeta = createExtensionMeta(cfg);
   if((userExit || timeOver) && state.current && !state.current.revealed && !state.current.logRecorded){
     const partialLog = buildQuestionLog(false, timeOver ? "time_over" : "abandoned");
     if(partialLog) state.questionLogs.push(partialLog);
@@ -1663,9 +2096,72 @@ function finishGame(userExit, timeOver){
     recommended_next_difficulty: nextDiff,
     recommended_next_difficulty_label: DIFF_LABEL[nextDiff],
     stage_results: state.stageStats.map((s,i)=>({stage:i+1, total_questions:qps[i]||0, correct_count:s.c, wrong_count:s.w})),
+    extension_meta: extensionMeta,
     condition_data: state.conditionData || null,
     post_game_condition_data: state.postGameConditionData || null,
     score_screen_enabled: shouldShowScoreScreen(),
+  };
+
+  const questionLogs = state.questionLogs.slice();
+  const totalQuestions = state.totalQ || state.queue.length;
+  const avgResponseTimeMs = questionLogs.length
+    ? Math.round(questionLogs.reduce((sum, log)=>sum + (Number(log.response_time_ms || log.response_ms) || 0), 0) / questionLogs.length)
+    : null;
+  const completionRate = totalQuestions ? +(answeredQs / totalQuestions).toFixed(4) : 0;
+  const clientContext = createClientContext(cfg);
+  const voiceContext = createVoiceContext(cfg);
+  const missionSequence = getMissionSequenceForDiff(state.diff);
+  const gameResult = {
+    session_id: getSessionId(),
+    content_id: getContentIdForResult(cfg),
+    game_key: getGameKeyForResult(cfg),
+    game_version: getGameVersionForResult(cfg),
+    senior_id: getSeniorIdForResult(cfg),
+    guardian_id: getConfigValue(cfg, "guardian_id", "guardianId"),
+    assignment_id: getConfigValue(cfg, "assignment_id", "assignmentId"),
+    alarm_id: getConfigValue(cfg, "alarm_id", "alarmId"),
+    schedule_id: getConfigValue(cfg, "schedule_id", "scheduleId"),
+    play_source: getConfigValue(cfg, "play_source", "playSource", getAppMode() === "standard" ? "manual" : getAppMode()),
+    game_mode: state.mode,
+    game_mode_label: MODE_LABEL[state.mode],
+    mission_mode: state.mode,
+    mission_sequence: missionSequence,
+    mode: getAppMode(),
+    app_mode: getAppMode(),
+    cognitive_areas: COGNITIVE_AREAS[state.mode],
+    difficulty: state.diff,
+    start_difficulty: state.diff,
+    difficulty_label: DIFF_LABEL[state.diff],
+    difficulty_source: state.diffSource,
+    config_snapshot: getConfigSnapshot(),
+    status,
+    exit_reason: exitReason,
+    started_at: state.startedAtIso,
+    ended_at: endedAtIso,
+    duration_ms: durationMs,
+    duration_sec: duration,
+    total_stages: qps.length,
+    questions_per_stage: qps,
+    total_questions: totalQuestions,
+    answered_questions: answeredQs,
+    correct_count: state.correct,
+    wrong_count: state.wrong,
+    accuracy_percent: accuracy,
+    completion_rate: completionRate,
+    hint_count: state.hintCount,
+    retry_count: state.retryCount,
+    avg_response_sec: avg,
+    avg_response_time_ms: avgResponseTimeMs,
+    meta: extensionMeta,
+    completed: !userExit && !timeOver,
+    ended_by_user: userExit,
+    time_over: timeOver,
+    time_limit_sec: getTimeLimitSec(),
+    remaining_time_sec: Math.max(0, state.timerLeft|0),
+    question_logs: questionLogs,
+    result_detail_json: resultDetail,
+    condition_data: resultDetail.condition_data,
+    post_game_condition_data: resultDetail.post_game_condition_data,
   };
 
   const result = {
@@ -1675,39 +2171,42 @@ function finishGame(userExit, timeOver){
     app_mode: getAppMode(),
     cognitive_areas: COGNITIVE_AREAS[state.mode],
     session_id: getSessionId(),
-    content_id: cfg.content_id || null,
-    game_key: cfg.game_key || window.GAME_KEY || "what_fits_where",
-    game_version: cfg.game_version || window.GAME_VERSION || "1.0.0",
-    senior_id: cfg.senior_id || null,
-    guardian_id: cfg.guardian_id || null,
-    assignment_id: cfg.assignment_id || null,
-    alarm_id: cfg.alarm_id || null,
-    play_source: cfg.play_source || (getAppMode() === "standard" ? "manual" : getAppMode()),
+    content_id: getContentIdForResult(cfg),
+    game_key: getGameKeyForResult(cfg),
+    game_version: getGameVersionForResult(cfg),
+    senior_id: getSeniorIdForResult(cfg),
+    guardian_id: getConfigValue(cfg, "guardian_id", "guardianId"),
+    assignment_id: getConfigValue(cfg, "assignment_id", "assignmentId"),
+    alarm_id: getConfigValue(cfg, "alarm_id", "alarmId"),
+    schedule_id: getConfigValue(cfg, "schedule_id", "scheduleId"),
+    play_source: getConfigValue(cfg, "play_source", "playSource", getAppMode() === "standard" ? "manual" : getAppMode()),
     difficulty: state.diff,
     start_difficulty: state.diff, difficulty_label: DIFF_LABEL[state.diff],
     difficulty_source: state.diffSource,
     config_snapshot: getConfigSnapshot(),
-    total_stages: qps.length, questions_per_stage: qps, total_questions: (state.totalQ||state.queue.length),
+    total_stages: qps.length, questions_per_stage: qps, total_questions: totalQuestions,
     answered_questions: answeredQs,
     correct_count: state.correct, wrong_count: state.wrong, accuracy_percent: accuracy,
+    completion_rate: completionRate,
     hint_count: state.hintCount,
     retry_count: state.retryCount,
     avg_response_sec: avg,
+    avg_response_time_ms: avgResponseTimeMs,
     started_at: state.startedAtIso,
     ended_at: endedAtIso,
     duration_ms: durationMs,
     duration_sec: duration,
+    meta: extensionMeta,
     completed: !userExit && !timeOver, ended_by_user: userExit, time_over: timeOver,
     time_limit_sec: getTimeLimitSec(), remaining_time_sec: Math.max(0, state.timerLeft|0),
     exit_reason: exitReason,
     status,
     legacy_status: timeOver ? "time_over" : status,
-    question_logs: state.questionLogs.slice(),
-    voice_context: {
-      voice_id: cfg.voice_id || null,
-      voice_owner_type: cfg.voice_owner_type || "system",
-      voice_owner_id: cfg.voice_owner_id || null,
-    },
+    question_logs: questionLogs,
+    game_result: gameResult,
+    game_result_json: gameResult,
+    client_context: clientContext,
+    voice_context: voiceContext,
     result_detail_json: resultDetail,
     selected_required_items: resultDetail.selected_required_items,
     selected_unnecessary_items: resultDetail.selected_unnecessary_items,
@@ -1725,40 +2224,68 @@ function finishGame(userExit, timeOver){
   };
   state.lastResult = result;
 
-  let hero, msg;
-  if(timeOver){
-    hero = "오늘의 활동 시간이 끝났어요";
-    msg = "고생 많으셨어요. 천천히 하나씩 잘 해주셨어요.";
-  } else if(userExit){
-    hero = "오늘도 함께해주셔서 고맙습니다";
-    msg = "참여해주신 것만으로도 충분해요. 다음에 또 만나요.";
-  } else {
-    hero = "수고하셨어요";
-    msg = "오늘의 준비물 미션을 끝까지 잘 마무리하셨어요.";
-  }
-  const areaText = getGameMode(state.mode).resultText;
-  msg = msg + "\n\n" + areaText;
-  $("r-hero").textContent = hero;
-  $("r-msg").textContent = msg;
-  $("r-msg").style.whiteSpace = "pre-line";
-
-  // Mode-specific UI: show 다시 하기 only for standard mode
-  const appMode = state.appMode || "standard";
-  const againBtn = $("btn-again");
-  const returnBtn = $("btn-return");
-  if(appMode === "standard"){
-    againBtn.style.display = "";
-    returnBtn.textContent = "다음";
-  } else {
-    againBtn.style.display = "none";
-    returnBtn.textContent = "효담콜로 돌아가기";
-  }
-  switchScreen("screen-result");
-
   const resultEventType = status === "completed" ? "GAME_COMPLETED" : "GAME_ABANDONED";
   if(!window.ReactNativeWebView) console.log("GAME_RESULT", result);
   sendGameEvent(resultEventType, result);
-  if((state.appConfig || {}).auto_return_to_hub){
+
+  if(!userExit && shouldShowScoreScreen()){
+    renderScoreScreen(result);
+  }else if(!userExit && shouldShowFinishCheck()){
+    startPostGameConditionCheck();
+  } else {
+    renderResultScreen(result);
+  }
+}
+
+function getResultMessage(data){
+  if(data.time_over) return "오늘도 차분히 참여해주셨어요.";
+  if(data.ended_by_user) return "참여해주신 것만으로도 충분해요.";
+  return "오늘도 끝까지 잘 해내셨어요.";
+}
+
+function renderResultScreen(result){
+  const data = result || state.lastResult || {};
+  const careMessageMode = isCareMessageResultMode(data.app_mode || data.mode || getAppMode());
+  const correct = data.correct_count || 0;
+  const total = data.total_questions || data.answered_questions || (correct + (data.wrong_count || 0));
+  const hintCount = data.hint_count || 0;
+  const positive = careMessageMode ? "오늘의 준비물 미션을 끝까지 잘 마무리하셨어요." : getResultMessage(data);
+  const note = careMessageMode
+    ? "오늘은 언어·의미 활동과 집중 활동을 함께 해보셨어요."
+    : (data.completed ? "천천히 판단하며 필요한 물건을 잘 찾아보셨어요." : "오늘 활동은 여기까지 해도 충분해요.");
+  const detail = careMessageMode
+    ? "상황에 맞는 물건을 고르며 일상생활 판단을 차분히 살펴보셨어요."
+    : "";
+
+  const screen = $("screen-result");
+  const title = screen && screen.querySelector(".result-title");
+  const msg = $("r-msg");
+  const noteEl = $("r-note");
+  const detailEl = $("r-detail");
+  const correctTotal = $("result-correct-total");
+  const hints = $("result-hints");
+  const metrics = $("result-metrics");
+  const homeBtn = $("btn-home");
+  const returnBtn = $("btn-return");
+  if(screen) screen.classList.toggle("care-message-result", careMessageMode);
+  if(title) title.textContent = careMessageMode ? "수고하셨어요" : "오늘의 준비물";
+  if(msg) msg.textContent = positive;
+  if(noteEl) noteEl.textContent = note;
+  if(detailEl){
+    detailEl.textContent = detail;
+    detailEl.hidden = !careMessageMode;
+  }
+  if(correctTotal) correctTotal.textContent = `${correct} / ${total}`;
+  if(hints) hints.textContent = `${hintCount}회`;
+  if(metrics){
+    metrics.hidden = careMessageMode;
+    metrics.setAttribute("aria-hidden", careMessageMode ? "true" : "false");
+  }
+  if(homeBtn) homeBtn.textContent = careMessageMode ? "다시 하기" : "홈으로 돌아가기";
+  if(returnBtn) returnBtn.textContent = careMessageMode ? "다음" : "효담콜로 돌아가기";
+  switchScreen("screen-result");
+
+  if((state.appConfig || {}).auto_return_to_hub && !careMessageMode){
     window.setTimeout(()=>{ returnToHub(); }, 1200);
   }
 }
@@ -1774,16 +2301,8 @@ function renderScoreScreen(result){
   switchScreen("screen-score");
 }
 
-$("btn-again").addEventListener("click", ()=>{ startGame(); });
+$("btn-home").addEventListener("click", ()=>{ resetToStartScreen(); });
 $("btn-return").addEventListener("click", ()=>{
-  if((state.appMode || "standard") === "standard"){
-    if(shouldShowScoreScreen()){
-      renderScoreScreen();
-      return;
-    }
-    startPostGameConditionCheck();
-    return;
-  }
   returnToHub(); return;
   // Notify host app to return to 효담콜
   sendGameEvent("RETURN_TO_HYODAM_CALL", { app_mode: state.appMode || "standard" });
@@ -1801,5 +2320,6 @@ $("btn-return").addEventListener("click", ()=>{
   switchScreen("screen-start");
 });
 $("btn-score-next").addEventListener("click", ()=>{
-  startPostGameConditionCheck();
+  if(shouldShowFinishCheck()) startPostGameConditionCheck();
+  else renderResultScreen();
 });

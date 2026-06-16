@@ -3,15 +3,33 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="screen-orientation" content="landscape" />
 <title>오늘의 준비물</title>
+<script>
+(function(){
+  var stageWidth = 1280;
+  var stageHeight = 720;
+  window.__updateStageScale = function(){
+    var viewport = window.visualViewport;
+    var width = viewport ? viewport.width : window.innerWidth;
+    var height = viewport ? viewport.height : window.innerHeight;
+    var scale = Math.min(width / stageWidth, height / stageHeight);
+    document.documentElement.style.setProperty("--stage-scale", Math.max(0.1, scale).toFixed(4));
+  };
+  window.__updateStageScale();
+}());
+</script>
 <link rel="stylesheet" href="css/styles.css" />
 </head>
 <body>
+<div id="stage-viewport">
 <div id="app">
   <!-- START -->
   <!-- CONDITION CHECK -->
   <section class="screen" id="screen-condition">
-    <div class="activity-label">일상생활 판단 활동</div>
     <div class="center-wrap">
       <div class="cc-card">
         <h1 class="cc-title">오늘 상태를 알려주세요.</h1>
@@ -49,33 +67,34 @@
   </section>
 
   <section class="screen active" id="screen-start">
-    <div class="activity-label">일상생활 판단 활동</div>
+    <button class="settings-gear" id="btn-settings" type="button" aria-label="설정" title="설정">⚙️</button>
     <div class="center-wrap">
       <img class="title-logo" src="assets/title-logo-home.png" alt="오늘의 준비물 - 상황에 맞는 물건을 천천히 골라보세요" />
+      <div class="activity-label">일상생활 판단 활동</div>
       <div id="mode-row" style="display:none"></div>
       <div id="diff-row" style="display:none"></div>
       <p id="diff-source" style="display:none"></p>
       <div class="start-actions">
-        <div class="side left"><button class="btn-secondary" id="btn-settings">설정</button></div>
+        <div class="side left"><button class="btn-secondary" id="btn-howto">게임 방법</button></div>
         <div class="side"><button class="btn-big" id="btn-start">게임 시작</button></div>
-        <div class="side right"><button class="btn-secondary" id="btn-howto">게임 방법</button></div>
-        <div class="side hub-return"><button class="btn-secondary" id="btn-hub-return" type="button">효담콜로 돌아가기</button></div>
+        <div class="side right hub-return"><button class="btn-secondary" id="btn-hub-return" type="button">게임 종료</button></div>
       </div>
     </div>
   </section>
 
   <!-- DIFFICULTY SELECT -->
   <section class="screen" id="screen-difficulty">
-    <div class="activity-label">일상생활 판단 활동</div>
     <div class="center-wrap">
-      <h1 class="title">난이도를 선택해주세요.</h1>
-      <p class="subtitle">처음 하신다면 쉬움부터 시작해보세요.</p>
-      <div class="diff-row" id="diff-row-select" style="display:grid">
-        <button class="opt-card" data-diff="easy"><div class="name">쉬움</div><div class="desc">처음 하시는 분께 좋아요</div></button>
-        <button class="opt-card" data-diff="normal"><div class="name">보통</div><div class="desc">익숙한 생활 문제</div></button>
-        <button class="opt-card" data-diff="hard"><div class="name">어려움</div><div class="desc">여러 단서를 함께 살펴봐요</div></button>
+      <div class="difficulty-panel">
+        <p class="difficulty-kicker">난이도를 골라주세요</p>
+        <h1 class="title">어떤 문제로 시작할까요?</h1>
+        <div class="diff-row" id="diff-row-select" style="display:grid">
+          <button class="opt-card" data-diff="easy"><span class="diff-icon">☺</span><div class="name">쉬움</div><div class="desc">천천히 시작</div></button>
+          <button class="opt-card" data-diff="normal"><span class="diff-icon">⊙</span><div class="name">보통</div><div class="desc">차근차근 도전</div></button>
+          <button class="opt-card" data-diff="hard"><span class="diff-icon">※</span><div class="name">어려움</div><div class="desc">집중해서 도전</div></button>
+        </div>
       </div>
-      <div style="margin-top:clamp(8px,1.6dvh,16px)">
+      <div class="difficulty-back">
         <button class="btn-secondary" id="btn-diff-back">뒤로가기</button>
       </div>
     </div>
@@ -86,12 +105,12 @@
     <div class="play">
       <div class="topbar">
         <div class="pills">
-          <span class="pill" id="p-qnum">1 / 10</span>
+          <span class="pill" id="p-qnum">진행 단계 0/10</span>
         </div>
         <div class="activity-label play-label">일상생활 판단 활동</div>
         <div class="actions">
-          <button class="icon-btn hint-btn" id="btn-hint" type="button" title="힌트 보기">힌트</button>
           <span class="timer" id="p-timer">⏱ 03:00</span>
+          <button class="icon-btn hint-btn" id="btn-hint" type="button" title="힌트 보기">힌트</button>
           <button class="icon-btn" id="btn-pause" title="일시정지">⏸ 일시정지</button>
         </div>
       </div>
@@ -114,13 +133,31 @@
 
   <!-- RESULT -->
   <section class="screen" id="screen-result">
-    <div class="activity-label">일상생활 판단 활동</div>
+    <div class="activity-label result-care-label" aria-hidden="true">일상생활 판단 활동</div>
     <div class="center-wrap">
-      <div class="result-box">
-        <div class="hero" id="r-hero">수고하셨어요</div>
-        <p class="msg" id="r-msg">오늘도 끝까지 잘 해내셨어요.</p>
-        <div class="btns">
-          <button class="ghost" id="btn-again">다시 하기</button>
+      <div class="result-box result-final-card">
+        <h1 class="result-title">오늘의 준비물</h1>
+        <div class="result-divider" aria-hidden="true"></div>
+        <div class="result-summary-panel" aria-label="활동 결과 요약">
+          <div class="result-emblem" aria-hidden="true">🏆</div>
+          <div class="result-copy">
+            <p class="result-positive" id="r-msg">오늘도 끝까지 잘 해내셨어요.</p>
+            <p class="result-note" id="r-note">천천히 판단하며 필요한 물건을 잘 찾아보셨어요.</p>
+            <p class="result-detail" id="r-detail"></p>
+          </div>
+        </div>
+        <div class="result-metrics" id="result-metrics" aria-label="결과 수치">
+          <div class="result-metric">
+            <span class="metric-label">정답 수 / 총 문제</span>
+            <strong class="metric-value" id="result-correct-total">0 / 10</strong>
+          </div>
+          <div class="result-metric">
+            <span class="metric-label">힌트 사용</span>
+            <strong class="metric-value" id="result-hints">0회</strong>
+          </div>
+        </div>
+        <div class="btns result-actions">
+          <button class="ghost" id="btn-home" type="button">홈으로 돌아가기</button>
           <button class="btn-return" id="btn-return">효담콜로 돌아가기</button>
         </div>
       </div>
@@ -324,7 +361,6 @@
     <h3>곧 시작합니다!</h3>
     <p class="sub">잠시만 기다려주세요.</p>
     <div class="countdown-circle" id="countdown-num">3</div>
-    <span class="countdown-warn">ⓘ 준비가 되면 자동으로 시작됩니다.</span>
   </div>
 </div>
 
@@ -358,10 +394,11 @@
   <div class="box">
     <h3>정답을 함께 확인해볼게요</h3>
     <div id="reveal-content"></div>
-    <p id="reveal-explain" style="font-size:30px;color:#3A4054"></p>
+    <p id="reveal-explain"></p>
   </div>
 </div>
 
+</div>
 <script src="config/modes.js"></script>
 <script src="js/items.js"></script>
 <script src="js/questions.js"></script>

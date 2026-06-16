@@ -71,13 +71,13 @@
     });
   }
 
-  function renderPackReveal(q, content, explain, explainText) {
+  function renderPackReveal(q, content, explain) {
     const items = q.answers.map(k => {
       const i = I[k];
       return `<div class="answer-item"><div class="ph">${phHtml(i)}</div><div class="n">${i.n}</div></div>`;
     }).join("");
     content.innerHTML = `<div class="answer-items">${items}</div>`;
-    explain.textContent = explainText(q.answers.map(k => I[k].n).join(", "));
+    explain.textContent = "";
   }
 
   function answerCount(q) {
@@ -140,7 +140,7 @@
       if (cur.wrongCount >= 2) revealAndAdvance();
     },
     renderReveal(q, content, explain) {
-      renderPackReveal(q, content, explain, names => `이 상황에는 ${names}이(가) 잘 어울려요.`);
+      renderPackReveal(q, content, explain);
     },
   };
 
@@ -193,7 +193,7 @@
       if (cur.wrongCount >= 2) revealAndAdvance();
     },
     renderReveal(q, content, explain) {
-      renderPackReveal(q, content, explain, names => `${names}은(는) 이 상황에 어울리지 않아요.`);
+      renderPackReveal(q, content, explain);
     },
   };
 

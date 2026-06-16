@@ -36,9 +36,7 @@ node tools/server.js
 
 브라우저에서 아래 주소를 엽니다.
 
-```text
-http://127.0.0.1:8080/
-```
+접속 주소: `http://127.0.0.1:8080/`
 
 서버를 종료하려면 터미널에서 `Ctrl + C`를 누릅니다.
 
@@ -53,9 +51,7 @@ node tools/server.js
 
 접속 주소는 다음과 같습니다.
 
-```text
-http://127.0.0.1:8090/
-```
+접속 주소: `http://127.0.0.1:8090/`
 
 ## Python 서버로 실행
 
@@ -67,15 +63,11 @@ py -m http.server 8000
 
 접속 주소는 다음과 같습니다.
 
-```text
-http://127.0.0.1:8000/
-```
+접속 주소: `http://127.0.0.1:8000/`
 
 `senior-care-game-hub` 루트에서 Python 서버를 실행했다면 주소가 달라집니다.
 
-```text
-http://127.0.0.1:8000/games/what-fits-where/
-```
+접속 주소: `http://127.0.0.1:8000/games/what-fits-where/`
 
 `file://`로 `index.html`을 직접 여는 방식은 권장하지 않습니다. 브라우저 보안 정책 때문에 `docs/situation-templates-draft.json`을 불러오지 못할 수 있습니다.
 
@@ -107,23 +99,11 @@ http://127.0.0.1:8000/games/what-fits-where/
 
 ## 추천 실행 URL
 
-표준 확인용:
-
-```text
-http://127.0.0.1:8080/?mode=standard
-```
-
-케어 모드 확인용:
-
-```text
-http://127.0.0.1:8080/?mode=care&userDifficultyGroup=low
-```
-
-효담콜 복귀 주소를 함께 전달하는 예시:
-
-```text
-http://127.0.0.1:8080/?mode=care&userDifficultyGroup=low&returnUrl=../../index.html
-```
+| 용도 | URL |
+|---|---|
+| 표준 확인용 | `http://127.0.0.1:8080/?mode=standard` |
+| 케어 모드 확인용 | `http://127.0.0.1:8080/?mode=care&userDifficultyGroup=low` |
+| 효담콜 복귀 주소를 함께 전달하는 예시 | `http://127.0.0.1:8080/?mode=care&userDifficultyGroup=low&returnUrl=../../index.html` |
 
 ## 난이도 전달
 
@@ -151,8 +131,8 @@ URL에서 `userDifficultyGroup` 값을 전달하면 프로필 기반 난이도�
 | 난이도 | 선택지 | 정답 수 |
 |---|---|---|
 | 쉬움 | 2개 | 1개 |
-| 보통 | 3개 | 2개 |
-| 어려움 | 4개 | 보통 2개, 뒤쪽 문항 일부 3개 |
+| 보통 | 3개 | 1개 |
+| 어려움 | 4개 | 2개 |
 
 ## 화면 흐름
 
