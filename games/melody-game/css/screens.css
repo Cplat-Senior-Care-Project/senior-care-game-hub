@@ -365,7 +365,7 @@ h3 {
 
 .menu-actions {
   display: grid;
-  grid-template-columns: minmax(260px, 320px) minmax(400px, 440px) minmax(260px, 320px);
+  grid-template-columns: minmax(245px, 300px) minmax(370px, 410px) minmax(245px, 300px);
   position: absolute;
   left: 50%;
   bottom: clamp(68px, 10cqh, 88px);
@@ -400,7 +400,7 @@ h3 {
   justify-self: stretch;
   place-items: center;
   min-width: 0;
-  min-height: clamp(136px, 18cqh, 178px);
+  min-height: clamp(122px, 16.5cqh, 160px);
   padding: 0 clamp(30px, 5cqw, 56px);
   border-color: #defca6;
   border-radius: 999px;
@@ -413,7 +413,7 @@ h3 {
     inset 0 0 0 1px #3f8f14,
     inset 0 clamp(3px, 0.55cqh, 5px) 0 rgba(255, 255, 244, 0.48),
     inset 0 clamp(-6px, -7.2px, -4px) 0 rgba(42, 105, 13, 0.38);
-  font-size: 62px;
+  font-size: 58px;
   text-shadow:
     0 2px 0 rgba(40, 91, 13, 0.72),
     0 0 4px rgba(40, 91, 13, 0.42);
@@ -446,7 +446,7 @@ h3 {
 }
 
 .menu-actions .secondary-button {
-  min-height: clamp(116px, 15cqh, 144px);
+  min-height: clamp(104px, 13.5cqh, 132px);
   justify-self: stretch;
   border-color: transparent;
   background:
@@ -459,7 +459,7 @@ h3 {
     inset 0 3px 0 rgba(255, 255, 244, 0.3),
     inset 0 clamp(-6px, -7.2px, -4px) 0 rgba(174, 124, 35, 0.18);
   color: #5a3b21;
-  font-size: 50px;
+  font-size: 46px;
   text-shadow:
     0 2px 0 rgba(255, 255, 244, 0.62);
 }

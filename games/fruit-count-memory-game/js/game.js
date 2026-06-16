@@ -2420,7 +2420,7 @@
       els.tutorialButton.hidden = ui.showTutorial === false;
       const tutorialLabel = els.tutorialButton.querySelector("span");
       if (tutorialLabel) {
-        tutorialLabel.textContent = isCareMode() ? "게임 종료" : "진행방법";
+        tutorialLabel.textContent = "진행방법";
       }
     }
     if (els.pauseHelpButton) {
@@ -5066,10 +5066,6 @@
     els.startButton.addEventListener("click", runAfterStartButtonPress());
     els.settingsButton.addEventListener("click", runAfterStartPress(els.settingsButton, openSettings));
     els.tutorialButton.addEventListener("click", runAfterStartPress(els.tutorialButton, () => {
-      if (isCareMode()) {
-        exitGameFromStart();
-        return;
-      }
       openTutorial();
     }));
     els.restartButton.addEventListener("click", withButtonSound(restartCurrentDifficulty));

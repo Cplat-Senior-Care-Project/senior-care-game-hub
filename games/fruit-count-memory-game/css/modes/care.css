@@ -204,6 +204,52 @@ html[data-mode="care"] .start-side-button {
   text-align: center;
 }
 
+html[data-mode="care"] #settings-button {
+  order: 1;
+}
+
+html[data-mode="care"] #start-button {
+  order: 2;
+}
+
+html[data-mode="care"] #start-exit-button {
+  order: 3;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--start-side-width-base);
+  min-width: var(--start-side-width-base);
+  max-width: var(--start-side-width-base);
+  min-height: var(--start-side-height-base);
+  padding-block: clamp(calc(var(--start-side-pad-y-base) * 0.72), 12.96px, var(--start-side-pad-y-base));
+  padding-inline: clamp(calc(var(--start-side-pad-x-base) * 0.72), 38.4px, var(--start-side-pad-x-base));
+  border: 3px solid #ffb3a3;
+  border-radius: clamp(22px, 46.08px, 38px);
+  color: #fffdf3;
+  background: linear-gradient(315deg, rgba(126, 29, 29, 0.24) 0%, rgba(207, 62, 52, 0.08) 48%, rgba(255, 151, 128, 0.24) 100%),
+        #d95145;
+  box-shadow: 0 7px 18px rgba(116, 36, 30, 0.22),
+        0 0 0 1px #8f3028,
+        inset 0 0 0 1px #8f3028,
+        inset 0 3px 0 rgba(255, 255, 244, 0.35),
+        inset 0 -6px 0 rgba(104, 24, 22, 0.28);
+  font-size: var(--start-side-font-base);
+  font-weight: 1000;
+  line-height: 1;
+  text-align: center;
+  text-shadow: 0 2px 0 rgba(96, 28, 22, 0.6),
+        0 0 4px rgba(96, 28, 22, 0.34);
+}
+
+html[data-mode="care"] #start-exit-button:hover {
+  filter: brightness(1.03);
+}
+
+html[data-mode="care"] #start-exit-button:active,
+html[data-mode="care"] #start-exit-button.is-pressed {
+  transform: translateY(3px) scale(0.98);
+}
+
 html[data-mode="care"] #tutorial-button.start-side-button {
   border: 3px solid #ffb3a3;
   border-radius: clamp(22px, 46.08px, 38px);

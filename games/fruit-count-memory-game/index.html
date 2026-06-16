@@ -562,7 +562,9 @@
       var requestedMode = String(params.get("mode") || "standard").trim().toLowerCase();
       var requestedConfigUrl = String(params.get("configUrl") || "").trim();
       var mode = Object.prototype.hasOwnProperty.call(modeMap, requestedMode) ? requestedMode : "standard";
-      var assetVersion = "care-standard-pause-20260608";
+      var assetVersion = mode === "care" || mode === "ai_assisted"
+        ? "care-ai-start-controls-20260616"
+        : "care-standard-pause-20260608";
       window.__FRUIT_COUNT_GAME_MODE__ = mode;
       window.__FRUIT_COUNT_MODE_ASSETS__ = {
         css: "css/modes/" + mode + ".css",
@@ -580,8 +582,8 @@
     })();
   </script>
   <script src="js/config-normalizer.js?v=ai-external-input-config-fix-20260602"></script>
-  <script src="js/app-bridge.js?v=ai-external-input-config-fix-20260602"></script>
+  <script src="js/app-bridge.js?v=care-ai-start-controls-20260616"></script>
   <audio id="background-audio" src="assets/audio/background.wav" preload="auto" loop></audio>
-  <script src="js/game.js?v=care-start-actions-20260608"></script>
+  <script src="js/game.js?v=care-ai-start-controls-20260616"></script>
 </body>
 </html>
