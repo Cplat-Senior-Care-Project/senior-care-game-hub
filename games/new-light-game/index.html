@@ -1,0 +1,456 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>빛나는 전구를 찾아라</title>
+    <script>
+      (function () {
+        var stageWidth = 1280;
+        var stageHeight = 720;
+        var visualViewport = window.visualViewport;
+        var viewportWidth = visualViewport && visualViewport.width ? visualViewport.width : window.innerWidth || document.documentElement.clientWidth || stageWidth;
+        var viewportHeight = visualViewport && visualViewport.height ? visualViewport.height : window.innerHeight || document.documentElement.clientHeight || stageHeight;
+        var scale = Math.max(0.01, Math.min(viewportWidth / stageWidth, viewportHeight / stageHeight));
+        var horizontalGutter = Math.max(0, (viewportWidth - (stageWidth * scale)) / (2 * scale));
+        var verticalGutter = Math.max(0, (viewportHeight - (stageHeight * scale)) / (2 * scale));
+        document.documentElement.style.setProperty("--game-scale", String(scale));
+        document.documentElement.style.setProperty("--game-viewport-right-gutter", String(horizontalGutter) + "px");
+        document.documentElement.style.setProperty("--game-viewport-top-gutter", String(verticalGutter) + "px");
+      })();
+    </script>
+    <link rel="stylesheet" href="css/base.css" />
+    <link rel="stylesheet" href="css/screens.css" />
+    <link rel="stylesheet" href="css/game-layout.css" />
+    <link rel="stylesheet" href="css/responsive.css" />
+    <link rel="stylesheet" href="css/feedback.css" />
+    <link rel="stylesheet" href="css/light-theme.css" />
+    <link rel="stylesheet" href="css/modes/standard.css" />
+    <link rel="stylesheet" href="css/modes/reminder.css" />
+    <link rel="stylesheet" href="css/modes/care.css" />
+    <link rel="stylesheet" href="css/modes/ai-assisted.css" />
+  </head>
+  <body>
+    <div class="app-viewport" id="appViewport">
+      <div class="portrait-lock" aria-live="polite">
+        <div class="rotate-symbol" aria-hidden="true"><span></span></div>
+        <p>가로 화면에서 더 편하게 볼 수 있어요.<br />기기를 가로로 돌려주세요.</p>
+      </div>
+
+      <main class="game-stage" id="gameStage">
+        <section class="screen screen-loading is-active" data-screen="loading" aria-labelledby="loadingTitle">
+          <div class="screen-center loading-layout">
+            <div class="title-wrap">
+              <img class="title-image" src="assets/images/title.png" alt="빛나는 전구를 찾아라" />
+              <h1 class="title-fallback" id="loadingTitle">빛나는 전구를 찾아라</h1>
+            </div>
+            <p class="start-loading-message">게임을 준비하고 있어요</p>
+            <div class="start-loading" role="status" aria-live="polite" aria-label="로딩 중">
+              <div class="start-loading-track" aria-hidden="true">
+                <span class="start-loading-fill" id="loadingFill"></span>
+              </div>
+              <span class="start-loading-text" id="loadingPercent">0%</span>
+            </div>
+          </div>
+        </section>
+
+        <section class="screen screen-panel condition-screen" data-screen="condition" aria-labelledby="conditionTitle">
+          <div class="condition-card">
+            <h2 id="conditionTitle" class="condition-title">
+              <span class="condition-title-icon" aria-hidden="true">&#128221;</span>
+              <span class="condition-title-text">오늘 컨디션 체크</span>
+              <span class="condition-title-icon" aria-hidden="true">&#9989;</span>
+            </h2>
+
+            <div class="condition-layout">
+              <section class="condition-panel condition-mood-panel" aria-labelledby="conditionMoodTitle">
+                <h3 id="conditionMoodTitle" class="condition-section-title">오늘의 기분</h3>
+                <div class="condition-mood-options" data-choice-group="moodBefore" role="group" aria-label="오늘의 기분 선택">
+                  <button type="button" class="choice-button condition-mood-button is-selected" data-value="good" data-mood="good" aria-pressed="true">
+                    <span class="condition-mood-face" aria-hidden="true">&#128518;</span>
+                    <span>좋음</span>
+                  </button>
+                  <button type="button" class="choice-button condition-mood-button" data-value="normal" data-mood="normal" aria-pressed="false">
+                    <span class="condition-mood-face" aria-hidden="true">&#128528;</span>
+                    <span>보통</span>
+                  </button>
+                  <button type="button" class="choice-button condition-mood-button" data-value="bad" data-mood="bad" aria-pressed="false">
+                    <span class="condition-mood-face" aria-hidden="true">&#128545;</span>
+                    <span>나쁨</span>
+                  </button>
+                </div>
+              </section>
+
+              <section class="condition-panel condition-sleep-panel" aria-labelledby="conditionSleepTitle">
+                <h3 id="conditionSleepTitle" class="condition-section-title">수면 시간</h3>
+                <div class="condition-sleep-control">
+                  <div class="condition-sleep-dial" aria-live="polite">
+                    <div class="condition-sleep-rows" id="conditionSleepRows"></div>
+                  </div>
+                  <div class="condition-sleep-arrows">
+                    <button id="sleepUp" class="condition-sleep-arrow" type="button" aria-label="수면 시간 늘리기">▲</button>
+                    <button id="sleepDown" class="condition-sleep-arrow" type="button" aria-label="수면 시간 줄이기">▼</button>
+                  </div>
+                </div>
+              </section>
+            </div>
+
+            <div class="condition-actions">
+              <button class="condition-skip-button" type="button" id="conditionSkip">건너뛰기</button>
+              <button class="condition-confirm-button" type="button" id="conditionSubmit">확인</button>
+            </div>
+          </div>
+        </section>
+
+        <section class="screen screen-start" data-screen="start" aria-labelledby="startTitle">
+          <button class="secondary-button corner-settings-button optional-settings" type="button" data-screen-target="settings" aria-label="설정"></button>
+          <div class="start-layout">
+            <div class="title-wrap start-title">
+              <img class="title-image" src="assets/images/title.png" alt="빛나는 전구를 찾아라" />
+              <h1 class="title-fallback" id="startTitle">빛나는 전구를 찾아라</h1>
+            </div>
+            <p class="main-copy">위치 기억 활동</p>
+            <div class="mode-strip">
+              <span id="modeLabel">표준모드</span>
+              <strong id="selectedDifficultyText">쉬움</strong>
+            </div>
+            <div class="start-actions">
+              <button class="primary-button" type="button" id="startButton">시작하기</button>
+              <button class="secondary-button optional-difficulty" type="button" data-screen-target="difficulty">난이도 선택</button>
+              <button class="secondary-button optional-howto" type="button" data-screen-target="howto">게임 방법 보기</button>
+              <button class="secondary-button optional-settings" type="button" data-screen-target="settings">설정하기</button>
+              <button class="text-button home-return" type="button" id="startReturnButton">효담콜로 돌아가기</button>
+            </div>
+          </div>
+        </section>
+
+        <section class="screen screen-panel" data-screen="difficulty" aria-labelledby="difficultyTitle">
+          <div class="panel-layout wide-panel">
+            <header class="panel-header">
+              <p class="eyebrow">난이도</p>
+              <h2 id="difficultyTitle">단계를 골라 주세요</h2>
+            </header>
+            <div class="difficulty-list">
+              <button class="difficulty-card is-selected" type="button" data-difficulty="easy" aria-pressed="true">
+                <span class="difficulty-name">쉬움</span>
+                <span class="difficulty-grid">2 x 2</span>
+                <span class="difficulty-note">빛나는 전구 2개</span>
+                <span class="mini-grid mini-grid-2" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+              </button>
+              <button class="difficulty-card" type="button" data-difficulty="normal" aria-pressed="false">
+                <span class="difficulty-name">보통</span>
+                <span class="difficulty-grid">3 x 3</span>
+                <span class="difficulty-note">빛나는 전구 3개</span>
+                <span class="mini-grid mini-grid-3" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span>
+              </button>
+              <button class="difficulty-card" type="button" data-difficulty="hard" aria-pressed="false">
+                <span class="difficulty-name">어려움</span>
+                <span class="difficulty-grid">4 x 4</span>
+                <span class="difficulty-note">빛나는 전구 4개</span>
+                <span class="mini-grid mini-grid-4" aria-hidden="true">
+                  <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+                  <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+                </span>
+              </button>
+            </div>
+            <div class="panel-actions">
+              <button class="text-button" type="button" data-screen-target="start">돌아가기</button>
+            </div>
+          </div>
+        </section>
+
+        <section class="screen screen-panel" data-screen="howto" aria-labelledby="howtoTitle">
+          <div class="panel-layout tutorial-panel">
+            <header class="panel-header">
+              <p class="eyebrow">게임 방법</p>
+              <h2 id="howtoTitle">천천히 따라 해 보세요</h2>
+            </header>
+            <div class="tutorial-page is-active" data-tutorial-page="0">
+              <strong>1</strong>
+              <p>전구가 잠깐 빛납니다.</p>
+            </div>
+            <div class="tutorial-page" data-tutorial-page="1">
+              <strong>2</strong>
+              <p>빛난 자리를 눈으로 기억해 주세요.</p>
+            </div>
+            <div class="tutorial-page" data-tutorial-page="2">
+              <strong>3</strong>
+              <p>박스가 닫히면 같은 자리를 눌러 주세요.</p>
+            </div>
+            <div class="tutorial-page" data-tutorial-page="3">
+              <strong>4</strong>
+              <p>헷갈리면 힌트를 눌러도 괜찮아요.</p>
+            </div>
+            <div class="tutorial-page" data-tutorial-page="4">
+              <strong>5</strong>
+              <p>끝까지 편안하게 이어가면 됩니다.</p>
+            </div>
+            <div class="tutorial-controls">
+              <button class="text-button" type="button" id="tutorialPrev">이전</button>
+              <span id="tutorialProgress">1 / 5</span>
+              <button class="secondary-button" type="button" id="tutorialNext">다음</button>
+              <button class="primary-button" type="button" id="tutorialDone">완료</button>
+            </div>
+          </div>
+        </section>
+
+        <section class="screen screen-panel settings-screen" data-screen="settings" aria-labelledby="settingsTitle">
+          <div class="panel-layout settings-panel settings-card">
+            <div class="settings-layout settings-care-layout">
+              <section class="settings-sound-panel" aria-labelledby="settingsSoundTitle">
+                <h2 id="settingsSoundTitle" class="settings-panel-title">
+                  <span class="settings-title-icon settings-title-icon-sound" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                      <path d="M9 18V5l12-2v13"></path>
+                      <circle cx="6" cy="18" r="3"></circle>
+                      <circle cx="18" cy="16" r="3"></circle>
+                    </svg>
+                  </span>
+                  <span>소리 설정</span>
+                </h2>
+                <div class="settings-options">
+                  <label class="setting-row">
+                    <span class="setting-icon" aria-hidden="true">
+                      <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                        <path d="M9 18V5l12-2v13"></path>
+                        <circle cx="6" cy="18" r="3"></circle>
+                        <circle cx="18" cy="16" r="3"></circle>
+                      </svg>
+                    </span>
+                    <span class="setting-copy">
+                      <strong id="backgroundSoundLabel">배경음 켬</strong>
+                    </span>
+                    <input id="backgroundSoundToggle" class="setting-toggle" type="checkbox" data-setting-toggle="music" checked />
+                  </label>
+                  <label class="setting-row">
+                    <span class="setting-icon" aria-hidden="true">
+                      <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                        <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+                        <path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+                        <path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path>
+                      </svg>
+                    </span>
+                    <span class="setting-copy">
+                      <strong id="soundLabel">효과음 켬</strong>
+                    </span>
+                    <input id="soundToggle" class="setting-toggle" type="checkbox" data-setting-toggle="sfx" checked />
+                  </label>
+                  <label class="setting-row">
+                    <span class="setting-icon" aria-hidden="true">
+                      <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                        <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+                        <path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+                        <path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path>
+                      </svg>
+                    </span>
+                    <span class="setting-copy">
+                      <strong id="voiceGuideLabel">안내음성 켬</strong>
+                    </span>
+                    <input id="voiceGuideToggle" class="setting-toggle" type="checkbox" data-setting-toggle="voice" checked />
+                  </label>
+                </div>
+              </section>
+            </div>
+            <div class="panel-actions settings-close-actions">
+              <button class="primary-button settings-close-button" type="button" data-screen-target="start">닫기</button>
+            </div>
+            <header class="panel-header">
+              <p class="eyebrow">설정</p>
+              <h2 id="settingsTitle">편한 상태로 맞춰 주세요</h2>
+            </header>
+            <div class="settings-list">
+              <div class="setting-row theme-row">
+                <div>
+                  <strong>테마</strong>
+                  <span>전구, 새, 휴대폰</span>
+                </div>
+                <div class="theme-buttons" id="themeButtons">
+                  <button type="button" class="theme-button is-selected" data-theme="bulb">전구</button>
+                  <button type="button" class="theme-button" data-theme="bird">새</button>
+                  <button type="button" class="theme-button" data-theme="phone">휴대폰</button>
+                </div>
+              </div>
+              <div class="setting-row"><strong>음악</strong><button class="toggle-button is-on" type="button" data-setting-toggle="music" aria-pressed="true">켜짐</button></div>
+              <div class="setting-row"><strong>효과음</strong><button class="toggle-button is-on" type="button" data-setting-toggle="sfx" aria-pressed="true">켜짐</button></div>
+              <div class="setting-row"><strong>음성안내</strong><button class="toggle-button is-on" type="button" data-setting-toggle="voice" aria-pressed="true">켜짐</button></div>
+              <div class="setting-row"><strong>점수화면</strong><button class="toggle-button is-on" type="button" data-setting-toggle="score" aria-pressed="true">켜짐</button></div>
+            </div>
+            <div class="panel-actions">
+              <button class="secondary-button" type="button" id="fullscreenButton">전체화면 켜기</button>
+              <button class="primary-button" type="button" data-screen-target="start">돌아가기</button>
+            </div>
+          </div>
+        </section>
+
+        <section class="screen screen-play" data-screen="play" aria-labelledby="playTitle">
+          <h2 class="sr-only" id="playTitle">플레이 화면</h2>
+          <header class="game-hud info-bar">
+            <div class="hud-box info-pill hud-progress-pill" role="progressbar" aria-label="진행" aria-valuemin="1" aria-valuemax="10" aria-valuenow="1">
+              <div class="hud-progress-copy">
+                <span class="hud-progress-label">진행</span>
+                <strong id="hud-progress-current" class="hud-progress-current">1</strong>
+                <span class="hud-progress-divider">/</span>
+                <strong id="hud-progress-total" class="hud-progress-total">10</strong>
+              </div>
+              <div class="hud-progress-track" aria-hidden="true">
+                <span class="hud-progress-line"></span>
+                <span class="hud-progress-line-fill"></span>
+                <span class="hud-progress-step is-active"></span>
+                <span class="hud-progress-step"></span>
+                <span class="hud-progress-step"></span>
+                <span class="hud-progress-step"></span>
+                <span class="hud-progress-step"></span>
+              </div>
+            </div>
+            <div class="hud-box optional-difficulty-label info-pill difficulty-pill hud-mission-pill">
+              <span class="info-copy">
+                <strong class="hud-activity-label">위치 기억 활동</strong>
+                <strong id="hudDifficulty" class="sr-only">쉬움</strong>
+              </span>
+            </div>
+            <div class="hud-box optional-timer" id="phaseTimerBox">
+              <span>남은 시간</span>
+              <strong id="phaseTimer">60초</strong>
+            </div>
+            <div class="hud-box optional-timer info-pill timer-pill" id="totalTimerBox">
+              <span class="info-copy">
+                <span class="info-label">남은 시간</span>
+                <strong id="totalTimer">10:00</strong>
+              </span>
+            </div>
+            <div class="hud-box optional-score">
+              <span>정답</span>
+              <strong id="scoreText">0개</strong>
+            </div>
+            <div class="hud-box">
+              <span>남은 개수</span>
+              <strong id="remainingText">2개</strong>
+            </div>
+            <button class="pause-button game-button icon-button" type="button" id="pauseButton" aria-label="일시정지">
+              <span class="pause-symbol" aria-hidden="true"></span>
+              <span>일시정지</span>
+            </button>
+          </header>
+
+          <div class="progress-row">
+            <div class="progress-info">
+              <span>진행</span>
+              <strong id="progressText">0%</strong>
+            </div>
+            <div class="progress-track"><div class="progress-fill"></div></div>
+            <div class="memory-track" aria-label="관찰 시간"><div class="memory-fill" id="memoryFill"></div></div>
+            <button class="hint-button" type="button" id="hintButton">힌트 <span id="hintCount">0회</span></button>
+            <button class="next-button" type="button" aria-label="다음 문제" disabled>다음 <span aria-hidden="true">›</span></button>
+          </div>
+
+          <div class="play-prompt" aria-live="polite">방금 켜졌던 전구를 찾아주세요</div>
+
+          <div class="play-area">
+            <div class="bulb-grid" id="bulbGrid" aria-label="전구 위치 선택"></div>
+          </div>
+
+          <footer class="status-bar">
+            <p id="statusMessage">전구 위치를 잘 기억해보세요</p>
+          </footer>
+
+          <div class="pause-overlay" id="pauseOverlay" hidden>
+            <div class="pause-dialog" role="dialog" aria-modal="true" aria-labelledby="pauseTitle">
+              <h3 id="pauseTitle">잠시 쉬는 중이에요</h3>
+              <div class="dialog-actions">
+                <button class="primary-button" type="button" id="resumeButton">계속하기</button>
+                <button class="secondary-button optional-howto" type="button" id="pauseHowtoButton">게임 방법 보기</button>
+                <button class="text-button" type="button" id="pauseHomeButton">처음으로 돌아가기</button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+
+<section class="screen screen-panel" data-screen="finish-check" aria-labelledby="finishCheckTitle">
+          <div class="panel-layout finish-panel">
+            <header class="panel-header">
+              <p class="eyebrow">마무리 체크</p>
+              <h2 id="finishCheckTitle">오늘 활동은 어떠셨어요?</h2>
+            </header>
+            <div class="finish-grid">
+              <div class="finish-question">
+                <span>지금 기분</span>
+                <div class="choice-group" data-choice-group="moodAfter">
+                  <button type="button" class="choice-button is-selected" data-value="good">좋음</button>
+                  <button type="button" class="choice-button" data-value="normal">보통</button>
+                  <button type="button" class="choice-button" data-value="bad">나쁨</button>
+                </div>
+              </div>
+              <div class="finish-question">
+                <span>게임 난이도</span>
+                <div class="choice-group" data-choice-group="perceivedDifficulty">
+                  <button type="button" class="choice-button is-selected" data-value="easy">쉬웠어요</button>
+                  <button type="button" class="choice-button" data-value="just_right">적당했어요</button>
+                  <button type="button" class="choice-button" data-value="hard">어려웠어요</button>
+                </div>
+              </div>
+              <div class="finish-question">
+                <span>피로감</span>
+                <div class="choice-group" data-choice-group="fatigue">
+                  <button type="button" class="choice-button is-selected" data-value="fine">괜찮아요</button>
+                  <button type="button" class="choice-button" data-value="tired">조금 피곤해요</button>
+                  <button type="button" class="choice-button" data-value="very_tired">많이 피곤해요</button>
+                </div>
+              </div>
+              <div class="finish-question">
+                <span>도움 필요</span>
+                <div class="choice-group" data-choice-group="neededHelp">
+                  <button type="button" class="choice-button is-selected" data-value="no">아니오</button>
+                  <button type="button" class="choice-button" data-value="yes">네</button>
+                </div>
+              </div>
+              <div class="finish-question">
+                <span>다시 하고 싶은 마음</span>
+                <div class="choice-group" data-choice-group="replayIntent">
+                  <button type="button" class="choice-button is-selected" data-value="yes">네</button>
+                  <button type="button" class="choice-button" data-value="no">아니오</button>
+                </div>
+              </div>
+            </div>
+            <div class="panel-actions">
+              <button class="primary-button" type="button" id="finishSubmit">결과 보기</button>
+              <button class="text-button" type="button" id="finishSkip">건너뛰고 결과 보기</button>
+            </div>
+          </div>
+        </section>
+
+        <section class="screen screen-result" data-screen="result" aria-labelledby="resultTitle">
+          <div class="result-layout">
+            <header class="panel-header">
+              <p class="eyebrow">결과</p>
+              <h2 id="resultTitle">정말 잘하셨어요.</h2>
+              <p id="resultNotice"></p>
+            </header>
+            <div class="result-stats">
+              <div><span>전체 문제</span><strong id="resultTotal">10개</strong></div>
+              <div class="optional-score"><span>정답</span><strong id="resultCorrect">0개</strong></div>
+              <div class="optional-score"><span>오답</span><strong id="resultWrong">0개</strong></div>
+              <div class="optional-score"><span>성공률</span><strong id="resultRate">0%</strong></div>
+              <div><span>평균 반응</span><strong id="resultAverage">0초</strong></div>
+              <div><span>총 시간</span><strong id="resultTotalTime">0초</strong></div>
+              <div class="optional-difficulty-label"><span>난이도</span><strong id="resultDifficulty">쉬움</strong></div>
+              <div><span>힌트</span><strong id="resultHints">0회</strong></div>
+            </div>
+            <div class="panel-actions">
+              <button class="primary-button optional-replay" type="button" id="playAgainButton">다시하기</button>
+              <button class="secondary-button" type="button" id="resultHomeButton">효담콜로 돌아가기</button>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <script src="config/gameConfig.js" defer></script>
+    <script src="assets/data/questionData.js" defer></script>
+    <script src="js/audio-display.js" defer></script>
+    <script src="js/result-bridge.js" defer></script>
+    <script src="js/session-board.js" defer></script>
+    <script src="js/play-input.js" defer></script>
+    <script src="js/screen-flow.js" defer></script>
+  </body>
+</html>

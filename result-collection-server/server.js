@@ -56,6 +56,73 @@ function initDb() {
   db.exec("PRAGMA foreign_keys = ON;");
   db.exec("PRAGMA journal_mode = WAL;");
   db.exec(fs.readFileSync(schemaFile, "utf8"));
+  runMigrations();
+}
+
+function runMigrations() {
+  ensureColumns("game_play_results", {
+    event_type: "TEXT",
+    tenant_id: "TEXT",
+    facility_id: "TEXT",
+    program_id: "TEXT",
+    reward_id: "TEXT",
+    recommendation_id: "TEXT",
+    process_data_json: "TEXT",
+  });
+
+  createUniqueIndexIfSafe(
+    "idx_game_play_results_session_unique",
+    "game_play_results",
+    "session_id",
+    "session_id IS NOT NULL"
+  );
+  createUniqueIndexIfSafe(
+    "idx_game_play_results_assignment_session_unique",
+    "game_play_results",
+    "assignment_id, session_id",
+    "assignment_id IS NOT NULL"
+  );
+  db.exec(`
+    CREATE INDEX IF NOT EXISTS idx_game_play_results_tenant
+      ON game_play_results(tenant_id)
+      WHERE tenant_id IS NOT NULL;
+    CREATE INDEX IF NOT EXISTS idx_game_play_results_facility
+      ON game_play_results(facility_id)
+      WHERE facility_id IS NOT NULL;
+    CREATE INDEX IF NOT EXISTS idx_game_play_results_program
+      ON game_play_results(program_id)
+      WHERE program_id IS NOT NULL;
+    CREATE INDEX IF NOT EXISTS idx_game_play_results_recommendation
+      ON game_play_results(recommendation_id)
+      WHERE recommendation_id IS NOT NULL;
+  `);
+}
+
+function ensureColumns(table, columns) {
+  const existing = new Set(db.prepare(`PRAGMA table_info(${table})`).all().map((column) => column.name));
+  for (const [name, definition] of Object.entries(columns)) {
+    if (!existing.has(name)) {
+      db.exec(`ALTER TABLE ${table} ADD COLUMN ${name} ${definition}`);
+    }
+  }
+}
+
+function createUniqueIndexIfSafe(indexName, table, columns, whereClause) {
+  const duplicate = db.prepare(`
+    SELECT 1
+      FROM ${table}
+     WHERE ${whereClause}
+     GROUP BY ${columns}
+    HAVING COUNT(*) > 1
+     LIMIT 1
+  `).get();
+
+  if (duplicate) {
+    console.warn(`Skipped unique index ${indexName}: duplicate ${columns} values already exist.`);
+    return;
+  }
+
+  db.exec(`CREATE UNIQUE INDEX IF NOT EXISTS ${indexName} ON ${table}(${columns}) WHERE ${whereClause}`);
 }
 
 function send(res, status, body) {
@@ -212,6 +279,10 @@ function normalizeGameResult(payload, status) {
     abandon_reason: pick(payload, "abandon_reason", "abandonReason"),
     error_code: pick(payload, "error_code", "errorCode"),
     error_message: pick(payload, "error_message", "errorMessage"),
+    process_data_json: pick(payload, "process_data_json", "processDataJson")
+      || pick(payload, "process_data", "processData")
+      || pick(payload, "course_data", "courseData")
+      || {},
     question_logs: pick(payload, "question_logs", "questionLogs") || [],
     result_detail_json: pick(payload, "result_detail_json", "resultDetailJson") || {},
   };
@@ -239,6 +310,17 @@ function normalizeResultRequest(body) {
     || gameResult.result_detail_json
     || gameResult.resultDetailJson
     || {};
+  const processDataJson =
+    pick(payload, "process_data_json", "processDataJson")
+    || pick(payload, "process_data", "processData")
+    || pick(payload, "course_data", "courseData")
+    || gameResult.process_data_json
+    || gameResult.processDataJson
+    || gameResult.process_data
+    || gameResult.processData
+    || gameResult.course_data
+    || gameResult.courseData
+    || null;
   const seniorId =
     stringOrNull(pick(payload, "senior_id", "seniorId"))
     || stringOrNull(pick(payload, "user_id", "userId"))
@@ -247,6 +329,11 @@ function normalizeResultRequest(body) {
   const row = {
     id: crypto.randomUUID(),
     event_type: eventType,
+    tenant_id: stringOrNull(pick(payload, "tenant_id", "tenantId")),
+    facility_id: stringOrNull(pick(payload, "facility_id", "facilityId")),
+    program_id: stringOrNull(pick(payload, "program_id", "programId")),
+    reward_id: stringOrNull(pick(payload, "reward_id", "rewardId")),
+    recommendation_id: stringOrNull(pick(payload, "recommendation_id", "recommendationId")),
     senior_id: seniorId,
     guardian_id: stringOrNull(pick(payload, "guardian_id", "guardianId")),
     content_id: stringOrNull(pick(payload, "content_id", "contentId")),
@@ -284,6 +371,7 @@ function normalizeResultRequest(body) {
     error_phase: stringOrNull(pick(payload, "error_phase", "errorPhase") ?? gameResult.error_phase),
     game_result_json: gameResult,
     result_detail_json: resultDetailJson,
+    process_data_json: processDataJson,
     client_context_json: pick(payload, "client_context", "clientContext") || null,
     voice_context_json: pick(payload, "voice_context", "voiceContext") || null,
     meta_json: pick(payload, "meta", "metaJson") || null,
@@ -346,8 +434,13 @@ function validateResult(row) {
 
 function saveResult(row) {
   const existing = db.prepare(
-    "SELECT id, session_id, created_at FROM game_play_results WHERE senior_id = ? AND session_id = ?"
-  ).get(row.senior_id, row.session_id);
+    `SELECT id, session_id, created_at
+       FROM game_play_results
+      WHERE session_id = ?
+         OR (assignment_id IS NOT NULL AND assignment_id = ? AND session_id = ?)
+      ORDER BY CASE WHEN session_id = ? THEN 0 ELSE 1 END
+      LIMIT 1`
+  ).get(row.session_id, row.assignment_id, row.session_id, row.session_id);
 
   if (existing) {
     appendEvent(row, true);
@@ -358,18 +451,25 @@ function saveResult(row) {
   try {
     db.prepare(`
       INSERT INTO game_play_results (
-        id, senior_id, guardian_id, content_id, game_key, game_version, session_id,
+        id, event_type, tenant_id, facility_id, program_id, reward_id, recommendation_id,
+        senior_id, guardian_id, content_id, game_key, game_version, session_id,
         play_source, assignment_id, alarm_id, schedule_id, mode, difficulty, status,
         started_at, ended_at, duration_ms, total_questions, completed_question_count,
         correct_count, wrong_count, hint_count, retry_count, pause_count, interaction_count,
         avg_response_time_ms, completion_rate, abandoned_at, abandon_reason,
         error_code, error_message, error_phase, game_result_json, result_detail_json,
-        client_context_json, voice_context_json, meta_json, raw_request_json
+        process_data_json, client_context_json, voice_context_json, meta_json, raw_request_json
       ) VALUES (
-        ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
+        ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
       )
     `).run(
       row.id,
+      row.event_type,
+      row.tenant_id,
+      row.facility_id,
+      row.program_id,
+      row.reward_id,
+      row.recommendation_id,
       row.senior_id,
       row.guardian_id,
       row.content_id,
@@ -403,6 +503,7 @@ function saveResult(row) {
       row.error_phase,
       jsonText(row.game_result_json),
       jsonText(row.result_detail_json),
+      jsonText(row.process_data_json),
       jsonText(row.client_context_json),
       jsonText(row.voice_context_json),
       jsonText(row.meta_json),
@@ -498,6 +599,9 @@ function writeJsonBackup(row) {
     result_id: row.id,
     session_id: row.session_id,
     senior_id: row.senior_id,
+    tenant_id: row.tenant_id,
+    facility_id: row.facility_id,
+    program_id: row.program_id,
     content_id: row.content_id,
     game_key: row.game_key,
     game_version: row.game_version,
@@ -518,6 +622,10 @@ function appendEvent(row, duplicate) {
     senior_id: row.senior_id,
     session_id: row.session_id,
     event_type: row.event_type,
+    assignment_id: row.assignment_id,
+    alarm_id: row.alarm_id,
+    schedule_id: row.schedule_id,
+    recommendation_id: row.recommendation_id,
     status: row.status,
     duplicate,
   }) + "\n");
@@ -528,6 +636,11 @@ function listResults(searchParams = new URLSearchParams()) {
   const params = [];
   const filterFields = [
     "senior_id",
+    "tenant_id",
+    "facility_id",
+    "program_id",
+    "reward_id",
+    "recommendation_id",
     "guardian_id",
     "content_id",
     "game_key",
@@ -566,6 +679,7 @@ function listResults(searchParams = new URLSearchParams()) {
   const where = filters.length ? `WHERE ${filters.join(" AND ")}` : "";
   const rows = db.prepare(`
     SELECT id, senior_id, guardian_id, content_id, game_key, game_version, session_id,
+           event_type, tenant_id, facility_id, program_id, reward_id, recommendation_id,
            play_source, mode, difficulty, status, started_at, ended_at, duration_ms,
            total_questions, correct_count, wrong_count, hint_count, created_at
       FROM game_play_results
@@ -586,6 +700,12 @@ function normalizeListLimit(value) {
 function rowToPublicSummary(row) {
   return {
     result_id: row.id,
+    event_type: row.event_type,
+    tenant_id: row.tenant_id,
+    facility_id: row.facility_id,
+    program_id: row.program_id,
+    reward_id: row.reward_id,
+    recommendation_id: row.recommendation_id,
     senior_id: row.senior_id,
     guardian_id: row.guardian_id,
     content_id: row.content_id,
@@ -658,6 +778,7 @@ function readResult(sessionId) {
     error_phase: row.error_phase,
     game_result_json: parseJsonText(row.game_result_json),
     result_detail_json: parseJsonText(row.result_detail_json),
+    process_data_json: parseJsonText(row.process_data_json),
     client_context_json: parseJsonText(row.client_context_json),
     voice_context_json: parseJsonText(row.voice_context_json),
     meta_json: parseJsonText(row.meta_json),

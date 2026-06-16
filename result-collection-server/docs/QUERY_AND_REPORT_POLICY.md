@@ -11,6 +11,11 @@ GET /api/v1/game-results
 | 파라미터 | 예시 | 설명 |
 | --- | --- | --- |
 | `senior_id` | `senior_001` | 시니어별 조회 |
+| `tenant_id` | `tenant_001` | 테넌트별 조회 |
+| `facility_id` | `facility_001` | 시설/기관별 조회 |
+| `program_id` | `program_001` | 프로그램/캠페인별 조회 |
+| `reward_id` | `reward_001` | 보상/리워드별 조회 |
+| `recommendation_id` | `rec_001` | AI 추천 결과별 조회 |
 | `guardian_id` | `guardian_001` | 보호자 발송/리포트 연결 기준 조회 |
 | `content_id` | `cognitive_count_fruit_001` | 콘텐츠별 조회 |
 | `game_key` | `counting_fruits` | 게임 유형별 조회 |

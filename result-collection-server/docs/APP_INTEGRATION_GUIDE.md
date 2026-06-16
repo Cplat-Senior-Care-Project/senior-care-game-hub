@@ -30,6 +30,10 @@ Authorization: Bearer <API_TOKEN>
   "game_version": "1.0.0",
   "session_id": "session_001",
   "play_source": "manual",
+  "assignment_id": "assign_001",
+  "alarm_id": "alarm_001",
+  "tenant_id": "tenant_001",
+  "facility_id": "facility_001",
   "status": "completed",
   "started_at": "2026-06-15T10:00:00+09:00",
   "ended_at": "2026-06-15T10:01:20+09:00",
@@ -40,9 +44,35 @@ Authorization: Bearer <API_TOKEN>
     "config_snapshot": {},
     "question_logs": [],
     "result_detail_json": {}
+  },
+  "result_detail_json": {
+    "game_specific_metric": 1
+  },
+  "process_data": {
+    "screen_flow": ["start", "play", "result"],
+    "pause_events": []
+  },
+  "client_context": {
+    "device_id": "device_001",
+    "platform": "react-native-webview",
+    "app_version": "1.0.0",
+    "timezone": "Asia/Seoul"
   }
 }
 ```
+
+## 필드 분리 기준
+
+| 구분 | 저장 위치 | 예시 |
+| --- | --- | --- |
+| 공통 식별자 | `game_play_results` 컬럼 | `senior_id`, `content_id`, `session_id`, `play_source` |
+| 후속 확장 식별자 | nullable 컬럼 또는 `meta_json` | `tenant_id`, `facility_id`, `program_id`, `recommendation_id` |
+| 공통 리포트 지표 | `game_play_results` 컬럼 | `correct_count`, `duration_ms`, `completion_rate` |
+| 게임 원본 결과 | `game_result_json` | 게임이 반환한 전체 결과 객체 |
+| 게임별 상세값 | `result_detail_json` | 난이도 보정 여부, 게임별 점수 세부값 |
+| 진행 과정 데이터 | `process_data_json` | 화면 이동, 일시정지, 중간 이벤트 |
+| 문항별 공통 로그 | `game_question_logs` 컬럼 | `question_id`, `is_correct`, `response_time_ms` |
+| 문항별 게임 원본 로그 | `game_question_logs.raw_log_json` | 게임별 문항 상세 객체 |
 
 ## 실패 시 처리 기준
 
@@ -54,6 +84,8 @@ Authorization: Bearer <API_TOKEN>
 | `REQUEST_BODY_TOO_LARGE` | payload 축소 또는 서버 제한값 협의 |
 | `INTERNAL_SERVER_ERROR` | 나중에 재시도하고 로컬 pending 결과 보존 |
 | `duplicate_ignored` | 저장 성공으로 간주하고 새 세션을 만들지 않음 |
+
+중복 기준은 동일 `session_id` 또는 동일 `assignment_id + session_id`입니다. 네트워크 재시도 시 같은 `session_id`를 유지해야 멱등 저장이 됩니다.
 
 ## 히스토리 재실행
 

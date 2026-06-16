@@ -5,6 +5,7 @@
   "description": "Lightweight result collection API for Senior Care WebView games.",
   "main": "server.js",
   "scripts": {
+    "db:init": "node scripts/init-db.js",
     "start": "node server.js",
     "test:samples": "node scripts/smoke-test.js"
   },

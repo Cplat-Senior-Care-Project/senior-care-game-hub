@@ -70,6 +70,12 @@ Content-Type: application/json
 | `assignment_id` | 콘텐츠 할당/실행 단위 ID |
 | `alarm_id` | 실제 발송 알림 ID |
 | `schedule_id` | 예약/반복 알림 원본 ID |
+| `tenant_id` | 향후 멀티 테넌트 식별자 |
+| `facility_id` | 시설/기관 식별자 |
+| `program_id` | 프로그램/캠페인 식별자 |
+| `reward_id` | 보상/리워드 식별자 |
+| `recommendation_id` | AI 추천/추천 결과 식별자 |
+| `process_data` | 게임 진행 과정 데이터. `process_data_json`으로 저장 |
 | `client_context` | 앱/기기 운영 정보 |
 | `voice_context` | 실제 사용된 음성 프로필 정보. `guardian_id`와 별도 |
 
@@ -84,7 +90,7 @@ Content-Type: application/json
 }
 ```
 
-동일한 `(senior_id, session_id)`가 다시 들어오면 중복 레코드를 만들지 않고 `status: "duplicate_ignored"`를 반환합니다.
+동일한 `session_id` 또는 동일한 `assignment_id + session_id`가 다시 들어오면 중복 레코드를 만들지 않고 `status: "duplicate_ignored"`를 반환합니다.
 
 ### 결과 조회
 
@@ -120,7 +126,17 @@ DB 테이블:
 | `game_play_results` | 세션 단위 결과 저장 |
 | `game_question_logs` | 문항별 로그 저장 |
 
-`game_result_json`에는 게임이 반환한 원본 결과 JSON을 그대로 보존합니다. 공통 리포트 필드는 별도 컬럼으로 정규화하고, 게임별 특수값은 `result_detail_json` 또는 `raw_log_json`에 저장합니다.
+`game_result_json`에는 게임이 반환한 원본 결과 JSON을 그대로 보존합니다. 공통 리포트 필드는 별도 컬럼으로 정규화하고, 게임별 특수값은 `result_detail_json`, 진행 과정 데이터는 `process_data_json`, 문항별 원본 로그는 `raw_log_json`에 저장합니다.
+
+## DB 초기화/마이그레이션
+
+새 DB를 만들거나 스키마를 확인할 때 아래 명령을 사용할 수 있습니다.
+
+```bash
+npm run db:init
+```
+
+서버 시작 시에도 `schema.sql`을 적용하고 기존 DB에 누락된 확장 컬럼을 자동 추가합니다.
 
 ## 샘플 저장 테스트
 
@@ -141,6 +157,7 @@ npm run test:samples
 | `docs/DEPLOYMENT_OPERATIONS.md` | 배포 및 운영 확인 문서 |
 | `docs/QUERY_AND_REPORT_POLICY.md` | 조회 필터와 히스토리 재실행 리포트 정책 |
 | `docs/TEST_RESULT_API_DB.md` | API/DB 저장 테스트 결과서 |
+| `docs/REQUIREMENTS_API_DB_MAPPING.md` | 요구사항_API_DB 탭 대응표 |
 
 ## 요구사항 대응 요약
 

@@ -1,0 +1,13 @@
+body[data-mode="reminder"] .game-stage {
+  --mode-accent: var(--leaf);
+}
+
+body[data-mode="reminder"] .screen-start .main-copy,
+body[data-mode="reminder"] .mode-strip {
+  display: none;
+}
+
+body[data-mode="reminder"] .start-actions {
+  grid-template-columns: 1fr;
+  width: 520px;
+}

@@ -1,0 +1,15 @@
+body[data-theme="bird"] .card-front {
+  background: linear-gradient(180deg, #f3fbff, #cce6ef);
+}
+
+body[data-theme="phone"] .card-front {
+  background: linear-gradient(180deg, #f5f6f8, #cfd6de);
+}
+
+body.high-contrast {
+  --ink: #111;
+  --muted: #333;
+  --paper: rgba(255, 255, 255, 0.98);
+  --sky: #005a9c;
+  --leaf: #006b45;
+}

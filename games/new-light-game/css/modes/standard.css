@@ -1,0 +1,7 @@
+body[data-mode="standard"] .game-stage {
+  --mode-accent: var(--sky);
+}
+
+body[data-mode="standard"] .mode-strip {
+  border-color: rgba(44, 121, 168, 0.28);
+}
