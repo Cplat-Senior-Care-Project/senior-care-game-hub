@@ -3036,7 +3036,7 @@
     display:block;
   }
   #screen-play .qcard .sit .prompt-line-action{
-    text-align:center;
+    text-align:left;
   }
   #screen-play .qcard .sit.multi-situation{
     font-size:clamp(32px,4.2cqh,48px);
@@ -6063,5 +6063,129 @@
 
     #screen-result .metric-value{
       font-size:clamp(21px,5.4cqh,28px);
+    }
+  }
+
+  .post-check.active{
+    overflow:hidden;
+  }
+
+  .post-check .center-wrap{
+    flex:1 1 auto;
+    min-height:0;
+    justify-content:center;
+    overflow:hidden;
+    padding:0;
+  }
+
+  .post-check .post-check-box{
+    width:min(100%,calc(100cqw - 96px));
+    max-width:1470px;
+    max-height:calc(100cqh - 112px);
+    padding:clamp(16px,2.6cqh,26px) clamp(22px,3cqw,34px);
+    gap:clamp(10px,1.5cqh,15px);
+    margin-block:0;
+    overflow:hidden;
+  }
+
+  .post-title{
+    font-size:clamp(48px,6.4cqh,62px);
+    line-height:1.08;
+  }
+
+  .post-question{
+    gap:clamp(6px,.9cqh,9px);
+  }
+
+  .post-label{
+    font-size:clamp(36px,4.7cqh,44px);
+    line-height:1.08;
+  }
+
+  .post-options{
+    gap:clamp(10px,1.4cqw,18px);
+  }
+
+  .post-options button{
+    block-size:clamp(64px,8.4cqh,78px);
+    min-block-size:clamp(64px,8.4cqh,78px);
+    padding:0 clamp(10px,1.3cqw,18px);
+    font-size:clamp(34px,4.5cqh,42px);
+    line-height:1.04;
+    white-space:normal;
+    word-break:keep-all;
+  }
+
+  .post-actions{
+    flex-wrap:nowrap;
+    gap:clamp(16px,2.2cqw,28px);
+    margin-top:clamp(4px,.8cqh,8px);
+  }
+
+  .post-actions .btn-return,
+  .post-actions .ghost{
+    flex:0 1 clamp(240px,22cqw,330px);
+    inline-size:auto;
+    max-inline-size:none;
+    block-size:clamp(58px,7.5cqh,70px);
+    min-block-size:clamp(58px,7.5cqh,70px);
+    padding:0 clamp(14px,1.6cqw,22px);
+    font-size:clamp(30px,4.1cqh,38px);
+    line-height:1.04;
+  }
+
+  @container stage (orientation:portrait) and (max-width:760px){
+    .post-check.screen{
+      padding:5px 8px calc(6px + env(safe-area-inset-bottom));
+      gap:4px;
+    }
+
+    .post-check .center-wrap{
+      padding:0;
+    }
+
+    .post-check .post-check-box{
+      width:min(100%,calc(100cqw - 18px));
+      max-height:calc(100cqh - 48px);
+      padding:clamp(7px,1.8cqw,10px);
+      gap:clamp(4px,1.1cqw,6px);
+    }
+
+    .post-title{
+      font-size:clamp(25px,6.2cqw,31px);
+      line-height:1.04;
+    }
+
+    .post-label{
+      font-size:clamp(20px,4.9cqw,24px);
+      line-height:1.05;
+    }
+
+    .post-options{
+      gap:5px;
+    }
+
+    .post-options button,
+    .post-options[data-post-group="mood"] button,
+    .post-options.two button{
+      block-size:clamp(40px,10cqw,48px);
+      min-block-size:clamp(40px,10cqw,48px);
+      padding:0 4px;
+      font-size:clamp(16px,4.4cqw,21px);
+      line-height:1.02;
+    }
+
+    .post-actions{
+      gap:8px;
+      margin-top:2px;
+    }
+
+    .post-actions .btn-return,
+    .post-actions .ghost{
+      flex:0 1 clamp(110px,32cqw,150px);
+      block-size:clamp(44px,10.7cqw,52px);
+      min-block-size:clamp(44px,10.7cqw,52px);
+      padding:0 8px;
+      font-size:clamp(18px,4.8cqw,24px);
     }
   }

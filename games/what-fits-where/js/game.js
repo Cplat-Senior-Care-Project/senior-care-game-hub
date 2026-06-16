@@ -1236,7 +1236,6 @@ function normalizeSituationNeedClause(text){
     .replace(/외출하려면$/, "외출할 때")
     .replace(/하려면$/, "할 때")
     .replace(/으려면$/, "을 때")
-    .replace(/기 전$/, "할 때")
     .replace(/\s+/g, " ")
     .trim();
 }
@@ -1273,32 +1272,6 @@ function getSituationPromptClause(tpl){
   return clause || tpl.situationName || "생활";
 }
 
-function toSituationPhrase(clause){
-  const phrase = String(clause || "생활")
-    .replace(/받을 때$/, "받는 상황")
-    .replace(/할 때$/, "하는 상황")
-    .replace(/갈 때$/, "갈 상황")
-    .replace(/챙길 때$/, "챙길 상황")
-    .replace(/보낼 때$/, "보낼 상황")
-    .replace(/부치러 갈 때$/, "부치러 갈 상황")
-    .replace(/줄 때$/, "줄 상황")
-    .replace(/때$/, "상황")
-    .replace(/상황 상황$/, "상황")
-    .trim();
-  return /상황$/.test(phrase) ? phrase : `${phrase} 상황`;
-}
-
-function joinKoreanClauses(clauses){
-  if(clauses.length <= 1) return clauses[0] || "";
-  if(clauses.length === 2) return `${clauses[0]}과 ${clauses[1]}`;
-  return `${clauses.slice(0, -1).join(", ")}과 ${clauses[clauses.length - 1]}`;
-}
-
-function getCombinedSituationPrompt(templates, answerCount){
-  const clauses = templates.map(getSituationPromptClause).map(toSituationPhrase).filter(Boolean);
-  return `${joinKoreanClauses(clauses)}이에요.\n필요한 물건 ${answerCount}개를 골라주세요.`;
-}
-
 function buildRegulatedPackQuestion(templates, idx, rule){
   const wantedSituations = Math.max(1, rule.situations || 1);
   const selectedTemplates = templates.filter(Boolean).slice(0, wantedSituations);
@@ -1331,7 +1304,7 @@ function buildRegulatedPackQuestion(templates, idx, rule){
 
   const situationTexts = selectedTemplates.map((tpl, sitIdx) => {
     if(wantedSituations > 1){
-      return `${sitIdx + 1}. ${toSituationPhrase(getSituationPromptClause(tpl))}`;
+      return `${sitIdx + 1}. ${getSituationPromptClause(tpl)}`;
     }
     const count = (answersByTemplate.get(tpl) || []).length || 1;
     return getPackTemplatePrompt(tpl, count);

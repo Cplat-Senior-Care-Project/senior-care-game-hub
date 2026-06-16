@@ -23,20 +23,6 @@ html.mobile-standalone .app {
   min-height: var(--app-height, 100dvh) !important;
 }
 
-.mobile-fullscreen-button {
-  width: 100%;
-}
-
-.mobile-fullscreen-button:focus-visible {
-  outline: 4px solid #ffe37a;
-  outline-offset: 3px;
-}
-
-.mobile-fullscreen-button[hidden],
-html.mobile-standalone .mobile-fullscreen-button {
-  display: none !important;
-}
-
 @supports (-webkit-touch-callout: none) {
   html.mobile-standalone,
   html.mobile-standalone body {
@@ -616,6 +602,557 @@ html.mobile-standalone .mobile-fullscreen-button {
     min-height: clamp(28px, 10vh, 34px) !important;
     padding: 3px 6px !important;
     font-size: clamp(11px, 3.8vh, 14px) !important;
+    line-height: 1.05 !important;
+  }
+}
+
+/* Final viewport-fit pass: every mode must stay in one screen without scroll. */
+html,
+body {
+  width: 100% !important;
+  height: var(--app-height, 100dvh) !important;
+  min-height: var(--app-height, 100dvh) !important;
+  max-height: var(--app-height, 100dvh) !important;
+  overflow: hidden !important;
+}
+
+.app {
+  height: var(--app-height, 100dvh) !important;
+  min-height: 0 !important;
+  max-height: var(--app-height, 100dvh) !important;
+  overflow: hidden !important;
+}
+
+.message,
+.panel-guide strong,
+.panel-guide span,
+.stat span,
+.modal-card h2,
+.modal-card p,
+.checkin-note,
+.checkin-section strong,
+.tutorial-title,
+.tutorial-desc,
+.result-card p,
+button {
+  font-size: var(--fit-font-size) !important;
+  max-width: 100% !important;
+  overflow-wrap: anywhere !important;
+}
+
+button {
+  white-space: normal !important;
+}
+
+.modal {
+  width: 100% !important;
+  height: var(--app-height, 100dvh) !important;
+  max-height: var(--app-height, 100dvh) !important;
+  overflow: hidden !important;
+}
+
+.modal-card {
+  max-height: calc(var(--app-height, 100dvh) - max(12px, env(safe-area-inset-top)) - max(12px, env(safe-area-inset-bottom))) !important;
+  overflow: hidden !important;
+}
+
+@media (max-width: 900px), (max-height: 620px) {
+  body {
+    overflow: hidden !important;
+  }
+
+  .modal {
+    padding:
+      max(4px, env(safe-area-inset-top))
+      max(4px, env(safe-area-inset-right))
+      max(4px, env(safe-area-inset-bottom))
+      max(4px, env(safe-area-inset-left)) !important;
+  }
+
+  .modal-card {
+    display: flex !important;
+    flex-direction: column !important;
+    width: min(calc(100vw - 8px), 900px) !important;
+    max-height: calc(var(--app-height, 100dvh) - 8px) !important;
+    min-height: 0 !important;
+    padding: clamp(8px, 2.2dvh, 16px) clamp(10px, 2.6vw, 18px) !important;
+    gap: clamp(5px, 1.2dvh, 10px) !important;
+  }
+
+  .modal-card h2 {
+    flex: 0 0 auto !important;
+    margin: 0 0 clamp(4px, 1.1dvh, 8px) !important;
+    font-size: clamp(20px, min(6vw, 6dvh), 34px) !important;
+    line-height: 1.05 !important;
+  }
+
+  .modal-actions,
+  .intro-actions,
+  .settings-actions,
+  .theme-actions,
+  .pause-actions,
+  .checkin-actions {
+    flex: 0 0 auto !important;
+    display: grid !important;
+    gap: clamp(4px, 1dvh, 8px) !important;
+  }
+
+  .modal-actions button,
+  .intro-actions button,
+  .settings-actions button,
+  .theme-actions button,
+  .pause-actions button,
+  .checkin-actions button,
+  .difficulty-choice,
+  .checkin-options button {
+    min-height: clamp(34px, 8.2dvh, 52px) !important;
+    padding: clamp(4px, 1dvh, 8px) clamp(7px, 2vw, 12px) !important;
+    border-radius: clamp(9px, 2.5vw, 14px) !important;
+    font-size: clamp(13px, min(4.4vw, 4.5dvh), 20px) !important;
+    line-height: 1.05 !important;
+  }
+
+  .checkin-card,
+  .post-game-card,
+  .tutorial-card,
+  .difficulty-card {
+    width: min(calc(100vw - 8px), 900px) !important;
+  }
+
+  .checkin-note {
+    flex: 0 0 auto !important;
+    margin: 0 !important;
+    font-size: clamp(12px, min(3.5vw, 3.2dvh), 18px) !important;
+    line-height: 1.08 !important;
+  }
+
+  .checkin-section {
+    gap: clamp(4px, 1dvh, 8px) !important;
+    margin: 0 !important;
+  }
+
+  .checkin-section strong {
+    font-size: clamp(14px, min(4.2vw, 4.2dvh), 22px) !important;
+    line-height: 1.06 !important;
+  }
+
+  .checkin-options {
+    gap: clamp(4px, 1dvh, 8px) !important;
+  }
+
+  .sleep-dial {
+    gap: clamp(5px, 1.2dvh, 9px) !important;
+  }
+
+  .sleep-window {
+    min-height: clamp(64px, 18dvh, 118px) !important;
+    border-radius: clamp(12px, 3vw, 18px) !important;
+  }
+
+  .sleep-window strong {
+    padding: clamp(5px, 1dvh, 9px) 0 !important;
+    font-size: clamp(20px, min(5.8vw, 5.8dvh), 32px) !important;
+  }
+
+  .sleep-neighbor {
+    font-size: clamp(11px, min(3.2vw, 3.1dvh), 16px) !important;
+  }
+
+  .sleep-step {
+    min-height: clamp(30px, 8dvh, 46px) !important;
+    font-size: clamp(18px, min(5vw, 5dvh), 28px) !important;
+  }
+
+  .post-game-page:not(.is-hidden) {
+    flex: 1 1 auto !important;
+    min-height: 0 !important;
+    display: grid !important;
+    gap: clamp(5px, 1.1dvh, 9px) !important;
+  }
+
+  .tutorial-box {
+    flex: 1 1 auto !important;
+    min-height: 0 !important;
+    overflow: hidden !important;
+  }
+
+  .tutorial-title {
+    font-size: clamp(17px, min(4.8vw, 4.8dvh), 25px) !important;
+    line-height: 1.06 !important;
+  }
+
+  .tutorial-desc {
+    font-size: clamp(13px, min(3.8vw, 3.7dvh), 20px) !important;
+    line-height: 1.08 !important;
+  }
+
+  .difficulty-choices {
+    flex: 1 1 auto !important;
+    min-height: 0 !important;
+    gap: clamp(5px, 1.2dvh, 10px) !important;
+  }
+
+  .difficulty-choice {
+    min-height: 0 !important;
+    align-content: center !important;
+    gap: clamp(4px, 1dvh, 8px) !important;
+  }
+
+  .difficulty-choice strong {
+    font-size: clamp(18px, min(5vw, 5dvh), 30px) !important;
+    line-height: 1 !important;
+  }
+
+  .difficulty-choice small,
+  .difficulty-visual {
+    font-size: clamp(12px, min(3.5vw, 3.4dvh), 18px) !important;
+    line-height: 1.05 !important;
+  }
+}
+
+@media (orientation: portrait) and (max-width: 900px) {
+  .app {
+    grid-template-columns: minmax(0, 1fr) !important;
+    grid-template-rows: minmax(0, 1fr) auto !important;
+    gap: clamp(4px, 1dvh, 7px) !important;
+    padding:
+      max(5px, env(safe-area-inset-top))
+      max(5px, env(safe-area-inset-right))
+      max(5px, env(safe-area-inset-bottom))
+      max(5px, env(safe-area-inset-left)) !important;
+  }
+
+  .board-wrap {
+    grid-row: 1 !important;
+    min-height: 0 !important;
+    gap: clamp(4px, .9dvh, 7px) !important;
+    padding: clamp(5px, 1.1dvh, 8px) !important;
+    overflow: hidden !important;
+  }
+
+  .message {
+    min-height: clamp(46px, 8.8dvh, 76px) !important;
+    max-height: clamp(54px, 11dvh, 90px) !important;
+    padding: clamp(6px, 1.1dvh, 9px) clamp(9px, 2.5vw, 13px) !important;
+    font-size: clamp(15px, 4.2vw, 21px) !important;
+    line-height: 1.08 !important;
+    overflow: hidden !important;
+  }
+
+  .board {
+    width: min(94vw, calc(var(--app-height, 100dvh) - 208px), 512px) !important;
+    height: min(94vw, calc(var(--app-height, 100dvh) - 208px), 512px) !important;
+    min-height: 0 !important;
+    place-self: center !important;
+  }
+
+  .panel {
+    grid-row: 2 !important;
+    min-height: 0 !important;
+    padding: clamp(4px, .9dvh, 7px) !important;
+    gap: clamp(4px, .8dvh, 7px) !important;
+    overflow: hidden !important;
+  }
+
+  .panel-guide {
+    display: none !important;
+  }
+}
+
+@media (orientation: landscape) and (max-height: 620px) {
+  body[data-mode="standard"] .app,
+  body.mode-reminder .app,
+  .app {
+    grid-template-columns: clamp(116px, 19vw, 156px) minmax(0, 1fr) clamp(118px, 22vw, 176px) !important;
+    grid-template-rows: minmax(0, 1fr) !important;
+    gap: clamp(3px, .8vw, 7px) !important;
+    padding:
+      max(3px, env(safe-area-inset-top))
+      max(3px, env(safe-area-inset-right))
+      max(3px, env(safe-area-inset-bottom))
+      max(3px, env(safe-area-inset-left)) !important;
+  }
+
+  body[data-mode="standard"] .panel,
+  body.mode-reminder .panel,
+  .panel {
+    grid-column: 1 !important;
+    grid-row: 1 !important;
+    min-width: 0 !important;
+    min-height: 0 !important;
+    padding: clamp(3px, .9dvh, 6px) !important;
+    gap: clamp(3px, .8dvh, 6px) !important;
+    overflow: hidden !important;
+  }
+
+  body[data-mode="standard"] .board-wrap,
+  body.mode-reminder .board-wrap,
+  .board-wrap {
+    display: contents !important;
+  }
+
+  body[data-mode="standard"] .play-training-label,
+  body.mode-reminder .play-training-label,
+  .play-training-label {
+    grid-column: 2 !important;
+    grid-row: 1 !important;
+    align-self: start !important;
+    justify-self: center !important;
+    min-height: clamp(22px, 7dvh, 34px) !important;
+    padding: 2px 8px !important;
+    font-size: clamp(11px, 3.2dvh, 17px) !important;
+    line-height: 1 !important;
+    z-index: 2 !important;
+  }
+
+  body[data-mode="standard"] .message,
+  body.mode-reminder .message,
+  .message {
+    grid-column: 3 !important;
+    grid-row: 1 !important;
+    align-self: stretch !important;
+    justify-self: stretch !important;
+    width: 100% !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: 100% !important;
+    padding: clamp(5px, 1.4dvh, 10px) clamp(6px, 1.2vw, 11px) !important;
+    font-size: clamp(13px, 4.2dvh, 24px) !important;
+    line-height: 1.07 !important;
+    overflow: hidden !important;
+  }
+
+  body[data-mode="standard"] .board,
+  body.mode-reminder .board,
+  .board {
+    grid-column: 2 !important;
+    grid-row: 1 !important;
+    place-self: center !important;
+    width: min(100%, calc(var(--app-height, 100dvh) - 8px), 520px) !important;
+    height: auto !important;
+    max-height: calc(var(--app-height, 100dvh) - 8px) !important;
+    aspect-ratio: 1 / 1 !important;
+    padding: clamp(3px, 1dvh, 6px) !important;
+    gap: clamp(3px, .9dvh, 5px) !important;
+  }
+
+  .panel-guide {
+    display: none !important;
+  }
+}
+
+@media (orientation: landscape) and (max-height: 420px) {
+  .modal-card {
+    padding: clamp(6px, 2dvh, 11px) clamp(8px, 2vw, 14px) !important;
+    gap: clamp(4px, 1dvh, 7px) !important;
+  }
+
+  .checkin-note {
+    display: none !important;
+  }
+
+  .checkin-card,
+  .post-game-card {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) minmax(150px, .72fr) !important;
+    row-gap: clamp(4px, 1dvh, 7px) !important;
+    column-gap: clamp(7px, 1.8vw, 12px) !important;
+  }
+
+  .checkin-card h2,
+  .post-game-card h2,
+  .post-game-page,
+  .checkin-actions,
+  .modal-actions.single-action {
+    grid-column: 1 / -1 !important;
+  }
+
+  .checkin-card > .checkin-section:nth-of-type(1) {
+    grid-column: 1 !important;
+  }
+
+  .checkin-card > .checkin-section:nth-of-type(2) {
+    grid-column: 2 !important;
+  }
+
+  .post-game-page:not(.is-hidden) {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  }
+
+  .pause-actions,
+  .settings-actions {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+}
+
+@media (max-width: 360px), (max-height: 300px) {
+  .message,
+  .modal-card h2,
+  .checkin-section strong,
+  .tutorial-title,
+  .tutorial-desc,
+  .result-card p,
+  button {
+    line-height: 1.02 !important;
+  }
+
+  .modal-actions button,
+  .intro-actions button,
+  .settings-actions button,
+  .theme-actions button,
+  .pause-actions button,
+  .checkin-actions button,
+  .difficulty-choice,
+  .checkin-options button {
+    min-height: clamp(28px, 10dvh, 36px) !important;
+    font-size: clamp(11px, min(4vw, 4dvh), 14px) !important;
+    padding: 3px 6px !important;
+  }
+
+  .board {
+    padding: 4px !important;
+    gap: 4px !important;
+  }
+}
+
+/* Hard overrides for late, mode-specific rules that can push content off-screen. */
+.object-img,
+.cell img,
+.board button.cell img {
+  display: block !important;
+  width: min(78%, 100%) !important;
+  height: min(78%, 100%) !important;
+  max-width: 78% !important;
+  max-height: 78% !important;
+  object-fit: contain !important;
+}
+
+.cell,
+.board button.cell {
+  overflow: hidden !important;
+}
+
+.board,
+#board,
+.board-wrap {
+  contain: paint !important;
+  overflow: hidden !important;
+}
+
+.board {
+  align-content: stretch !important;
+  justify-content: stretch !important;
+}
+
+#introModal .intro-card {
+  position: absolute !important;
+  inset: 0 !important;
+  width: 100vw !important;
+  height: min(100dvh, var(--app-height, 100dvh)) !important;
+  min-height: 0 !important;
+  max-height: var(--app-height, 100dvh) !important;
+  margin: 0 !important;
+  border-radius: 0 !important;
+  overflow: hidden !important;
+}
+
+@media (min-width: 901px) and (min-height: 621px) {
+  #introModal .intro-card {
+    padding:
+      max(24px, env(safe-area-inset-top))
+      max(28px, env(safe-area-inset-right))
+      max(18px, env(safe-area-inset-bottom))
+      max(28px, env(safe-area-inset-left)) !important;
+  }
+}
+
+@media (orientation: landscape) and (max-height: 620px) {
+  body[data-mode="standard"] .board,
+  body.mode-reminder .board {
+    grid-row: 1 / span 3 !important;
+    align-self: center !important;
+    justify-self: center !important;
+    place-self: center !important;
+    margin: 0 !important;
+    transform: none !important;
+    top: auto !important;
+    bottom: auto !important;
+    width: min(100%, calc(var(--app-height, 100dvh) - 10px), calc(100vw - 286px), 500px) !important;
+    height: auto !important;
+    max-height: calc(var(--app-height, 100dvh) - 10px) !important;
+    aspect-ratio: 1 / 1 !important;
+    padding: clamp(3px, 1dvh, 6px) !important;
+    gap: clamp(3px, .9dvh, 5px) !important;
+  }
+
+  body[data-mode="standard"] .app::after,
+  body.mode-reminder .app::after {
+    grid-row: 1 / span 3 !important;
+    align-self: center !important;
+    justify-self: center !important;
+    margin: 0 !important;
+    transform: none !important;
+    width: min(100%, calc(var(--app-height, 100dvh) - 10px), calc(100vw - 286px), 500px) !important;
+    height: auto !important;
+    aspect-ratio: 1 / 1 !important;
+  }
+
+  body[data-mode="standard"] .panel,
+  body.mode-reminder .panel {
+    grid-row: 1 / span 3 !important;
+  }
+
+  body[data-mode="standard"] .message,
+  body.mode-reminder .message {
+    grid-row: 1 / span 3 !important;
+  }
+}
+
+body.mode-care .board-wrap:not(.result-mode),
+body.mode-ai-assisted .board-wrap:not(.result-mode) {
+  display: grid !important;
+  grid-template-rows: auto auto minmax(0, 1fr) !important;
+  align-content: stretch !important;
+  justify-items: center !important;
+  gap: clamp(6px, 1.2dvh, 12px) !important;
+  overflow: hidden !important;
+}
+
+body.mode-care .board-wrap:not(.result-mode) .message,
+body.mode-ai-assisted .board-wrap:not(.result-mode) .message {
+  min-height: clamp(48px, 9dvh, 82px) !important;
+  max-height: clamp(58px, 12dvh, 96px) !important;
+  overflow: hidden !important;
+}
+
+body.mode-care .board-wrap:not(.result-mode) .board,
+body.mode-ai-assisted .board-wrap:not(.result-mode) .board {
+  width: min(100%, calc(var(--app-height, 100dvh) - 176px), 560px) !important;
+  height: auto !important;
+  max-height: calc(var(--app-height, 100dvh) - 176px) !important;
+  aspect-ratio: 1 / 1 !important;
+  place-self: center !important;
+}
+
+@media (orientation: landscape) and (max-height: 620px) {
+  body.mode-care .board-wrap:not(.result-mode),
+  body.mode-ai-assisted .board-wrap:not(.result-mode) {
+    grid-template-rows: auto auto minmax(0, 1fr) !important;
+    padding: clamp(4px, 1dvh, 8px) !important;
+    gap: clamp(4px, 1dvh, 7px) !important;
+  }
+
+  body.mode-care .board-wrap:not(.result-mode) .board,
+  body.mode-ai-assisted .board-wrap:not(.result-mode) .board {
+    width: min(100%, calc(var(--app-height, 100dvh) - 108px), 420px) !important;
+    max-height: calc(var(--app-height, 100dvh) - 108px) !important;
+  }
+
+  body.mode-care .board-wrap:not(.result-mode) .message,
+  body.mode-ai-assisted .board-wrap:not(.result-mode) .message {
+    min-height: clamp(58px, 15dvh, 76px) !important;
+    max-height: clamp(58px, 16dvh, 82px) !important;
+    font-size: clamp(16px, 4dvh, 24px) !important;
     line-height: 1.05 !important;
   }
 }
