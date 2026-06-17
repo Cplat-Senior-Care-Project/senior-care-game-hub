@@ -1836,6 +1836,11 @@ h3 {
   padding: 26px 38px 30px;
 }
 
+#condition-modal .condition-card {
+  min-height: min(calc(100cqh - 96px), 580px);
+  padding-bottom: clamp(48px, 6.4cqh, 74px);
+}
+
 .condition-title {
   display: flex;
   align-items: center;
