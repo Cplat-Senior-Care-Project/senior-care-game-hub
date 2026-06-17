@@ -42,8 +42,23 @@
 </head>
 <body data-screen="start" data-loading="true">
   <div class="game-background" aria-hidden="true"></div>
+  <div id="orientation-guard" class="orientation-guard" role="status" aria-live="polite" aria-hidden="true">
+    <div class="orientation-guard-card">
+      <div class="orientation-phone" aria-hidden="true"></div>
+      <strong>기기를 가로로<br>돌려주세요</strong>
+      <span>이 게임은 가로 화면에<br>맞춰져 있어요.</span>
+    </div>
+  </div>
   <div id="app" class="app" aria-live="polite">
     <section id="start-screen" class="screen start-screen is-loading" aria-labelledby="start-title">
+      <button id="corner-settings-button" class="game-button corner-settings-button" type="button" aria-label="설정">
+        <span class="settings-gear" aria-hidden="true">
+          <svg viewBox="0 0 24 24" focusable="false">
+            <circle cx="12" cy="12" r="3"></circle>
+            <path d="M19.4 15a1.7 1.7 0 0 0 .34 1.88l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06A1.7 1.7 0 0 0 15 19.4a1.7 1.7 0 0 0-1 .6V20a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1-.5a1.7 1.7 0 0 0-1.88.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-.6-1H4a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 .5-1a1.7 1.7 0 0 0-.34-1.88l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.7 1.7 0 0 0 9 4.6a1.7 1.7 0 0 0 1-.6V4a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 .5a1.7 1.7 0 0 0 1.88-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.7 1.7 0 0 0 19.4 9c.22.34.42.67.6 1H20a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-.5 1z"></path>
+          </svg>
+        </span>
+      </button>
       <div class="brand-block">
         <h1 id="start-title" class="sr-only">장바구니에 담기</h1>
         <img class="start-title-image" src="assets/images/title2.webp" alt="" aria-hidden="true" decoding="async" fetchpriority="high">
@@ -459,8 +474,6 @@
       </div>
     </div>
   </div>
-
-  <div class="orientation-warning" role="status">가로 화면으로 돌려주세요.</div>
 
   <script>
     (function () {

@@ -40,18 +40,18 @@ index.html?mode=care&configUrl=config/care.config.json
 
 ## 게임에서 앱으로 보내는 이벤트
 
-게임은 `window.FruitCountMemoryGameAppBridge`를 통해 이벤트를 전달한다. 로컬 mock bridge는 `parent.postMessage()` 또는 `opener.postMessage()`로 같은 이벤트를 송신한다.
+게임은 `window.FruitCountMemoryGameAppBridge`를 통해 이벤트를 전달한다. 로컬 mock bridge는 `ReactNativeWebView.postMessage()`, `parent.postMessage()` 또는 `opener.postMessage()`로 같은 이벤트를 송신한다.
 
 | 이벤트 | 발생 시점 | payload |
 |---|---|---|
 | `GAME_READY` | config 적용 및 초기화 완료 | 실행 config 요약, 외부 입력 상태 |
 | `GAME_STARTED` | 실제 플레이 시작 | 세션, 모드, 난이도, 시작 시각 |
-| `GAME_COMPLETED` | 정상 완료 | `status: "completed"` 결과 JSON |
-| `GAME_ABANDONED` | 중단/시간 초과/닫힘 | `status: "abandoned"` 결과 JSON |
+| `SESSION_COMPLETE` | 정상 완료 | `status: "completed"` 결과 JSON |
+| `SESSION_ABORT` | 중단/시간 초과/닫힘 | `status: "abandoned"` 결과 JSON |
 | `GAME_ERROR` | 게임 내부 오류 | `status: "error"` 결과 JSON |
 | `GAME_EXIT_REQUESTED` | 앱/허브 복귀 요청 | 복귀 위치와 세션 정보 |
 
-`GAME_ABANDONED`를 지원하지 않는 이전 앱 브릿지를 위해 게임 내부에는 `GAME_COMPLETED` 계열 fallback이 남아 있다. 신규 앱은 `GAME_ABANDONED`를 별도 이벤트로 수신하는 것을 기준으로 한다.
+신규 앱과 결과 서버 연동은 실제 브릿지 기준 이벤트명인 `SESSION_COMPLETE` / `SESSION_ABORT`를 사용한다.
 
 ## 결과 상태
 

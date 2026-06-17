@@ -3,6 +3,11 @@ html[data-mode="standard"] .game-background {
   background-image: url("../../assets/images/standard_background2.png");
 }
 
+html[data-mode="standard"] .app[data-screen="start"],
+html[data-mode="standard"] .app[data-screen="start"] .start-screen {
+  overflow: visible;
+}
+
 html[data-mode="standard"] .app[data-screen="game"] {
   overflow: visible;
 }
@@ -66,6 +71,83 @@ html[data-mode="standard"] .start-side-button {
   text-align: center;
 }
 
+html[data-mode="standard"] #corner-settings-button.corner-settings-button {
+  position: absolute;
+  top: calc(-1 * var(--game-viewport-top-gutter, 0px));
+  right: calc(-1 * var(--game-viewport-right-gutter, 0px));
+  z-index: 4;
+  display: grid;
+  place-items: center;
+  width: 82px;
+  min-width: 82px;
+  max-width: 82px;
+  height: 82px;
+  min-height: 82px;
+  max-height: 82px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  color: #fffdf3;
+  background: #7f65b4;
+  box-shadow: inset 0 3px 0 rgba(255, 255, 255, 0.28),
+        inset 0 -4px 0 rgba(48, 37, 88, 0.28);
+  font-size: 56px;
+  font-weight: 1000;
+  line-height: 82px;
+  text-align: center;
+  text-shadow: none;
+  transition: transform 120ms ease, box-shadow 120ms ease, filter 120ms ease;
+}
+
+html[data-mode="standard"] #corner-settings-button.corner-settings-button[hidden] {
+  display: none;
+}
+
+html[data-mode="standard"] #start-screen.is-loading > #corner-settings-button.corner-settings-button {
+  display: none;
+}
+
+html[data-mode="standard"] #corner-settings-button.corner-settings-button .settings-gear {
+  display: grid;
+  width: 58px;
+  height: 58px;
+  place-items: center;
+  line-height: 1;
+}
+
+html[data-mode="standard"] #corner-settings-button.corner-settings-button .settings-gear svg {
+  display: block;
+  width: 58px;
+  height: 58px;
+}
+
+html[data-mode="standard"] #corner-settings-button.corner-settings-button .settings-gear svg * {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+html[data-mode="standard"] #corner-settings-button.corner-settings-button:active,
+html[data-mode="standard"] #corner-settings-button.corner-settings-button.is-pressed {
+  transform: translateY(3px) scale(0.98);
+}
+
+html[data-mode="standard"] #settings-button.start-side-button {
+  border: 3px solid #ffb3a3;
+  color: #fffdf3;
+  background: linear-gradient(315deg, rgba(126, 29, 29, 0.24) 0%, rgba(207, 62, 52, 0.08) 48%, rgba(255, 151, 128, 0.24) 100%),
+        #d95145;
+  box-shadow: 0 7px 18px rgba(116, 36, 30, 0.22),
+        0 0 0 1px #8f3028,
+        inset 0 0 0 1px #8f3028,
+        inset 0 3px 0 rgba(255, 255, 244, 0.35),
+        inset 0 -6px 0 rgba(104, 24, 22, 0.28);
+  text-shadow: 0 2px 0 rgba(96, 28, 22, 0.6),
+        0 0 4px rgba(96, 28, 22, 0.34);
+}
+
 html[data-mode="standard"] #tutorial-button.start-side-button > span:not([aria-hidden="true"]) {
   position: absolute !important;
   left: 50% !important;
@@ -78,10 +160,27 @@ html[data-mode="standard"] #tutorial-button.start-side-button > span:not([aria-h
 html[data-mode="standard"] #settings-button.start-side-button > span {
   position: relative !important;
   left: 0 !important;
+  color: #fffdf3;
 }
 
 html[data-mode="standard"] #settings-button.start-side-button > span:last-child {
   top: 0 !important;
+}
+
+html[data-mode="standard"] #settings-button.start-side-button .settings-gear {
+  display: none;
+}
+
+html[data-mode="standard"] #settings-modal .settings-card {
+  width: min(620px, calc(100% - 24px));
+}
+
+html[data-mode="standard"] #settings-modal .settings-layout {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+html[data-mode="standard"] #settings-modal .settings-left-panel {
+  display: none;
 }
 
 html[data-mode="standard"] #start-button,

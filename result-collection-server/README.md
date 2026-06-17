@@ -154,7 +154,7 @@ npm run test:samples
 | --- | --- |
 | `docs/API_ERROR_CODES.md` | 오류 응답 코드표 |
 | `docs/APP_INTEGRATION_GUIDE.md` | 앱 이식/연동 가이드 |
-| `docs/DEPLOYMENT_OPERATIONS.md` | 배포 및 운영 확인 문서 |
+| `docs/DEPLOYMENT_OPERATIONS.md` | `OPS-CMN-003_결과서버 운영·배포 문서_v0.1`: 환경변수, 로컬 실행, 배포/운영, 저장 테스트 결과, 내부 이식 구조, 확장/변경 가이드 |
 | `docs/QUERY_AND_REPORT_POLICY.md` | 조회 필터와 히스토리 재실행 리포트 정책 |
 | `docs/TEST_RESULT_API_DB.md` | API/DB 저장 테스트 결과서 |
 | `docs/REQUIREMENTS_API_DB_MAPPING.md` | 요구사항_API_DB 탭 대응표 |

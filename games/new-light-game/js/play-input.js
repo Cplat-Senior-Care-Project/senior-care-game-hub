@@ -22,11 +22,9 @@
       this.themeKey = "bulb";
       this.theme = THEME_CONFIG.bulb;
       this.targetObject = "bulb";
-      this.decoyObject = "";
       this.totalQuestions = 10;
       this.currentQuestionNumber = 0;
       this.targetIndexes = [];
-      this.decoyIndexes = [];
       this.selectedIndexes = [];
       this.questionResults = [];
       this.currentRoundStartAt = 0;
@@ -51,7 +49,10 @@
       this.totalEndAt = 0;
       this.roundEndAt = 0;
       this.phaseEndAt = 0;
+      this.feedbackEndAt = 0;
+      this.feedbackAction = "";
       this.pausedRemaining = null;
+      this.promptFeedbackTimer = null;
       this.condition = {};
       this.finishCheck = {};
       this.timers = [];
@@ -68,8 +69,8 @@
       this.difficultyKey = options.difficultyKey || "easy";
       this.effectiveDifficultyKey = this.modeConfig.difficultyOverride || this.difficultyKey;
       this.difficulty = this.resolveDifficultyConfig();
-      this.themeKey = THEME_CONFIG[options.themeKey] ? options.themeKey : "bulb";
-      this.theme = THEME_CONFIG[this.themeKey] || THEME_CONFIG.bulb;
+      this.themeKey = "bulb";
+      this.theme = THEME_CONFIG.bulb;
       this.totalQuestions = this.modeConfig.totalQuestions;
       this.condition = options.condition || {};
       this.finishCheck = {};
@@ -123,6 +124,9 @@
         this.elements.grid.innerHTML = "";
       }
 
+      this.hideRoundTransition();
+      this.clearPromptFeedback();
+
       if (this.elements && this.elements.pauseOverlay) {
         this.elements.pauseOverlay.hidden = true;
       }
@@ -135,6 +139,8 @@
 
     startNextQuestion() {
       this.clearRoundTimers();
+      this.hideRoundTransition();
+      this.clearPromptFeedback();
 
       if (this.currentQuestionNumber >= this.totalQuestions) {
         this.finish();
@@ -148,10 +154,10 @@
 
       this.currentQuestionNumber += 1;
       this.phase = GAME_PHASE.MEMORIZE;
-      this.targetObject = this.pickTargetObject();
-      this.decoyObject = this.pickDecoyObject();
+      this.targetObject = "bulb";
       this.targetIndexes = this.pickIndexes(this.difficulty.targetCount, []);
-      this.decoyIndexes = this.pickDecoyIndexes();
+      this.feedbackEndAt = 0;
+      this.feedbackAction = "";
       this.selectedIndexes = [];
       this.currentSelections = [];
       this.currentQuestionHintUsed = false;
@@ -187,46 +193,18 @@
       return indexes.sort((a, b) => a - b);
     }
 
-    pickDecoyIndexes() {
-      const shouldMix = this.effectiveDifficultyKey === "hard" && this.currentQuestionNumber >= (this.difficulty.mixedStimulusFromQuestion || 999);
-
-      if (!shouldMix) {
-        return [];
-      }
-
-      return this.pickIndexes(this.difficulty.decoyCountAfterMix || 3, this.targetIndexes);
-    }
-
-    pickTargetObject() {
-      const shouldMix = this.effectiveDifficultyKey === "hard" && this.currentQuestionNumber >= (this.difficulty.mixedStimulusFromQuestion || 999);
-
-      if (shouldMix && Math.random() < 0.5) {
-        return "flower";
-      }
-
-      return this.theme.targetObject;
-    }
-
-    pickDecoyObject() {
-      const shouldMix = this.effectiveDifficultyKey === "hard" && this.currentQuestionNumber >= (this.difficulty.mixedStimulusFromQuestion || 999);
-
-      if (!shouldMix) {
-        return "";
-      }
-
-      return this.targetObject === "flower" ? this.theme.targetObject : "flower";
-    }
-
-    getObjectLabel(objectType) {
-      if (objectType === "flower") {
-        return "무궁화";
-      }
-
-      return this.theme.objectLabel;
+    getObjectLabel() {
+      return "전구";
     }
 
     buildMemoryPrompt() {
-      return "빛나는 " + this.getObjectLabel(this.targetObject) + " " + this.difficulty.targetCount + "개를 기억해 주세요.";
+      const objectLabel = this.getObjectLabel(this.targetObject);
+
+      if (objectLabel === "전구") {
+        return "빛나는 전구의 위치를 기억하세요!";
+      }
+
+      return "빛나는 " + objectLabel + "의 위치를 기억하세요!";
     }
 
     buildSelectionPrompt() {
@@ -269,13 +247,16 @@
 
       grid.innerHTML = "";
       grid.className = "bulb-grid grid-" + this.difficulty.gridRows;
+      if (this.difficulty.gridRows === 3 && this.difficulty.gridCols === 4) {
+        grid.classList.add("grid-3x4");
+      }
       grid.style.setProperty("--grid-cols", String(this.difficulty.gridCols));
+      grid.style.setProperty("--grid-rows", String(this.difficulty.gridRows));
+      this.updateBoardFrameSize();
 
       for (let index = 0; index < totalCells; index += 1) {
         const button = document.createElement("button");
         const isTarget = this.targetIndexes.includes(index);
-        const isDecoy = this.decoyIndexes.includes(index);
-        const objectType = isTarget ? this.targetObject : isDecoy ? this.decoyObject : this.theme.targetObject;
 
         button.type = "button";
         button.className = "bulb-card";
@@ -291,11 +272,7 @@
           button.classList.add("is-sparkling");
         }
 
-        if (this.phase === GAME_PHASE.MEMORIZE && isDecoy) {
-          button.classList.add("is-decoy");
-        }
-
-        button.innerHTML = this.createCardHtml(objectType);
+        button.innerHTML = this.createCardHtml();
         this.applyCardInlineStyles(button);
         button.addEventListener("pointerup", (event) => {
           event.preventDefault();
@@ -306,16 +283,41 @@
       }
     }
 
-    createCardHtml(objectType) {
-      const icon = ["flower", "bird", "phone"].includes(objectType) ? objectType : "bulb";
-      const visual = icon === "bulb"
-        ? [
-          '    <span class="bulb-icon" aria-hidden="true">',
-          '      <img class="bulb-image bulb-image-off" src="assets/images/turn_off.png" alt="" />',
-          '      <img class="bulb-image bulb-image-on" src="assets/images/turn_on.png" alt="" />',
-          "    </span>"
-        ].join("")
-        : '    <span class="' + icon + '-icon" aria-hidden="true"></span>';
+    updateBoardFrameSize() {
+      const grid = this.elements.grid;
+      const playArea = this.elements.playArea;
+      const cardMetrics = {
+        2: { card: 205, gap: 18 },
+        3: { card: 148, gap: 14 },
+        4: { card: 110, gap: 10 }
+      };
+      const metrics = this.difficulty.gridRows === 3 && this.difficulty.gridCols === 4
+        ? { card: 128, gap: 16 }
+        : cardMetrics[this.difficulty.gridRows] || cardMetrics[3];
+      const padding = 48;
+      const gridWidth = (this.difficulty.gridCols * metrics.card) + ((this.difficulty.gridCols - 1) * metrics.gap) + padding;
+      const gridHeight = (this.difficulty.gridRows * metrics.card) + ((this.difficulty.gridRows - 1) * metrics.gap) + padding;
+      const boardTop = 190 + ((520 - gridHeight) / 2);
+
+      if (grid) {
+        grid.style.setProperty("--board-width", gridWidth + "px");
+        grid.style.setProperty("--board-height", gridHeight + "px");
+        grid.style.setProperty("--board-top", boardTop + "px");
+      }
+      if (playArea) {
+        playArea.style.setProperty("--board-width", gridWidth + "px");
+        playArea.style.setProperty("--board-height", gridHeight + "px");
+        playArea.style.setProperty("--board-top", boardTop + "px");
+      }
+    }
+
+    createCardHtml() {
+      const visual = [
+        '    <span class="bulb-icon" aria-hidden="true">',
+        '      <img class="bulb-image bulb-image-off" src="assets/images/turn_off.png" alt="" />',
+        '      <img class="bulb-image bulb-image-on" src="assets/images/turn_on.png" alt="" />',
+        "    </span>"
+      ].join("");
       return [
         '<span class="card-inner">',
         '  <span class="card-face card-front">',
@@ -411,11 +413,19 @@
         this.audio.play("correct");
 
         if (this.targetIndexes.every((target) => this.selectedIndexes.includes(target))) {
-          this.finishRound(true, "");
+          this.clearRoundTimers();
+          this.showPromptFeedback("정답입니다!", "correct");
+          this.phase = GAME_PHASE.FEEDBACK;
+          this.feedbackEndAt = performance.now() + 2000;
+          this.feedbackAction = "finishRoundCorrect";
+          this.updateHud();
+          this.setTimer(() => {
+            this.finishRound(true, "");
+          }, 2000);
           return;
         }
 
-        this.setStatus("좋아요. 남은 전구를 더 찾아볼까요?");
+        this.showPromptFeedback("정답입니다!", "correct");
         this.updateHud();
         return;
       }
@@ -427,12 +437,11 @@
       this.audio.play("wrong");
 
       if (this.currentWrongCount >= 3) {
-        this.setStatus("괜찮아요. 다음 문제로 넘어가볼게요.");
         this.finishRound(false, "wrong_limit");
         return;
       }
 
-      this.setStatus("잘 찾아 보세요. 기억하실 수 있을 거예요.");
+      this.showPromptFeedback("잘 찾아 보세요. 기억하실 수 있을 거예요.", "wrong");
       this.updateHud();
     }
 
@@ -450,10 +459,14 @@
 
       if (isCorrect) {
         this.revealTargets("is-correct");
-        this.setStatus("정말 잘하셨어요.");
+        this.showRoundTransition("정답입니다!", "다음 문제로 넘어갈게요.");
         this.audio.play("correct");
       } else {
-        this.setStatus(failReason === "timeout" ? "시간이 지나 다음 문제로 넘어갈게요." : "괜찮아요. 다음 문제로 넘어가볼게요.");
+        if (failReason === "wrong_limit") {
+          this.showRoundTransition("괜찮아요", "다음 문제로 넘어갈게요.");
+        } else {
+          this.setStatus(failReason === "timeout" ? "시간이 지나 다음 문제로 넘어갈게요." : "괜찮아요. 다음 문제로 넘어가볼게요.");
+        }
       }
 
       this.questionResults.push({
@@ -471,9 +484,7 @@
         cognitive_domain: "memory_activity",
         target_object: this.targetObject,
         target_object_label: this.getObjectLabel(this.targetObject),
-        decoy_object: this.decoyObject,
         target_positions: this.targetIndexes.slice(),
-        decoy_positions: this.decoyIndexes.slice(),
         selected_positions: selected,
         input_types: this.currentInputTypes.slice(),
         is_correct: isCorrect,
@@ -490,9 +501,12 @@
       });
 
       this.updateHud();
+      const nextDelay = isCorrect || failReason === "wrong_limit" ? 3000 : 5000;
+      this.feedbackEndAt = performance.now() + nextDelay;
+      this.feedbackAction = "startNextQuestion";
       this.setTimer(() => {
         this.startNextQuestion();
-      }, isCorrect ? 1200 : 5000);
+      }, nextDelay);
     }
 
     showHint() {
@@ -531,7 +545,7 @@
     }
 
     pause() {
-      if (this.phase !== GAME_PHASE.MEMORIZE && this.phase !== GAME_PHASE.SELECTING) {
+      if (this.phase !== GAME_PHASE.MEMORIZE && this.phase !== GAME_PHASE.SELECTING && this.phase !== GAME_PHASE.FEEDBACK) {
         return;
       }
 
@@ -542,6 +556,7 @@
       this.pausedRemaining = {
         phase: this.phaseEndAt ? Math.max(0, this.phaseEndAt - performance.now()) : null,
         round: this.roundEndAt ? Math.max(0, this.roundEndAt - performance.now()) : null,
+        feedback: this.feedbackEndAt ? Math.max(0, this.feedbackEndAt - performance.now()) : null,
         total: this.totalEndAt ? Math.max(0, this.totalEndAt - performance.now()) : null
       };
       this.clearAllTimers();
@@ -569,6 +584,19 @@
         const remaining = this.pausedRemaining && this.pausedRemaining.phase ? this.pausedRemaining.phase : 1200;
         this.setTimer(() => this.flipToSelecting(), remaining);
         this.updatePhaseTimer(remaining);
+        return;
+      }
+
+      if (this.phaseBeforePause === GAME_PHASE.FEEDBACK) {
+        this.phase = GAME_PHASE.FEEDBACK;
+        const remaining = this.pausedRemaining && this.pausedRemaining.feedback ? this.pausedRemaining.feedback : 1000;
+        this.feedbackEndAt = performance.now() + remaining;
+        if (this.feedbackAction === "finishRoundCorrect") {
+          this.setTimer(() => this.finishRound(true, ""), remaining);
+        } else {
+          this.setTimer(() => this.startNextQuestion(), remaining);
+        }
+        this.updatePauseButton();
         return;
       }
 
@@ -792,12 +820,20 @@
     }
 
     setStatus(message) {
+      this.clearPromptFeedback();
+
       if (this.phase === GAME_PHASE.MEMORIZE) {
-        this.elements.statusMessage.textContent = "전구 위치를 잘 기억해보세요";
+        if (this.elements.playPrompt) {
+          this.elements.playPrompt.textContent = message;
+        }
+        this.elements.statusMessage.textContent = message;
         return;
       }
 
       if (this.phase === GAME_PHASE.SELECTING) {
+        if (this.elements.playPrompt) {
+          this.elements.playPrompt.textContent = message;
+        }
         this.elements.statusMessage.textContent = "방금 켜졌던 전구를 찾아주세요";
         return;
       }
@@ -805,8 +841,79 @@
       this.elements.statusMessage.textContent = message;
     }
 
+    showPromptFeedback(message, type) {
+      this.clearPromptFeedback();
+
+      if (this.elements.playPrompt) {
+        this.elements.playPrompt.textContent = message;
+        this.elements.playPrompt.classList.add("is-feedback", "is-feedback-" + type);
+      }
+
+      this.elements.statusMessage.textContent = message;
+      this.promptFeedbackTimer = this.setTimer(() => {
+        this.promptFeedbackTimer = null;
+
+        if (this.phase === GAME_PHASE.SELECTING) {
+          this.setStatus(this.buildSelectionPrompt());
+        }
+      }, 2000);
+    }
+
+    clearPromptFeedback() {
+      if (this.promptFeedbackTimer) {
+        clearTimeout(this.promptFeedbackTimer);
+        this.promptFeedbackTimer = null;
+      }
+
+      if (this.elements && this.elements.playPrompt) {
+        this.elements.playPrompt.classList.remove("is-feedback", "is-feedback-correct", "is-feedback-wrong");
+      }
+    }
+
+    showRoundTransition(title, subtitle) {
+      this.clearPromptFeedback();
+      const message = title + "\n" + subtitle;
+
+      if (this.elements.playArea) {
+        this.elements.playArea.classList.add("is-transitioning");
+      }
+
+      if (this.elements.playPrompt) {
+        this.elements.playPrompt.textContent = "";
+      }
+
+      this.elements.statusMessage.textContent = message;
+
+      if (this.elements.roundTransitionMessage) {
+        this.elements.roundTransitionMessage.hidden = false;
+        this.elements.roundTransitionMessage.innerHTML = "";
+        [
+          ["round-transition-emoji", "😊"],
+          ["round-transition-title", title],
+          ["round-transition-subtitle", subtitle]
+        ].forEach(([className, text]) => {
+          const line = document.createElement("span");
+          line.className = className;
+          line.textContent = text;
+          this.elements.roundTransitionMessage.appendChild(line);
+        });
+      }
+    }
+
+    hideRoundTransition() {
+      if (this.elements && this.elements.playArea) {
+        this.elements.playArea.classList.remove("is-transitioning");
+      }
+
+      if (this.elements && this.elements.roundTransitionMessage) {
+        this.elements.roundTransitionMessage.hidden = true;
+        this.elements.roundTransitionMessage.textContent = "";
+        this.elements.roundTransitionMessage.innerHTML = "";
+      }
+    }
+
     updatePauseButton() {
-      const canPause = this.phase === GAME_PHASE.MEMORIZE || this.phase === GAME_PHASE.SELECTING;
+      const canPause = this.phase === GAME_PHASE.MEMORIZE || this.phase === GAME_PHASE.SELECTING || this.phase === GAME_PHASE.FEEDBACK;
       this.elements.pauseButton.disabled = !canPause;
     }
 

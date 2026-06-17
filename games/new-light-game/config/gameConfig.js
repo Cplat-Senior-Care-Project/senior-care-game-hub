@@ -7,37 +7,35 @@
       gridRows: 2,
       gridCols: 2,
       targetCount: 2,
-      totalLimitMs: 10 * 60 * 1000
+      totalLimitMs: 2 * 60 * 1000
     },
     normal: {
       label: "보통",
       gridRows: 3,
       gridCols: 3,
       targetCount: 3,
-      totalLimitMs: 8 * 60 * 1000
+      totalLimitMs: 2 * 60 * 1000
     },
     hard: {
       label: "어려움",
-      gridRows: 4,
+      gridRows: 3,
       gridCols: 4,
       targetCount: 4,
-      totalLimitMs: 6 * 60 * 1000,
-      mixedStimulusFromQuestion: 6,
-      decoyCountAfterMix: 3
+      totalLimitMs: 2 * 60 * 1000
     },
     reminder_fixed: {
       label: "알림 활동",
       gridRows: 3,
       gridCols: 3,
       targetCount: 3,
-      totalLimitMs: 8 * 60 * 1000
+      totalLimitMs: 2 * 60 * 1000
     },
     care_fixed: {
       label: "쉬운 활동",
       gridRows: 2,
       gridCols: 2,
       targetCount: 1,
-      totalLimitMs: 3 * 60 * 1000
+      totalLimitMs: 2 * 60 * 1000
     }
   };
 
@@ -45,7 +43,7 @@
     standard: {
       label: "표준모드",
       totalQuestions: 10,
-      exposureTimeMs: 5000,
+      exposureTimeMs: 3000,
       totalLimitMs: null,
       showConditionCheck: true,
       showFinishCheck: true,
@@ -70,8 +68,8 @@
     reminder: {
       label: "알림모드",
       totalQuestions: 5,
-      exposureTimeMs: 5000,
-      totalLimitMs: 8 * 60 * 1000,
+      exposureTimeMs: 3000,
+      totalLimitMs: 2 * 60 * 1000,
       showConditionCheck: false,
       showFinishCheck: false,
       showDifficultySelect: false,
@@ -96,8 +94,8 @@
     care: {
       label: "케어모드",
       totalQuestions: 4,
-      exposureTimeMs: 8000,
-      totalLimitMs: 3 * 60 * 1000,
+      exposureTimeMs: 3000,
+      totalLimitMs: 2 * 60 * 1000,
       showConditionCheck: false,
       showFinishCheck: false,
       showDifficultySelect: false,
@@ -122,8 +120,8 @@
     ai_assisted: {
       label: "AI 연동모드",
       totalQuestions: 4,
-      exposureTimeMs: 8000,
-      totalLimitMs: 3 * 60 * 1000,
+      exposureTimeMs: 3000,
+      totalLimitMs: 2 * 60 * 1000,
       showConditionCheck: false,
       showFinishCheck: false,
       showDifficultySelect: false,
@@ -155,18 +153,6 @@
       label: "전구 테마",
       targetObject: "bulb",
       objectLabel: "전구"
-    },
-    bird: {
-      id: "theme_bird",
-      label: "새 테마",
-      targetObject: "bird",
-      objectLabel: "새"
-    },
-    phone: {
-      id: "theme_phone",
-      label: "휴대폰 테마",
-      targetObject: "phone",
-      objectLabel: "휴대폰"
     }
   };
 

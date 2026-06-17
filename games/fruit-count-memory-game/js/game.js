@@ -255,6 +255,7 @@
     startButton: document.getElementById("start-button"),
     startExitButton: document.getElementById("start-exit-button"),
     settingsButton: document.getElementById("settings-button"),
+    cornerSettingsButton: document.getElementById("corner-settings-button"),
     tutorialButton: document.getElementById("tutorial-button"),
     difficultyButtons: Array.from(document.querySelectorAll(".difficulty-option")),
     difficultyBackButton: document.getElementById("difficulty-back-button"),
@@ -270,6 +271,7 @@
     homeButton: document.getElementById("home-button"),
     pauseModal: document.getElementById("pause-modal"),
     settingsModal: document.getElementById("settings-modal"),
+    settingsLeftPanel: document.querySelector("#settings-modal .settings-left-panel"),
     settingsCloseButton: document.getElementById("settings-close-button"),
     settingsExitButton: document.getElementById("settings-exit-button"),
     backgroundSoundToggle: document.getElementById("background-sound-toggle"),
@@ -438,8 +440,10 @@
     const viewportWidth = viewport && viewport.width ? viewport.width : window.innerWidth || document.documentElement.clientWidth || STAGE_WIDTH;
     const viewportHeight = viewport && viewport.height ? viewport.height : window.innerHeight || document.documentElement.clientHeight || STAGE_HEIGHT;
     const scale = Math.max(0.01, Math.min(viewportWidth / STAGE_WIDTH, viewportHeight / STAGE_HEIGHT));
+    const horizontalGutter = Math.max(0, (viewportWidth - (STAGE_WIDTH * scale)) / (2 * scale));
     const verticalGutter = Math.max(0, (viewportHeight - (STAGE_HEIGHT * scale)) / (2 * scale));
     document.documentElement.style.setProperty("--game-scale", String(scale));
+    document.documentElement.style.setProperty("--game-viewport-right-gutter", `${horizontalGutter}px`);
     document.documentElement.style.setProperty("--game-viewport-top-gutter", `${Math.min(verticalGutter, 120)}px`);
     updateOrientationGuard(viewportWidth, viewportHeight);
     return scale;
@@ -461,6 +465,44 @@
     const width = Number(viewportWidth) || window.innerWidth || document.documentElement.clientWidth || STAGE_WIDTH;
     const height = Number(viewportHeight) || window.innerHeight || document.documentElement.clientHeight || STAGE_HEIGHT;
     return height > width;
+  }
+
+  function waitForLandscapeOrientation() {
+    updateOrientationGuard();
+    if (!isPortraitViewport()) {
+      return Promise.resolve();
+    }
+
+    return new Promise((resolve) => {
+      let animationFrameId = 0;
+      const visualViewport = window.visualViewport;
+      const cleanup = () => {
+        window.removeEventListener("resize", check);
+        window.removeEventListener("orientationchange", check);
+        if (visualViewport) {
+          visualViewport.removeEventListener("resize", check);
+        }
+        if (animationFrameId) {
+          window.cancelAnimationFrame(animationFrameId);
+        }
+      };
+      const check = () => {
+        updateOrientationGuard();
+        if (!isPortraitViewport()) {
+          cleanup();
+          resolve();
+          return;
+        }
+        animationFrameId = window.requestAnimationFrame(check);
+      };
+
+      window.addEventListener("resize", check);
+      window.addEventListener("orientationchange", check);
+      if (visualViewport) {
+        visualViewport.addEventListener("resize", check);
+      }
+      animationFrameId = window.requestAnimationFrame(check);
+    });
   }
 
   function canPauseForOrientationGuard() {
@@ -512,7 +554,7 @@
   }
 
   function startReminderAfterAudioReady() {
-    prepareReminderAutoStartAudio().then(() => {
+    prepareReminderAutoStartAudio().then(() => waitForLandscapeOrientation()).then(() => {
       if (!shouldAutoStartAfterLoading()) {
         return;
       }
@@ -538,10 +580,20 @@
     els.startScreen.classList.remove("is-intro-revealing");
 
     const duration = 1800;
-    const startedAt = performance.now();
+    let activeElapsed = 0;
+    let lastFrameAt = performance.now();
 
     function update(now) {
-      const progress = Math.min(1, (now - startedAt) / duration);
+      updateOrientationGuard();
+      if (isPortraitViewport()) {
+        lastFrameAt = now;
+        window.requestAnimationFrame(update);
+        return;
+      }
+
+      activeElapsed += Math.max(0, now - lastFrameAt);
+      lastFrameAt = now;
+      const progress = Math.min(1, activeElapsed / duration);
       const easedProgress = 1 - Math.pow(1 - progress, 3);
       const percent = Math.round(easedProgress * 100);
 
@@ -557,19 +609,23 @@
       els.startLoadingText.textContent = "100%";
 
       window.setTimeout(() => {
-        if (shouldAutoStartAfterLoading()) {
-          startReminderAfterAudioReady();
-          return;
-        }
+        waitForLandscapeOrientation().then(() => {
+          if (shouldAutoStartAfterLoading()) {
+            startReminderAfterAudioReady();
+            return;
+          }
 
-        els.startScreen.classList.remove("is-loading");
-        els.startScreen.classList.add("is-loaded");
-        syncBackgroundMusic();
-        els.startScreen.classList.add("is-intro-revealing");
-        window.setTimeout(() => {
-          els.startScreen.classList.remove("is-intro-revealing");
-          openConditionCheck();
-        }, 850);
+          els.startScreen.classList.remove("is-loading");
+          els.startScreen.classList.add("is-loaded");
+          syncBackgroundMusic();
+          els.startScreen.classList.add("is-intro-revealing");
+          window.setTimeout(() => {
+            waitForLandscapeOrientation().then(() => {
+              els.startScreen.classList.remove("is-intro-revealing");
+              openConditionCheck();
+            });
+          }, 850);
+        });
       }, 260);
     }
 
@@ -999,6 +1055,10 @@
     return runtimeConfig.mode === "care" || runtimeConfig.mode === "ai_assisted";
   }
 
+  function isStandardMode() {
+    return runtimeConfig.mode === "standard";
+  }
+
   function isStandardLikeMode() {
     return runtimeConfig.mode === "standard" || runtimeConfig.mode === "reminder";
   }
@@ -1302,7 +1362,9 @@
       return;
     }
 
-    record.internal.questionShownAtMs = Date.now();
+    if (record.internal.questionShownAtMs === null) {
+      record.internal.questionShownAtMs = Date.now();
+    }
     record.answerOptions = Array.isArray(question.options) ? [...question.options] : [];
   }
 
@@ -2414,7 +2476,18 @@
       els.app.dataset.showScore = showScore ? "true" : "false";
     }
     if (els.settingsButton) {
-      els.settingsButton.hidden = ui.showSettings === false;
+      const useStartExitSlot = mode === "standard";
+      els.settingsButton.hidden = useStartExitSlot ? false : ui.showSettings === false;
+      els.settingsButton.setAttribute("aria-label", useStartExitSlot ? "게임 종료" : "설정");
+      if (useStartExitSlot) {
+        els.settingsButton.innerHTML = "<span>게임 종료</span>";
+      }
+    }
+    if (els.cornerSettingsButton) {
+      els.cornerSettingsButton.hidden = mode !== "standard" || ui.showSettings === false;
+    }
+    if (els.settingsLeftPanel) {
+      els.settingsLeftPanel.hidden = mode === "standard";
     }
     if (els.tutorialButton) {
       els.tutorialButton.hidden = ui.showTutorial === false;
@@ -3243,6 +3316,7 @@
 
     const configSnapshot = createConfigSnapshot();
     const resultDetailJson = detailed ? createResultDetailJson() : {};
+    const processDataJson = detailed ? createProcessDataJson() : {};
     const gameResult = {
       mode: runtimeConfig.mode || DEFAULT_RUN_CONFIG.mode,
       difficulty: getSelectedDifficultyKey(),
@@ -3259,12 +3333,18 @@
       completion_rate: createCompletionRate(completedQuestionCount, totalQuestions),
       question_logs: questionLogs,
       result_detail_json: resultDetailJson,
-      condition: createConditionResult()
+      process_data_json: processDataJson,
+      condition: createConditionResultJson()
     };
 
     const payload = {
       senior_id: getSeniorIdForResult(),
       guardian_id: runtimeConfig.guardianId || null,
+      tenant_id: runtimeConfig.tenantId || null,
+      facility_id: runtimeConfig.facilityId || null,
+      program_id: runtimeConfig.programId || null,
+      reward_id: runtimeConfig.rewardId || null,
+      recommendation_id: runtimeConfig.recommendationId || null,
       session_id: runtimeConfig.sessionId || null,
       content_id: runtimeConfig.contentId || DEFAULT_RUN_CONFIG.contentId,
       game_key: runtimeConfig.gameKey || DEFAULT_RUN_CONFIG.gameKey,
@@ -3281,6 +3361,7 @@
       ended_at: telemetryState.endedAt,
       duration_ms: getTotalPlayTimeMs(),
       total_questions: totalQuestions,
+      completed_question_count: completedQuestionCount,
       correct_count: correctCount,
       wrong_count: wrongCount,
       hint_count: hintCount,
@@ -3293,10 +3374,12 @@
       abandon_reason: finalStatus === "abandoned" ? options.abandonReason || getAbandonReason(telemetryState.exitReason) : null,
       question_logs: questionLogs,
       result_detail_json: resultDetailJson,
+      process_data_json: processDataJson,
       game_result: gameResult,
       game_result_json: gameResult,
       client_context: createClientContext(),
-      voice_context: createVoiceContext()
+      voice_context: createVoiceContext(),
+      meta: createMetaContext()
     };
 
     return Object.assign(payload, createResultErrorFields(finalStatus, options));
@@ -3327,7 +3410,7 @@
     return { ...runtimeConfig.voiceContext };
   }
 
-  function createConditionResult() {
+  function createConditionResultJson() {
     return {
       mood_before: state.conditionCheckSkipped ? null : state.conditionMood,
       sleep_hours: state.conditionCheckSkipped ? null : CONDITION_SLEEP_HOURS[state.conditionSleepIndex],
@@ -3337,6 +3420,12 @@
       needed_help: state.postConditionSkipped ? null : state.postCondition.neededHelp,
       replay_intent: state.postConditionSkipped ? null : state.postCondition.replayIntent
     };
+  }
+
+  function createMetaContext() {
+    return runtimeConfig.meta && typeof runtimeConfig.meta === "object"
+      ? { ...runtimeConfig.meta }
+      : null;
   }
 
   function createResultErrorFields(status, options = {}) {
@@ -3426,6 +3515,17 @@
       difficulty_downshifted: false,
       total_touch_miss_count: sumQuestionValue("touchMissCount"),
       external_input_used: telemetryState.questionResults.some((record) => record.inputType === "external")
+    };
+  }
+
+  function createProcessDataJson() {
+    return {
+      question_process_logs: telemetryState.questionResults.map(createPublicProcessData),
+      condition: createConditionResultJson(),
+      exit_reason: telemetryState.exitReason || "unknown",
+      early_exit_question_index: telemetryState.earlyExitQuestionIndex,
+      last_backgrounded_at: telemetryState.lastBackgroundedAt,
+      external_input_enabled: isExternalInputEnabled()
     };
   }
 
@@ -3624,7 +3724,7 @@
     };
   }
 
-  function createConditionResult() {
+  function createPublicConditionResult() {
     return {
       moodBefore: state.conditionCheckSkipped ? null : state.conditionMood,
       sleepHours: state.conditionCheckSkipped ? null : CONDITION_SLEEP_HOURS[state.conditionSleepIndex],
@@ -4525,7 +4625,34 @@
     backgroundAudioUnlocked = false;
   }
 
+  function pauseExistingBackgroundMusic(reset = false) {
+    stopBackgroundLoopWatch();
+    const pool = audioPools.get("background");
+    if (!pool) {
+      backgroundAudio = null;
+      backgroundAudioIndex = 0;
+      backgroundAudioUnlocked = false;
+      return;
+    }
+
+    pool.forEach((audio) => {
+      audio.pause();
+      audio.volume = 0;
+      if (reset) {
+        audio.currentTime = 0;
+      }
+    });
+    backgroundAudio = pool[0] || null;
+    backgroundAudioIndex = 0;
+    backgroundAudioUnlocked = false;
+  }
+
   function syncBackgroundMusic() {
+    if (isPortraitViewport()) {
+      pauseExistingBackgroundMusic();
+      return;
+    }
+
     if (!isBackgroundSoundEnabled()) {
       pauseBackgroundMusic(true);
       return;
@@ -5064,7 +5191,14 @@
     document.addEventListener("dragstart", preventLongPressInteraction, true);
     els.startScreen.addEventListener("click", handleStartScreenBackgroundPress);
     els.startButton.addEventListener("click", runAfterStartButtonPress());
-    els.settingsButton.addEventListener("click", runAfterStartPress(els.settingsButton, openSettings));
+    els.settingsButton.addEventListener("click", runAfterStartPress(els.settingsButton, (event) => {
+      if (isStandardMode()) {
+        exitGameFromStart(event);
+        return;
+      }
+      openSettings(event);
+    }));
+    els.cornerSettingsButton.addEventListener("click", runAfterStartPress(els.cornerSettingsButton, openSettings));
     els.tutorialButton.addEventListener("click", runAfterStartPress(els.tutorialButton, () => {
       openTutorial();
     }));
@@ -5234,16 +5368,18 @@
     if (els.app) {
       els.app.dataset.screen = state.phase;
     }
-    preloadAudioAssets();
     updateSettingClasses();
     const didLoadConfig = await loadRunConfig();
     if (!didLoadConfig) {
       return;
     }
-    prepareReminderAutoStartAudio();
     if (showDebugErrorIfRequested()) {
       return;
     }
+
+    await waitForLandscapeOrientation();
+    preloadAudioAssets();
+    prepareReminderAutoStartAudio();
     try {
       await validateEssentialAssets();
     } catch (error) {

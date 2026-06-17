@@ -5,7 +5,7 @@
 ## 사전 준비
 
 - React Native WebView 또는 동등한 WebView 테스트 환경에서 실행한다.
-- 앱 브릿지가 `GAME_READY`, `GAME_STARTED`, `GAME_COMPLETED`, `GAME_ABANDONED`, `GAME_ERROR`, `GAME_EXIT_REQUESTED`를 로그로 확인할 수 있어야 한다.
+- 앱 브릿지가 `GAME_READY`, `GAME_STARTED`, `SESSION_COMPLETE`, `SESSION_ABORT`, `GAME_ERROR`, `GAME_EXIT_REQUESTED`를 로그로 확인할 수 있어야 한다.
 - 결과 수집 API 저장 검수는 앱이 게임 결과 JSON을 받은 뒤 별도 API 서버에 요청하는 흐름으로 확인한다.
 
 ## 실행 모드 검수
@@ -26,7 +26,7 @@
 |---|---|---|
 | REQ-IF-001 | 앱 config로 `session_id`, `content_id`, `game_key`, `mode`, `difficulty` 전달 | 전달값이 실행 모드와 결과 JSON에 반영 |
 | REQ-IF-002 | 앱 WebView message log 확인 | postMessage 기반 이벤트 수신 가능 |
-| REQ-IF-003 | 완료/중단/오류 흐름 각각 실행 | `GAME_COMPLETED`, `GAME_ABANDONED`, `GAME_ERROR` 구분 수신 |
+| REQ-IF-003 | 완료/중단/오류 흐름 각각 실행 | `SESSION_COMPLETE`, `SESSION_ABORT`, `GAME_ERROR` 구분 수신 |
 | REQ-IF-004 | 완료/중단/오류 결과 payload 확인 | 각 payload에 `status`와 결과 JSON 포함 |
 | REQ-IF-005 | 잘못된 config 또는 에셋 실패 상황 유도 | `GAME_ERROR`가 게임 내부 오류 코드와 메시지 포함 |
 | REQ-IF-006 | 결과 JSON 확인 | `config_snapshot`에 실제 적용값 포함 |
@@ -39,7 +39,7 @@
 
 1. `standard` 또는 `care` 모드로 게임을 시작한다.
 2. 플레이 중 WebView를 닫거나 일시정지 화면에서 종료한다.
-3. 앱 로그에서 `GAME_ABANDONED` 이벤트를 확인한다.
+3. 앱 로그에서 `SESSION_ABORT` 이벤트를 확인한다.
 4. payload의 `status`가 `abandoned`인지 확인한다.
 5. `abandon_reason`이 `user_quit`, `timeout`, `webview_closed` 중 하나인지 확인한다.
 

@@ -145,7 +145,7 @@
   const TUTORIAL_STEPS = Object.freeze([
     { message: "잠깐 보여주는 물건을 기억해주세요.", previewIds: ["apple", "orange", "bread"], mode: "memory" },
     { message: "물건을 톡 누르면 장바구니에 담아져요", previewIds: ["carrot", "banana", "vegetable"], mode: "touch" },
-    { message: "물건을 끌어서 장바구니에 담을 수 있어요", previewIds: ["carrot", "banana", "vegetable"], mode: "drag" }
+    { message: "물건을 끌어서 담을 수 있어요", previewIds: ["carrot", "banana", "vegetable"], mode: "drag" }
   ]);
 
   const CONDITION_SLEEP_HOURS = Object.freeze([4, 5, 6, 7, 8, 9, 10, 11, 12]);
@@ -153,8 +153,8 @@
 
   const $ = (id) => document.getElementById(id);
   const els = {
-    app: $("app"), startScreen: $("start-screen"), startLoading: $("start-loading"), startLoadingFill: $("start-loading-fill"), startLoadingText: $("start-loading-text"), difficultyScreen: $("difficulty-screen"), gameScreen: $("game-screen"), resultScreen: $("result-screen"), errorScreen: $("error-screen"),
-    errorTitle: $("error-title"), errorMessage: $("error-message"), startButton: $("start-button"), startExitButton: $("start-exit-button"), settingsButton: $("settings-button"), tutorialButton: $("tutorial-button"),
+    app: $("app"), orientationGuard: $("orientation-guard"), startScreen: $("start-screen"), startLoading: $("start-loading"), startLoadingFill: $("start-loading-fill"), startLoadingText: $("start-loading-text"), difficultyScreen: $("difficulty-screen"), gameScreen: $("game-screen"), resultScreen: $("result-screen"), errorScreen: $("error-screen"),
+    errorTitle: $("error-title"), errorMessage: $("error-message"), startButton: $("start-button"), startExitButton: $("start-exit-button"), settingsButton: $("settings-button"), cornerSettingsButton: $("corner-settings-button"), tutorialButton: $("tutorial-button"),
     difficultyButtons: Array.from(document.querySelectorAll("[data-difficulty], [data-difficulty-index]")), difficultyBackButton: $("difficulty-back-button"), playArea: $("play-area"), hintButton: $("hint-button"), dragGhost: $("drag-ghost"), gameCountdown: $("game-countdown"), gameCountdownMessage: $("game-countdown-message"), gameCountdownTimer: document.querySelector(".game-countdown-timer"), gameCountdownNumber: $("game-countdown-number"),
     pauseButton: $("pause-button"), pauseModal: $("pause-modal"), resumeButton: $("resume-button"), pauseRestartButton: $("pause-restart-button"), pauseQuitButton: $("home-button"), pauseHelpButton: $("pause-help-button"),
     roundLabel: $("round-label"), timeLeft: $("time-left"), timerBox: $("timer-box"), difficultyLabel: $("difficulty-label"), stageLabel: $("stage-label"), hudProgress: document.querySelector(".hud-progress-pill"), hudProgressCurrent: $("hud-progress-current"), hudProgressTotal: $("hud-progress-total"), hudProgressSteps: Array.from(document.querySelectorAll(".hud-progress-step")), raceWrap: document.querySelector(".race-wrap"), raceMarker: $("race-marker"), raceSteps: Array.from(document.querySelectorAll(".race-step")), resultEmoji: $("result-emoji"), resultTitle: $("result-title"), resultMessage: $("result-message"), resultCorrect: $("result-correct"), resultTotal: $("result-total"), resultHintCount: $("result-hint-count"), resultRate: $("result-rate"), resultCompare: $("result-compare"),
@@ -221,7 +221,19 @@
     document.documentElement.style.setProperty("--hud-fit-scale", String(hudFitScale));
     document.documentElement.style.setProperty("--game-viewport-top-gutter", `${verticalGutter}px`);
     document.documentElement.style.setProperty("--game-viewport-side-gutter", `${horizontalGutter}px`);
-    syncOrientationWarningPause(isPortraitViewport(viewportWidth, viewportHeight));
+    updateOrientationGuard(viewportWidth, viewportHeight);
+  }
+
+  function updateOrientationGuard(viewportWidth, viewportHeight) {
+    const width = Number(viewportWidth) || window.innerWidth || document.documentElement.clientWidth || STAGE_WIDTH;
+    const height = Number(viewportHeight) || window.innerHeight || document.documentElement.clientHeight || STAGE_HEIGHT;
+    const isPortrait = isPortraitViewport(width, height);
+
+    document.body.classList.toggle("is-portrait-orientation", isPortrait);
+    if (els.orientationGuard) {
+      els.orientationGuard.setAttribute("aria-hidden", isPortrait ? "false" : "true");
+    }
+    syncOrientationGuardPause(isPortrait);
   }
 
   function isPortraitViewport(viewportWidth, viewportHeight) {
@@ -230,18 +242,18 @@
     return height > width;
   }
 
-  function canPauseForOrientationWarning() {
+  function canPauseForOrientationGuard() {
     return ["countdown", "memory", "transition", "question"].includes(state.phase);
   }
 
-  function clearOrientationWarningPauseState() {
+  function clearOrientationGuardPauseState() {
     orientationAutoPauseActive = false;
     wasPausedBeforeOrientation = false;
   }
 
-  function syncOrientationWarningPause(isPortrait) {
+  function syncOrientationGuardPause(isPortrait) {
     if (isPortrait) {
-      if (!orientationAutoPauseActive && canPauseForOrientationWarning()) {
+      if (!orientationAutoPauseActive && canPauseForOrientationGuard()) {
         orientationAutoPauseActive = true;
         wasPausedBeforeOrientation = state.phase === "pause";
         if (state.phase !== "pause") {
@@ -254,7 +266,7 @@
     if (!orientationAutoPauseActive) return;
 
     const shouldResume = !wasPausedBeforeOrientation && state.phase === "pause";
-    clearOrientationWarningPauseState();
+    clearOrientationGuardPauseState();
     if (shouldResume) resumeGame({ hidePauseModal: false });
   }
 
@@ -376,12 +388,14 @@
   function startIntroLoading() {
     if (!els.startScreen || !els.startLoadingFill || !els.startLoadingText) {
       preloadGameAssets();
-      if (els.startScreen) {
-        els.startScreen.classList.remove("is-loading");
-        els.startScreen.classList.add("is-loaded");
-      }
-      document.body.dataset.loading = "false";
-      completeIntroLoading();
+      runWhenLandscape(() => {
+        if (els.startScreen) {
+          els.startScreen.classList.remove("is-loading");
+          els.startScreen.classList.add("is-loaded");
+        }
+        document.body.dataset.loading = "false";
+        completeIntroLoading();
+      });
       return;
     }
 
@@ -393,11 +407,21 @@
     els.startLoadingText.textContent = "0%";
 
     const duration = 1800;
-    const startedAt = performance.now();
+    let activeElapsed = 0;
+    let lastFrameAt = performance.now();
     const assetsReady = preloadGameAssets();
 
     function update(now) {
-      const progress = Math.min(1, (now - startedAt) / duration);
+      updateOrientationGuard();
+      if (isPortraitViewport()) {
+        lastFrameAt = now;
+        window.requestAnimationFrame(update);
+        return;
+      }
+
+      activeElapsed += Math.max(0, now - lastFrameAt);
+      lastFrameAt = now;
+      const progress = Math.min(1, activeElapsed / duration);
       const easedProgress = 1 - Math.pow(1 - progress, 3);
       const percent = Math.round(easedProgress * 100);
 
@@ -412,23 +436,37 @@
       els.startLoadingFill.style.width = "100%";
       els.startLoadingText.textContent = "100%";
 
-      assetsReady.then(() => window.setTimeout(() => {
-        els.startScreen.classList.remove("is-loading");
-        els.startScreen.classList.add("is-loaded");
-        document.body.dataset.loading = "false";
-        if (shouldAutoStartAfterLoading()) {
-          completeIntroLoading();
-          return;
-        }
-        els.startScreen.classList.add("is-intro-revealing");
-        window.setTimeout(() => {
-          els.startScreen.classList.remove("is-intro-revealing");
-          completeIntroLoading();
-        }, 850);
-      }, 260));
+      assetsReady.then(() => runWhenLandscape(() => window.setTimeout(() => {
+        runWhenLandscape(() => {
+          els.startScreen.classList.remove("is-loading");
+          els.startScreen.classList.add("is-loaded");
+          document.body.dataset.loading = "false";
+          if (shouldAutoStartAfterLoading()) {
+            completeIntroLoading();
+            return;
+          }
+          els.startScreen.classList.add("is-intro-revealing");
+          window.setTimeout(() => {
+            runWhenLandscape(() => {
+              els.startScreen.classList.remove("is-intro-revealing");
+              completeIntroLoading();
+            });
+          }, 850);
+        });
+      }, 260)));
     }
 
     window.requestAnimationFrame(update);
+  }
+
+  function runWhenLandscape(callback) {
+    updateOrientationGuard();
+    if (!isPortraitViewport()) {
+      callback();
+      return;
+    }
+
+    window.requestAnimationFrame(() => runWhenLandscape(callback));
   }
 
   function completeIntroLoading() {
@@ -1126,7 +1164,7 @@
   }
 
   function startGame(difficultyKey) {
-    clearOrientationWarningPauseState();
+    clearOrientationGuardPauseState();
     startReadyCountdown(difficultyKey);
   }
 
@@ -1158,14 +1196,14 @@
 
     if (!els.gameCountdownMessage) {
       beginReadyCountdown(nextDifficultyKey);
-      syncOrientationWarningPause(isPortraitViewport());
+      syncOrientationGuardPause(isPortraitViewport());
       return;
     }
 
     els.gameCountdownMessage.textContent = "\uAC8C\uC784\uC774 \uACE7 \uC2DC\uC791\uB3FC\uC694!";
     playVoiceGuide("voiceReady", { delayMs: VOICE_GUIDE_STAGE_DELAY_MS });
     scheduleReadyCountdownIntro(nextDifficultyKey, START_READY_MESSAGE_TIME);
-    syncOrientationWarningPause(isPortraitViewport());
+    syncOrientationGuardPause(isPortraitViewport());
   }
 
   function scheduleReadyCountdownIntro(difficultyKey, delay) {
@@ -1235,7 +1273,7 @@
     playSound("start");
     startGameTimer(true);
     beginQuestion();
-    syncOrientationWarningPause(isPortraitViewport());
+    syncOrientationGuardPause(isPortraitViewport());
   }
 
   function beginQuestion() {
@@ -2022,7 +2060,7 @@
 
   function finishGame(status, abandonReason) {
     clearAllTimers();
-    clearOrientationWarningPauseState();
+    clearOrientationGuardPauseState();
     state.status = status || "completed";
     state.abandonReason = abandonReason || null;
     state.endedAt = new Date();
@@ -2034,7 +2072,7 @@
   }
 
   function completeGameFinish() {
-    clearOrientationWarningPauseState();
+    clearOrientationGuardPauseState();
     state.phase = "result";
     setScreen("result");
     closePostConditionCheck();
@@ -2086,6 +2124,48 @@
       total_missed_item_count: state.missedItemCount,
       wrong_count: state.wrongCount,
       extra_selected_count: state.retryCount
+    };
+  }
+
+  function createProcessDataJson() {
+    const externalInput = runtimeConfig.externalInput || {};
+    return {
+      condition_check: shouldShowConditionCheck() ? {
+        completed: state.condition.completed,
+        skipped: state.condition.skipped,
+        mood: state.condition.mood,
+        sleep_hours: state.condition.sleepHours
+      } : null,
+      post_condition_check: shouldShowFinishCheck() ? {
+        completed: state.postCondition.completed,
+        skipped: state.postCondition.skipped,
+        mood_after: state.postCondition.moodAfter,
+        fatigue: state.postCondition.fatigue,
+        perceived_difficulty: state.postCondition.perceivedDifficulty,
+        needed_help: state.postCondition.neededHelp,
+        replay_intent: state.postCondition.replayIntent
+      } : null,
+      external_input: {
+        enabled: externalInput.enabled === true,
+        source: externalInput.source || "none",
+        used: state.externalInputUsed
+      },
+      interaction_summary: {
+        pause_count: state.pauseCount,
+        touch_miss_count: state.touchMissCount,
+        missed_item_count: state.missedItemCount
+      },
+      ...(runtimeConfig.processData || {})
+    };
+  }
+
+  function createMetaJson() {
+    return {
+      game_id: GAME_ID,
+      schema_version: runtimeConfig.schemaVersion || null,
+      config_source: runtimeConfig.configSource || null,
+      received_at: runtimeConfig.receivedAt || null,
+      ...(runtimeConfig.meta || {})
     };
   }
 
@@ -2171,6 +2251,11 @@
     const payload = {
       senior_id: runtimeConfig.seniorId || runtimeConfig.userId || runtimeConfig.anonymousUserId,
       guardian_id: runtimeConfig.guardianId || null,
+      tenant_id: runtimeConfig.tenantId || null,
+      facility_id: runtimeConfig.facilityId || null,
+      program_id: runtimeConfig.programId || null,
+      reward_id: runtimeConfig.rewardId || null,
+      recommendation_id: runtimeConfig.recommendationId || null,
       session_id: runtimeConfig.sessionId,
       content_id: runtimeConfig.contentId,
       game_key: runtimeConfig.gameKey,
@@ -2191,6 +2276,7 @@
       voice_context: createVoiceContext(),
       config_snapshot: gameResult.config_snapshot,
       total_questions: totalQuestions,
+      completed_question_count: completedQuestionCount,
       correct_count: state.correctCount,
       wrong_count: state.wrongCount,
       hint_count: state.hintCount,
@@ -2204,7 +2290,9 @@
       error_code: state.status === "error" ? "GAME_RUNTIME_ERROR" : null,
       error_message: null,
       question_logs: gameResult.question_logs,
-      result_detail_json: gameResult.result_detail_json
+      result_detail_json: gameResult.result_detail_json,
+      process_data_json: createProcessDataJson(),
+      meta: createMetaJson()
     };
     return Object.assign(payload, createResultErrorFields(state.status));
   }
@@ -2285,7 +2373,7 @@
   }
 
   function goHome() {
-    clearOrientationWarningPauseState();
+    clearOrientationGuardPauseState();
     clearAllTimers();
     stopVoiceGuide();
     Object.assign(state, { phase: "start", question: null, selectedIds: [], wrongSelectedIds: [], collectedItems: [] });
@@ -2390,7 +2478,7 @@
   }
 
   function openPostConditionCheck() {
-    clearOrientationWarningPauseState();
+    clearOrientationGuardPauseState();
     state.phase = "post-condition";
     state.postCondition.step = 0;
     syncBackgroundMusic();
@@ -2696,6 +2784,7 @@
     els.startButton.addEventListener("click", runAfterStartButtonPress());
     els.startExitButton.addEventListener("click", returnToHub);
     els.settingsButton.addEventListener("click", openSettings);
+    if (els.cornerSettingsButton) els.cornerSettingsButton.addEventListener("click", openSettings);
     els.tutorialButton.addEventListener("click", openTutorial);
     els.difficultyBackButton.addEventListener("click", goHome);
     els.difficultyButtons.forEach((button) => button.addEventListener("click", () => startGame(getDifficultyKeyFromButton(button))));

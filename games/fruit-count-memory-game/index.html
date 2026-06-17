@@ -15,8 +15,10 @@
       var viewportWidth = visualViewport && visualViewport.width ? visualViewport.width : window.innerWidth || document.documentElement.clientWidth || stageWidth;
       var viewportHeight = visualViewport && visualViewport.height ? visualViewport.height : window.innerHeight || document.documentElement.clientHeight || stageHeight;
       var scale = Math.max(0.01, Math.min(viewportWidth / stageWidth, viewportHeight / stageHeight));
+      var horizontalGutter = Math.max(0, (viewportWidth - (stageWidth * scale)) / (2 * scale));
       var verticalGutter = Math.max(0, (viewportHeight - (stageHeight * scale)) / (2 * scale));
       document.documentElement.style.setProperty("--game-scale", String(scale));
+      document.documentElement.style.setProperty("--game-viewport-right-gutter", String(horizontalGutter) + "px");
       document.documentElement.style.setProperty("--game-viewport-top-gutter", String(Math.min(verticalGutter, 120)) + "px");
     })();
   </script>
@@ -41,6 +43,14 @@
   </div>
   <div id="app" class="app">
     <section id="start-screen" class="screen start-screen is-loading" aria-labelledby="start-title">
+      <button id="corner-settings-button" class="game-button corner-settings-button" type="button" aria-label="설정" hidden>
+        <span class="settings-gear" aria-hidden="true">
+          <svg viewBox="0 0 24 24" focusable="false">
+            <circle cx="12" cy="12" r="3"></circle>
+            <path d="M19.4 15a1.7 1.7 0 0 0 .34 1.88l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06A1.7 1.7 0 0 0 15 19.4a1.7 1.7 0 0 0-1 .6V20a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1-.5a1.7 1.7 0 0 0-1.88.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-.6-1H4a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 .5-1a1.7 1.7 0 0 0-.34-1.88l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.7 1.7 0 0 0 9 4.6a1.7 1.7 0 0 0 1-.6V4a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 .5a1.7 1.7 0 0 0 1.88-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.7 1.7 0 0 0 19.4 9c.22.34.42.67.6 1H20a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-.5 1z"></path>
+          </svg>
+        </span>
+      </button>
       <div class="brand-block">
         <h1 id="start-title" class="sr-only">쏙쏙 개수 찾기</h1>
         <img class="start-title-image" src="assets/images/game_title3.png" alt="" aria-hidden="true">
@@ -583,7 +593,7 @@
   </script>
   <script src="js/config-normalizer.js?v=ai-external-input-config-fix-20260602"></script>
   <script src="js/app-bridge.js?v=care-ai-start-controls-20260616"></script>
-  <audio id="background-audio" src="assets/audio/background.wav" preload="auto" loop></audio>
+  <audio id="background-audio" preload="none" loop></audio>
   <script src="js/game.js?v=care-ai-start-controls-20260616"></script>
 </body>
 </html>

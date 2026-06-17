@@ -26,8 +26,8 @@
 | REQ-MODE-006 | AI 연동 모드 | 충족 | `ai_assisted` config와 외부 입력 인터페이스 구현 |
 | REQ-MODE-007 | 모드별 종료 화면/재실행 버튼 제어 | 충족 | `reminder/care/ai_assisted` 자동 복귀 기준 문서화 및 QA 체크리스트 추가 |
 | REQ-IF-001 | 앱 config 수신 | 충족 | `session_id`, `content_id`, `game_key`, `mode`, `difficulty`, `config` 정규화 |
-| REQ-IF-002 | postMessage 기반 통신 | 충족 | mock bridge가 `parent/opener.postMessage()`로 이벤트 송신 |
-| REQ-IF-003 | 이벤트 구조 정의 | 충족 | `GAME_READY`, `GAME_STARTED`, `GAME_COMPLETED`, `GAME_ABANDONED`, `GAME_ERROR`, `GAME_EXIT_REQUESTED` 정의 |
+| REQ-IF-002 | postMessage 기반 통신 | 충족 | bridge가 `ReactNativeWebView.postMessage()`와 `parent/opener.postMessage()`로 이벤트 송신 |
+| REQ-IF-003 | 이벤트 구조 정의 | 충족 | `GAME_READY`, `GAME_STARTED`, `SESSION_COMPLETE`, `SESSION_ABORT`, `GAME_ERROR`, `GAME_EXIT_REQUESTED` 정의 |
 | REQ-IF-004 | 게임 결과 JSON 반환 | 충족 | 완료/중단/오류 결과 payload 생성 |
 | REQ-IF-005 | 오류 책임 구분 | 충족 | 게임 내부 오류는 `GAME_ERROR`; 서버/API 저장 오류는 앱/API 책임으로 문서화 |
 | REQ-IF-006 | config_snapshot 반환 | 충족 | 실제 적용 config를 결과에 포함 |
@@ -38,8 +38,8 @@
 
 ## 보완 반영 내역
 
-1. 중단 결과 전송을 `GAME_ABANDONED` 별도 이벤트로 분리했다.
-2. 이전 앱 브릿지와의 호환을 위해 중단 이벤트 미지원 시 `GAME_COMPLETED` 계열 fallback을 유지했다.
+1. 완료 결과 전송을 실제 브릿지 기준 `SESSION_COMPLETE` 이벤트로 정리했다.
+2. 중단 결과 전송을 실제 브릿지 기준 `SESSION_ABORT` 이벤트로 분리했다.
 3. 앱 연동 및 실행 모드 명세를 추가했다: `docs/APP_MODE_INTEGRATION_SPEC.md`
 4. 실행 모드 및 앱 연동 QA 체크리스트를 추가했다: `docs/MODE_APP_INTEGRATION_QA_CHECKLIST.md`
 

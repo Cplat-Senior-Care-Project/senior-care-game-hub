@@ -31,6 +31,17 @@
 | REQ-SERVER-025 | 대응 | `play_source=history_replay` 허용 |
 | REQ-SERVER-026 | 대응 | `docs/QUERY_AND_REPORT_POLICY.md`에서 히스토리 재실행 리포트 정책 제안 |
 
+## 산출물 체크리스트 대응
+
+| 산출물 ID | 대응 상태 | 구현/산출물 |
+| --- | --- | --- |
+| DELIV-SERVER-005 | 대응 | `docs/DEPLOYMENT_OPERATIONS.md`의 환경변수 목록 |
+| DELIV-SERVER-006 | 대응 | `docs/DEPLOYMENT_OPERATIONS.md`의 로컬 실행 방법 |
+| DELIV-SERVER-007 | 대응 | `docs/DEPLOYMENT_OPERATIONS.md`의 배포 절차, 운영 점검, 장애 대응 |
+| DELIV-SERVER-008 | 대응 | `docs/DEPLOYMENT_OPERATIONS.md`의 서버 저장 테스트 결과, `docs/TEST_RESULT_API_DB.md` |
+| DELIV-SERVER-010 | 대응 | `docs/DEPLOYMENT_OPERATIONS.md`의 내부 이식용 서버 구조 |
+| DELIV-SERVER-013 | 대응 | `docs/DEPLOYMENT_OPERATIONS.md`의 확장/변경 가이드 |
+
 ## 저장 구조 요약
 
 공통 리포트/조회 필드는 `game_play_results`와 `game_question_logs`의 정규화 컬럼에 저장합니다.

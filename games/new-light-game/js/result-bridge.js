@@ -37,7 +37,6 @@
   function roundToLog(round, cols) {
     const targetPositions = (round.target_positions || []).map((index) => toPosition(index, cols));
     const selectedPositions = (round.selected_positions || []).map((index) => toPosition(index, cols));
-    const decoyPositions = (round.decoy_positions || []).map((index) => toPosition(index, cols));
 
     return {
       question_id: "q" + round.question_index,
@@ -55,7 +54,6 @@
       exposure_time_ms: round.exposure_time_ms,
       target_positions: targetPositions,
       selected_positions: selectedPositions,
-      decoy_positions: decoyPositions,
       correct: Boolean(round.is_correct),
       is_correct: Boolean(round.is_correct),
       failReason: round.failReason || "",
@@ -116,7 +114,6 @@
     const sessionMeta = gameState.sessionMeta || {};
     const beforeSkipped = Boolean((gameState.condition && gameState.condition.skipped) || gameState.modeConfig.showConditionCheck === false);
     const afterSkipped = Boolean((gameState.finishCheck && gameState.finishCheck.skipped) || gameState.modeConfig.showFinishCheck === false);
-    const flowerEnabledFromRound = gameState.effectiveDifficultyKey === "hard" ? gameState.difficulty.mixedStimulusFromQuestion || 6 : null;
     const roundTimeLimitSec = gameState.modeConfig.roundTimeLimitMs ? Math.round(gameState.modeConfig.roundTimeLimitMs / 1000) : 0;
 
     const resultDetail = {
@@ -137,8 +134,6 @@
       near_miss_count: 0,
       replay_count: 0,
       difficulty_downshifted: false,
-      flower_distractor_enabled: Boolean(flowerEnabledFromRound),
-      flower_distractor_start_question: flowerEnabledFromRound,
       condition_check_skipped: beforeSkipped,
       finish_check_skipped: afterSkipped,
       rounds: roundLogs

@@ -174,6 +174,130 @@
   gap: clamp(10px, 20.48px, 18px);
 }
 
+.start-screen > .corner-settings-button {
+  position: absolute;
+  top: calc(-1 * var(--game-viewport-top-gutter, 0px));
+  right: calc(-1 * var(--game-viewport-side-gutter, 0px));
+  z-index: 5;
+  display: none;
+  place-items: center;
+  width: 82px;
+  height: 82px;
+  min-width: 82px;
+  min-height: 82px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  color: #fffdf3;
+  background: #7f65b4;
+  box-shadow: inset 0 3px 0 rgba(255, 255, 255, 0.28), inset 0 -4px 0 rgba(48, 37, 88, 0.28);
+  font-size: 56px;
+  font-weight: 1000;
+  line-height: 82px;
+  text-align: center;
+  text-shadow: none;
+  transition: transform 120ms ease, box-shadow 120ms ease, filter 120ms ease;
+}
+
+.start-screen > .corner-settings-button .settings-gear {
+  display: grid;
+  width: 58px;
+  height: 58px;
+  place-items: center;
+  line-height: 1;
+  transform: none;
+}
+
+.start-screen > .corner-settings-button .settings-gear svg {
+  display: block;
+  width: 58px;
+  height: 58px;
+}
+
+.start-screen > .corner-settings-button .settings-gear svg * {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.start-screen > .corner-settings-button:active,
+.start-screen > .corner-settings-button.is-pressed {
+  transform: translateY(3px) scale(0.98);
+}
+
+html[data-mode="standard"] body[data-screen="start"] .app,
+html[data-mode="standard"] body[data-screen="start"] .start-screen {
+  overflow: visible;
+}
+
+html[data-mode="standard"] body[data-screen="start"] .start-screen:not(.is-loading) > .corner-settings-button {
+  display: grid;
+}
+
+html[data-mode="standard"] .start-actions {
+  grid-template-columns: var(--start-side-width-base) auto var(--start-side-width-base);
+  gap: clamp(24px, 36px, 40px);
+}
+
+html[data-mode="standard"] .start-actions #settings-button {
+  display: none !important;
+}
+
+html[data-mode="standard"] .start-screen .start-exit-button {
+  display: inline-flex;
+  grid-column: 1;
+  grid-row: 1;
+  align-items: center;
+  justify-content: center;
+  width: var(--start-side-width-base);
+  min-width: var(--start-side-width-base);
+  max-width: var(--start-side-width-base);
+  min-height: var(--start-side-height-base);
+  border: 2px solid #ffb3a3;
+  border-radius: clamp(22px, 46.08px, 38px);
+  padding-block: clamp(calc(var(--start-side-pad-y-base) * 0.72), 12.96px, var(--start-side-pad-y-base));
+  padding-inline: clamp(calc(var(--start-side-pad-x-base) * 0.72), 38.4px, var(--start-side-pad-x-base));
+  color: #fffdf3;
+  background:
+    linear-gradient(315deg, rgba(126, 29, 29, 0.24) 0%, rgba(207, 62, 52, 0.08) 48%, rgba(255, 151, 128, 0.24) 100%),
+    #d95145;
+  box-shadow:
+    0 7px 18px rgba(116, 36, 30, 0.22),
+    0 0 0 1px #8f3028,
+    inset 0 0 0 1px #8f3028,
+    inset 0 3px 0 rgba(255, 255, 244, 0.35),
+    inset 0 -6px 0 rgba(104, 24, 22, 0.28);
+  font-size: var(--start-side-font-base);
+  font-weight: 1000;
+  line-height: 1;
+  text-shadow:
+    0 2px 0 rgba(96, 28, 22, 0.6),
+    0 0 4px rgba(96, 28, 22, 0.34);
+}
+
+html[data-mode="standard"] .start-screen .start-exit-button:active,
+html[data-mode="standard"] .start-screen .start-exit-button.is-pressed {
+  transform: translateY(3px) scale(0.98);
+  box-shadow:
+    0 3px 8px rgba(116, 36, 30, 0.16),
+    0 0 0 1px #8f3028,
+    inset 0 0 0 1px #8f3028,
+    inset 0 2px 0 rgba(255, 255, 244, 0.34),
+    inset 0 -3px 0 rgba(104, 24, 22, 0.24);
+}
+
+html[data-mode="standard"] #start-button {
+  grid-column: 2;
+  grid-row: 1;
+}
+
+html[data-mode="standard"] #tutorial-button {
+  grid-column: 3;
+  grid-row: 1;
+}
+
 .start-screen .game-button:focus {
   outline: none;
 }

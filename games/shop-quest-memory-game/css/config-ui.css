@@ -1,4 +1,5 @@
 html[data-show-settings="false"] #settings-button,
+html[data-show-settings="false"] #corner-settings-button,
 html[data-show-tutorial="false"] #tutorial-button,
 html[data-show-timer="false"] #timer-box,
 html[data-show-progress="false"] .race-wrap,

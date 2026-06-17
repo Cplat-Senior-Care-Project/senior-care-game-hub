@@ -6,6 +6,11 @@
     user_id: "userId",
     anonymous_user_id: "anonymousUserId",
     guardian_id: "guardianId",
+    tenant_id: "tenantId",
+    facility_id: "facilityId",
+    program_id: "programId",
+    reward_id: "rewardId",
+    recommendation_id: "recommendationId",
     session_id: "sessionId",
     content_id: "contentId",
     game_key: "gameKey",
@@ -72,6 +77,9 @@
     }
     if (hasConfigValue(config, "voice_context") && !hasConfigValue(normalized, "voiceContext")) {
       normalized.voiceContext = config.voice_context;
+    }
+    if (hasConfigValue(config, "meta") && !hasConfigValue(normalized, "meta")) {
+      normalized.meta = config.meta;
     }
 
     copyMappedFields(config, normalized, ROOT_FIELD_MAP);

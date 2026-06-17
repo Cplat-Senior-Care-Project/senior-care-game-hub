@@ -2443,6 +2443,10 @@
   margin-top: 28px;
 }
 
+#settings-modal .settings-exit-button {
+  display: none !important;
+}
+
 #settings-modal .settings-options {
   width: 100%;
   justify-items: center;

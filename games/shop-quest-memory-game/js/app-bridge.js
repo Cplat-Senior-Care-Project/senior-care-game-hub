@@ -12,6 +12,11 @@
     sessionId: "",
     seniorId: "",
     guardianId: null,
+    tenantId: null,
+    facilityId: null,
+    programId: null,
+    rewardId: null,
+    recommendationId: null,
     playSource: "",
     assignmentId: null,
     alarmId: null,
@@ -45,6 +50,8 @@
     lastResult: null,
     clientContext: null,
     voiceContext: null,
+    processData: null,
+    meta: null,
     ui: {
       showTimer: true,
       showProgress: true,
@@ -176,6 +183,11 @@
       sessionId: readString(merged, "sessionId", "") || createSessionId(),
       seniorId: readString(merged, "seniorId", readString(merged, "userId", "")),
       guardianId: readNullableString(merged, "guardianId", null),
+      tenantId: readNullableString(merged, "tenantId", null),
+      facilityId: readNullableString(merged, "facilityId", null),
+      programId: readNullableString(merged, "programId", null),
+      rewardId: readNullableString(merged, "rewardId", null),
+      recommendationId: readNullableString(merged, "recommendationId", null),
       playSource: normalizePlaySource(readString(merged, "playSource", ""), mode),
       assignmentId: readNullableString(merged, "assignmentId", null),
       alarmId: readNullableString(merged, "alarmId", null),
@@ -209,6 +221,8 @@
       externalInput: isPlainObject(merged.externalInput) ? merged.externalInput : { enabled: false, source: "none" },
       clientContext: isPlainObject(merged.clientContext) ? merged.clientContext : null,
       voiceContext: isPlainObject(merged.voiceContext) ? merged.voiceContext : null,
+      processData: isPlainObject(merged.processData) ? merged.processData : null,
+      meta: isPlainObject(merged.meta) ? merged.meta : null,
       configSource: typeof configSource === "string" && configSource ? configSource : "unknown",
       schemaVersion: SCHEMA_VERSION,
       receivedAt: new Date().toISOString()
@@ -396,7 +410,10 @@
 
   function sendGameReady(payload) { postToNative("GAME_READY", payload); }
   function sendGameStarted(payload) { postToNative("GAME_STARTED", payload); }
-  function sendGameCompleteResult(result) { postToNative("GAME_COMPLETED", result); }
+  function getSessionResultEventType(result) {
+    return result && result.status === "abandoned" ? "SESSION_ABORT" : "SESSION_COMPLETE";
+  }
+  function sendGameCompleteResult(result) { postToNative(getSessionResultEventType(result), result); }
   function sendGameExit(payload) { postToNative("GAME_EXIT_REQUESTED", payload); }
   function sendGameErrorResult(error) { postToNative("GAME_ERROR", error); }
 

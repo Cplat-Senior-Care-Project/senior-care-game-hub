@@ -17,9 +17,11 @@
   let currentDifficulty = runtime.difficulty;
   let tutorialIndex = 0;
   let pendingResult = null;
+  let finishCheckPage = 0;
   let conditionData = runtime.modeConfig.showConditionCheck ? {} : { skipped: true };
   let tutorialReturnScreen = "start";
   registerPlayBulbAssets();
+  const postConditionModal = document.getElementById("post-condition-modal");
 
   const conditionState = {
     checkShown: false,
@@ -30,6 +32,9 @@
       pointerId: null,
       lastStepY: 0
     }
+  };
+  const finishCheckState = {
+    checkShown: false
   };
 
   function registerPlayBulbAssets() {
@@ -65,8 +70,7 @@
     music: true,
     sfx: true,
     voice: true,
-    score: true,
-    theme: "bulb"
+    score: true
   };
 
   function sleepIndexAt(offset) {
@@ -187,6 +191,9 @@
       progressText: document.getElementById("progressText"),
       memoryFill: document.getElementById("memoryFill"),
       hintCount: document.getElementById("hintCount"),
+      playPrompt: document.querySelector(".play-prompt"),
+      playArea: document.querySelector(".play-area"),
+      roundTransitionMessage: document.getElementById("roundTransitionMessage"),
       statusMessage: document.getElementById("statusMessage"),
       pauseButton: document.getElementById("pauseButton"),
       pauseOverlay: document.getElementById("pauseOverlay"),
@@ -194,15 +201,11 @@
     },
     onFinish: (result) => {
       pendingResult = result;
-      if (runtime.modeConfig.showFinishCheck) {
-        showScreen("finish-check");
-      } else {
-        showResult(result);
-      }
+      showFinishCheck(result);
     },
     onExit: (result) => {
-      sendBridgeMessage(result || window.__LAST_GAME_RESULT__, "GAME_ABANDONED");
-      showScreen("start");
+      pendingResult = result || window.__LAST_GAME_RESULT__;
+      showFinishCheck(pendingResult);
     }
   });
 
@@ -368,6 +371,8 @@
   function startGame() {
     audio.unlock();
     pendingResult = null;
+    closeFinishCheck();
+    document.getElementById("pauseHelpPanel").hidden = true;
     showScreen("play");
     sendBridgeMessage({
       schemaVersion: "1.0.0",
@@ -384,7 +389,7 @@
       difficultyKey: currentDifficulty,
       mode: runtime.mode,
       modeConfig: runtime.modeConfig,
-      themeKey: settings.theme,
+      themeKey: "bulb",
       condition: conditionData,
       sessionMeta
     });
@@ -402,6 +407,56 @@
 
   function collectChoices(scope) {
     return LightGameSessionBoard.collectChoices(scope);
+  }
+
+  function collectPostConditionChoices() {
+    const finishData = {};
+    document.querySelectorAll(".post-condition-option.is-selected").forEach((button) => {
+      finishData[button.dataset.postField] = button.dataset.postValue;
+    });
+    return finishData;
+  }
+
+  function updateFinishCheckPage(pageIndex) {
+    finishCheckPage = Math.max(0, Math.min(1, pageIndex));
+    document.querySelectorAll("[data-post-condition-page]").forEach((page) => {
+      page.hidden = Number(page.dataset.postConditionPage) !== finishCheckPage;
+    });
+    document.querySelectorAll(".post-condition-dot").forEach((dot, index) => {
+      dot.classList.toggle("is-active", index === finishCheckPage);
+    });
+  }
+
+  function showFinishCheck(result) {
+    pendingResult = result || pendingResult || window.__LAST_GAME_RESULT__ || null;
+    if (!runtime.modeConfig.showFinishCheck || finishCheckState.checkShown) {
+      markFinishCheckSkipped();
+      showResult(pendingResult);
+      return;
+    }
+
+    finishCheckState.checkShown = true;
+    updateFinishCheckPage(0);
+    document.getElementById("pauseOverlay").hidden = true;
+    document.getElementById("pauseHelpPanel").hidden = true;
+    if (postConditionModal) {
+      postConditionModal.classList.remove("is-hidden");
+    }
+  }
+
+  function closeFinishCheck() {
+    if (postConditionModal) {
+      postConditionModal.classList.add("is-hidden");
+    }
+  }
+
+  function selectPostConditionOption(button) {
+    const field = button.dataset.postField;
+    document.querySelectorAll(`.post-condition-option[data-post-field="${field}"]`).forEach((option) => {
+      const isSelected = option === button;
+      option.classList.toggle("is-selected", isSelected);
+      option.setAttribute("aria-pressed", isSelected ? "true" : "false");
+    });
   }
 
   function openConditionCheck() {
@@ -423,7 +478,7 @@
   }
 
   function submitFinishCheck() {
-    const finishData = collectChoices(document.querySelector('[data-screen="finish-check"]'));
+    const finishData = collectPostConditionChoices();
     if (pendingResult) {
       pendingResult.finish_check = finishData;
       pendingResult.finish_check_skipped = false;
@@ -446,7 +501,7 @@
     showResult(pendingResult);
   }
 
-  function skipFinishCheck() {
+  function markFinishCheckSkipped() {
     if (pendingResult) {
       pendingResult.finish_check = { skipped: true };
       pendingResult.finish_check_skipped = true;
@@ -461,10 +516,15 @@
       }
       window.__LAST_GAME_RESULT__ = pendingResult;
     }
+  }
+
+  function skipFinishCheck() {
+    markFinishCheckSkipped();
     showResult(pendingResult);
   }
 
   function showResult(result) {
+    closeFinishCheck();
     renderResult(result);
     showScreen("result");
 
@@ -477,15 +537,14 @@
 
   function renderResult(result) {
     const safeResult = result || {};
-    document.getElementById("resultTotal").textContent = (safeResult.total_questions || 0) + "개";
-    document.getElementById("resultCorrect").textContent = (safeResult.correct_count || 0) + "개";
-    document.getElementById("resultWrong").textContent = (safeResult.wrong_count || 0) + "개";
+    document.getElementById("resultTotal").textContent = safeResult.total_questions || 0;
+    document.getElementById("resultCorrect").textContent = safeResult.correct_count || 0;
     document.getElementById("resultRate").textContent = (safeResult.success_rate || 0) + "%";
-    document.getElementById("resultAverage").textContent = formatSeconds(safeResult.average_response_time_ms || 0);
-    document.getElementById("resultTotalTime").textContent = formatSeconds(safeResult.totalPlayTimeMs || 0);
-    document.getElementById("resultDifficulty").textContent = DIFFICULTY_CONFIG[safeResult.effectiveDifficulty || safeResult.difficulty || currentDifficulty].label;
-    document.getElementById("resultHints").textContent = (safeResult.hint_triggered_count || 0) + "회";
-    document.getElementById("resultNotice").textContent = safeResult.exitReason === "total_timeout" ? "정해진 시간이 지나 활동을 마쳤어요." : "";
+    document.getElementById("resultHintCount").textContent = (safeResult.hint_triggered_count || 0) + "회";
+    document.getElementById("resultCompare").textContent = "오늘 첫 기록을 남겼어요";
+    document.getElementById("resultMessage").textContent = safeResult.exitReason === "total_timeout"
+      ? "정해진 시간이 지나 활동을 마쳤어요."
+      : "천천히 집중해주신 것만으로도 참 좋습니다.";
     applyRuntimeMode();
   }
 
@@ -496,6 +555,7 @@
 
   function finishToHost() {
     sendBridgeMessage(window.__LAST_GAME_RESULT__ || pendingResult, (window.__LAST_GAME_RESULT__ || pendingResult || {}).type || "GAME_COMPLETED");
+    closeFinishCheck();
     showScreen("start");
   }
 
@@ -522,6 +582,27 @@
     document.getElementById("tutorialDone").hidden = tutorialIndex !== 4;
   }
 
+  function updateToggleControl(control, isOn) {
+    if (control.matches('input[type="checkbox"]')) {
+      control.checked = isOn;
+      return;
+    }
+
+    if (control.classList.contains("pause-sound-button")) {
+      control.classList.toggle("is-off", !isOn);
+      control.setAttribute("aria-pressed", String(isOn));
+      const toggleText = control.querySelector(".pause-toggle-visual span");
+      if (toggleText) {
+        toggleText.textContent = isOn ? "ON" : "OFF";
+      }
+      return;
+    }
+
+    control.classList.toggle("is-on", isOn);
+    control.setAttribute("aria-pressed", String(isOn));
+    control.textContent = isOn ? "켜짐" : "꺼짐";
+  }
+
   function setToggle(control, isOn) {
     const labelMap = {
       music: document.getElementById("backgroundSoundLabel"),
@@ -535,13 +616,9 @@
     };
     const key = control.dataset.settingToggle;
 
-    if (control.matches('input[type="checkbox"]')) {
-      control.checked = isOn;
-    } else {
-      control.classList.toggle("is-on", isOn);
-      control.setAttribute("aria-pressed", String(isOn));
-      control.textContent = isOn ? "켜짐" : "꺼짐";
-    }
+    document.querySelectorAll('[data-setting-toggle="' + key + '"]').forEach((toggleControl) => {
+      updateToggleControl(toggleControl, isOn);
+    });
 
     if (labelMap[key]) {
       labelMap[key].textContent = textMap[key] + (isOn ? " 켬" : " 끔");
@@ -632,6 +709,10 @@
     });
   });
 
+  document.querySelectorAll(".post-condition-option").forEach((button) => {
+    button.addEventListener("click", () => selectPostConditionOption(button));
+  });
+
   difficultyCards.forEach((card) => {
     card.addEventListener("click", () => {
       selectDifficulty(card.dataset.difficulty);
@@ -653,14 +734,19 @@
   document.getElementById("hintButton").addEventListener("click", () => game.showHint());
   document.getElementById("pauseButton").addEventListener("click", () => game.pause());
   document.getElementById("resumeButton").addEventListener("click", () => game.resume());
+  document.getElementById("pauseRestartButton").addEventListener("click", startGame);
   document.getElementById("pauseHomeButton").addEventListener("click", () => game.exitToHome());
   document.getElementById("pauseHowtoButton").addEventListener("click", () => {
-    tutorialReturnScreen = "play";
-    showScreen("howto");
+    document.getElementById("pauseHelpPanel").hidden = false;
   });
+  document.getElementById("pauseHelpCloseButton").addEventListener("click", () => {
+    document.getElementById("pauseHelpPanel").hidden = true;
+  });
+  document.getElementById("finishNext").addEventListener("click", () => updateFinishCheckPage(1));
+  document.getElementById("finishBack").addEventListener("click", () => updateFinishCheckPage(0));
   document.getElementById("finishSubmit").addEventListener("click", submitFinishCheck);
   document.getElementById("finishSkip").addEventListener("click", skipFinishCheck);
-  document.getElementById("playAgainButton").addEventListener("click", startGame);
+  document.getElementById("resultStartButton").addEventListener("click", () => showScreen("start"));
   document.getElementById("resultHomeButton").addEventListener("click", finishToHost);
   document.getElementById("startReturnButton").addEventListener("click", finishToHost);
 
@@ -692,19 +778,6 @@
       }
     });
   });
-
-  const themeButtons = document.getElementById("themeButtons");
-  if (themeButtons) {
-    themeButtons.addEventListener("click", (event) => {
-      const button = event.target.closest(".theme-button");
-      if (!button) {
-        return;
-      }
-      settings.theme = button.dataset.theme;
-      document.body.dataset.theme = settings.theme;
-      document.querySelectorAll(".theme-button").forEach((item) => item.classList.toggle("is-selected", item === button));
-    });
-  }
 
   const fullscreenButton = document.getElementById("fullscreenButton");
   if (fullscreenButton) {

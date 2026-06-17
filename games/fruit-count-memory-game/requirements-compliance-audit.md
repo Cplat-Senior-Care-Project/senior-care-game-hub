@@ -21,7 +21,7 @@
 | 게임 클라이언트 실행 구조 | 부분충족 | `index.html`, `css`, `js`, `assets`, `config` 기반의 정적 HTML5 WebView 게임 구조는 있음. 다만 실행 가이드/URL 명세 문서가 별도 산출물로 없음. |
 | 모드/config 처리 | 충족 | `standard`, `reminder`, `care`, `ai_assisted` 모드별 config와 CSS/JS 모드 자산 분기가 구현됨. |
 | 케어/AI 모드 | 충족 | 케어/AI 모드는 5문항, 60초, 보기 2개, UI 축소, soft feedback, 자동 힌트가 config에 반영됨. |
-| 앱 연동 | 부분충족 | bridge, ready/started/completed/error/exit 이벤트, 결과 payload가 있음. 단 `GAME_ABANDONED` 별도 이벤트는 없고 `GAME_COMPLETED` + `status=abandoned` 구조임. |
+| 앱 연동 | 충족 | bridge, ready/started/session complete/session abort/error/exit 이벤트와 결과 payload가 있음. `SESSION_COMPLETE`, `SESSION_ABORT` 기준으로 결과를 반환함. |
 | 결과 로그 | 충족 | session/content/game/mode/difficulty/config/status/time/counts/question_logs/result_detail/error 필드가 구현됨. |
 | UI/접근성 | 부분충족 | safe area, 가로 방향 안내, 자동 일시정지, 큰 버튼/텍스트, reduced motion 대응이 있음. 실제 기기/브라우저 렌더 QA는 별도 수행 필요. |
 | 오디오 | 부분충족 | 효과음/BGM/음성 안내, config 토글, 종료/일시정지 제어가 있음. 실제 WebView 백그라운드 잔류음은 기기 검증 필요. |
@@ -52,7 +52,7 @@
 | REQ-MODE-005 care 1~3분 활동 | 충족 | `care.config.json`: 60초, 5문항, 5000ms 노출, 2개 보기. |
 | REQ-MODE-006 AI 연동 모드 | 충족 | `ai_assisted.config.json`의 `external_input.enabled`, `FruitCountMemoryGameExternalInput`, `FRUIT_COUNT_EXTERNAL_ANSWER` 구현. |
 | REQ-IF-001 config 수신 | 충족 | app bridge가 inline/query/file/stored config를 읽고 normalize/apply. |
-| REQ-IF-002 postMessage 통신 | 충족 | mock bridge가 parent/opener `postMessage`로 이벤트 전송. |
+| REQ-IF-002 postMessage 통신 | 충족 | bridge가 React Native WebView와 parent/opener `postMessage`로 이벤트 전송. |
 | REQ-IF-004 결과 JSON 반환 | 충족 | 완료/중단/오류 payload 생성 및 bridge 전송 구조 존재. |
 | REQ-IF-006 config_snapshot 반환 | 충족 | `createConfigSnapshot()` 구현. |
 | REQ-IF-007/010 외부 입력 | 충족 | `value`, `answer`, `choice`, `selected_answer`, `raw_transcript`, `confidence` 수용. |
@@ -79,7 +79,7 @@
 | REQ-IP-002 에셋 라이선스 제출 | 미충족 | `audio-manifest.json`은 있으나 이미지/오디오/폰트 라이선스 목록 문서 없음. |
 | REQ-ASSET-001 4:3 썸네일 | 미충족 | `thumbnail` 또는 대표 썸네일로 식별되는 4:3 이미지 없음. |
 | REQ-MODE-007 모드별 종료 화면 | 부분충족 | 모드별 CSS 제어는 있으나 reminder CSS에 과거/중복 규칙이 섞여 있어 실제 화면 검증 필요. |
-| REQ-IF-003 이벤트 구조 | 부분충족 | `GAME_READY`, `GAME_STARTED`, `GAME_COMPLETED`, `GAME_ERROR`, `GAME_EXIT_REQUESTED` 있음. `GAME_ABANDONED` 별도 이벤트는 없고 abandoned status로 반환. 명세 정리 필요. |
+| REQ-IF-003 이벤트 구조 | 충족 | `GAME_READY`, `GAME_STARTED`, `SESSION_COMPLETE`, `SESSION_ABORT`, `GAME_ERROR`, `GAME_EXIT_REQUESTED` 있음. |
 | REQ-IF-009 히스토리 재실행 신규 세션 | 확인필요 | 게임은 session_id를 수용/생성하지만 히스토리 재실행 정책은 앱 책임이라 현재 폴더만으로 검증 불가. |
 | REQ-LOG-022 중복 저장 식별 | 부분충족 | `session_id` 반환은 있으나 서버 측 idempotency/unique constraint 없음. |
 | REQ-LOG-023~025 컨디션/보상/랭킹 확장 | 부분충족 | 컨디션 데이터는 일부 구현. 보상/랭킹은 서버/앱 확장 설계 문서 없음. |
@@ -161,7 +161,7 @@
 4. Android WebView 또는 동등 브라우저에서 `standard`, `reminder`, `care`, `ai_assisted` 모드별 캡처와 QA 결과를 남긴다.
 5. completed/abandoned/error 세 가지 결과 JSON 샘플을 실제 실행 로그로 생성한다.
 6. 서버/API/DB가 이번 납품 범위라면 별도 서버 프로젝트, API 명세, DB 스키마, 중복 저장 방지 설계를 추가한다. 게임 클라이언트 범위라면 해당 항목은 범위밖으로 명시한다.
-7. `GAME_ABANDONED`를 별도 이벤트로 요구한다면 구현을 추가하거나, 현재처럼 `GAME_COMPLETED` + `status=abandoned`로 처리한다는 인터페이스 명세를 확정한다.
+7. 완료/중단 결과 이벤트는 실제 브릿지 기준 `SESSION_COMPLETE` / `SESSION_ABORT`로 확정했다.
 
 ## 검증 한계
 

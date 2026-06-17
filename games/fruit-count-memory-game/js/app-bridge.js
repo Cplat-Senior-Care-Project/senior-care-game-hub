@@ -22,6 +22,11 @@
     userId: "",
     anonymousUserId: "mock-user",
     guardianId: null,
+    tenantId: null,
+    facilityId: null,
+    programId: null,
+    rewardId: null,
+    recommendationId: null,
     playSource: "manual",
     assignmentId: null,
     alarmId: null,
@@ -50,6 +55,7 @@
     lastResult: null,
     clientContext: null,
     voiceContext: null,
+    meta: null,
     ui: {
       showTimer: true,
       showProgress: true,
@@ -189,6 +195,11 @@
       userId: readString(merged, "userId", ""),
       anonymousUserId: readString(merged, "anonymousUserId", readString(merged, "userId", "")),
       guardianId: readString(merged, "guardianId", "") || null,
+      tenantId: readString(merged, "tenantId", "") || null,
+      facilityId: readString(merged, "facilityId", "") || null,
+      programId: readString(merged, "programId", "") || null,
+      rewardId: readString(merged, "rewardId", "") || null,
+      recommendationId: readString(merged, "recommendationId", "") || null,
       playSource: readString(merged, "playSource", DEFAULT_MOCK_CONFIG.playSource),
       assignmentId: readString(merged, "assignmentId", "") || null,
       alarmId: readString(merged, "alarmId", "") || null,
@@ -215,6 +226,7 @@
       lastResult: isPlainObject(merged.lastResult) ? merged.lastResult : DEFAULT_MOCK_CONFIG.lastResult,
       clientContext: isPlainObject(merged.clientContext) ? merged.clientContext : DEFAULT_MOCK_CONFIG.clientContext,
       voiceContext: isPlainObject(merged.voiceContext) ? merged.voiceContext : DEFAULT_MOCK_CONFIG.voiceContext,
+      meta: isPlainObject(merged.meta) ? merged.meta : DEFAULT_MOCK_CONFIG.meta,
       ui: isPlainObject(merged.ui) ? merged.ui : DEFAULT_MOCK_CONFIG.ui,
       softFeedbackConfigured: hasExplicitSoftFeedback,
       configSource: typeof configSource === "string" && configSource ? configSource : "unknown",
@@ -455,13 +467,16 @@
   }
 
   function sendMockMessage(name, payload) {
+    const message = { type: name, payload };
+    if (global.ReactNativeWebView && typeof global.ReactNativeWebView.postMessage === "function") {
+      global.ReactNativeWebView.postMessage(JSON.stringify(message));
+    }
     if (global.parent && global.parent !== global && typeof global.parent.postMessage === "function") {
-      global.parent.postMessage({ type: name, payload }, "*");
+      global.parent.postMessage(message, "*");
     }
     if (global.opener && !global.opener.closed && typeof global.opener.postMessage === "function") {
-      global.opener.postMessage({ type: name, payload }, "*");
+      global.opener.postMessage(message, "*");
     }
-    // TODO: 결과 JSON schemaVersion 확정 후 필드명 조정
     if (!global.console) {
       return;
     }
@@ -478,11 +493,11 @@
   }
 
   function sendGameCompleteResult(result) {
-    sendMockMessage("GAME_COMPLETED", result);
+    sendMockMessage("SESSION_COMPLETE", result);
   }
 
   function sendGameAbandonedResult(result) {
-    sendMockMessage("GAME_ABANDONED", result);
+    sendMockMessage("SESSION_ABORT", result);
   }
 
   function sendGameExit(payload) {

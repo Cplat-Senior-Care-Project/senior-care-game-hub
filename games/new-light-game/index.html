@@ -145,11 +145,11 @@
               </button>
               <button class="difficulty-card" type="button" data-difficulty="hard" aria-pressed="false">
                 <span class="difficulty-name">어려움</span>
-                <span class="difficulty-grid">4 x 4</span>
+                <span class="difficulty-grid">3 x 4</span>
                 <span class="difficulty-note">빛나는 전구 4개</span>
                 <span class="mini-grid mini-grid-4" aria-hidden="true">
                   <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
-                  <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+                  <i></i><i></i><i></i><i></i>
                 </span>
               </button>
             </div>
@@ -259,17 +259,6 @@
               <h2 id="settingsTitle">편한 상태로 맞춰 주세요</h2>
             </header>
             <div class="settings-list">
-              <div class="setting-row theme-row">
-                <div>
-                  <strong>테마</strong>
-                  <span>전구, 새, 휴대폰</span>
-                </div>
-                <div class="theme-buttons" id="themeButtons">
-                  <button type="button" class="theme-button is-selected" data-theme="bulb">전구</button>
-                  <button type="button" class="theme-button" data-theme="bird">새</button>
-                  <button type="button" class="theme-button" data-theme="phone">휴대폰</button>
-                </div>
-              </div>
               <div class="setting-row"><strong>음악</strong><button class="toggle-button is-on" type="button" data-setting-toggle="music" aria-pressed="true">켜짐</button></div>
               <div class="setting-row"><strong>효과음</strong><button class="toggle-button is-on" type="button" data-setting-toggle="sfx" aria-pressed="true">켜짐</button></div>
               <div class="setting-row"><strong>음성안내</strong><button class="toggle-button is-on" type="button" data-setting-toggle="voice" aria-pressed="true">켜짐</button></div>
@@ -343,102 +332,191 @@
             <button class="next-button" type="button" aria-label="다음 문제" disabled>다음 <span aria-hidden="true">›</span></button>
           </div>
 
-          <div class="play-prompt" aria-live="polite">방금 켜졌던 전구를 찾아주세요</div>
+          <div class="play-prompt" aria-live="polite">빛나는 전구의 위치를 기억하세요!</div>
 
           <div class="play-area">
             <div class="bulb-grid" id="bulbGrid" aria-label="전구 위치 선택"></div>
+            <div class="round-transition-message" id="roundTransitionMessage" aria-live="polite" hidden></div>
           </div>
 
           <footer class="status-bar">
-            <p id="statusMessage">전구 위치를 잘 기억해보세요</p>
+            <p id="statusMessage">빛나는 전구의 위치를 기억하세요!</p>
           </footer>
 
           <div class="pause-overlay" id="pauseOverlay" hidden>
-            <div class="pause-dialog" role="dialog" aria-modal="true" aria-labelledby="pauseTitle">
-              <h3 id="pauseTitle">잠시 쉬는 중이에요</h3>
-              <div class="dialog-actions">
-                <button class="primary-button" type="button" id="resumeButton">계속하기</button>
-                <button class="secondary-button optional-howto" type="button" id="pauseHowtoButton">게임 방법 보기</button>
-                <button class="text-button" type="button" id="pauseHomeButton">처음으로 돌아가기</button>
+            <div class="pause-dialog pause-card" role="dialog" aria-modal="true" aria-labelledby="pauseTitle">
+              <h3 id="pauseTitle">잠시 쉬어가요</h3>
+              <p>준비되면 이어서 해볼까요?</p>
+              <div class="pause-layout">
+                <div class="pause-action-panel">
+                  <button class="primary-button pause-main-button" type="button" id="resumeButton">계속하기</button>
+                  <div class="pause-small-actions">
+                    <button class="secondary-button pause-sub-button" type="button" id="pauseRestartButton">다시하기</button>
+                    <button class="secondary-button pause-sub-button" type="button" id="pauseHomeButton">그만하기</button>
+                  </div>
+                  <button class="secondary-button optional-howto pause-help-button" type="button" id="pauseHowtoButton">
+                    <span class="pause-help-icon" aria-hidden="true">?</span>
+                    <span>진행방법</span>
+                  </button>
+                </div>
+                <section class="pause-sound-panel" aria-label="소리 설정">
+                  <div class="pause-sound-options">
+                    <button id="pauseBackgroundSoundButton" class="pause-sound-button" type="button" data-setting-toggle="music" aria-pressed="true">
+                      <span class="pause-sound-icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                          <path d="M9 18V5l12-2v13"></path>
+                          <circle cx="6" cy="18" r="3"></circle>
+                          <circle cx="18" cy="16" r="3"></circle>
+                        </svg>
+                      </span>
+                      <span class="pause-sound-name">배경음</span>
+                      <span class="pause-toggle-visual" aria-hidden="true"><span>ON</span><i></i></span>
+                    </button>
+                    <button id="pauseSoundButton" class="pause-sound-button" type="button" data-setting-toggle="sfx" aria-pressed="true">
+                      <span class="pause-sound-icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                          <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+                          <path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+                          <path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path>
+                        </svg>
+                      </span>
+                      <span class="pause-sound-name">효과음</span>
+                      <span class="pause-toggle-visual" aria-hidden="true"><span>ON</span><i></i></span>
+                    </button>
+                    <button id="pauseVoiceGuideButton" class="pause-sound-button" type="button" data-setting-toggle="voice" aria-pressed="true">
+                      <span class="pause-sound-icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                          <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+                          <path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+                          <path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path>
+                        </svg>
+                      </span>
+                      <span class="pause-sound-name">안내음성</span>
+                      <span class="pause-toggle-visual" aria-hidden="true"><span>ON</span><i></i></span>
+                    </button>
+                  </div>
+                </section>
               </div>
+              <section class="pause-help-panel" id="pauseHelpPanel" aria-labelledby="pauseHelpTitle" hidden>
+                <div class="pause-help-header">
+                  <p class="eyebrow">게임 방법</p>
+                  <h4 id="pauseHelpTitle">천천히 따라 해 보세요</h4>
+                </div>
+                <ol class="pause-help-steps">
+                  <li><strong>1</strong><span>전구가 잠깐 빛납니다.</span></li>
+                  <li><strong>2</strong><span>빛난 자리를 눈으로 기억해 주세요.</span></li>
+                  <li><strong>3</strong><span>박스가 닫히면 같은 자리를 눌러 주세요.</span></li>
+                  <li><strong>4</strong><span>헷갈리면 힌트를 눌러도 괜찮아요.</span></li>
+                </ol>
+                <button class="primary-button pause-help-close-button" type="button" id="pauseHelpCloseButton">확인</button>
+              </section>
             </div>
           </div>
         </section>
 
 
-<section class="screen screen-panel" data-screen="finish-check" aria-labelledby="finishCheckTitle">
-          <div class="panel-layout finish-panel">
-            <header class="panel-header">
-              <p class="eyebrow">마무리 체크</p>
-              <h2 id="finishCheckTitle">오늘 활동은 어떠셨어요?</h2>
-            </header>
-            <div class="finish-grid">
-              <div class="finish-question">
-                <span>지금 기분</span>
-                <div class="choice-group" data-choice-group="moodAfter">
-                  <button type="button" class="choice-button is-selected" data-value="good">좋음</button>
-                  <button type="button" class="choice-button" data-value="normal">보통</button>
-                  <button type="button" class="choice-button" data-value="bad">나쁨</button>
+        <div id="post-condition-modal" class="modal-layer is-hidden" role="dialog" aria-modal="true" aria-labelledby="finishCheckTitle">
+          <div class="modal-card condition-card post-condition-card">
+            <h2 id="finishCheckTitle" class="condition-title post-condition-title">
+              <span class="condition-title-icon" aria-hidden="true">&#128221;</span>
+              <span class="condition-title-text">마무리 체크</span>
+              <span class="condition-title-icon" aria-hidden="true">&#9989;</span>
+            </h2>
+            <div class="post-condition-progress" aria-hidden="true">
+              <span class="post-condition-dot is-active"></span>
+              <span class="post-condition-dot"></span>
+            </div>
+            <div class="post-condition-page" data-post-condition-page="0">
+              <section class="post-condition-question" aria-labelledby="post-condition-mood-title">
+                <h3 id="post-condition-mood-title" class="post-condition-question-title"><span>1</span>지금 기분은 어떠세요?</h3>
+                <div class="post-condition-options" role="group" aria-label="game after mood">
+                  <button class="post-condition-option is-selected" type="button" data-post-field="moodAfter" data-post-value="good" aria-pressed="true"><span class="post-condition-face" aria-hidden="true">&#128522;</span><span>좋아요</span></button>
+                  <button class="post-condition-option" type="button" data-post-field="moodAfter" data-post-value="normal" aria-pressed="false"><span class="post-condition-face" aria-hidden="true">&#128528;</span><span>보통이에요</span></button>
+                  <button class="post-condition-option" type="button" data-post-field="moodAfter" data-post-value="hard" aria-pressed="false"><span class="post-condition-face" aria-hidden="true">&#128532;</span><span>안 좋아요</span></button>
                 </div>
-              </div>
-              <div class="finish-question">
-                <span>게임 난이도</span>
-                <div class="choice-group" data-choice-group="perceivedDifficulty">
-                  <button type="button" class="choice-button is-selected" data-value="easy">쉬웠어요</button>
-                  <button type="button" class="choice-button" data-value="just_right">적당했어요</button>
-                  <button type="button" class="choice-button" data-value="hard">어려웠어요</button>
+              </section>
+              <section class="post-condition-question" aria-labelledby="post-condition-fatigue-title">
+                <h3 id="post-condition-fatigue-title" class="post-condition-question-title"><span>2</span>피로감은 어느 정도인가요?</h3>
+                <div class="post-condition-options" role="group" aria-label="game after fatigue">
+                  <button class="post-condition-option is-selected" type="button" data-post-field="fatigue" data-post-value="low" aria-pressed="true"><span class="post-condition-face" aria-hidden="true">&#128578;</span><span>괜찮아요</span></button>
+                  <button class="post-condition-option" type="button" data-post-field="fatigue" data-post-value="medium" aria-pressed="false"><span class="post-condition-face" aria-hidden="true">&#128531;</span><span>조금 피곤해요</span></button>
+                  <button class="post-condition-option" type="button" data-post-field="fatigue" data-post-value="high" aria-pressed="false"><span class="post-condition-face" aria-hidden="true">&#128553;</span><span>많이 피곤해요</span></button>
                 </div>
-              </div>
-              <div class="finish-question">
-                <span>피로감</span>
-                <div class="choice-group" data-choice-group="fatigue">
-                  <button type="button" class="choice-button is-selected" data-value="fine">괜찮아요</button>
-                  <button type="button" class="choice-button" data-value="tired">조금 피곤해요</button>
-                  <button type="button" class="choice-button" data-value="very_tired">많이 피곤해요</button>
-                </div>
-              </div>
-              <div class="finish-question">
-                <span>도움 필요</span>
-                <div class="choice-group" data-choice-group="neededHelp">
-                  <button type="button" class="choice-button is-selected" data-value="no">아니오</button>
-                  <button type="button" class="choice-button" data-value="yes">네</button>
-                </div>
-              </div>
-              <div class="finish-question">
-                <span>다시 하고 싶은 마음</span>
-                <div class="choice-group" data-choice-group="replayIntent">
-                  <button type="button" class="choice-button is-selected" data-value="yes">네</button>
-                  <button type="button" class="choice-button" data-value="no">아니오</button>
-                </div>
+              </section>
+              <div class="condition-actions post-condition-actions">
+                <button id="finishSkip" class="game-button condition-skip-button post-condition-action-button" type="button">건너뛰기</button>
+                <button id="finishNext" class="game-button condition-confirm-button post-condition-action-button" type="button">다음</button>
               </div>
             </div>
-            <div class="panel-actions">
-              <button class="primary-button" type="button" id="finishSubmit">결과 보기</button>
-              <button class="text-button" type="button" id="finishSkip">건너뛰고 결과 보기</button>
+            <div class="post-condition-page" data-post-condition-page="1" hidden>
+              <section class="post-condition-question" aria-labelledby="post-condition-difficulty-title">
+                <h3 id="post-condition-difficulty-title" class="post-condition-question-title"><span>3</span>체감 난이도는 어땠나요?</h3>
+                <div class="post-condition-options" role="group" aria-label="perceived difficulty">
+                  <button class="post-condition-option" type="button" data-post-field="perceivedDifficulty" data-post-value="easy" aria-pressed="false"><span class="post-condition-face" aria-hidden="true">&#128516;</span><span>쉬웠어요</span></button>
+                  <button class="post-condition-option is-selected" type="button" data-post-field="perceivedDifficulty" data-post-value="justRight" aria-pressed="true"><span class="post-condition-face" aria-hidden="true">&#128578;</span><span>적당했어요</span></button>
+                  <button class="post-condition-option" type="button" data-post-field="perceivedDifficulty" data-post-value="hard" aria-pressed="false"><span class="post-condition-face" aria-hidden="true">&#128560;</span><span>어려웠어요</span></button>
+                </div>
+              </section>
+              <section class="post-condition-question" aria-labelledby="post-condition-help-title">
+                <h3 id="post-condition-help-title" class="post-condition-question-title"><span>4</span>도움이 필요했나요?</h3>
+                <div class="post-condition-options" role="group" aria-label="needed help">
+                  <button class="post-condition-option" type="button" data-post-field="neededHelp" data-post-value="some" aria-pressed="false"><span class="post-condition-face" aria-hidden="true">&#9995;</span><span>네</span></button>
+                  <button class="post-condition-option is-selected" type="button" data-post-field="neededHelp" data-post-value="none" aria-pressed="true"><span class="post-condition-face" aria-hidden="true">&#128170;</span><span>아니요</span></button>
+                </div>
+              </section>
+              <section class="post-condition-question" aria-labelledby="post-condition-replay-title">
+                <h3 id="post-condition-replay-title" class="post-condition-question-title"><span>5</span>다시 하고 싶나요?</h3>
+                <div class="post-condition-options" role="group" aria-label="replay intent">
+                  <button class="post-condition-option is-selected" type="button" data-post-field="replayIntent" data-post-value="yes" aria-pressed="true"><span class="post-condition-face" aria-hidden="true">&#11088;</span><span>네</span></button>
+                  <button class="post-condition-option" type="button" data-post-field="replayIntent" data-post-value="no" aria-pressed="false"><span class="post-condition-face" aria-hidden="true">&#128075;</span><span>아니요</span></button>
+                </div>
+              </section>
+              <div class="condition-actions post-condition-actions">
+                <button id="finishBack" class="game-button secondary-button post-condition-action-button" type="button">이전</button>
+                <button id="finishSubmit" class="game-button condition-confirm-button post-condition-action-button" type="button">확인</button>
+              </div>
             </div>
           </div>
-        </section>
+        </div>
 
-        <section class="screen screen-result" data-screen="result" aria-labelledby="resultTitle">
-          <div class="result-layout">
-            <header class="panel-header">
-              <p class="eyebrow">결과</p>
-              <h2 id="resultTitle">정말 잘하셨어요.</h2>
-              <p id="resultNotice"></p>
-            </header>
-            <div class="result-stats">
-              <div><span>전체 문제</span><strong id="resultTotal">10개</strong></div>
-              <div class="optional-score"><span>정답</span><strong id="resultCorrect">0개</strong></div>
-              <div class="optional-score"><span>오답</span><strong id="resultWrong">0개</strong></div>
-              <div class="optional-score"><span>성공률</span><strong id="resultRate">0%</strong></div>
-              <div><span>평균 반응</span><strong id="resultAverage">0초</strong></div>
-              <div><span>총 시간</span><strong id="resultTotalTime">0초</strong></div>
-              <div class="optional-difficulty-label"><span>난이도</span><strong id="resultDifficulty">쉬움</strong></div>
-              <div><span>힌트</span><strong id="resultHints">0회</strong></div>
-            </div>
-            <div class="panel-actions">
-              <button class="primary-button optional-replay" type="button" id="playAgainButton">다시하기</button>
-              <button class="secondary-button" type="button" id="resultHomeButton">효담콜로 돌아가기</button>
+        <section class="screen result-screen" data-screen="result" aria-labelledby="resultTitle">
+          <div class="result-content">
+            <div id="resultEmoji" class="result-emoji" aria-hidden="true">&#129303;</div>
+            <p class="eyebrow">오늘 기억활동 정말 잘하셨어요!</p>
+            <div class="standard-result-card">
+              <h2 id="resultTitle">오늘의 기억 활동</h2>
+              <p id="resultMessage" class="result-message">천천히 집중해주신 것만으로도 참 좋습니다.</p>
+              <p id="resultNotice" class="sr-only" aria-live="polite"></p>
+              <div id="standardResultRecord" class="standard-result-record" aria-live="polite">
+                <div class="standard-result-score-panel">
+                  <span class="standard-result-trophy" aria-hidden="true">&#127942;</span>
+                  <div class="standard-result-score" aria-label="점수">
+                    <strong id="resultCorrect" class="standard-result-correct">0</strong>
+                    <span class="standard-result-score-divider">/</span>
+                    <strong id="resultTotal" class="standard-result-total">0</strong>
+                    <span class="standard-result-answer-label">정답</span>
+                  </div>
+                  <div class="standard-result-rate">
+                    <span>정답률</span>
+                    <strong id="resultRate">0%</strong>
+                  </div>
+                </div>
+                <div class="standard-result-details">
+                  <div class="standard-result-detail standard-result-hint">
+                    <span class="standard-result-detail-icon" aria-hidden="true">&#128161;</span>
+                    <span>힌트</span>
+                    <strong id="resultHintCount">0회</strong>
+                  </div>
+                  <div class="standard-result-detail standard-result-compare">
+                    <span class="standard-result-detail-icon" aria-hidden="true">↗</span>
+                    <strong id="resultCompare">오늘 첫 기록을 남겼어요</strong>
+                  </div>
+                </div>
+              </div>
+              <div class="result-actions">
+                <button id="resultStartButton" class="game-button secondary-button" type="button">홈으로 돌아가기</button>
+                <button id="resultHomeButton" class="game-button secondary-button" type="button">효담콜로 돌아가기</button>
+              </div>
             </div>
           </div>
         </section>
