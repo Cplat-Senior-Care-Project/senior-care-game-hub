@@ -215,19 +215,56 @@ function applySoundSettings(){
   if(!soundSettings.voice) stopVoice();
 }
 function refreshSoundToggles(){
+  const labelIds = {
+    bgm: "background-sound-label",
+    sfx: "sound-label",
+    voice: "voice-guide-label",
+  };
+  const labelNames = {
+    bgm: "배경음",
+    sfx: "효과음",
+    voice: "안내음성",
+  };
   document.querySelectorAll(".toggle[data-sound]").forEach(btn=>{
     const k = btn.dataset.sound;
     const on = !!soundSettings[k];
     btn.classList.toggle("on", on);
+    btn.setAttribute("aria-pressed", on ? "true" : "false");
     const t = btn.querySelector(".txt"); if(t) t.textContent = on ? "켜짐" : "꺼짐";
   });
+  document.querySelectorAll(".setting-toggle[data-sound]").forEach(input=>{
+    const k = input.dataset.sound;
+    const on = !!soundSettings[k];
+    input.checked = on;
+  });
+  document.querySelectorAll(".pause-sound-button[data-sound]").forEach(btn=>{
+    const k = btn.dataset.sound;
+    const on = !!soundSettings[k];
+    btn.classList.toggle("is-off", !on);
+    btn.setAttribute("aria-pressed", on ? "true" : "false");
+    const text = btn.querySelector(".pause-toggle-visual span");
+    if(text) text.textContent = on ? "ON" : "OFF";
+  });
+  Object.keys(labelIds).forEach(k=>{
+    const label = document.getElementById(labelIds[k]);
+    if(label) label.textContent = `${labelNames[k]} ${soundSettings[k] ? "켬" : "끔"}`;
+  });
 }
-document.querySelectorAll(".toggle[data-sound]").forEach(btn=>{
+function setSoundEnabled(k, enabled){
+  if(!Object.prototype.hasOwnProperty.call(soundSettings, k)) return;
+  soundSettings[k] = !!enabled;
+  refreshSoundToggles();
+  applySoundSettings();
+}
+document.querySelectorAll(".toggle[data-sound], .pause-sound-button[data-sound]").forEach(btn=>{
   btn.addEventListener("click", ()=>{
     const k = btn.dataset.sound;
-    soundSettings[k] = !soundSettings[k];
-    refreshSoundToggles();
-    applySoundSettings();
+    setSoundEnabled(k, !soundSettings[k]);
+  });
+});
+document.querySelectorAll(".setting-toggle[data-sound]").forEach(input=>{
+  input.addEventListener("change", ()=>{
+    setSoundEnabled(input.dataset.sound, input.checked);
   });
 });
 

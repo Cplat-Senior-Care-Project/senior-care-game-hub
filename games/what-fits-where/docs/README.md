@@ -198,6 +198,8 @@ JSON 로드에 실패했을 때 사용할 내장 데이터를 맞추려면 `js/s
 
 React Native WebView 환경에서는 `window.ReactNativeWebView.postMessage`로 이벤트를 보냅니다. 로컬 브라우저에서는 콘솔에 `Game Event` 또는 `GAME_RESULT`로 출력됩니다.
 
+API/DB 저장 연동 기준은 `요구사항_API_DB`, `API요청_DB기본안` 탭을 반영한 [api-db-integration.md](api-db-integration.md)를 기준으로 확인합니다.
+
 주요 이벤트:
 
 | 이벤트 | 시점 |

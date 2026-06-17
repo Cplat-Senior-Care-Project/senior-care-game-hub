@@ -1,0 +1,5 @@
+2026/06/17-12:59:19.760 56a0 Creating DB C:\Users\juhye\OneDrive\Desktop\senior-care-game-hub\games\what-fits-where\tmp-visual-qa\edge-profile\Default\EdgeCoupons/coupons_data.db since it was missing.
+2026/06/17-12:59:19.793 56a0 Reusing MANIFEST C:\Users\juhye\OneDrive\Desktop\senior-care-game-hub\games\what-fits-where\tmp-visual-qa\edge-profile\Default\EdgeCoupons/coupons_data.db/MANIFEST-000001
+2026/06/17-13:00:00.933 3a8 Level-0 table #5: started
+2026/06/17-13:00:00.937 3a8 Level-0 table #5: 682684 bytes OK
+2026/06/17-13:00:00.939 3a8 Delete type=0 #3
