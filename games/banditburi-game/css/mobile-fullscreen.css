@@ -1156,3 +1156,232 @@ body.mode-ai-assisted .board-wrap:not(.result-mode) .board {
     line-height: 1.05 !important;
   }
 }
+
+html,
+body {
+  width: 100% !important;
+  height: var(--app-height, 100dvh) !important;
+  min-height: var(--app-height, 100dvh) !important;
+  overflow: hidden !important;
+}
+
+body {
+  background-size: cover !important;
+  background-position: center center !important;
+  background-repeat: no-repeat !important;
+}
+
+.game-viewport {
+  position: fixed;
+  left: 50%;
+  top: 50%;
+  width: var(--stage-width, 1280px);
+  height: var(--stage-height, 720px);
+  overflow: hidden;
+  transform: translate(-50%, -50%) scale(var(--stage-scale, 1));
+  transform-origin: center center;
+  isolation: isolate;
+}
+
+.game-viewport .app,
+body[data-mode="standard"] .game-viewport .app,
+body.mode-reminder .game-viewport .app,
+body.mode-care .game-viewport .app,
+body.mode-ai-assisted .game-viewport .app {
+  position: absolute !important;
+  inset: 0 !important;
+  width: var(--stage-width, 1280px) !important;
+  height: var(--stage-height, 720px) !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  max-width: none !important;
+  max-height: none !important;
+  display: grid !important;
+  grid-template-columns: 300px minmax(0, 1fr) !important;
+  grid-template-rows: minmax(0, 1fr) !important;
+  gap: 16px !important;
+  padding: 14px !important;
+  overflow: hidden !important;
+}
+
+.game-viewport .loading-screen,
+.game-viewport .modal,
+.game-viewport .celebration-layer {
+  position: absolute !important;
+  inset: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  max-width: none !important;
+  max-height: none !important;
+}
+
+.game-viewport .modal {
+  padding: 28px !important;
+  overflow: hidden !important;
+}
+
+.game-viewport .loading-card,
+.game-viewport #introModal .intro-card {
+  position: relative !important;
+  inset: auto !important;
+  width: 100% !important;
+  height: 100% !important;
+  min-height: 0 !important;
+  max-height: none !important;
+  margin: 0 !important;
+}
+
+.game-viewport .loading-image {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+  object-position: center center !important;
+}
+
+.game-viewport .modal-card {
+  max-height: calc(var(--stage-height, 720px) - 56px) !important;
+}
+
+.game-viewport #introModal .intro-card {
+  padding: 80px 88px 0 !important;
+  border-radius: 0 !important;
+  overflow: hidden !important;
+}
+
+.game-viewport .board-wrap,
+body[data-mode="standard"] .game-viewport .board-wrap,
+body.mode-reminder .game-viewport .board-wrap,
+body.mode-care .game-viewport .board-wrap:not(.result-mode),
+body.mode-ai-assisted .game-viewport .board-wrap:not(.result-mode) {
+  grid-column: 2 !important;
+  grid-row: 1 !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  gap: 14px !important;
+  padding: 18px !important;
+  overflow: hidden !important;
+}
+
+.game-viewport .panel,
+body[data-mode="standard"] .game-viewport .panel,
+body.mode-reminder .game-viewport .panel,
+body.mode-care .game-viewport .panel,
+body.mode-ai-assisted .game-viewport .panel {
+  grid-column: 1 !important;
+  grid-row: 1 !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+}
+
+.game-viewport .board,
+body[data-mode="standard"] .game-viewport .board,
+body.mode-reminder .game-viewport .board,
+body.mode-care .game-viewport .board-wrap:not(.result-mode) .board,
+body.mode-ai-assisted .game-viewport .board-wrap:not(.result-mode) .board {
+  width: min(100%, 500px) !important;
+  height: auto !important;
+  max-width: 500px !important;
+  max-height: 500px !important;
+  aspect-ratio: 1 / 1 !important;
+  align-self: center !important;
+  justify-self: center !important;
+  place-self: center !important;
+}
+
+.game-viewport .message {
+  max-height: 150px !important;
+  overflow: hidden !important;
+}
+
+.game-viewport .intro-card {
+  display: block !important;
+  text-align: left !important;
+}
+
+.game-viewport .intro-card > *:not(.intro-hero-scene) {
+  max-width: 620px !important;
+}
+
+.game-viewport .intro-card h2 {
+  margin-bottom: 14px !important;
+  font-size: 44px !important;
+  line-height: 1.08 !important;
+  white-space: nowrap !important;
+  text-align: left !important;
+}
+
+.game-viewport .intro-training-badge {
+  min-height: 42px !important;
+  margin: 0 0 22px !important;
+  padding: 8px 22px !important;
+  font-size: 22px !important;
+}
+
+.game-viewport .intro-actions {
+  width: 520px !important;
+  max-width: 520px !important;
+  display: grid !important;
+  grid-template-columns: 1fr !important;
+  gap: 10px !important;
+}
+
+.game-viewport .intro-actions button,
+.game-viewport .intro-actions .primary {
+  width: 100% !important;
+  min-height: 64px !important;
+  font-size: 25px !important;
+}
+
+.game-viewport .intro-hero-scene::before {
+  position: absolute !important;
+  right: 72px !important;
+  top: 50% !important;
+  width: 486px !important;
+  transform: translateY(-50%) !important;
+}
+
+.game-viewport .intro-hero-scene {
+  position: absolute !important;
+  inset: 0 !important;
+  grid-column: auto !important;
+  grid-row: auto !important;
+  width: 100% !important;
+  height: 100% !important;
+  min-height: 0 !important;
+  margin: 0 !important;
+  border-radius: 0 !important;
+  overflow: hidden !important;
+}
+
+.game-viewport .hero-board {
+  position: absolute !important;
+  right: 72px !important;
+  top: 50% !important;
+  width: 435px !important;
+  gap: 13px !important;
+  padding: 20px !important;
+  border-width: 9px !important;
+  border-radius: 46px !important;
+  transform: translateY(-50%) !important;
+}
+
+.game-viewport .hero-bulb-img {
+  display: block !important;
+  position: absolute !important;
+  right: 112px !important;
+  top: 32% !important;
+  width: 192px !important;
+}
+
+.game-viewport .hero-light,
+.game-viewport .hero-spark {
+  display: block !important;
+}
+
+.game-viewport .hero-spark.spark-1 {
+  display: none !important;
+}

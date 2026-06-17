@@ -1,6 +1,8 @@
 (function () {
   const root = document.documentElement;
   const currentScript = document.currentScript;
+  const STAGE_WIDTH = 1280;
+  const STAGE_HEIGHT = 720;
   const fitTextSelectors = [
     ".message",
     ".panel-guide strong",
@@ -20,13 +22,42 @@
     window.matchMedia("(display-mode: standalone)").matches ||
     window.navigator.standalone === true;
 
+  const ensureGameViewport = () => {
+    let viewport = document.querySelector(".game-viewport");
+    if (viewport) return viewport;
+
+    viewport = document.createElement("div");
+    viewport.className = "game-viewport";
+
+    const stageNodes = Array.from(document.body.children).filter((element) => {
+      const tagName = element.tagName.toLowerCase();
+      return element !== currentScript && tagName !== "script";
+    });
+
+    if (stageNodes.length > 0) {
+      document.body.insertBefore(viewport, stageNodes[0]);
+      stageNodes.forEach((element) => viewport.appendChild(element));
+      return viewport;
+    }
+
+    document.body.insertBefore(viewport, currentScript || null);
+    return viewport;
+  };
+
+  const gameViewport = ensureGameViewport();
+
   const setViewportSize = () => {
     const viewport = window.visualViewport;
     const height = viewport ? viewport.height : window.innerHeight;
     const width = viewport ? viewport.width : window.innerWidth;
+    const stageScale = Math.max(0.1, Math.min(width / STAGE_WIDTH, height / STAGE_HEIGHT));
 
     root.style.setProperty("--app-height", `${height}px`);
     root.style.setProperty("--app-width", `${width}px`);
+    root.style.setProperty("--stage-width", `${STAGE_WIDTH}px`);
+    root.style.setProperty("--stage-height", `${STAGE_HEIGHT}px`);
+    root.style.setProperty("--stage-scale", String(stageScale));
+    gameViewport.style.setProperty("--stage-scale", String(stageScale));
     root.classList.toggle("mobile-standalone", isStandalone());
     root.classList.toggle(
       "mobile-fullscreen-active",
