@@ -145,13 +145,13 @@
     },
     care: {
       show_condition_check: false,
-      show_settings: false,
+      show_settings: true,
       show_how_to_play: false,
       show_timer: false,
       show_score: false,
       show_finish_check: false,
       show_difficulty_select: false,
-      show_pause: false,
+      show_pause: true,
       show_question_counter: false,
       background_music_enabled: true,
       voice_guide_enabled: true,
@@ -167,13 +167,14 @@
     },
     ai_assisted: {
       show_condition_check: false,
-      show_settings: false,
+      show_settings: true,
       show_how_to_play: false,
       show_timer: false,
       show_score: false,
       show_finish_check: false,
       show_difficulty_select: false,
-      show_pause: false,
+      show_pause: true,
+      show_question_counter: false,
       background_music_enabled: true,
       voice_guide_enabled: true,
       soft_feedback: true,
@@ -241,7 +242,7 @@ const COGNITIVE_AREAS = {
   remove_mismatched_items: ["집중 활동","언어·의미 활동","손 조작 활동"],
   guess_situation: ["언어·의미 활동","기억 활동","집중 활동"],
 };
-const SIT_CHOICES = {easy:3, normal:4, hard:6};
+const SIT_CHOICES = {easy:3, normal:3, hard:6};
 const PRAISE_PICK = ["잘 고르셨어요.","좋아요. 잘 찾았어요.","맞아요."];
 const PRAISE_REMOVE = ["잘 찾았어요.","좋아요.","맞아요."];
 const PRAISE_SIT = ["맞아요.","좋아요.","잘 고르셨어요."];
