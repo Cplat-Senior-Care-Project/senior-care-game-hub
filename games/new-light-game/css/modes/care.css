@@ -2,10 +2,6 @@ body[data-mode="care"] .game-stage {
   --mode-accent: var(--leaf);
 }
 
-body[data-mode="care"] .game-hud {
-  grid-template-columns: repeat(3, 1fr);
-}
-
 body[data-mode="care"] .status-bar p {
   font-size: 32px;
 }

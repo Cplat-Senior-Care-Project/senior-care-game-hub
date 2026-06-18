@@ -74,6 +74,12 @@
 
       if (soundName === "hint") {
         this.tone(740, now, 0.12, "sine", 0.03, gain);
+        return;
+      }
+
+      if (soundName === "countdown") {
+        this.tone(520, now, 0.08, "sine", 0.04, gain);
+        this.tone(780, now + 0.045, 0.09, "triangle", 0.028, gain);
       }
     }
 

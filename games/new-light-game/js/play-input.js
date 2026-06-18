@@ -38,6 +38,9 @@
       this.currentInputTypes = [];
       this.hintTriggeredCount = 0;
       this.hintActive = false;
+      this.hintTimer = null;
+      this.hintEndAt = 0;
+      this.hintTargets = [];
       this.pauseCount = 0;
       this.interactionCount = 0;
       this.externalInputs = [];
@@ -217,7 +220,7 @@
     }
 
     buildSelectionPrompt() {
-      return "빛나는 " + this.getObjectLabel(this.targetObject) + " " + this.difficulty.targetCount + "개가 있었던 위치를 골라주세요.";
+      return "빛나는 전구가 있었던 위치를 골라주세요!";
     }
 
     flipToSelecting() {
@@ -253,6 +256,12 @@
       grid.className = "bulb-grid grid-" + this.difficulty.gridRows;
       if (this.difficulty.gridRows === 3 && this.difficulty.gridCols === 4) {
         grid.classList.add("grid-3x4");
+      }
+      if (this.elements.playArea) {
+        this.elements.playArea.classList.toggle("is-grid-3x4", this.difficulty.gridRows === 3 && this.difficulty.gridCols === 4);
+      }
+      if (this.elements.playPrompt) {
+        this.elements.playPrompt.classList.toggle("is-grid-3x4", this.difficulty.gridRows === 3 && this.difficulty.gridCols === 4);
       }
       grid.style.setProperty("--grid-cols", String(this.difficulty.gridCols));
       grid.style.setProperty("--grid-rows", String(this.difficulty.gridRows));
@@ -530,6 +539,8 @@
       this.hintTriggeredCount += 1;
       this.interactionCount += 1;
       this.hintActive = true;
+      this.hintTargets = notFoundTargets.slice();
+      this.hintEndAt = performance.now() + 3000;
       if (this.elements.playArea) {
         this.elements.playArea.classList.add("is-hinting");
       }
@@ -548,22 +559,11 @@
         }
       });
 
-      this.setTimer(() => {
-        notFoundTargets.forEach((index) => {
-          const button = this.findCell(index);
-          if (button) {
-            button.classList.remove("is-hint");
-          }
-        });
-        this.clearHintState();
-        if (this.phase === GAME_PHASE.SELECTING) {
-          this.setStatus(this.buildSelectionPrompt());
-        }
-      }, 3000);
+      this.scheduleHintClear(3000);
       this.updateHud();
     }
 
-    pause() {
+    pause(options = {}) {
       if (this.phase !== GAME_PHASE.MEMORIZE && this.phase !== GAME_PHASE.SELECTING && this.phase !== GAME_PHASE.FEEDBACK) {
         return;
       }
@@ -573,19 +573,24 @@
         this.freezeTotalCountdown();
       }
       this.phase = GAME_PHASE.PAUSED;
-      this.pauseCount += 1;
-      this.interactionCount += 1;
+      if (options.countPause !== false) {
+        this.pauseCount += 1;
+        this.interactionCount += 1;
+      }
       this.pausedRemaining = {
         phase: this.phaseEndAt ? Math.max(0, this.phaseEndAt - performance.now()) : null,
         memoryGauge: this.getMemoryGaugeRemaining(),
         memoryGaugeDuration: this.memoryGaugeDurationMs,
         round: this.roundEndAt ? Math.max(0, this.roundEndAt - performance.now()) : null,
         feedback: this.feedbackEndAt ? Math.max(0, this.feedbackEndAt - performance.now()) : null,
+        hint: this.hintActive && this.hintEndAt ? Math.max(0, this.hintEndAt - performance.now()) : null,
         total: this.getTotalRemaining()
       };
       this.clearAllTimers();
-      this.elements.pauseOverlay.hidden = false;
-      this.setStatus("잠시 쉬는 중이에요.");
+      this.elements.pauseOverlay.hidden = options.showOverlay === false;
+      if (options.showOverlay !== false) {
+        this.setStatus("잠시 쉬는 중이에요.");
+      }
       this.updatePauseButton();
     }
 
@@ -632,9 +637,26 @@
 
       this.phase = GAME_PHASE.SELECTING;
       this.resumeTotalCountdown();
-      this.setStatus(this.buildSelectionPrompt());
       this.roundEndAt = 0;
       this.updatePhaseTimer(0);
+      if (this.hintActive) {
+        const hintRemaining = this.pausedRemaining && this.pausedRemaining.hint !== null ? this.pausedRemaining.hint : 0;
+        if (hintRemaining > 0) {
+          this.setStatus("잠시 동안 보여 드릴게요!");
+          if (this.elements.playPrompt) {
+            this.elements.playPrompt.classList.add("is-hint-message");
+          }
+          if (this.elements.playArea) {
+            this.elements.playArea.classList.add("is-hinting");
+          }
+          this.hintEndAt = performance.now() + hintRemaining;
+          this.scheduleHintClear(hintRemaining);
+        } else {
+          this.finishHintDisplay();
+        }
+      } else {
+        this.setStatus(this.buildSelectionPrompt());
+      }
       this.updatePauseButton();
     }
 
@@ -807,7 +829,14 @@
     }
 
     clearHintState() {
+      if (this.hintTimer) {
+        clearTimeout(this.hintTimer);
+        this.hintTimer = null;
+      }
+
       this.hintActive = false;
+      this.hintEndAt = 0;
+      this.hintTargets = [];
 
       if (this.elements.playArea) {
         this.elements.playArea.classList.remove("is-hinting");
@@ -825,6 +854,31 @@
         this.elements.grid.querySelectorAll(".bulb-card.is-hint").forEach((button) => {
           button.classList.remove("is-hint");
         });
+      }
+    }
+
+    scheduleHintClear(delay) {
+      if (this.hintTimer) {
+        clearTimeout(this.hintTimer);
+        this.hintTimer = null;
+      }
+
+      this.hintTimer = this.setTimer(() => {
+        this.hintTimer = null;
+        this.finishHintDisplay();
+      }, delay);
+    }
+
+    finishHintDisplay() {
+      this.hintTargets.forEach((index) => {
+        const button = this.findCell(index);
+        if (button) {
+          button.classList.remove("is-hint");
+        }
+      });
+      this.clearHintState();
+      if (this.phase === GAME_PHASE.SELECTING) {
+        this.setStatus(this.buildSelectionPrompt());
       }
     }
 
@@ -856,7 +910,7 @@
       const fill = this.elements.memoryGaugeFill;
       const text = this.elements.memoryGaugeText;
 
-      if (!gauge || !fill) {
+      if (!this.elements.playPrompt) {
         return;
       }
 
@@ -865,8 +919,14 @@
       const start = performance.now();
       this.memoryGaugeDurationMs = duration;
       this.memoryGaugeEndAt = start + initialRemaining;
-      gauge.hidden = false;
-      fill.style.height = Math.round((initialRemaining / duration) * 100) + "%";
+      this.elements.playPrompt.classList.add("has-memory-seconds");
+      this.elements.playPrompt.dataset.memorySeconds = Math.max(0, Math.ceil(initialRemaining / 1000)) + "초";
+      if (gauge) {
+        gauge.hidden = true;
+      }
+      if (fill) {
+        fill.style.height = "0%";
+      }
       if (text) {
         text.textContent = String(Math.max(0, Math.ceil(initialRemaining / 1000)));
       }
@@ -874,7 +934,10 @@
       this.setInterval(() => {
         const remaining = Math.max(0, this.memoryGaugeEndAt - performance.now());
         const ratio = duration ? remaining / duration : 0;
-        fill.style.height = Math.round(ratio * 100) + "%";
+        this.elements.playPrompt.dataset.memorySeconds = Math.max(0, Math.ceil(remaining / 1000)) + "초";
+        if (fill) {
+          fill.style.height = Math.round(ratio * 100) + "%";
+        }
         if (text) {
           text.textContent = String(Math.max(0, Math.ceil(remaining / 1000)));
         }
@@ -887,11 +950,20 @@
       const text = this.elements && this.elements.memoryGaugeText;
 
       if (!gauge) {
+        if (this.elements && this.elements.playPrompt) {
+          this.elements.playPrompt.classList.remove("has-memory-seconds");
+          delete this.elements.playPrompt.dataset.memorySeconds;
+        }
+        this.memoryGaugeEndAt = 0;
         return;
       }
 
       gauge.hidden = true;
       this.memoryGaugeEndAt = 0;
+      if (this.elements && this.elements.playPrompt) {
+        this.elements.playPrompt.classList.remove("has-memory-seconds");
+        delete this.elements.playPrompt.dataset.memorySeconds;
+      }
 
       if (fill) {
         fill.style.height = "0%";
@@ -1071,6 +1143,7 @@
       this.intervals.forEach((id) => clearInterval(id));
       this.timers = [];
       this.intervals = [];
+      this.hintTimer = null;
     }
 
     clearAllTimers() {

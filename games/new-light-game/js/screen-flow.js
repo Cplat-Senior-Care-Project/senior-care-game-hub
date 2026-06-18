@@ -10,6 +10,8 @@
   const difficultyCards = Array.from(document.querySelectorAll("[data-difficulty]"));
   const CONDITION_SLEEP_HOURS = [4, 5, 6, 7, 8, 9, 10, 11, 12];
   const CONDITION_SLEEP_DRAG_STEP_PX = 42;
+  const START_READY_MESSAGE_TIME = 2000;
+  const START_COUNTDOWN_TIME = 3000;
   const audio = new GameAudio();
   const runtimeSessionId = runtime.raw.session_id || runtime.raw.sessionId || ResultBuilder.buildSessionId();
   const sessionMeta = LightGameSessionBoard.buildSessionMeta(runtime, runtimeSessionId);
@@ -21,6 +23,8 @@
   let conditionData = runtime.modeConfig.showConditionCheck ? {} : { skipped: true };
   let tutorialReturnScreen = "start";
   let orientationAutoPauseActive = false;
+  let startCountdownIntroTimer = null;
+  let startCountdownFrame = null;
   const postConditionModal = document.getElementById("post-condition-modal");
 
   const conditionState = {
@@ -231,6 +235,13 @@
     }
   });
 
+  const countdownElements = {
+    layer: document.getElementById("game-countdown"),
+    message: document.getElementById("game-countdown-message"),
+    timer: document.querySelector(".game-countdown-timer"),
+    number: document.getElementById("game-countdown-number")
+  };
+
   function updateStageScale() {
     const viewport = window.visualViewport;
     const viewportWidth = viewport && viewport.width ? viewport.width : window.innerWidth || document.documentElement.clientWidth || STAGE_WIDTH;
@@ -238,11 +249,16 @@
     const scale = Math.max(0.01, Math.min(viewportWidth / STAGE_WIDTH, viewportHeight / STAGE_HEIGHT));
     const horizontalGutter = Math.max(0, (viewportWidth - (STAGE_WIDTH * scale)) / (2 * scale));
     const verticalGutter = Math.max(0, (viewportHeight - (STAGE_HEIGHT * scale)) / (2 * scale));
+    const hudDesignWidth = 1536;
+    const visibleHudWidth = viewportWidth / scale;
+    const hudFitScale = Math.max(0.01, visibleHudWidth / hudDesignWidth);
 
     document.documentElement.style.setProperty("--game-scale", String(scale));
     document.documentElement.style.setProperty("--stage-scale", String(scale));
+    document.documentElement.style.setProperty("--hud-fit-scale", String(hudFitScale));
     document.documentElement.style.setProperty("--game-viewport-right-gutter", horizontalGutter + "px");
-    document.documentElement.style.setProperty("--game-viewport-top-gutter", Math.min(verticalGutter, 120) + "px");
+    document.documentElement.style.setProperty("--game-viewport-side-gutter", horizontalGutter + "px");
+    document.documentElement.style.setProperty("--game-viewport-top-gutter", verticalGutter + "px");
     const isPortrait = isPortraitViewport(viewportWidth, viewportHeight);
     document.body.classList.toggle("is-portrait", isPortrait);
     const portraitLock = document.querySelector(".portrait-lock");
@@ -305,7 +321,7 @@
     if (isPortrait) {
       if (!orientationAutoPauseActive && canPauseForOrientationGuard()) {
         orientationAutoPauseActive = true;
-        game.pause();
+        game.pause({ showOverlay: false, countPause: false });
       }
       return;
     }
@@ -319,6 +335,9 @@
   }
 
   function showScreen(name) {
+    if (name !== "play") {
+      clearStartCountdown();
+    }
     document.body.dataset.activeScreen = name;
     screenElements.forEach((screen) => {
       screen.classList.toggle("is-active", screen.dataset.screen === name);
@@ -392,6 +411,11 @@
             return;
           }
 
+          if (runtime.mode === "reminder") {
+            startReadyCountdown();
+            return;
+          }
+
           showScreen("start");
         });
       }, 260);
@@ -434,12 +458,137 @@
     });
   }
 
-  function startGame() {
+  function clearStartCountdown() {
+    if (startCountdownIntroTimer) {
+      window.clearTimeout(startCountdownIntroTimer);
+      startCountdownIntroTimer = null;
+    }
+
+    if (startCountdownFrame) {
+      window.cancelAnimationFrame(startCountdownFrame);
+      startCountdownFrame = null;
+    }
+
+    if (countdownElements.layer) {
+      countdownElements.layer.classList.add("is-hidden");
+      countdownElements.layer.classList.remove("is-intro");
+      countdownElements.layer.setAttribute("aria-hidden", "true");
+    }
+    document.body.classList.remove("is-start-countdown");
+
+    if (countdownElements.timer) {
+      countdownElements.timer.style.setProperty("--countdown-angle", "0deg");
+    }
+  }
+
+  function startReadyCountdown() {
     if (isPortraitViewport()) {
-      waitForLandscapeOrientation().then(startGame);
+      waitForLandscapeOrientation().then(startReadyCountdown);
       return;
     }
 
+    audio.unlock();
+    clearStartCountdown();
+    document.getElementById("pauseHelpPanel").hidden = true;
+    if (game.elements.pauseOverlay) {
+      game.elements.pauseOverlay.hidden = true;
+    }
+    prepareCountdownHud();
+    showScreen("play");
+    document.body.classList.add("is-start-countdown");
+
+    if (!countdownElements.layer || !countdownElements.timer || !countdownElements.number) {
+      beginGame();
+      return;
+    }
+
+    countdownElements.layer.classList.remove("is-hidden");
+    countdownElements.layer.classList.add("is-intro");
+    countdownElements.layer.setAttribute("aria-hidden", "false");
+    countdownElements.number.textContent = "3";
+    countdownElements.timer.style.setProperty("--countdown-angle", "0deg");
+
+    if (countdownElements.message) {
+      countdownElements.message.textContent = "게임이 곧 시작돼요!";
+    }
+
+    startCountdownIntroTimer = window.setTimeout(() => {
+      startCountdownIntroTimer = null;
+      beginReadyCountdown();
+    }, START_READY_MESSAGE_TIME);
+  }
+
+  function prepareCountdownHud() {
+    const effectiveKey = runtime.modeConfig.difficultyOverride || currentDifficulty;
+    const difficulty = DIFFICULTY_CONFIG[effectiveKey] || DIFFICULTY_CONFIG.easy;
+    const totalQuestions = runtime.modeConfig.totalQuestions || 10;
+    const totalLimit = runtime.modeConfig.totalLimitMs || difficulty.totalLimitMs;
+
+    const progressPill = document.querySelector(".hud-progress-pill");
+    if (progressPill) {
+      progressPill.style.setProperty("--hud-progress", (100 / totalQuestions) + "%");
+    }
+    document.getElementById("hud-progress-current").textContent = "1";
+    document.getElementById("hud-progress-total").textContent = String(totalQuestions);
+    document.querySelectorAll(".hud-progress-step").forEach((step, index) => {
+      step.classList.toggle("is-active", index === 0);
+    });
+    document.getElementById("hudDifficulty").textContent = difficulty.label;
+    document.getElementById("totalTimer").textContent = formatCountdownClock(totalLimit);
+    document.getElementById("totalTimerBox").classList.remove("is-warning");
+    document.getElementById("phaseTimer").textContent = "--";
+    document.getElementById("scoreText").textContent = "0개";
+    document.getElementById("remainingText").textContent = difficulty.targetCount + "개";
+    document.getElementById("hintButton").hidden = true;
+    document.getElementById("pauseButton").disabled = true;
+  }
+
+  function formatCountdownClock(ms) {
+    const totalSeconds = Math.max(0, Math.ceil((Number(ms) || 0) / 1000));
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = totalSeconds % 60;
+    return minutes + ":" + String(seconds).padStart(2, "0");
+  }
+
+  function beginReadyCountdown() {
+    if (!countdownElements.layer || !countdownElements.timer || !countdownElements.number) {
+      beginGame();
+      return;
+    }
+
+    countdownElements.layer.classList.remove("is-intro");
+    let startedAt = performance.now();
+    let lastDisplaySeconds = null;
+
+    function updateCountdown(now) {
+      const elapsed = Math.max(0, now - startedAt);
+      const remaining = Math.max(0, START_COUNTDOWN_TIME - elapsed);
+      const displaySeconds = Math.max(1, Math.ceil(remaining / 1000));
+      const secondProgress = (elapsed % 1000) / 1000;
+      const angle = secondProgress * 360;
+
+      countdownElements.number.textContent = String(displaySeconds);
+      countdownElements.timer.style.setProperty("--countdown-angle", angle + "deg");
+
+      if (displaySeconds !== lastDisplaySeconds && remaining > 0) {
+        lastDisplaySeconds = displaySeconds;
+        audio.play("countdown");
+      }
+
+      if (remaining <= 0) {
+        countdownElements.timer.style.setProperty("--countdown-angle", "360deg");
+        clearStartCountdown();
+        beginGame();
+        return;
+      }
+
+      startCountdownFrame = window.requestAnimationFrame(updateCountdown);
+    }
+
+    updateCountdown(startedAt);
+  }
+
+  function beginGame() {
     audio.unlock();
     pendingResult = null;
     closeFinishCheck();
@@ -472,7 +621,7 @@
       showScreen("difficulty");
       return;
     }
-    startGame();
+    startReadyCountdown();
   }
 
   function collectChoices(scope) {
@@ -509,12 +658,14 @@
     updateFinishCheckPage(0);
     document.getElementById("pauseOverlay").hidden = true;
     document.getElementById("pauseHelpPanel").hidden = true;
+    document.body.classList.add("is-finish-check-visible");
     if (postConditionModal) {
       postConditionModal.classList.remove("is-hidden");
     }
   }
 
   function closeFinishCheck() {
+    document.body.classList.remove("is-finish-check-visible");
     if (postConditionModal) {
       postConditionModal.classList.add("is-hidden");
     }
@@ -544,6 +695,10 @@
           sleepHours: selectedConditionSleepHours(),
           skipped: false
         };
+    if (runtime.mode === "reminder") {
+      startReadyCountdown();
+      return;
+    }
     showScreen("start");
   }
 
@@ -703,6 +858,18 @@
     }
   }
 
+  function handleFullscreenBackgroundPress(event) {
+    if (
+      event.target
+      && typeof event.target.closest === "function"
+      && event.target.closest("button, a, input, select, textarea, label")
+    ) {
+      return;
+    }
+
+    requestAppFullscreen();
+  }
+
   function updateToggleControl(control, isOn) {
     if (control.matches('input[type="checkbox"]')) {
       control.checked = isOn;
@@ -844,7 +1011,7 @@
     card.addEventListener("click", () => {
       selectDifficulty(card.dataset.difficulty);
       if (runtime.modeConfig.showDifficultySelect) {
-        startGame();
+        startReadyCountdown();
       }
     });
   });
@@ -857,6 +1024,9 @@
   conditionElements.sleepDial.addEventListener("pointercancel", endConditionSleepDrag);
   conditionElements.confirmButton.addEventListener("click", () => submitCondition(false));
   conditionElements.skipButton.addEventListener("click", () => submitCondition(true));
+  document.querySelectorAll('[data-screen="loading"], [data-screen="start"]').forEach((screen) => {
+    screen.addEventListener("click", handleFullscreenBackgroundPress);
+  });
   document.getElementById("startButton").addEventListener("click", () => {
     requestAppFullscreen();
     openDifficultySelect();
@@ -864,7 +1034,7 @@
   document.getElementById("hintButton").addEventListener("click", () => game.showHint());
   document.getElementById("pauseButton").addEventListener("click", () => game.pause());
   document.getElementById("resumeButton").addEventListener("click", () => game.resume());
-  document.getElementById("pauseRestartButton").addEventListener("click", startGame);
+  document.getElementById("pauseRestartButton").addEventListener("click", startReadyCountdown);
   document.getElementById("pauseHomeButton").addEventListener("click", () => game.exitToHome());
   document.getElementById("pauseHowtoButton").addEventListener("click", () => {
     document.getElementById("pauseHelpPanel").hidden = true;

@@ -2,10 +2,6 @@ body[data-mode="ai_assisted"] .game-stage {
   --mode-accent: var(--sky-dark);
 }
 
-body[data-mode="ai_assisted"] .game-hud {
-  grid-template-columns: repeat(3, 1fr);
-}
-
 body[data-mode="ai_assisted"] .status-bar {
   border-color: rgba(44, 121, 168, 0.34);
 }

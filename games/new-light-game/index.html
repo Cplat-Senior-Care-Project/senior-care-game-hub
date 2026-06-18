@@ -14,19 +14,24 @@
         var scale = Math.max(0.01, Math.min(viewportWidth / stageWidth, viewportHeight / stageHeight));
         var horizontalGutter = Math.max(0, (viewportWidth - (stageWidth * scale)) / (2 * scale));
         var verticalGutter = Math.max(0, (viewportHeight - (stageHeight * scale)) / (2 * scale));
+        var hudDesignWidth = 1536;
+        var visibleHudWidth = viewportWidth / scale;
+        var hudFitScale = Math.max(0.01, visibleHudWidth / hudDesignWidth);
         document.documentElement.style.setProperty("--game-scale", String(scale));
+        document.documentElement.style.setProperty("--hud-fit-scale", String(hudFitScale));
         document.documentElement.style.setProperty("--game-viewport-right-gutter", String(horizontalGutter) + "px");
-        document.documentElement.style.setProperty("--game-viewport-top-gutter", String(Math.min(verticalGutter, 120)) + "px");
+        document.documentElement.style.setProperty("--game-viewport-side-gutter", String(horizontalGutter) + "px");
+        document.documentElement.style.setProperty("--game-viewport-top-gutter", String(verticalGutter) + "px");
       })();
     </script>
     <link rel="stylesheet" href="css/base.css" />
-    <link rel="stylesheet" href="css/screens.css" />
-    <link rel="stylesheet" href="css/game-layout.css" />
+    <link rel="stylesheet" href="css/screens.css?v=20260618-standard-reminder-3" />
+    <link rel="stylesheet" href="css/game-layout.css?v=20260618-left-hud-layout-55" />
     <link rel="stylesheet" href="css/responsive.css" />
     <link rel="stylesheet" href="css/feedback.css" />
     <link rel="stylesheet" href="css/light-theme.css" />
-    <link rel="stylesheet" href="css/modes/standard.css" />
-    <link rel="stylesheet" href="css/modes/reminder.css" />
+    <link rel="stylesheet" href="css/modes/standard.css?v=20260618-standard-reminder-3" />
+    <link rel="stylesheet" href="css/modes/reminder.css?v=20260618-standard-reminder-3" />
     <link rel="stylesheet" href="css/modes/care.css" />
     <link rel="stylesheet" href="css/modes/ai-assisted.css" />
     <link rel="stylesheet" href="css/accessibility.css?v=20260618-mobile-font-thickness" />
@@ -368,7 +373,7 @@
 
           <button class="play-hint-button game-button icon-button" type="button" id="hintButton" aria-label="힌트 보기" hidden>
             <span class="play-hint-icon" aria-hidden="true">💡</span>
-            <span class="play-hint-label">힌트</span>
+            <span class="play-hint-label">힌트 보기</span>
           </button>
 
           <footer class="status-bar">
@@ -555,12 +560,23 @@
       </main>
     </div>
 
-    <script src="config/gameConfig.js" defer></script>
+    <div id="game-countdown" class="game-countdown-layer is-hidden" aria-live="polite" aria-hidden="true">
+      <div class="game-countdown-stage">
+        <p id="game-countdown-message" class="game-countdown-message">게임이 곧 시작돼요!</p>
+        <div class="game-countdown-timer" style="--countdown-angle: 0deg;">
+          <div class="game-countdown-face">
+            <strong id="game-countdown-number">3</strong>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="config/gameConfig.js?v=20260618-reminder-flow-1" defer></script>
     <script id="questionDataScript" data-src="assets/data/questionData.js" defer></script>
     <script src="js/audio-display.js" defer></script>
     <script src="js/result-bridge.js" defer></script>
     <script src="js/session-board.js" defer></script>
     <script src="js/play-input.js" defer></script>
-    <script src="js/screen-flow.js" defer></script>
+    <script src="js/screen-flow.js?v=20260618-reminder-flow-1" defer></script>
   </body>
 </html>

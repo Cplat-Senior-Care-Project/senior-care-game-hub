@@ -187,12 +187,16 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  gap: 10px;
   gap: clamp(7px, 10px, 14px);
   width: fit-content;
+  min-width: 190px;
   min-width: clamp(170px, 190px, 220px);
+  min-height: 76px;
   min-height: clamp(72px, 76px, 98px);
   height: auto;
   margin: 0;
+  padding: 14px 18px;
   padding: clamp(12px, 14px, 20px) clamp(12px, 18px, 22px);
   border-radius: 24px;
   border-color: #eadcff;
@@ -207,6 +211,7 @@
     inset 0 clamp(2px, 3.24px, 4px) 0 rgba(255, 255, 255, 0.46),
     inset 0 clamp(-6px, -7.2px, -4px) 0 rgba(88, 58, 143, 0.34);
   pointer-events: auto;
+  transform: translateZ(0);
 }
 
 .screen-play #hintButton.play-hint-button[hidden] {
@@ -238,10 +243,12 @@
 }
 
 .screen-play #hintButton.play-hint-button .play-hint-icon {
+  font-size: 34px;
   font-size: clamp(30px, 34px, 38px);
 }
 
 .screen-play #hintButton.play-hint-button .play-hint-label {
+  font-size: 36px;
   font-size: clamp(30px, 36px, 42px);
 }
 
@@ -441,7 +448,7 @@
 .pause-overlay {
   position: absolute;
   inset: 0;
-  z-index: 5;
+  z-index: 120;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -449,6 +456,8 @@
 }
 
 .pause-dialog {
+  position: relative;
+  z-index: 121;
   width: min(1160px, calc(100% - 16px));
   max-height: calc(720px - 30px);
   padding: 26px 34px 30px;
@@ -817,11 +826,11 @@ body[data-active-screen="play"] .app-viewport {
   background: url("../assets/images/play_background.png") center center / cover no-repeat #fde0a3;
 }
 
-body[data-active-screen="play"] .portrait-lock {
+body[data-active-screen="play"]:not(.is-portrait) .portrait-lock {
   display: none !important;
 }
 
-body[data-active-screen="play"] .game-stage {
+body[data-active-screen="play"]:not(.is-portrait) .game-stage {
   visibility: visible !important;
   opacity: 1 !important;
 }
@@ -836,6 +845,9 @@ body[data-active-screen="play"] .game-stage {
 .screen-play {
   position: absolute;
   inset: 0;
+  --prompt-left: 735px;
+  --prompt-width: 850px;
+  --prompt-right: 1160px;
   padding: 0 !important;
   overflow: visible;
   background: transparent !important;
@@ -858,27 +870,46 @@ body[data-active-screen="play"] .game-stage {
 
 .screen-play .game-hud {
   position: absolute !important;
-  left: 0 !important;
-  right: 0 !important;
-  top: 8px !important;
+  left: 10px !important;
+  right: auto !important;
+  top: 10px !important;
   z-index: 12;
   display: grid !important;
-  grid-template-columns: clamp(300px, 360px, 390px) repeat(3, max-content) !important;
-  grid-template-rows: max-content !important;
-  justify-content: center !important;
+  grid-template-columns: 1fr !important;
+  grid-template-rows: 72px 180px 166px 1fr !important;
+  justify-content: stretch !important;
+  align-content: start !important;
   align-items: stretch !important;
-  gap: clamp(12px, 18px, 28px);
-  width: 100% !important;
-  height: auto;
+  gap: 0;
+  width: 256px !important;
+  height: 686px;
   min-height: 0;
   margin: 0;
-  padding: calc(6px + (var(--safe-top) / var(--game-scale, 1))) 0 0;
-  border: 0;
-  border-radius: 0;
-  background: transparent;
-  box-shadow: none;
-  overflow: visible;
+  padding: 26px 28px 28px;
+  border: 5px solid #f5c777;
+  border-radius: 34px;
+  background:
+    linear-gradient(180deg, rgba(255, 254, 244, 0.96), rgba(255, 247, 213, 0.94)),
+    #fff5cd;
+  box-shadow:
+    inset 0 0 0 4px rgba(255, 255, 255, 0.78),
+    0 10px 18px rgba(116, 74, 25, 0.16);
+  overflow: hidden;
   pointer-events: auto;
+  transform: none;
+}
+
+body.is-start-countdown .screen-play .game-hud {
+  z-index: 110;
+}
+
+body.is-start-countdown .screen-play .play-prompt,
+body.is-start-countdown .screen-play .play-area,
+body.is-start-countdown .screen-play .progress-row,
+body.is-start-countdown .screen-play #hintButton.play-hint-button {
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
 }
 
 .screen-play .hud-box {
@@ -886,7 +917,7 @@ body[data-active-screen="play"] .game-stage {
 }
 
 .screen-play .game-hud > * {
-  grid-row: 1 !important;
+  grid-row: auto !important;
 }
 
 .screen-play .hud-progress-pill,
@@ -901,15 +932,15 @@ body[data-active-screen="play"] .game-stage {
   display: flex !important;
   align-items: center;
   justify-content: center;
-  width: fit-content;
+  width: 100%;
   min-width: 0;
-  min-height: clamp(72px, 76px, 98px);
+  min-height: 0;
   height: auto;
   margin: 0;
-  border: 1px solid #f5c84b;
-  border-radius: clamp(24px, 32px, 42px);
+  border: 0;
+  border-radius: 0;
   color: #5f351a;
-  background: #fff1c4;
+  background: transparent;
   box-shadow: none;
   transform: none;
 }
@@ -1391,7 +1422,8 @@ body[data-active-screen="play"] .game-stage {
 .screen-play .bulb-grid {
   display: grid !important;
   place-content: center;
-  grid-template-columns: repeat(var(--grid-cols, 3), var(--card-size, 150px)) !important;
+  grid-template-columns: repeat(var(--grid-cols, 3), var(--card-width, var(--card-size, 150px))) !important;
+  grid-auto-rows: var(--card-height, var(--card-size, 150px)) !important;
   gap: var(--grid-gap, 14px) !important;
   width: var(--board-width, 520px);
   height: var(--board-height, 520px);
@@ -1425,8 +1457,8 @@ body[data-active-screen="play"] .game-stage {
 .screen-play .bulb-card {
   position: relative !important;
   display: block !important;
-  width: var(--card-size, 150px) !important;
-  height: var(--card-size, 150px) !important;
+  width: var(--card-width, var(--card-size, 150px)) !important;
+  height: var(--card-height, var(--card-size, 150px)) !important;
   padding: 0;
   border: 0;
   background: transparent;
@@ -1440,7 +1472,7 @@ body[data-active-screen="play"] .game-stage {
   display: block !important;
   width: 100%;
   height: 100%;
-  transform: none !important;
+  transform: none;
   transform-style: flat;
 }
 
@@ -1553,6 +1585,1146 @@ body[data-active-screen="play"] .game-stage {
 .screen-play .bulb-card.is-hint .bulb-icon {
   background-image: url("../assets/images/turn_on.png");
 }
+
+/* Unified play layout: left status panel, centered board, bottom-right hint. */
+.screen-play .game-hud {
+  position: absolute !important;
+  top: 10px !important;
+  right: auto !important;
+  bottom: auto !important;
+  left: 10px !important;
+  z-index: 12;
+  display: grid !important;
+  grid-template-columns: 1fr !important;
+  grid-template-rows: 72px 182px 168px 1fr !important;
+  gap: 0;
+  width: 256px !important;
+  height: 686px !important;
+  min-height: 0 !important;
+  margin: 0 !important;
+  padding: 26px 28px 28px !important;
+  overflow: hidden;
+  border: 5px solid #f5c777 !important;
+  border-radius: 34px !important;
+  color: #5f351a;
+  background:
+    linear-gradient(180deg, rgba(255, 254, 244, 0.97), rgba(255, 248, 221, 0.95)),
+    #fff5cd !important;
+  box-shadow:
+    inset 0 0 0 4px rgba(255, 255, 255, 0.78),
+    0 10px 18px rgba(116, 74, 25, 0.16) !important;
+  pointer-events: auto;
+  transform: none !important;
+}
+
+.screen-play .game-hud > * {
+  grid-column: 1 !important;
+  min-width: 0;
+}
+
+.screen-play .game-hud > .hud-box:not(.hud-progress-pill):not(.hud-mission-pill):not(#totalTimerBox),
+.screen-play #phaseTimerBox,
+.screen-play .optional-score,
+.screen-play #remainingText {
+  display: none !important;
+}
+
+.screen-play .hud-mission-pill {
+  grid-row: 1 !important;
+  align-self: start !important;
+  justify-self: center !important;
+  display: flex !important;
+  width: 196px !important;
+  height: 52px !important;
+  min-height: 0 !important;
+  padding: 0 18px !important;
+  border: 3px solid #b978dd !important;
+  border-radius: 20px !important;
+  background:
+    linear-gradient(180deg, rgba(235, 201, 255, 0.98), rgba(206, 150, 244, 0.98)),
+    #dba7ff !important;
+  box-shadow:
+    inset 0 2px 0 rgba(255, 255, 255, 0.72),
+    inset 0 -4px 0 rgba(113, 63, 165, 0.18),
+    0 4px 8px rgba(91, 62, 147, 0.18) !important;
+}
+
+.screen-play .hud-mission-pill .info-copy {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 100%;
+  height: 100%;
+  gap: 0 !important;
+}
+
+.screen-play .hud-mission-pill .hud-activity-label {
+  color: #7e22ce !important;
+  font-size: 27px !important;
+  font-weight: 1000 !important;
+  line-height: 1 !important;
+  white-space: nowrap;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.82) !important;
+}
+
+.screen-play .hud-progress-pill {
+  --hud-progress-accent: #2fac6d;
+  grid-row: 2 !important;
+  align-self: stretch !important;
+  display: grid !important;
+  grid-template-rows: 102px 28px 1fr;
+  gap: 0;
+  width: 100% !important;
+  min-height: 0 !important;
+  padding: 18px 0 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.screen-play .hud-progress-pill::before,
+.screen-play #totalTimerBox::before {
+  position: absolute;
+  left: 0;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border: 3px solid #f4c668;
+  border-radius: 50%;
+  color: #d98525;
+  background: rgba(255, 253, 243, 0.98);
+  box-shadow:
+    inset 0 2px 0 rgba(255, 255, 255, 0.78),
+    0 2px 4px rgba(116, 74, 25, 0.12);
+  font-size: 26px;
+  line-height: 1;
+}
+
+.screen-play .hud-progress-pill::before {
+  content: "▣";
+  top: 30px;
+  font-size: 22px;
+}
+
+.screen-play .hud-progress-pill::after,
+.screen-play #totalTimerBox::after {
+  content: "";
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, #efc168 12%, #efc168 88%, transparent);
+}
+
+.screen-play .hud-progress-copy {
+  display: grid !important;
+  grid-template-columns: 56px auto 24px auto 1fr;
+  grid-template-rows: 44px 58px;
+  align-items: center !important;
+  justify-content: stretch !important;
+  width: 100%;
+  height: 102px;
+  gap: 0 !important;
+  white-space: nowrap;
+}
+
+.screen-play .hud-progress-label {
+  grid-column: 2 / -1;
+  grid-row: 1;
+  color: #5f351a !important;
+  font-size: 32px !important;
+  font-weight: 1000 !important;
+  line-height: 1 !important;
+  text-align: left;
+  text-shadow: 0 1px 0 #fff !important;
+}
+
+.screen-play .hud-progress-current,
+.screen-play .hud-progress-total,
+.screen-play .hud-progress-divider {
+  grid-row: 2;
+  align-self: center;
+  font-size: 48px !important;
+  font-weight: 1000 !important;
+  line-height: 1 !important;
+  text-shadow: 0 1px 0 #fff !important;
+}
+
+.screen-play .hud-progress-current {
+  grid-column: 2;
+  justify-self: end;
+  min-width: 1.35em;
+  color: #24a666 !important;
+  text-align: right;
+}
+
+.screen-play .hud-progress-divider {
+  grid-column: 3;
+  justify-self: center;
+  color: #5f351a !important;
+  transform: none;
+}
+
+.screen-play .hud-progress-total {
+  grid-column: 4;
+  justify-self: start;
+  color: #5f351a !important;
+}
+
+.screen-play .hud-progress-track {
+  position: relative;
+  align-self: center;
+  width: 100%;
+  height: 18px !important;
+}
+
+.screen-play .hud-progress-track::after,
+.screen-play #totalTimerBox .info-copy::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: -44px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #efc168;
+  transform: translateX(-50%);
+}
+
+.screen-play .hud-progress-line,
+.screen-play .hud-progress-line-fill {
+  height: 18px !important;
+  border-radius: 999px;
+}
+
+.screen-play .hud-progress-line {
+  background: #dedbd0 !important;
+}
+
+.screen-play .hud-progress-line-fill {
+  background: linear-gradient(90deg, #2aa865, #45c37a) !important;
+}
+
+.screen-play .hud-progress-step {
+  display: none !important;
+}
+
+.screen-play #totalTimerBox {
+  grid-row: 3 !important;
+  align-self: stretch !important;
+  display: grid !important;
+  align-items: start !important;
+  justify-content: stretch !important;
+  width: 100% !important;
+  min-height: 0 !important;
+  padding: 28px 0 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.screen-play #totalTimerBox::before {
+  content: "◷";
+  top: 34px;
+}
+
+.screen-play #totalTimerBox .info-copy {
+  position: relative;
+  display: grid !important;
+  grid-template-columns: 56px 1fr;
+  grid-template-rows: 48px 66px;
+  grid-template-areas:
+    ". timer-label"
+    ". timer-value";
+  align-items: center !important;
+  justify-content: stretch !important;
+  width: 100%;
+  height: 114px !important;
+  gap: 0 !important;
+  text-align: left !important;
+}
+
+.screen-play #totalTimerBox .info-label {
+  grid-area: timer-label;
+  justify-content: flex-start !important;
+  color: #5f351a !important;
+  font-size: 32px !important;
+  font-weight: 1000 !important;
+  line-height: 1 !important;
+  text-align: left;
+  text-shadow: 0 1px 0 #fff !important;
+}
+
+.screen-play #totalTimer {
+  grid-area: timer-value;
+  justify-content: flex-start !important;
+  min-width: 0 !important;
+  color: #e4771d !important;
+  font-size: 50px !important;
+  font-weight: 1000 !important;
+  line-height: 1 !important;
+  text-align: left !important;
+  text-shadow: 0 1px 0 #fff !important;
+  transform: none !important;
+}
+
+.screen-play #totalTimerBox.is-warning #totalTimer {
+  color: #d92626 !important;
+}
+
+.screen-play #pauseButton.icon-button {
+  grid-row: 4 !important;
+  align-self: end !important;
+  justify-self: stretch !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 12px !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  min-height: 76px !important;
+  margin: 0 !important;
+  padding: 0 16px !important;
+  border: 3px solid #bd681d !important;
+  border-radius: 26px !important;
+  color: #fffdf3 !important;
+  background:
+    linear-gradient(180deg, rgba(255, 181, 69, 0.98), rgba(229, 118, 18, 0.98)),
+    #f08a24 !important;
+  box-shadow:
+    inset 0 3px 0 rgba(255, 255, 244, 0.54),
+    inset 0 -7px 0 rgba(133, 59, 8, 0.3),
+    0 5px 9px rgba(126, 62, 15, 0.22) !important;
+  pointer-events: auto;
+}
+
+.screen-play #pauseButton.icon-button .pause-symbol {
+  width: 36px !important;
+  height: 36px !important;
+  flex: 0 0 36px !important;
+}
+
+.screen-play #pauseButton.icon-button > span:last-child {
+  color: #fffdf3 !important;
+  font-size: 34px !important;
+  font-weight: 1000 !important;
+  line-height: 1 !important;
+  text-shadow: 0 2px 0 rgba(104, 52, 14, 0.72) !important;
+}
+
+.screen-play .play-prompt {
+  top: 30px !important;
+  left: var(--prompt-left) !important;
+  width: var(--prompt-width);
+  color: #5f351a !important;
+  font-size: 40px !important;
+  font-weight: 1000 !important;
+  line-height: 1.1 !important;
+  text-align: center;
+  white-space: nowrap;
+  transform: translateX(-50%) !important;
+}
+
+.screen-play .play-prompt.is-grid-3x4 {
+  left: 792px !important;
+  width: 948px !important;
+}
+
+.screen-play .play-prompt.has-memory-seconds::after {
+  content: attr(data-memory-seconds);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 78px;
+  margin-left: 16px;
+  color: #d92b1f;
+  font-size: 38px;
+  font-weight: 1000;
+  line-height: 1;
+  text-shadow: none;
+}
+
+.screen-play .play-prompt.is-hint-message,
+.screen-play .play-prompt.is-feedback {
+  top: 24px !important;
+  width: 770px !important;
+  min-height: 64px !important;
+  padding: 8px 24px !important;
+  border-width: 4px !important;
+  border-radius: 18px !important;
+  font-size: 34px !important;
+}
+
+.screen-play .play-area {
+  top: 98px !important;
+  left: 735px !important;
+  width: 760px !important;
+  height: 600px !important;
+  transform: translateX(-50%) !important;
+}
+
+.screen-play .play-area.is-grid-3x4 {
+  left: 792px !important;
+  width: 948px !important;
+}
+
+.screen-play .bulb-grid {
+  width: 760px !important;
+  height: 600px !important;
+  padding: 12px !important;
+  border: 5px solid #d99445 !important;
+  border-radius: 34px !important;
+  background:
+    linear-gradient(180deg, rgba(255, 253, 244, 0.96), rgba(255, 248, 226, 0.95)),
+    #fff8e6 !important;
+  box-shadow: inset 0 0 0 4px rgba(255, 255, 255, 0.72) !important;
+}
+
+.screen-play .grid-2 {
+  --card-width: 330px;
+  --card-height: 260px;
+  --grid-gap: 30px;
+}
+
+.screen-play .grid-3 {
+  --card-width: 226px;
+  --card-height: 176px;
+  --grid-gap: 20px;
+}
+
+.screen-play .grid-4 {
+  --card-width: 176px;
+  --card-height: 132px;
+  --grid-gap: 10px;
+}
+
+.screen-play .grid-3x4 {
+  width: 948px !important;
+  --card-width: 216px;
+  --card-height: 176px;
+  --grid-gap: 20px;
+}
+
+.screen-play .card-face {
+  border: 3px solid #efbd6e !important;
+  border-radius: 18px !important;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 249, 0.98), rgba(255, 250, 231, 0.96)),
+    #fffaf0 !important;
+  box-shadow:
+    inset 0 0 0 2px rgba(255, 255, 255, 0.68),
+    0 4px 8px rgba(116, 74, 25, 0.11) !important;
+}
+
+.screen-play .bulb-icon {
+  width: 64% !important;
+  height: 76% !important;
+}
+
+.screen-play #hintButton.play-hint-button {
+  right: 18px !important;
+  bottom: 20px !important;
+  left: auto !important;
+  z-index: 8;
+  min-width: 142px !important;
+  min-height: 64px !important;
+  padding: 0 20px !important;
+  border: 3px solid #6f55c9 !important;
+  border-radius: 24px !important;
+  color: #fffdf3 !important;
+  background:
+    linear-gradient(180deg, rgba(169, 136, 255, 0.98), rgba(126, 91, 224, 0.98)),
+    #8f70ed !important;
+  box-shadow:
+    inset 0 3px 0 rgba(255, 255, 244, 0.5),
+    inset 0 -6px 0 rgba(65, 43, 111, 0.26),
+    0 5px 9px rgba(65, 43, 111, 0.22) !important;
+  font-size: 30px !important;
+}
+
+.screen-play #hintButton.play-hint-button .play-hint-icon,
+.screen-play #hintButton.play-hint-button .play-hint-label {
+  font-size: clamp(30px, 36px, 42px) !important;
+}
+
+.screen-play #hintButton.play-hint-button:disabled {
+  opacity: 0.45 !important;
+  filter: saturate(0.75);
+}
+
+.screen-play .memory-countdown-gauge {
+  display: none !important;
+  top: 255px !important;
+  left: calc(100% + 16px) !important;
+  right: auto !important;
+  transform: translateY(-50%) !important;
+}
+
+.screen-play .play-area.is-grid-3x4 .memory-countdown-gauge {
+  left: auto !important;
+  right: 10px !important;
+}
+
+/* Final left HUD correction: remove leftover pill-card rules. */
+.screen-play .game-hud > .hud-mission-pill {
+  grid-column: 1 !important;
+  grid-row: 1 !important;
+  display: flex !important;
+  align-self: start !important;
+  justify-self: center !important;
+  width: 196px !important;
+  height: 52px !important;
+  min-height: 52px !important;
+  padding: 0 16px !important;
+  border: 3px solid #b978dd !important;
+  border-radius: 20px !important;
+  background:
+    linear-gradient(180deg, rgba(235, 201, 255, 0.98), rgba(206, 150, 244, 0.98)),
+    #dba7ff !important;
+  box-shadow:
+    inset 0 2px 0 rgba(255, 255, 255, 0.72),
+    inset 0 -4px 0 rgba(113, 63, 165, 0.18),
+    0 4px 8px rgba(91, 62, 147, 0.18) !important;
+}
+
+.screen-play .game-hud > .hud-mission-pill .hud-activity-label {
+  color: #7e22ce !important;
+  font-size: 26px !important;
+  font-weight: 900 !important;
+  line-height: 1 !important;
+}
+
+.screen-play .game-hud > .hud-progress-pill {
+  grid-column: 1 !important;
+  grid-row: 2 !important;
+  display: grid !important;
+  grid-template-rows: 106px 22px 1fr !important;
+  align-self: stretch !important;
+  width: 100% !important;
+  min-height: 0 !important;
+  height: auto !important;
+  padding: 22px 0 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.screen-play .game-hud > .hud-progress-pill::before {
+  content: "📋" !important;
+  top: 31px !important;
+  left: 0 !important;
+  width: 44px !important;
+  height: 44px !important;
+  border: 3px solid #f4c668 !important;
+  border-radius: 50% !important;
+  color: #d98525 !important;
+  background: rgba(255, 253, 243, 0.98) !important;
+  font-size: 24px !important;
+}
+
+.screen-play .game-hud > .hud-progress-pill::after {
+  content: "" !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  left: 0 !important;
+  height: 2px !important;
+  background: linear-gradient(90deg, transparent, #efc168 12%, #efc168 88%, transparent) !important;
+}
+
+.screen-play .game-hud > .hud-progress-pill .hud-progress-copy {
+  display: grid !important;
+  grid-template-columns: 56px auto 24px auto 1fr !important;
+  grid-template-rows: 42px 58px !important;
+  align-items: center !important;
+  justify-content: stretch !important;
+  width: 100% !important;
+  height: 100px !important;
+  gap: 0 !important;
+}
+
+.screen-play .game-hud > .hud-progress-pill .hud-progress-label {
+  grid-column: 2 / -1 !important;
+  grid-row: 1 !important;
+  justify-self: start !important;
+  color: #5f351a !important;
+  font-size: 30px !important;
+  font-weight: 900 !important;
+  line-height: 1 !important;
+}
+
+.screen-play .game-hud > .hud-progress-pill .hud-progress-current,
+.screen-play .game-hud > .hud-progress-pill .hud-progress-total,
+.screen-play .game-hud > .hud-progress-pill .hud-progress-divider {
+  grid-row: 2 !important;
+  align-self: center !important;
+  font-size: 46px !important;
+  font-weight: 900 !important;
+  line-height: 1 !important;
+}
+
+.screen-play .game-hud > .hud-progress-pill .hud-progress-current {
+  grid-column: 2 !important;
+  justify-self: end !important;
+  min-width: 1.35em !important;
+  color: #24a666 !important;
+}
+
+.screen-play .game-hud > .hud-progress-pill .hud-progress-divider {
+  grid-column: 3 !important;
+  justify-self: center !important;
+  color: #5f351a !important;
+  transform: none !important;
+}
+
+.screen-play .game-hud > .hud-progress-pill .hud-progress-total {
+  grid-column: 4 !important;
+  justify-self: start !important;
+  color: #5f351a !important;
+}
+
+.screen-play .game-hud > .hud-progress-pill .hud-progress-track {
+  grid-row: 2 !important;
+  align-self: end !important;
+  width: 100% !important;
+  height: 18px !important;
+  margin-top: 0 !important;
+  transform: translateY(25px);
+}
+
+.screen-play .game-hud > #totalTimerBox {
+  grid-column: 1 !important;
+  grid-row: 3 !important;
+  display: grid !important;
+  align-self: stretch !important;
+  width: 100% !important;
+  min-height: 0 !important;
+  height: auto !important;
+  padding: 30px 0 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.screen-play .game-hud > #totalTimerBox::before {
+  content: "◷" !important;
+  top: 35px !important;
+  left: 0 !important;
+}
+
+.screen-play .game-hud > #totalTimerBox::after {
+  content: "" !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  left: 0 !important;
+  height: 2px !important;
+  background: linear-gradient(90deg, transparent, #efc168 12%, #efc168 88%, transparent) !important;
+}
+
+.screen-play .game-hud > #totalTimerBox .info-copy {
+  display: grid !important;
+  grid-template-columns: 56px 1fr !important;
+  grid-template-rows: 48px 64px !important;
+  width: 100% !important;
+  height: 112px !important;
+}
+
+.screen-play .game-hud > #totalTimerBox .info-label {
+  grid-column: 2 !important;
+  grid-row: 1 !important;
+  justify-content: flex-start !important;
+  color: #5f351a !important;
+  font-size: 30px !important;
+  font-weight: 900 !important;
+}
+
+.screen-play .game-hud > #totalTimerBox #totalTimer {
+  grid-column: 2 !important;
+  grid-row: 2 !important;
+  justify-content: flex-start !important;
+  color: #e4771d !important;
+  font-size: 48px !important;
+  font-weight: 900 !important;
+  transform: none !important;
+}
+
+.screen-play .game-hud > #pauseButton.icon-button {
+  grid-column: 1 !important;
+  grid-row: 4 !important;
+  align-self: end !important;
+  justify-self: stretch !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  min-height: 76px !important;
+  margin: 0 !important;
+  padding: 0 16px !important;
+  border-radius: 26px !important;
+}
+
+.screen-play .game-hud > #pauseButton.icon-button > span:last-child {
+  font-size: 32px !important;
+  font-weight: 900 !important;
+}
+
+/* Precise left HUD sizing and alignment. */
+.screen-play .game-hud {
+  left: calc(12px - var(--game-viewport-side-gutter, 0px)) !important;
+  width: 300px !important;
+  height: 686px !important;
+  padding: 26px 30px 28px !important;
+  grid-template-rows: 74px 178px 168px 1fr !important;
+}
+
+.screen-play .game-hud > .hud-mission-pill {
+  width: 220px !important;
+  height: 52px !important;
+  min-height: 52px !important;
+  background: #dba7ff !important;
+  box-shadow: none !important;
+}
+
+.screen-play .game-hud > .hud-mission-pill .hud-activity-label {
+  color: #fffdf3 !important;
+  font-size: 26px !important;
+  text-shadow:
+    -1px 0 #2f1c16,
+    1px 0 #2f1c16,
+    0 -1px #2f1c16,
+    0 1px #2f1c16 !important;
+}
+
+.screen-play .game-hud > .hud-progress-pill,
+.screen-play .game-hud > #totalTimerBox {
+  position: relative !important;
+  display: block !important;
+  width: 100% !important;
+  min-height: 0 !important;
+  padding: 0 !important;
+  overflow: visible !important;
+}
+
+.screen-play .game-hud > .hud-progress-pill::before,
+.screen-play .game-hud > #totalTimerBox::before {
+  left: 0 !important;
+  width: 44px !important;
+  height: 44px !important;
+  border: 3px solid #f4c668 !important;
+  border-radius: 50% !important;
+  background:
+    linear-gradient(180deg, rgba(255, 254, 245, 0.98), rgba(255, 245, 213, 0.96)),
+    #fff7df !important;
+  box-shadow:
+    inset 0 2px 0 rgba(255, 255, 255, 0.78),
+    0 2px 4px rgba(116, 74, 25, 0.12) !important;
+}
+
+.screen-play .game-hud > .hud-progress-pill::before {
+  top: 18px !important;
+  content: "🚩" !important;
+  width: 44px !important;
+  height: 44px !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  font-size: 36px !important;
+}
+
+.screen-play .game-hud > #totalTimerBox::before {
+  top: 60px !important;
+  content: "🕧" !important;
+  width: 44px !important;
+  height: 44px !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  font-size: 36px !important;
+  display: grid !important;
+  place-items: center !important;
+  line-height: 1 !important;
+  text-align: center !important;
+  padding: 0 !important;
+  box-sizing: border-box !important;
+  transform: translateY(-1px) !important;
+}
+
+.screen-play .game-hud > .hud-progress-pill::after,
+.screen-play .game-hud > #totalTimerBox::after {
+  content: "" !important;
+  position: absolute !important;
+  right: 0 !important;
+  left: 0 !important;
+  height: 8px !important;
+  background:
+    radial-gradient(circle at 50% 50%, #efc168 0 4px, transparent 4.5px),
+    linear-gradient(90deg, transparent 0, #efc168 16%, #efc168 84%, transparent 100%) 50% 50% / 100% 2px no-repeat !important;
+}
+
+.screen-play .game-hud > .hud-progress-pill::after {
+  top: 202px !important;
+}
+
+.screen-play .game-hud > #totalTimerBox::after {
+  top: 206px !important;
+}
+
+.screen-play .game-hud > .hud-progress-pill .hud-progress-copy {
+  position: absolute !important;
+  top: 24px !important;
+  right: 0 !important;
+  left: 58px !important;
+  display: block !important;
+  width: auto !important;
+  height: 92px !important;
+  white-space: nowrap !important;
+}
+
+.screen-play .game-hud > .hud-progress-pill .hud-progress-label {
+  display: block !important;
+  margin: 0 0 14px !important;
+  color: #5f351a !important;
+  font-size: 30px !important;
+  font-weight: 900 !important;
+  line-height: 1 !important;
+  text-align: left !important;
+  transform: translateY(0) !important;
+}
+
+.screen-play .game-hud > .hud-progress-pill .hud-progress-current,
+.screen-play .game-hud > .hud-progress-pill .hud-progress-total,
+.screen-play .game-hud > .hud-progress-pill .hud-progress-divider {
+  display: inline-flex !important;
+  align-items: baseline !important;
+  justify-content: center !important;
+  grid-column: auto !important;
+  grid-row: auto !important;
+  min-width: 0 !important;
+  font-size: 43px !important;
+  font-weight: 900 !important;
+  line-height: 1 !important;
+  transform: translateY(14px) !important;
+}
+
+.screen-play .game-hud > .hud-progress-pill .hud-progress-current {
+  color: #24a666 !important;
+}
+
+.screen-play .game-hud > .hud-progress-pill .hud-progress-divider {
+  width: 24px !important;
+  color: #5f351a !important;
+}
+
+.screen-play .game-hud > .hud-progress-pill .hud-progress-total {
+  color: #5f351a !important;
+}
+
+.screen-play .game-hud > .hud-progress-pill .hud-progress-track {
+  position: absolute !important;
+  top: 156px !important;
+  right: 12px !important;
+  left: 12px !important;
+  width: auto !important;
+  height: 16px !important;
+  margin: 0 !important;
+  transform: none !important;
+}
+
+.screen-play .game-hud > .hud-progress-pill .hud-progress-track::after,
+.screen-play .game-hud > #totalTimerBox .info-copy::after {
+  content: none !important;
+  display: none !important;
+}
+
+.screen-play .game-hud > .hud-progress-pill .hud-progress-line,
+.screen-play .game-hud > .hud-progress-pill .hud-progress-line-fill {
+  height: 16px !important;
+}
+
+.screen-play .game-hud > #totalTimerBox .info-copy {
+  position: absolute !important;
+  top: 67px !important;
+  right: 0 !important;
+  left: 58px !important;
+  display: block !important;
+  width: auto !important;
+  height: 108px !important;
+  white-space: nowrap !important;
+}
+
+.screen-play .game-hud > #totalTimerBox .info-label {
+  display: block !important;
+  margin: 0 0 14px !important;
+  color: #5f351a !important;
+  font-size: 30px !important;
+  font-weight: 900 !important;
+  line-height: 1 !important;
+  text-align: left !important;
+}
+
+.screen-play .game-hud > #totalTimerBox #totalTimer {
+  display: block !important;
+  margin-top: 16px !important;
+  color: #e4771d !important;
+  font-size: 60px !important;
+  font-weight: 900 !important;
+  line-height: 1 !important;
+  text-align: left !important;
+}
+
+.screen-play .game-hud > #pauseButton.icon-button {
+  grid-column: 1 !important;
+  grid-row: 4 !important;
+  align-self: end !important;
+  justify-self: stretch !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: clamp(7px, 10px, 14px) !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  min-height: clamp(72px, 76px, 98px) !important;
+  height: auto !important;
+  margin: 0 !important;
+  padding: clamp(12px, 14px, 20px) clamp(12px, 18px, 22px) !important;
+  transform: translateY(-30px) !important;
+  border-color: #ffe1a3 !important;
+  border-radius: 24px !important;
+  color: #fffdf3 !important;
+  background:
+    linear-gradient(315deg, rgba(144, 65, 7, 0.2) 0%, rgba(230, 122, 25, 0.04) 46%, rgba(255, 184, 73, 0.25) 100%),
+    #f08a24 !important;
+  box-shadow:
+    0 clamp(5px, 7.2px, 9px) clamp(12px, 15.84px, 22px) rgba(126, 62, 15, 0.24),
+    0 0 0 1px #9d470e,
+    inset 0 0 0 1px #9d470e,
+    inset 0 clamp(2px, 3.24px, 4px) 0 rgba(255, 255, 244, 0.42),
+    inset 0 clamp(-6px, -7.2px, -4px) 0 rgba(127, 55, 8, 0.38) !important;
+}
+
+.screen-play .game-hud > #pauseButton.icon-button > span:last-child {
+  font-size: clamp(30px, 36px, 42px) !important;
+  font-weight: 1000 !important;
+}
+
+.screen-play .game-hud > #pauseButton.icon-button .pause-symbol {
+  width: clamp(30px, 34px, 38px) !important;
+  height: clamp(30px, 34px, 38px) !important;
+  flex: 0 0 clamp(30px, 34px, 38px) !important;
+}
+
+.screen-play #hintButton.play-hint-button {
+  right: auto !important;
+  left: calc(var(--prompt-right) - 84px) !important;
+  bottom: auto !important;
+  top: 24px !important;
+  z-index: 6 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: clamp(7px, 10px, 14px) !important;
+  width: fit-content !important;
+  min-width: 112px !important;
+  min-height: 58px !important;
+  height: auto !important;
+  padding: 10px 16px !important;
+  border-color: #eadcff !important;
+  border-radius: 24px !important;
+  color: #fffdf3 !important;
+  background:
+    linear-gradient(315deg, rgba(118, 80, 184, 0.24) 0%, rgba(187, 147, 239, 0.08) 46%, rgba(226, 209, 255, 0.34) 100%),
+    #b89aef !important;
+  box-shadow:
+    0 clamp(5px, 7.2px, 9px) clamp(12px, 15.84px, 22px) rgba(91, 62, 147, 0.24),
+    0 0 0 1px #7655b7,
+    inset 0 0 0 1px #7655b7,
+    inset 0 clamp(2px, 3.24px, 4px) 0 rgba(255, 255, 255, 0.46),
+    inset 0 clamp(-6px, -7.2px, -4px) 0 rgba(88, 58, 143, 0.34) !important;
+}
+
+.screen-play #hintButton.play-hint-button .play-hint-icon {
+  font-size: 28px !important;
+}
+
+.screen-play #hintButton.play-hint-button .play-hint-label {
+  font-size: 30px !important;
+}
+
+.screen-play .play-prompt.is-hint-message {
+  text-shadow: none !important;
+}
+
+@keyframes restoredBulbCorrectTap {
+  0% {
+    transform: scale(1);
+  }
+  42% {
+    transform: scale(0.94);
+  }
+  72% {
+    transform: scale(1.08);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes restoredBulbWrongTap {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  20% {
+    transform: translateX(-8px);
+  }
+  42% {
+    transform: translateX(8px);
+  }
+  64% {
+    transform: translateX(-5px);
+  }
+  82% {
+    transform: translateX(4px);
+  }
+}
+
+.screen-play .bulb-card.is-sparkling .card-inner,
+.screen-play .bulb-card.is-hint .card-inner {
+  animation: gentlePulse 950ms ease-in-out infinite !important;
+  transform-origin: center center !important;
+}
+
+.screen-play .bulb-card.is-selected .card-inner,
+.screen-play .bulb-card.is-correct .card-inner {
+  animation: restoredBulbCorrectTap 360ms ease-out both !important;
+  transform-origin: center center !important;
+}
+
+.screen-play .bulb-card.is-wrong .card-inner {
+  animation: restoredBulbWrongTap 420ms ease both !important;
+  transform-origin: center center !important;
+}
+
+.screen-play .bulb-card.is-sparkling .card-front,
+.screen-play .bulb-card.is-hint .card-front {
+  animation: bulbGlowBreath 950ms ease-in-out infinite !important;
+}
+
+.screen-play .bulb-card.is-sparkling .card-front,
+.screen-play .bulb-card.is-hint .card-front,
+.screen-play .bulb-card.is-selected .card-front,
+.screen-play .bulb-card.is-correct .card-front {
+  border-color: #ffd857 !important;
+  background:
+    radial-gradient(circle at 50% 42%, rgba(255, 255, 245, 0.98) 0 20%, rgba(255, 231, 91, 0.95) 54%, rgba(245, 164, 0, 0.88) 100%),
+    #ffd84a !important;
+}
+
+.screen-play .bulb-card.is-selected .card-front,
+.screen-play .bulb-card.is-correct .card-front {
+  box-shadow:
+    0 0 0 6px rgba(162, 236, 72, 0.66),
+    0 0 0 11px rgba(82, 156, 24, 0.2),
+    inset 0 0 0 3px rgba(255, 255, 255, 0.78),
+    0 0 34px rgba(122, 217, 45, 0.86),
+    0 0 30px rgba(255, 216, 74, 0.72) !important;
+}
+
+.screen-play .bulb-card.is-wrong .card-front {
+  border-color: #f26b5f !important;
+  background:
+    radial-gradient(circle at 50% 42%, rgba(255, 250, 248, 0.98) 0 20%, rgba(255, 162, 151, 0.92) 56%, rgba(218, 64, 55, 0.88) 100%),
+    #ff9a8f !important;
+  box-shadow:
+    inset 0 0 0 3px rgba(255, 255, 255, 0.78),
+    0 0 0 5px rgba(242, 107, 95, 0.32),
+    0 0 26px rgba(218, 64, 55, 0.58) !important;
+}
+
+@keyframes bulbGlowBreath {
+  0%,
+  100% {
+    box-shadow:
+      inset 0 0 0 3px rgba(255, 255, 255, 0.78),
+      0 0 22px rgba(255, 216, 74, 0.62);
+  }
+  50% {
+    box-shadow:
+      inset 0 0 0 3px rgba(255, 255, 255, 0.82),
+      0 0 38px rgba(255, 216, 74, 0.95);
+  }
+}
+
+/* Final HUD group alignment override. Keep the activity pill fixed. */
+.screen-play .game-hud > .hud-progress-pill::before {
+  top: 10px !important;
+}
+
+.screen-play .game-hud > .hud-progress-pill .hud-progress-label {
+  transform: translateY(-8px) !important;
+}
+
+.screen-play .game-hud > .hud-progress-pill .hud-progress-current,
+.screen-play .game-hud > .hud-progress-pill .hud-progress-total,
+.screen-play .game-hud > .hud-progress-pill .hud-progress-divider {
+  transform: translateY(-16px) !important;
+}
+
+.screen-play .game-hud > .hud-progress-pill .hud-progress-track {
+  top: 126px !important;
+}
+
+.screen-play .game-hud > .hud-progress-pill::after {
+  top: 172px !important;
+}
+
+.screen-play .game-hud > #totalTimerBox::before {
+  top: 34px !important;
+}
+
+.screen-play .game-hud > #totalTimerBox .info-copy {
+  top: 41px !important;
+}
+
+.screen-play .game-hud > #totalTimerBox #totalTimer {
+  margin-top: 12px !important;
+}
+
+.screen-play .game-hud > #totalTimerBox.is-warning #totalTimer,
+.screen-play #totalTimerBox.is-warning #totalTimer {
+  color: #d92626 !important;
+}
+
+.screen-play .game-hud > #totalTimerBox::after {
+  top: 180px !important;
+}
+
+.screen-play .game-hud > #pauseButton.icon-button {
+  transform: translateY(-82px) !important;
+}
+
+.screen-play #hintButton.play-hint-button {
+  left: calc(12px - var(--game-viewport-side-gutter, 0px) + 30px) !important;
+  right: auto !important;
+  top: auto !important;
+  bottom: 44px !important;
+  z-index: 30 !important;
+  width: 240px !important;
+  min-width: 240px !important;
+  min-height: clamp(72px, 76px, 98px) !important;
+  padding: 8px 14px !important;
+}
+
+.screen-play #hintButton.play-hint-button .play-hint-label {
+  font-size: clamp(30px, 36px, 42px) !important;
+  font-weight: 1000 !important;
+}
+
 body .pause-dialog {
   position: relative;
 }

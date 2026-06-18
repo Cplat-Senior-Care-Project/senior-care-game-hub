@@ -2,8 +2,10 @@
   --stage-width: 1280px;
   --stage-height: 720px;
   --game-scale: 1;
+  --hud-fit-scale: 1;
   --game-viewport-top-gutter: 0px;
   --game-viewport-right-gutter: 0px;
+  --game-viewport-side-gutter: 0px;
   --stage-scale: var(--game-scale);
   --ink: #243347;
   --muted: #5e6875;
@@ -17,6 +19,12 @@
   --sky-dark: #205b7d;
   --rose: #c95f58;
   --shadow: 0 16px 42px rgba(72, 52, 23, 0.18);
+}
+
+@property --countdown-angle {
+  syntax: "<angle>";
+  inherits: true;
+  initial-value: 0deg;
 }
 
 * {

@@ -501,18 +501,18 @@
   min-height: 118px;
   height: 118px;
   padding: 0 34px;
-  border: 3px solid #defca6;
+  border: 3px solid #3ba9cb;
   border-radius: 999px;
   color: #fff;
   background:
-    linear-gradient(315deg, rgba(55, 122, 11, 0.2) 0%, rgba(117, 197, 38, 0.06) 46%, rgba(218, 255, 111, 0.3) 100%),
-    #8bd83d;
+    linear-gradient(315deg, rgba(19, 114, 148, 0.24) 0%, rgba(82, 190, 222, 0.12) 46%, rgba(210, 246, 255, 0.36) 100%),
+    #64c9e8;
   box-shadow:
-    0 8px 18px rgba(63, 114, 20, 0.24),
-    0 0 0 1px #3f8f14,
-    inset 0 0 0 1px #3f8f14,
+    0 8px 18px rgba(29, 111, 140, 0.28),
+    0 0 0 1px #217f9e,
+    inset 0 0 0 1px #217f9e,
     inset 0 4px 0 rgba(255, 255, 244, 0.48),
-    inset 0 -6px 0 rgba(42, 105, 13, 0.38);
+    inset 0 -6px 0 rgba(23, 105, 134, 0.34);
   font-size: 60px;
   text-shadow: none;
 }
@@ -520,11 +520,11 @@
 .screen-start #startButton:active,
 .screen-start #startButton.is-pressed {
   box-shadow:
-    0 3px 9px rgba(63, 114, 20, 0.22),
-    0 0 0 1px #3f8f14,
-    inset 0 0 0 1px #3f8f14,
+    0 3px 9px rgba(29, 111, 140, 0.24),
+    0 0 0 1px #217f9e,
+    inset 0 0 0 1px #217f9e,
     inset 0 2px 0 rgba(255, 255, 244, 0.34),
-    inset 0 -3px 0 rgba(42, 105, 13, 0.34);
+    inset 0 -3px 0 rgba(23, 105, 134, 0.3);
 }
 
 .screen-start #startButton > span {
@@ -2270,6 +2270,37 @@ body .screen[data-screen="finish-check"] {
   overflow: hidden;
 }
 
+body.is-finish-check-visible .app-viewport,
+body[data-active-screen="result"] .app-viewport {
+  background: #fde0a3;
+}
+
+body.is-finish-check-visible .app-viewport::before,
+body[data-active-screen="result"] .app-viewport::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  width: 100vw;
+  height: 100vh;
+  height: 100dvh;
+  background: url("../assets/images/play_background.png") center center / cover no-repeat #fde0a3;
+  pointer-events: none;
+}
+
+body.is-finish-check-visible .game-stage,
+body[data-active-screen="result"] .game-stage {
+  z-index: 1;
+}
+
+body.is-finish-check-visible .game-stage,
+body[data-active-screen="result"] .game-stage,
+body.is-finish-check-visible #post-condition-modal,
+body[data-active-screen="result"] .screen-result,
+body[data-active-screen="result"] .result-screen {
+  background: transparent !important;
+}
+
 body .screen[data-screen="finish-check"] .post-condition-card {
   width: min(1240px, calc(100% - 24px));
   min-height: 620px;
@@ -2734,6 +2765,100 @@ body .modal-layer.is-hidden {
   display: none !important;
 }
 
+.game-countdown-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  width: 100vw;
+  height: 100vh;
+  height: 100dvh;
+  background: rgba(31, 27, 22, 0.78);
+  pointer-events: none;
+}
+
+.game-countdown-layer.is-hidden {
+  display: none !important;
+}
+
+.game-countdown-stage {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  display: grid;
+  place-items: center;
+  width: var(--stage-width);
+  height: var(--stage-height);
+  transform: translate(-50%, -50%) scale(var(--game-scale));
+  transform-origin: center center;
+}
+
+.game-countdown-message {
+  display: none;
+  margin: 0;
+  color: #fffdf3;
+  font-size: 72px;
+  font-weight: 1000;
+  line-height: 1.16;
+  text-align: center;
+  text-shadow: 0 12px 22px rgba(20, 14, 8, 0.28);
+  -webkit-text-stroke: 0;
+  paint-order: stroke fill;
+}
+
+.game-countdown-layer.is-intro .game-countdown-message {
+  display: block;
+}
+
+.game-countdown-layer.is-intro .game-countdown-timer {
+  display: none;
+}
+
+.game-countdown-timer {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 188px;
+  height: 188px;
+  border-radius: 50%;
+  filter: drop-shadow(0 18px 24px rgba(22, 16, 10, 0.28));
+  transform: translateY(-4px);
+}
+
+.game-countdown-timer::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: conic-gradient(#f5a400 var(--countdown-angle), #ffe7a2 0);
+  box-shadow:
+    0 0 0 2px rgba(255, 255, 244, 0.65),
+    inset 0 2px 0 rgba(255, 255, 244, 0.7);
+}
+
+.game-countdown-face {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  width: 164px;
+  height: 164px;
+  border-radius: inherit;
+  background: radial-gradient(circle at 50% 30%, #fffef8 0%, #fffaf0 58%, #fff3d6 100%);
+  box-shadow:
+    inset 0 4px 0 rgba(255, 255, 255, 0.8),
+    inset 0 -4px 0 rgba(246, 208, 129, 0.22);
+}
+
+.game-countdown-face strong {
+  display: block;
+  color: #4b3526;
+  font-size: 90px;
+  font-weight: 1000;
+  line-height: 0.9;
+  text-shadow: 0 2px 0 rgba(255, 255, 255, 0.72);
+}
+
 body .modal-card {
   box-sizing: border-box;
 }
@@ -2884,19 +3009,19 @@ body .game-stage > .screen.is-active.result-screen .result-actions .game-button 
   white-space: nowrap;
 }
 
-body[data-mode="standard"] #post-condition-modal .post-condition-page[data-post-condition-page="0"] .post-condition-question {
+body:is([data-mode="standard"], [data-mode="reminder"]) #post-condition-modal .post-condition-page[data-post-condition-page="0"] .post-condition-question {
   gap: 12px;
   padding-bottom: 18px;
   transform: translateY(22px);
 }
 
-body[data-mode="standard"] #post-condition-modal .post-condition-page[data-post-condition-page="0"] .post-condition-question[aria-labelledby="post-condition-mood-title"] {
+body:is([data-mode="standard"], [data-mode="reminder"]) #post-condition-modal .post-condition-page[data-post-condition-page="0"] .post-condition-question[aria-labelledby="post-condition-mood-title"] {
   position: relative;
   border-bottom: 0;
   padding-bottom: 32px;
 }
 
-body[data-mode="standard"] #post-condition-modal .post-condition-page[data-post-condition-page="0"] .post-condition-question[aria-labelledby="post-condition-mood-title"]::after {
+body:is([data-mode="standard"], [data-mode="reminder"]) #post-condition-modal .post-condition-page[data-post-condition-page="0"] .post-condition-question[aria-labelledby="post-condition-mood-title"]::after {
   content: "";
   position: absolute;
   left: 0;
@@ -2905,46 +3030,46 @@ body[data-mode="standard"] #post-condition-modal .post-condition-page[data-post-
   border-bottom: 2px dashed rgba(245, 200, 75, 0.68);
 }
 
-body[data-mode="standard"] #post-condition-modal .post-condition-page[data-post-condition-page="0"] #post-condition-mood-title + .post-condition-options {
+body:is([data-mode="standard"], [data-mode="reminder"]) #post-condition-modal .post-condition-page[data-post-condition-page="0"] #post-condition-mood-title + .post-condition-options {
   transform: translateY(8px);
 }
 
-body[data-mode="standard"] #post-condition-modal .post-condition-page[data-post-condition-page="0"] #post-condition-fatigue-title + .post-condition-options {
+body:is([data-mode="standard"], [data-mode="reminder"]) #post-condition-modal .post-condition-page[data-post-condition-page="0"] #post-condition-fatigue-title + .post-condition-options {
   margin-top: 8px;
 }
 
-body[data-mode="standard"] #post-condition-modal .post-condition-page[data-post-condition-page="0"] .post-condition-question[aria-labelledby="post-condition-fatigue-title"] {
+body:is([data-mode="standard"], [data-mode="reminder"]) #post-condition-modal .post-condition-page[data-post-condition-page="0"] .post-condition-question[aria-labelledby="post-condition-fatigue-title"] {
   margin-top: 18px;
 }
 
-body[data-mode="standard"] #post-condition-modal .post-condition-page[data-post-condition-page="1"] .post-condition-question {
+body:is([data-mode="standard"], [data-mode="reminder"]) #post-condition-modal .post-condition-page[data-post-condition-page="1"] .post-condition-question {
   gap: 14px;
   border-bottom: 0;
   padding-bottom: 0;
 }
 
-body[data-mode="standard"] #post-condition-modal .post-condition-page[data-post-condition-page="1"] .post-condition-question-title {
+body:is([data-mode="standard"], [data-mode="reminder"]) #post-condition-modal .post-condition-page[data-post-condition-page="1"] .post-condition-question-title {
   gap: 16px;
   font-size: 40px;
 }
 
-body[data-mode="standard"] #post-condition-modal .post-condition-page[data-post-condition-page="1"] .post-condition-question-title > span {
+body:is([data-mode="standard"], [data-mode="reminder"]) #post-condition-modal .post-condition-page[data-post-condition-page="1"] .post-condition-question-title > span {
   flex-basis: 46px;
   width: 46px;
   height: 46px;
   font-size: 30px;
 }
 
-body[data-mode="standard"] #post-condition-modal .post-condition-page[data-post-condition-page="1"] .post-condition-question[aria-labelledby="post-condition-difficulty-title"] {
+body:is([data-mode="standard"], [data-mode="reminder"]) #post-condition-modal .post-condition-page[data-post-condition-page="1"] .post-condition-question[aria-labelledby="post-condition-difficulty-title"] {
   grid-column: 1 / -1;
 }
 
-body[data-mode="standard"] #post-condition-modal .post-condition-page[data-post-condition-page="1"] #post-condition-difficulty-title + .post-condition-options {
+body:is([data-mode="standard"], [data-mode="reminder"]) #post-condition-modal .post-condition-page[data-post-condition-page="1"] #post-condition-difficulty-title + .post-condition-options {
   gap: 26px;
 }
 
-body[data-mode="standard"] #post-condition-modal .post-condition-page[data-post-condition-page="1"] .post-condition-question[aria-labelledby="post-condition-help-title"],
-body[data-mode="standard"] #post-condition-modal .post-condition-page[data-post-condition-page="1"] .post-condition-question[aria-labelledby="post-condition-replay-title"] {
+body:is([data-mode="standard"], [data-mode="reminder"]) #post-condition-modal .post-condition-page[data-post-condition-page="1"] .post-condition-question[aria-labelledby="post-condition-help-title"],
+body:is([data-mode="standard"], [data-mode="reminder"]) #post-condition-modal .post-condition-page[data-post-condition-page="1"] .post-condition-question[aria-labelledby="post-condition-replay-title"] {
   align-content: start;
   border: 2px solid rgba(245, 200, 75, 0.34);
   border-radius: 24px;
@@ -2952,21 +3077,21 @@ body[data-mode="standard"] #post-condition-modal .post-condition-page[data-post-
   background: rgba(255, 252, 237, 0.42);
 }
 
-body[data-mode="standard"] #post-condition-modal .post-condition-page[data-post-condition-page="1"] .post-condition-question[aria-labelledby="post-condition-help-title"] .post-condition-options,
-body[data-mode="standard"] #post-condition-modal .post-condition-page[data-post-condition-page="1"] .post-condition-question[aria-labelledby="post-condition-replay-title"] .post-condition-options {
+body:is([data-mode="standard"], [data-mode="reminder"]) #post-condition-modal .post-condition-page[data-post-condition-page="1"] .post-condition-question[aria-labelledby="post-condition-help-title"] .post-condition-options,
+body:is([data-mode="standard"], [data-mode="reminder"]) #post-condition-modal .post-condition-page[data-post-condition-page="1"] .post-condition-question[aria-labelledby="post-condition-replay-title"] .post-condition-options {
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 8px;
   transform: translateY(10px);
 }
 
-body[data-mode="standard"] #post-condition-modal .post-condition-page[data-post-condition-page="1"] .post-condition-option {
+body:is([data-mode="standard"], [data-mode="reminder"]) #post-condition-modal .post-condition-page[data-post-condition-page="1"] .post-condition-option {
   min-height: 96px;
   border-radius: 26px;
   padding: 10px 14px 12px;
 }
 
-body[data-mode="standard"] #post-condition-modal .post-condition-page[data-post-condition-page="1"] .post-condition-question[aria-labelledby="post-condition-help-title"] .post-condition-option,
-body[data-mode="standard"] #post-condition-modal .post-condition-page[data-post-condition-page="1"] .post-condition-question[aria-labelledby="post-condition-replay-title"] .post-condition-option {
+body:is([data-mode="standard"], [data-mode="reminder"]) #post-condition-modal .post-condition-page[data-post-condition-page="1"] .post-condition-question[aria-labelledby="post-condition-help-title"] .post-condition-option,
+body:is([data-mode="standard"], [data-mode="reminder"]) #post-condition-modal .post-condition-page[data-post-condition-page="1"] .post-condition-question[aria-labelledby="post-condition-replay-title"] .post-condition-option {
   grid-template-columns: auto max-content;
   gap: 8px;
   min-height: 94px;
@@ -2975,25 +3100,25 @@ body[data-mode="standard"] #post-condition-modal .post-condition-page[data-post-
   white-space: nowrap;
 }
 
-body[data-mode="standard"] #post-condition-modal .post-condition-page[data-post-condition-page="1"] .post-condition-question[aria-labelledby="post-condition-help-title"] .post-condition-face,
-body[data-mode="standard"] #post-condition-modal .post-condition-page[data-post-condition-page="1"] .post-condition-question[aria-labelledby="post-condition-replay-title"] .post-condition-face {
+body:is([data-mode="standard"], [data-mode="reminder"]) #post-condition-modal .post-condition-page[data-post-condition-page="1"] .post-condition-question[aria-labelledby="post-condition-help-title"] .post-condition-face,
+body:is([data-mode="standard"], [data-mode="reminder"]) #post-condition-modal .post-condition-page[data-post-condition-page="1"] .post-condition-question[aria-labelledby="post-condition-replay-title"] .post-condition-face {
   font-size: 0.68em;
 }
 
-body[data-mode="standard"] #post-condition-modal .post-condition-page[data-post-condition-page="1"] .post-condition-question[aria-labelledby="post-condition-help-title"] .post-condition-option > span:last-child,
-body[data-mode="standard"] #post-condition-modal .post-condition-page[data-post-condition-page="1"] .post-condition-question[aria-labelledby="post-condition-replay-title"] .post-condition-option > span:last-child {
+body:is([data-mode="standard"], [data-mode="reminder"]) #post-condition-modal .post-condition-page[data-post-condition-page="1"] .post-condition-question[aria-labelledby="post-condition-help-title"] .post-condition-option > span:last-child,
+body:is([data-mode="standard"], [data-mode="reminder"]) #post-condition-modal .post-condition-page[data-post-condition-page="1"] .post-condition-question[aria-labelledby="post-condition-replay-title"] .post-condition-option > span:last-child {
   overflow-wrap: normal;
   word-break: keep-all;
 }
 
-body[data-mode="standard"] #post-condition-modal .post-condition-page[data-post-condition-page="1"] .post-condition-actions {
+body:is([data-mode="standard"], [data-mode="reminder"]) #post-condition-modal .post-condition-page[data-post-condition-page="1"] .post-condition-actions {
   grid-column: 1 / -1;
   align-self: end;
   justify-content: center;
   margin-top: 0;
 }
 
-body[data-mode="standard"] #post-condition-modal #finishBack {
+body:is([data-mode="standard"], [data-mode="reminder"]) #post-condition-modal #finishBack {
   width: auto;
   min-width: 300px;
   min-height: 78px;
@@ -3010,17 +3135,17 @@ body[data-mode="standard"] #post-condition-modal #finishBack {
     inset 0 -4px 0 rgba(204, 157, 52, 0.2);
 }
 
-body[data-mode="standard"] #post-condition-modal #finishBack:hover {
+body:is([data-mode="standard"], [data-mode="reminder"]) #post-condition-modal #finishBack:hover {
   filter: brightness(1.03);
 }
 
-body[data-mode="standard"] #post-condition-modal #finishBack:focus,
-body[data-mode="standard"] #post-condition-modal #finishBack:focus-visible {
+body:is([data-mode="standard"], [data-mode="reminder"]) #post-condition-modal #finishBack:focus,
+body:is([data-mode="standard"], [data-mode="reminder"]) #post-condition-modal #finishBack:focus-visible {
   outline: none;
 }
 
-body[data-mode="standard"] #post-condition-modal #finishBack:active,
-body[data-mode="standard"] #post-condition-modal #finishBack.is-pressed {
+body:is([data-mode="standard"], [data-mode="reminder"]) #post-condition-modal #finishBack:active,
+body:is([data-mode="standard"], [data-mode="reminder"]) #post-condition-modal #finishBack.is-pressed {
   transform: translateY(3px) scale(0.98);
   box-shadow:
     inset 0 0 0 1px #f5c84b,
@@ -3028,15 +3153,15 @@ body[data-mode="standard"] #post-condition-modal #finishBack.is-pressed {
     inset 0 -3px 0 rgba(204, 157, 52, 0.18);
 }
 
-body[data-mode="standard"] #post-condition-modal .post-condition-option[data-post-field="fatigue"][data-post-value="medium"] > span:last-child,
-body[data-mode="standard"] #post-condition-modal .post-condition-option[data-post-field="fatigue"][data-post-value="high"] > span:last-child {
+body:is([data-mode="standard"], [data-mode="reminder"]) #post-condition-modal .post-condition-option[data-post-field="fatigue"][data-post-value="medium"] > span:last-child,
+body:is([data-mode="standard"], [data-mode="reminder"]) #post-condition-modal .post-condition-option[data-post-field="fatigue"][data-post-value="high"] > span:last-child {
   font-size: 0.86em;
   overflow-wrap: normal;
   word-break: keep-all;
   white-space: nowrap;
 }
 
-body[data-mode="standard"] .game-stage > .screen.is-active.result-screen {
+body:is([data-mode="standard"], [data-mode="reminder"]) .game-stage > .screen.is-active.result-screen {
   align-content: center;
   align-items: center;
   justify-items: center;
@@ -3045,7 +3170,7 @@ body[data-mode="standard"] .game-stage > .screen.is-active.result-screen {
   padding-bottom: calc(22px + var(--safe-bottom));
 }
 
-body[data-mode="standard"] .game-stage > .screen.is-active.result-screen .result-content {
+body:is([data-mode="standard"], [data-mode="reminder"]) .game-stage > .screen.is-active.result-screen .result-content {
   box-sizing: border-box;
   justify-self: center;
   position: relative;
@@ -3061,13 +3186,13 @@ body[data-mode="standard"] .game-stage > .screen.is-active.result-screen .result
   transform: none;
 }
 
-body[data-mode="standard"] .game-stage > .screen.is-active.result-screen .result-emoji,
-body[data-mode="standard"] .game-stage > .screen.is-active.result-screen .result-content > .eyebrow,
-body[data-mode="standard"] .game-stage > .screen.is-active.result-screen .result-message {
+body:is([data-mode="standard"], [data-mode="reminder"]) .game-stage > .screen.is-active.result-screen .result-emoji,
+body:is([data-mode="standard"], [data-mode="reminder"]) .game-stage > .screen.is-active.result-screen .result-content > .eyebrow,
+body:is([data-mode="standard"], [data-mode="reminder"]) .game-stage > .screen.is-active.result-screen .result-message {
   display: none;
 }
 
-body[data-mode="standard"] .game-stage > .screen.is-active.result-screen .standard-result-card {
+body:is([data-mode="standard"], [data-mode="reminder"]) .game-stage > .screen.is-active.result-screen .standard-result-card {
   box-sizing: border-box;
   display: grid;
   align-content: start;
@@ -3084,7 +3209,7 @@ body[data-mode="standard"] .game-stage > .screen.is-active.result-screen .standa
     inset 0 0 0 1px rgba(255, 255, 255, 0.62);
 }
 
-body[data-mode="standard"] .game-stage > .screen.is-active.result-screen .result-content h2 {
+body:is([data-mode="standard"], [data-mode="reminder"]) .game-stage > .screen.is-active.result-screen .result-content h2 {
   margin: 0;
   width: 100%;
   padding-bottom: 16px;
@@ -3099,7 +3224,7 @@ body[data-mode="standard"] .game-stage > .screen.is-active.result-screen .result
     0 4px 8px rgba(56, 34, 15, 0.16);
 }
 
-body[data-mode="standard"] .game-stage > .screen.is-active.result-screen .standard-result-record {
+body:is([data-mode="standard"], [data-mode="reminder"]) .game-stage > .screen.is-active.result-screen .standard-result-record {
   display: grid;
   width: 100%;
   gap: 12px;
@@ -3107,7 +3232,7 @@ body[data-mode="standard"] .game-stage > .screen.is-active.result-screen .standa
   margin-bottom: 0;
 }
 
-body[data-mode="standard"] .game-stage > .screen.is-active.result-screen .standard-result-score-panel {
+body:is([data-mode="standard"], [data-mode="reminder"]) .game-stage > .screen.is-active.result-screen .standard-result-score-panel {
   box-sizing: border-box;
   display: grid;
   grid-template-columns: auto 1fr;
@@ -3125,7 +3250,7 @@ body[data-mode="standard"] .game-stage > .screen.is-active.result-screen .standa
     0 8px 18px rgba(93, 57, 21, 0.12);
 }
 
-body[data-mode="standard"] .game-stage > .screen.is-active.result-screen .standard-result-trophy {
+body:is([data-mode="standard"], [data-mode="reminder"]) .game-stage > .screen.is-active.result-screen .standard-result-trophy {
   grid-row: 1 / 3;
   display: grid;
   place-items: center;
@@ -3137,7 +3262,7 @@ body[data-mode="standard"] .game-stage > .screen.is-active.result-screen .standa
   filter: drop-shadow(0 6px 8px rgba(124, 75, 16, 0.22));
 }
 
-body[data-mode="standard"] .game-stage > .screen.is-active.result-screen .standard-result-score {
+body:is([data-mode="standard"], [data-mode="reminder"]) .game-stage > .screen.is-active.result-screen .standard-result-score {
   box-sizing: border-box;
   display: flex;
   align-items: center;
@@ -3149,7 +3274,7 @@ body[data-mode="standard"] .game-stage > .screen.is-active.result-screen .standa
   word-break: keep-all;
 }
 
-body[data-mode="standard"] .game-stage > .screen.is-active.result-screen .standard-result-correct {
+body:is([data-mode="standard"], [data-mode="reminder"]) .game-stage > .screen.is-active.result-screen .standard-result-correct {
   color: #e86f0a;
   font-size: 88px;
   letter-spacing: 0;
@@ -3158,9 +3283,9 @@ body[data-mode="standard"] .game-stage > .screen.is-active.result-screen .standa
     0 7px 12px rgba(153, 78, 15, 0.12);
 }
 
-body[data-mode="standard"] .game-stage > .screen.is-active.result-screen .standard-result-score-divider,
-body[data-mode="standard"] .game-stage > .screen.is-active.result-screen .standard-result-total,
-body[data-mode="standard"] .game-stage > .screen.is-active.result-screen .standard-result-answer-label {
+body:is([data-mode="standard"], [data-mode="reminder"]) .game-stage > .screen.is-active.result-screen .standard-result-score-divider,
+body:is([data-mode="standard"], [data-mode="reminder"]) .game-stage > .screen.is-active.result-screen .standard-result-total,
+body:is([data-mode="standard"], [data-mode="reminder"]) .game-stage > .screen.is-active.result-screen .standard-result-answer-label {
   color: #2f1a0b;
   font-size: 72px;
   text-shadow:
@@ -3169,11 +3294,11 @@ body[data-mode="standard"] .game-stage > .screen.is-active.result-screen .standa
   white-space: nowrap;
 }
 
-body[data-mode="standard"] .game-stage > .screen.is-active.result-screen .standard-result-answer-label {
+body:is([data-mode="standard"], [data-mode="reminder"]) .game-stage > .screen.is-active.result-screen .standard-result-answer-label {
   margin-left: 12px;
 }
 
-body[data-mode="standard"] .game-stage > .screen.is-active.result-screen .standard-result-rate {
+body:is([data-mode="standard"], [data-mode="reminder"]) .game-stage > .screen.is-active.result-screen .standard-result-rate {
   box-sizing: border-box;
   display: flex;
   align-items: center;
@@ -3192,19 +3317,19 @@ body[data-mode="standard"] .game-stage > .screen.is-active.result-screen .standa
   white-space: nowrap;
 }
 
-body[data-mode="standard"] .game-stage > .screen.is-active.result-screen .standard-result-rate strong {
+body:is([data-mode="standard"], [data-mode="reminder"]) .game-stage > .screen.is-active.result-screen .standard-result-rate strong {
   color: #3f7e1f;
   font-size: 41px;
 }
 
-body[data-mode="standard"] .game-stage > .screen.is-active.result-screen .standard-result-details {
+body:is([data-mode="standard"], [data-mode="reminder"]) .game-stage > .screen.is-active.result-screen .standard-result-details {
   display: grid;
   grid-template-columns: 1fr 1fr;
   width: 100%;
   gap: 12px 18px;
 }
 
-body[data-mode="standard"] .game-stage > .screen.is-active.result-screen .standard-result-detail {
+body:is([data-mode="standard"], [data-mode="reminder"]) .game-stage > .screen.is-active.result-screen .standard-result-detail {
   box-sizing: border-box;
   display: flex;
   align-items: center;
@@ -3222,7 +3347,7 @@ body[data-mode="standard"] .game-stage > .screen.is-active.result-screen .standa
   word-break: keep-all;
 }
 
-body[data-mode="standard"] .game-stage > .screen.is-active.result-screen .standard-result-detail-icon {
+body:is([data-mode="standard"], [data-mode="reminder"]) .game-stage > .screen.is-active.result-screen .standard-result-detail-icon {
   flex: 0 0 auto;
   display: grid;
   place-items: center;
@@ -3235,12 +3360,12 @@ body[data-mode="standard"] .game-stage > .screen.is-active.result-screen .standa
   line-height: 1;
 }
 
-body[data-mode="standard"] .game-stage > .screen.is-active.result-screen .standard-result-detail span {
+body:is([data-mode="standard"], [data-mode="reminder"]) .game-stage > .screen.is-active.result-screen .standard-result-detail span {
   color: #2f1a0b;
   white-space: nowrap;
 }
 
-body[data-mode="standard"] .game-stage > .screen.is-active.result-screen .standard-result-detail strong {
+body:is([data-mode="standard"], [data-mode="reminder"]) .game-stage > .screen.is-active.result-screen .standard-result-detail strong {
   color: #e86f0a;
   margin-left: auto;
   font-size: 50px;
@@ -3249,29 +3374,29 @@ body[data-mode="standard"] .game-stage > .screen.is-active.result-screen .standa
   white-space: nowrap;
 }
 
-body[data-mode="standard"] .game-stage > .screen.is-active.result-screen .standard-result-hint {
+body:is([data-mode="standard"], [data-mode="reminder"]) .game-stage > .screen.is-active.result-screen .standard-result-hint {
   border-color: #efbd64;
 }
 
-body[data-mode="standard"] .game-stage > .screen.is-active.result-screen .standard-result-hint .standard-result-detail-icon {
+body:is([data-mode="standard"], [data-mode="reminder"]) .game-stage > .screen.is-active.result-screen .standard-result-hint .standard-result-detail-icon {
   background: #f0ac2f;
 }
 
-body[data-mode="standard"] .game-stage > .screen.is-active.result-screen .standard-result-compare {
+body:is([data-mode="standard"], [data-mode="reminder"]) .game-stage > .screen.is-active.result-screen .standard-result-compare {
   border-color: #ef8d8c;
 }
 
-body[data-mode="standard"] .game-stage > .screen.is-active.result-screen .standard-result-compare .standard-result-detail-icon {
+body:is([data-mode="standard"], [data-mode="reminder"]) .game-stage > .screen.is-active.result-screen .standard-result-compare .standard-result-detail-icon {
   background: #e75f5c;
 }
 
-body[data-mode="standard"] .game-stage > .screen.is-active.result-screen .standard-result-compare strong {
+body:is([data-mode="standard"], [data-mode="reminder"]) .game-stage > .screen.is-active.result-screen .standard-result-compare strong {
   color: #3f7e1f;
   margin-left: 0;
   font-size: 50px;
 }
 
-body[data-mode="standard"] .game-stage > .screen.is-active.result-screen .result-actions {
+body:is([data-mode="standard"], [data-mode="reminder"]) .game-stage > .screen.is-active.result-screen .result-actions {
   width: min(980px, 100%);
   display: grid;
   grid-template-columns: 440px 460px;
@@ -3281,7 +3406,7 @@ body[data-mode="standard"] .game-stage > .screen.is-active.result-screen .result
   padding-top: 18px;
 }
 
-body[data-mode="standard"] .game-stage > .screen.is-active.result-screen .result-actions .game-button {
+body:is([data-mode="standard"], [data-mode="reminder"]) .game-stage > .screen.is-active.result-screen .result-actions .game-button {
   width: 440px !important;
   min-width: 0;
   min-height: 116px;
@@ -3293,7 +3418,7 @@ body[data-mode="standard"] .game-stage > .screen.is-active.result-screen .result
   white-space: nowrap;
 }
 
-body[data-mode="standard"] .game-stage > .screen.is-active.result-screen .result-actions #resultStartButton {
+body:is([data-mode="standard"], [data-mode="reminder"]) .game-stage > .screen.is-active.result-screen .result-actions #resultStartButton {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -3310,7 +3435,7 @@ body[data-mode="standard"] .game-stage > .screen.is-active.result-screen .result
   text-shadow: 0 2px 0 rgba(255, 246, 204, 0.72);
 }
 
-body[data-mode="standard"] .game-stage > .screen.is-active.result-screen .result-actions #resultHomeButton {
+body:is([data-mode="standard"], [data-mode="reminder"]) .game-stage > .screen.is-active.result-screen .result-actions #resultHomeButton {
   min-width: 0;
   min-height: 116px;
   width: 460px !important;
