@@ -22,10 +22,11 @@ const VOICE_FILES = {
   postCheckMore: "assets/audio/voice/post-check-more.mp3",
 };
 const BGM_FILES = {
-  pregame: { src: "assets/audio/bgm-pregame.mp3", startAt: 1 },
+  pregame: { src: "assets/audio/bgm-gameplay.mp3", startAt: 0 },
   gameplay: { src: "assets/audio/bgm-gameplay.mp3", startAt: 0 },
 };
-const BGM_VOLUME = 0.35;
+const BGM_VOLUME = 0.16;
+const SFX_VOLUME = 0.65;
 const sfxPlayers = {};
 const voicePlayers = {};
 const bgmPlayers = {};
@@ -40,6 +41,7 @@ function getSfxPlayer(name){
   if(!sfxPlayers[name]){
     const audio = new Audio(src);
     audio.preload = "auto";
+    audio.volume = SFX_VOLUME;
     sfxPlayers[name] = audio;
   }
   return sfxPlayers[name];
@@ -49,6 +51,7 @@ function replayAudio(audio){
   try{
     const player = audio.cloneNode ? audio.cloneNode(true) : new Audio(audio.src);
     player.currentTime = 0;
+    player.volume = audio.volume;
     const playPromise = player.play();
     if(playPromise && typeof playPromise.catch === "function"){
       playPromise.catch(()=>{});

@@ -209,7 +209,7 @@ const DEFAULT_CONFIG = {
   soft_feedback:false,
   show_condition_check:true, show_finish_check:true, default_mood:null, default_sleep_hours:null,
   auto_start:false, auto_return_to_hub:false, auto_return_delay_ms:3000, play_source:"manual",
-  time_limit_sec:180, game_key:window.GAME_KEY || "what_fits_where", game_version:window.GAME_VERSION || "1.0.0",
+  time_limit_sec:180, content_id:"content_what_fits_where", game_key:window.GAME_KEY || "what_fits_where", game_version:window.GAME_VERSION || "1.0.0",
 };
 
 /* ===== GAME FLOW CONFIG ===== */

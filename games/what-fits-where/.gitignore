@@ -1,0 +1,7 @@
+tmp-visual-qa/
+.codegraph/
+debug.log
+server.out.log
+server.err.log
+timer-debug-visible.png
+timer-label-check.png

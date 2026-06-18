@@ -25,7 +25,8 @@
 
 | 항목 | 값 |
 |---|---|
-| Endpoint | `POST /api/game-results` |
+| Endpoint | `POST /api/v1/game-results` |
+| Compatibility endpoint | `POST /api/game-results` |
 | Auth | 내부망 토큰 또는 앱 서버 전용 Bearer token 협의 |
 | Content-Type | `application/json` |
 | Idempotency | `session_id` unique 또는 `senior_id + session_id` unique |
@@ -87,10 +88,20 @@
 
 ```json
 {
-  "ok": true,
   "result_id": "8d80d6b7-2a4c-4c40-9a55-111111111111",
   "session_id": "session_1781650000000_ab12cd",
-  "status": "completed",
+  "status": "saved",
+  "saved_at": "2026-06-17T01:02:11.000Z"
+}
+```
+
+Duplicate request response:
+
+```json
+{
+  "result_id": "8d80d6b7-2a4c-4c40-9a55-111111111111",
+  "session_id": "session_1781650000000_ab12cd",
+  "status": "duplicate_ignored",
   "saved_at": "2026-06-17T01:02:11.000Z"
 }
 ```
@@ -99,10 +110,14 @@
 
 | HTTP | error_code | 처리 기준 |
 |---|---|---|
-| 400 | `VALIDATION_ERROR` | 필수 필드 누락 또는 타입 오류 |
+| 400 | `INVALID_JSON` | JSON 파싱 실패 |
+| 400 | `REQUEST_TOO_LARGE` | body 크기 초과 |
+| 400 | `MISSING_REQUIRED_FIELD` | 필수 필드 누락 또는 `game_result` 객체 누락 |
+| 400 | `INVALID_ENUM_VALUE` | 허용되지 않은 `play_source`, `status` |
+| 400 | `INVALID_REQUEST` | 시작/종료 시각 파싱 실패, 음수 duration 등 |
 | 401 | `UNAUTHORIZED` | 인증 토큰 누락 또는 불일치 |
-| 409 | `DUPLICATE_SESSION` | 동일 `session_id` 재전송. 기존 저장 결과를 반환하거나 성공으로 간주 가능 |
-| 500 | `INTERNAL_ERROR` | 서버 저장 실패. 앱에서 재시도 큐에 보관 |
+| 404 | `NOT_FOUND` | 없는 endpoint 또는 없는 결과 조회 |
+| 500 | `INTERNAL_SERVER_ERROR` | 서버 저장 실패. 앱에서 재시도 큐에 보관 |
 
 ## 상태별 샘플
 

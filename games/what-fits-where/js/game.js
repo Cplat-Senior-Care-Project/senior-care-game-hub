@@ -107,7 +107,7 @@ function getSeniorIdForResult(cfg = getAppConfig()) {
 }
 
 function getContentIdForResult(cfg = getAppConfig()) {
-  return getConfigValue(cfg, "content_id", "contentId");
+  return getConfigValue(cfg, "content_id", "contentId", "content_what_fits_where");
 }
 
 function getGameKeyForResult(cfg = getAppConfig()) {
@@ -132,6 +132,20 @@ function createExtensionMeta(cfg = getAppConfig()) {
     if (value !== null && value !== undefined && value !== "") meta[snakeKey] = value;
   });
   return Object.keys(meta).length ? meta : null;
+}
+
+function createExtensionFields(cfg = getAppConfig()) {
+  return createExtensionMeta(cfg) || {};
+}
+
+function getPlaySourceForResult(cfg = getAppConfig()) {
+  const explicit = getConfigValue(cfg, "play_source", "playSource");
+  if (explicit) return explicit;
+  const appMode = getAppMode();
+  if (appMode === "care") return "care_session";
+  if (appMode === "ai_assisted") return "ai_recommendation";
+  if (appMode === "reminder") return "reminder";
+  return "manual";
 }
 
 function getLocalTimezone() {
@@ -212,14 +226,14 @@ const SCREEN_VOICE = {
   "screen-post-check-2": "postCheckMore",
 };
 const SCREEN_BGM = {
-  "screen-condition": "pregame",
-  "screen-start": "pregame",
-  "screen-difficulty": "pregame",
+  "screen-condition": "gameplay",
+  "screen-start": "gameplay",
+  "screen-difficulty": "gameplay",
   "screen-play": "gameplay",
-  "screen-result": "pregame",
-  "screen-score": "pregame",
-  "screen-post-check-1": "pregame",
-  "screen-post-check-2": "pregame",
+  "screen-result": "gameplay",
+  "screen-score": "gameplay",
+  "screen-post-check-1": "gameplay",
+  "screen-post-check-2": "gameplay",
 };
 
 function setViewportBackground(id) {
@@ -905,6 +919,8 @@ function showError(msg) {
   const durationMs = state.startedAt ? Math.max(0, Date.now() - state.startedAt) : 0;
   const questionLogs = state.questionLogs.slice();
   const extensionMeta = createExtensionMeta(cfg);
+  const extensionFields = createExtensionFields(cfg);
+  const playSource = getPlaySourceForResult(cfg);
   const resultDetail = {
     error_code: "GAME_ERROR",
     error_message: message,
@@ -914,6 +930,7 @@ function showError(msg) {
     post_game_condition_data: state.postGameConditionData || null,
   };
   const gameResult = {
+    ...extensionFields,
     session_id: getSessionId(),
     content_id: getContentIdForResult(cfg),
     game_key: getGameKeyForResult(cfg),
@@ -923,7 +940,7 @@ function showError(msg) {
     assignment_id: getConfigValue(cfg, "assignment_id", "assignmentId"),
     alarm_id: getConfigValue(cfg, "alarm_id", "alarmId"),
     schedule_id: getConfigValue(cfg, "schedule_id", "scheduleId"),
-    play_source: getConfigValue(cfg, "play_source", "playSource", getAppMode() === "standard" ? "manual" : getAppMode()),
+    play_source: playSource,
     mode: getAppMode(),
     app_mode: getAppMode(),
     game_mode: state.mode || null,
@@ -932,6 +949,7 @@ function showError(msg) {
     status: "error",
     error_code: "GAME_ERROR",
     error_message: message,
+    error_phase: resultDetail.error_phase,
     started_at: startedAt,
     ended_at: now,
     duration_ms: durationMs,
@@ -940,6 +958,7 @@ function showError(msg) {
     result_detail_json: resultDetail,
   };
   const errorResult = {
+    ...extensionFields,
     session_id: getSessionId(),
     content_id: getContentIdForResult(cfg),
     game_key: getGameKeyForResult(cfg),
@@ -949,12 +968,13 @@ function showError(msg) {
     assignment_id: getConfigValue(cfg, "assignment_id", "assignmentId"),
     alarm_id: getConfigValue(cfg, "alarm_id", "alarmId"),
     schedule_id: getConfigValue(cfg, "schedule_id", "scheduleId"),
-    play_source: getConfigValue(cfg, "play_source", "playSource", getAppMode() === "standard" ? "manual" : getAppMode()),
+    play_source: playSource,
     mode: getAppMode(),
     app_mode: getAppMode(),
     difficulty: state.diff || cfg.default_difficulty || "easy",
     status: "error",
     error_code: "GAME_ERROR",
+    error_phase: resultDetail.error_phase,
     message,
     error_message: message,
     started_at: startedAt,
@@ -2218,13 +2238,28 @@ function finishGame(userExit, timeOver) {
   const legacyStatus = timeOver ? "time_over" : status;
   const exitReason = userExit ? "user_exit" : (timeOver ? "time_over" : "completed");
   const extensionMeta = createExtensionMeta(cfg);
+  const extensionFields = createExtensionFields(cfg);
+  const playSource = getPlaySourceForResult(cfg);
   if ((userExit || timeOver) && state.current && !state.current.revealed && !state.current.logRecorded) {
     const partialLog = buildQuestionLog(false, timeOver ? "time_over" : "abandoned");
     if (partialLog) state.questionLogs.push(partialLog);
   }
+  const questionLogs = state.questionLogs.slice();
+  const totalChoiceCount = questionLogs.reduce((sum, log) => sum + ((log.item_keys || []).length), 0);
+  const totalCorrectItemCount = questionLogs.reduce((sum, log) => sum + ((log.answer_keys || []).length), 0);
+  const totalWrongItemCount = Math.max(0, totalChoiceCount - totalCorrectItemCount);
   const resultDetail = {
     selected_required_items: state.selectedRequired,
     selected_unnecessary_items: state.selectedUnnecessary,
+    choice_count: totalChoiceCount,
+    correct_item_count: totalCorrectItemCount,
+    wrong_item_count: totalWrongItemCount,
+    difficulty_rule: {
+      difficulty: state.diff,
+      situation_count: state.diff === "hard" ? 2 : 1,
+      choice_count: state.diff === "easy" ? 2 : (state.diff === "hard" ? 4 : 3),
+      correct_item_count: state.diff === "hard" ? 2 : 1,
+    },
     removed_mismatched_items: state.removedMismatched,
     wrongly_removed_matched_items: state.wronglyRemovedMatched,
     guessed_situations_count: state.guessedSituations,
@@ -2239,7 +2274,6 @@ function finishGame(userExit, timeOver) {
     score_screen_enabled: shouldShowScoreScreen(),
   };
 
-  const questionLogs = state.questionLogs.slice();
   const totalQuestions = state.totalQ || state.queue.length;
   const avgResponseTimeMs = questionLogs.length
     ? Math.round(questionLogs.reduce((sum, log) => sum + (Number(log.response_time_ms || log.response_ms) || 0), 0) / questionLogs.length)
@@ -2249,6 +2283,7 @@ function finishGame(userExit, timeOver) {
   const voiceContext = createVoiceContext(cfg);
   const missionSequence = getMissionSequenceForDiff(state.diff);
   const gameResult = {
+    ...extensionFields,
     session_id: getSessionId(),
     content_id: getContentIdForResult(cfg),
     game_key: getGameKeyForResult(cfg),
@@ -2258,7 +2293,7 @@ function finishGame(userExit, timeOver) {
     assignment_id: getConfigValue(cfg, "assignment_id", "assignmentId"),
     alarm_id: getConfigValue(cfg, "alarm_id", "alarmId"),
     schedule_id: getConfigValue(cfg, "schedule_id", "scheduleId"),
-    play_source: getConfigValue(cfg, "play_source", "playSource", getAppMode() === "standard" ? "manual" : getAppMode()),
+    play_source: playSource,
     game_mode: state.mode,
     game_mode_label: MODE_LABEL[state.mode],
     mission_mode: state.mode,
@@ -2281,6 +2316,7 @@ function finishGame(userExit, timeOver) {
     questions_per_stage: qps,
     total_questions: totalQuestions,
     answered_questions: answeredQs,
+    completed_question_count: answeredQs,
     correct_count: state.correct,
     wrong_count: state.wrong,
     accuracy_percent: accuracy,
@@ -2293,6 +2329,8 @@ function finishGame(userExit, timeOver) {
     completed: !userExit && !timeOver,
     ended_by_user: userExit,
     time_over: timeOver,
+    abandoned_at: status === "abandoned" ? endedAtIso : null,
+    abandon_reason: status === "abandoned" ? exitReason : null,
     time_limit_sec: getTimeLimitSec(),
     remaining_time_sec: Math.max(0, state.timerLeft | 0),
     question_logs: questionLogs,
@@ -2302,6 +2340,7 @@ function finishGame(userExit, timeOver) {
   };
 
   const result = {
+    ...extensionFields,
     game_mode: state.mode, game_mode_label: MODE_LABEL[state.mode],
     mission_mode: state.mode,
     mode: state.mode,
@@ -2316,13 +2355,14 @@ function finishGame(userExit, timeOver) {
     assignment_id: getConfigValue(cfg, "assignment_id", "assignmentId"),
     alarm_id: getConfigValue(cfg, "alarm_id", "alarmId"),
     schedule_id: getConfigValue(cfg, "schedule_id", "scheduleId"),
-    play_source: getConfigValue(cfg, "play_source", "playSource", getAppMode() === "standard" ? "manual" : getAppMode()),
+    play_source: playSource,
     difficulty: state.diff,
     start_difficulty: state.diff, difficulty_label: DIFF_LABEL[state.diff],
     difficulty_source: state.diffSource,
     config_snapshot: getConfigSnapshot(),
     total_stages: qps.length, questions_per_stage: qps, total_questions: totalQuestions,
     answered_questions: answeredQs,
+    completed_question_count: answeredQs,
     correct_count: state.correct, wrong_count: state.wrong, accuracy_percent: accuracy,
     completion_rate: completionRate,
     hint_count: state.hintCount,
@@ -2335,6 +2375,8 @@ function finishGame(userExit, timeOver) {
     duration_sec: duration,
     meta: extensionMeta,
     completed: !userExit && !timeOver, ended_by_user: userExit, time_over: timeOver,
+    abandoned_at: status === "abandoned" ? endedAtIso : null,
+    abandon_reason: status === "abandoned" ? exitReason : null,
     time_limit_sec: getTimeLimitSec(), remaining_time_sec: Math.max(0, state.timerLeft | 0),
     exit_reason: exitReason,
     status,

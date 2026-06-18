@@ -6,8 +6,8 @@ The playback hooks live in `../js/audio.js`.
 
 Background music files live in `../assets/audio` and are mapped in `BGM_FILES`.
 
-- `bgm-pregame.mp3`: start, condition, difficulty, result, score, and post-check screens
-- `bgm-gameplay.mp3`: active gameplay screen
+- `bgm-gameplay.mp3`: all BGM contexts, including pre-game, active gameplay, result, score, and post-check screens
+- `bgm-pregame.mp3`: legacy asset retained in the folder, but not mapped for playback
 
 Voice guide files live in `../assets/audio/voice` and are mapped in `VOICE_FILES`.
 
