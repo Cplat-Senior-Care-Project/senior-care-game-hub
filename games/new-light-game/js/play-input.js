@@ -1014,7 +1014,6 @@
       this.phase = GAME_PHASE.FINISHED;
       this.endedAt = performance.now();
       this.exitReason = exitReason || this.exitReason;
-      this.audio.play("complete");
       this.updatePauseButton();
 
       const result = this.buildCurrentResult();

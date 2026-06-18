@@ -235,16 +235,17 @@
 
     pauseActiveVoice() {
       if (!this.activeVoiceAudio) {
-        return;
+        return false;
       }
 
       this.activeVoiceAudio.pause();
       this.pausedVoiceAudio = this.activeVoiceAudio;
+      return true;
     }
 
     resumeActiveVoice() {
       if (!this.pausedVoiceAudio || !this.voiceEnabled) {
-        return;
+        return false;
       }
 
       this.activeVoiceAudio = this.pausedVoiceAudio;
@@ -253,6 +254,7 @@
       if (playPromise && typeof playPromise.catch === "function") {
         playPromise.catch(() => {});
       }
+      return true;
     }
 
     pauseBackground() {

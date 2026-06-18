@@ -23,6 +23,7 @@
   let conditionData = runtime.modeConfig.showConditionCheck ? {} : { skipped: true };
   let tutorialReturnScreen = "start";
   let orientationAutoPauseActive = false;
+  let orientationVoicePauseActive = false;
   let startCountdownFrame = null;
   let hubMirrorFallbackActive = false;
   let lastSentResultKey = "";
@@ -322,11 +323,19 @@
 
   function syncOrientationPause(isPortrait) {
     if (isPortrait) {
+      if (!orientationVoicePauseActive) {
+        orientationVoicePauseActive = audio.pauseActiveVoice();
+      }
       if (!orientationAutoPauseActive && canPauseForOrientationGuard()) {
         orientationAutoPauseActive = true;
         game.pause({ showOverlay: false, countPause: false });
       }
       return;
+    }
+
+    if (orientationVoicePauseActive) {
+      orientationVoicePauseActive = false;
+      audio.resumeActiveVoice();
     }
 
     if (!orientationAutoPauseActive) {
@@ -893,6 +902,7 @@
     const result = resultOverride || window.__LAST_GAME_RESULT__ || pendingResult;
     if (result) {
       sendSessionResult(result);
+      sendBridgeMessage(createExitRequestPayload("auto_return"), "GAME_EXIT_REQUESTED");
     } else {
       sendBridgeMessage(createAbandonedResultPayload("manual"), "SESSION_ABORT");
       sendBridgeMessage(createExitRequestPayload("manual"), "GAME_EXIT_REQUESTED");

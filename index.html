@@ -259,6 +259,10 @@
       background: #fff;
     }
 
+    .run-frame-wrap.is-idle .run-frame {
+      display: none;
+    }
+
     .result-tools {
       display: grid;
       gap: 10px;
@@ -626,6 +630,7 @@
       "use strict";
 
       var frame = document.getElementById("hub-run-frame");
+      var frameWrap = frame ? frame.closest(".run-frame-wrap") : null;
       var runMeta = document.getElementById("run-meta");
       var openCurrentRun = document.getElementById("open-current-run");
       var eventLog = document.getElementById("hub-event-log");
@@ -794,8 +799,25 @@
         latestResultType = null;
         events = [];
         serverState.textContent = "";
+        if (frameWrap) {
+          frameWrap.classList.remove("is-idle");
+        }
         renderResult();
         renderEventLog();
+      }
+
+      function completeRunReturn() {
+        activeFrameWindow = null;
+        activeGameKey = "";
+        frame.removeAttribute("src");
+        frame.dataset.gameKey = "";
+        frame.dataset.mode = "";
+        if (frameWrap) {
+          frameWrap.classList.add("is-idle");
+        }
+        openCurrentRun.removeAttribute("href");
+        openCurrentRun.setAttribute("aria-disabled", "true");
+        runMeta.textContent = "게임이 종료되어 허브로 돌아왔습니다.";
       }
 
       function launchGame(link) {
@@ -806,6 +828,9 @@
           activeFrameWindow = frame.contentWindow;
           frame.dataset.gameKey = activeGameKey;
           frame.dataset.mode = link.dataset.mode || "";
+          if (frameWrap) {
+            frameWrap.classList.remove("is-idle");
+          }
           frame.src = link.href;
           openCurrentRun.href = link.href;
           openCurrentRun.setAttribute("aria-disabled", "false");
@@ -843,6 +868,10 @@
         }
 
         renderEventLog();
+
+        if (message.type === "RETURN_TO_APP") {
+          completeRunReturn();
+        }
       });
 
       saveResultButton.addEventListener("click", function () {

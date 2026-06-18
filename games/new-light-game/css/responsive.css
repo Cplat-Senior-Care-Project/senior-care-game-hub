@@ -102,6 +102,10 @@ body.is-portrait .game-stage {
   pointer-events: none;
 }
 
+body.is-portrait .game-countdown-layer {
+  display: none !important;
+}
+
 body.reduce-motion *,
 body.reduce-motion *::before,
 body.reduce-motion *::after {
