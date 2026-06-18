@@ -1,6 +1,11 @@
 (function (global) {
   "use strict";
 
+  const LAST_CORRECT_FEEDBACK_DELAY_MS = 900;
+  const CORRECT_TRANSITION_DELAY_MS = 450;
+  const CARE_GUIDE_STAGE_MS = 2000;
+  const CARE_COVER_STAGE_MS = 4000;
+
   class MemoryBulbGame {
     constructor(options) {
       this.elements = options.elements;
@@ -39,6 +44,7 @@
       this.hintTriggeredCount = 0;
       this.hintActive = false;
       this.hintTimer = null;
+      this.autoHintTimer = null;
       this.hintEndAt = 0;
       this.hintTargets = [];
       this.pauseCount = 0;
@@ -58,6 +64,9 @@
       this.memoryGaugeDurationMs = 3000;
       this.feedbackEndAt = 0;
       this.feedbackAction = "";
+      this.roundTransitionDelayUntil = 0;
+      this.careFlowStep = "";
+      this.carePresentationVisible = false;
       this.pausedRemaining = null;
       this.promptFeedbackTimer = null;
       this.condition = {};
@@ -111,6 +120,17 @@
       if (this.modeConfig.targetCount) {
         base.targetCount = this.modeConfig.targetCount;
         this.effectiveDifficultyKey = this.modeConfig.difficultyOverride || "custom";
+      }
+
+      if (this.usesCareGuidedFlow()) {
+        const careTargetCounts = {
+          easy: 1,
+          normal: 2,
+          hard: 3
+        };
+        if (careTargetCounts[this.effectiveDifficultyKey]) {
+          base.targetCount = careTargetCounts[this.effectiveDifficultyKey];
+        }
       }
 
       if (this.modeConfig.totalLimitMs) {
@@ -167,6 +187,8 @@
       this.targetIndexes = this.pickIndexes(this.difficulty.targetCount, []);
       this.feedbackEndAt = 0;
       this.feedbackAction = "";
+      this.careFlowStep = "";
+      this.carePresentationVisible = false;
       this.selectedIndexes = [];
       this.currentSelections = [];
       this.clearHintState();
@@ -180,14 +202,86 @@
       this.renderGrid(false);
       this.updateHud();
       this.updatePhaseTimer(0);
+
+      if (this.usesCareGuidedFlow()) {
+        this.startCareGuideStage();
+        return;
+      }
+
       this.phaseEndAt = performance.now() + this.modeConfig.exposureTimeMs;
-      this.startMemoryCountdownGauge(3000);
+      this.startMemoryCountdownGauge(this.modeConfig.exposureTimeMs);
       this.setStatus(this.buildMemoryPrompt());
       this.audio.play("sparkle");
+      if (this.usesStandardReminderVoice()) {
+        this.audio.play("memoryVoice");
+      }
 
       this.setTimer(() => {
         this.flipToSelecting();
       }, this.modeConfig.exposureTimeMs);
+    }
+
+    usesCareGuidedFlow() {
+      return this.mode === "care" || this.mode === "ai_assisted";
+    }
+
+    usesSoftCareFeedback() {
+      return this.usesCareGuidedFlow() && this.modeConfig.softFeedback;
+    }
+
+    usesStandardReminderVoice() {
+      return this.mode === "standard" || this.mode === "reminder";
+    }
+
+    startCareGuideStage() {
+      if (this.phase !== GAME_PHASE.MEMORIZE) {
+        return;
+      }
+
+      this.careFlowStep = "guide";
+      this.carePresentationVisible = false;
+      this.stopMemoryCountdownGauge();
+      this.renderGrid(false);
+      this.updatePhaseTimer(0);
+      this.phaseEndAt = performance.now() + CARE_GUIDE_STAGE_MS;
+      this.setStatus("불이 켜지는 곳을 같이 볼까요?");
+      this.audio.play("careMemoryVoice");
+      this.updatePauseButton();
+      this.setTimer(() => this.startCarePresentationStage(), CARE_GUIDE_STAGE_MS);
+    }
+
+    startCarePresentationStage() {
+      if (this.phase !== GAME_PHASE.MEMORIZE) {
+        return;
+      }
+
+      this.careFlowStep = "presentation";
+      this.carePresentationVisible = true;
+      this.renderGrid(false);
+      this.updatePhaseTimer(0);
+      this.phaseEndAt = performance.now() + this.modeConfig.exposureTimeMs;
+      this.startMemoryCountdownGauge(this.modeConfig.exposureTimeMs);
+      this.setStatus("불이 켜지는 곳을 같이 볼까요?");
+      this.audio.play("sparkle");
+      this.updatePauseButton();
+      this.setTimer(() => this.startCareCoverStage(), this.modeConfig.exposureTimeMs);
+    }
+
+    startCareCoverStage() {
+      if (this.phase !== GAME_PHASE.MEMORIZE) {
+        return;
+      }
+
+      this.careFlowStep = "cover";
+      this.carePresentationVisible = false;
+      this.stopMemoryCountdownGauge();
+      this.renderGrid(false);
+      this.updatePhaseTimer(0);
+      this.phaseEndAt = performance.now() + CARE_COVER_STAGE_MS;
+      this.setStatus("좋아요. 이제 같은 곳을 찾아볼까요?");
+      this.audio.play("careHideVoice");
+      this.updatePauseButton();
+      this.setTimer(() => this.flipToSelecting(), CARE_COVER_STAGE_MS);
     }
 
     pickIndexes(count, excluded) {
@@ -210,6 +304,10 @@
     }
 
     buildMemoryPrompt() {
+      if (this.usesCareGuidedFlow()) {
+        return "불이 켜지는 곳을 같이 볼까요?";
+      }
+
       const objectLabel = this.getObjectLabel(this.targetObject);
 
       if (objectLabel === "전구") {
@@ -220,6 +318,10 @@
     }
 
     buildSelectionPrompt() {
+      if (this.usesCareGuidedFlow()) {
+        return "방금 불이 켜졌던 곳을 눌러주세요.";
+      }
+
       return "빛나는 전구가 있었던 위치를 골라주세요!";
     }
 
@@ -230,6 +332,8 @@
 
       this.clearRoundTimers();
       this.stopMemoryCountdownGauge();
+      this.careFlowStep = "";
+      this.carePresentationVisible = false;
       this.phase = GAME_PHASE.SELECTING;
       this.selectStartedAt = performance.now();
       this.resumeTotalCountdown();
@@ -238,14 +342,14 @@
       this.updatePhaseTimer(0);
       this.setStatus(this.buildSelectionPrompt());
       this.audio.play("flip");
+      if (this.usesStandardReminderVoice()) {
+        this.audio.play("questionVoice");
+      } else if (this.usesCareGuidedFlow()) {
+        this.audio.play("careSelectVoice");
+      }
       this.updatePauseButton();
 
-      if (this.modeConfig.hintEnabled && this.modeConfig.autoHintEnabled && this.modeConfig.autoHintAfterMs) {
-        this.setTimer(() => {
-          this.setStatus("조금 헷갈릴 수 있어요. 제가 힌트를 드릴게요.");
-          this.showHint();
-        }, this.modeConfig.autoHintAfterMs);
-      }
+      this.scheduleAutoHint();
     }
 
     renderGrid(isSelecting) {
@@ -281,8 +385,12 @@
           button.classList.add("is-hidden-face");
         }
 
-        if (this.phase === GAME_PHASE.MEMORIZE && isTarget) {
-          button.classList.add("is-sparkling");
+        if (this.phase === GAME_PHASE.MEMORIZE && isTarget && this.shouldShowMemoryTarget()) {
+          if (this.usesCareGuidedFlow()) {
+            button.classList.add("is-care-lighting");
+          } else {
+            button.classList.add("is-sparkling");
+          }
         }
 
         button.innerHTML = this.createCardHtml();
@@ -294,6 +402,10 @@
 
         grid.appendChild(button);
       }
+    }
+
+    shouldShowMemoryTarget() {
+      return this.usesCareGuidedFlow() ? this.carePresentationVisible : true;
     }
 
     updateBoardFrameSize() {
@@ -327,8 +439,8 @@
     createCardHtml() {
       const visual = [
         '    <span class="bulb-icon" aria-hidden="true">',
-        '      <img class="bulb-image bulb-image-off" src="assets/images/turn_off.png" alt="" />',
-        '      <img class="bulb-image bulb-image-on" src="assets/images/turn_on.png" alt="" />',
+        '      <img class="bulb-image bulb-image-off" src="assets/images/turn_off.webp" alt="" />',
+        '      <img class="bulb-image bulb-image-on" src="assets/images/turn_on.webp" alt="" />',
         "    </span>"
       ].join("");
       return [
@@ -402,6 +514,7 @@
       }
 
       this.interactionCount += 1;
+      this.resetAutoHintInactivityTimer();
 
       if (!this.firstResponseAt) {
         this.firstResponseAt = performance.now();
@@ -441,14 +554,33 @@
       if (button) {
         button.classList.add("is-wrong");
       }
-      this.audio.play("wrong");
+      if (this.usesStandardReminderVoice()) {
+        this.audio.play("retry");
+      } else if (!this.usesCareGuidedFlow()) {
+        this.audio.play("wrong");
+      }
 
       if (this.currentWrongCount >= 3) {
+        if (this.usesStandardReminderVoice()) {
+          this.audio.play("retry3Voice");
+        }
         this.finishRound(false, "wrong_limit");
         return;
       }
 
-      this.showPromptFeedback("잘 찾아 보세요. 기억하실 수 있을 거예요.", "wrong");
+      if (this.usesStandardReminderVoice()) {
+        this.audio.play("retryVoice");
+      } else if (this.usesCareGuidedFlow()) {
+        this.audio.play("wrong");
+        this.audio.play("careRetryVoice");
+      } else {
+        this.audio.play("wrong");
+      }
+
+      const wrongFeedbackMessage = this.usesSoftCareFeedback()
+        ? "괜찮아요. 천천히 다시 기억해 볼까요?"
+        : "다시 골라보세요.";
+      this.showPromptFeedback(wrongFeedbackMessage, "wrong");
       this.updateHud();
     }
 
@@ -470,14 +602,22 @@
       if (isCorrect) {
         this.revealTargets("is-correct");
         if (!isLastQuestion) {
-          this.showRoundTransition("정답입니다!", "다음 문제로 넘어갈게요.");
+          this.roundTransitionDelayUntil = performance.now() + CORRECT_TRANSITION_DELAY_MS;
+          if (this.usesSoftCareFeedback()) {
+            this.showRoundTransition("좋습니다. 잘 보셨어요.", "하나만 더 해볼까요?", "힘드시면 쉬어도 괜찮아요.", "softFeedbackCorrectVoice");
+          } else {
+            this.showRoundTransition("잘 기억하셨어요!", "다음 문제로 넘어갈게요.", "", this.usesStandardReminderVoice() ? "correctVoice" : "");
+          }
         } else {
           this.setStatus("");
         }
-        this.audio.play("correct");
       } else {
         if (failReason === "wrong_limit") {
-          this.showRoundTransition("괜찮아요", "다음 문제로 넘어갈게요.");
+          if (this.usesSoftCareFeedback()) {
+            this.showRoundTransition("조금 헷갈릴 수 있어요.", "천천히 다시 같이 가볼까요?", "", this.usesCareGuidedFlow() ? "softFeedbackRetry3Voice" : "");
+          } else {
+            this.showRoundTransition("괜찮아요", "다음 문제로 넘어갈게요.");
+          }
         } else {
           this.setStatus(failReason === "timeout" ? "시간이 지나 다음 문제로 넘어갈게요." : "괜찮아요. 다음 문제로 넘어가볼게요.");
         }
@@ -515,7 +655,8 @@
       });
 
       this.updateHud();
-      const nextDelay = isLastQuestion && isCorrect ? 200 : (isCorrect || failReason === "wrong_limit" ? 3000 : 5000);
+      const wrongLimitDelay = this.usesCareGuidedFlow() ? 4000 : 3000;
+      const nextDelay = isLastQuestion && isCorrect ? LAST_CORRECT_FEEDBACK_DELAY_MS : (isCorrect ? 3000 : (failReason === "wrong_limit" ? wrongLimitDelay : 5000));
       this.feedbackEndAt = performance.now() + nextDelay;
       this.feedbackAction = "startNextQuestion";
       this.setTimer(() => {
@@ -524,7 +665,7 @@
     }
 
     showHint() {
-      if (this.phase !== GAME_PHASE.SELECTING || !this.modeConfig.hintEnabled || this.hintActive || this.currentQuestionHintUsed) {
+      if (this.phase !== GAME_PHASE.SELECTING || !this.modeConfig.hintEnabled || this.hintActive || (this.currentQuestionHintUsed && !this.keepsHintButtonActive())) {
         return;
       }
 
@@ -538,6 +679,7 @@
       this.currentQuestionHintCount += 1;
       this.hintTriggeredCount += 1;
       this.interactionCount += 1;
+      this.clearAutoHintTimer();
       this.hintActive = true;
       this.hintTargets = notFoundTargets.slice();
       this.hintEndAt = performance.now() + 3000;
@@ -545,7 +687,7 @@
         this.elements.playArea.classList.add("is-hinting");
       }
       if (this.elements.hintButton) {
-        this.elements.hintButton.disabled = true;
+        this.elements.hintButton.disabled = !this.keepsHintButtonActive();
       }
       this.audio.play("hint");
       this.setStatus("잠시 동안 보여 드릴게요!");
@@ -584,7 +726,8 @@
         round: this.roundEndAt ? Math.max(0, this.roundEndAt - performance.now()) : null,
         feedback: this.feedbackEndAt ? Math.max(0, this.feedbackEndAt - performance.now()) : null,
         hint: this.hintActive && this.hintEndAt ? Math.max(0, this.hintEndAt - performance.now()) : null,
-        total: this.getTotalRemaining()
+        total: this.getTotalRemaining(),
+        careFlowStep: this.careFlowStep
       };
       this.clearAllTimers();
       this.elements.pauseOverlay.hidden = options.showOverlay === false;
@@ -609,13 +752,18 @@
       this.startTotalTimer();
 
       if (this.phaseBeforePause === GAME_PHASE.MEMORIZE) {
+        if (this.usesCareGuidedFlow()) {
+          this.resumeCareGuidedFlow();
+          return;
+        }
+
         this.phase = GAME_PHASE.MEMORIZE;
         this.setStatus(this.buildMemoryPrompt());
         const remaining = this.pausedRemaining && this.pausedRemaining.phase ? this.pausedRemaining.phase : 1200;
         this.setTimer(() => this.flipToSelecting(), remaining);
         this.updatePhaseTimer(0);
         this.phaseEndAt = performance.now() + remaining;
-        const gaugeDuration = this.pausedRemaining && this.pausedRemaining.memoryGaugeDuration ? this.pausedRemaining.memoryGaugeDuration : 3000;
+        const gaugeDuration = this.pausedRemaining && this.pausedRemaining.memoryGaugeDuration ? this.pausedRemaining.memoryGaugeDuration : this.modeConfig.exposureTimeMs;
         const gaugeRemaining = this.pausedRemaining && this.pausedRemaining.memoryGauge !== null ? this.pausedRemaining.memoryGauge : Math.min(gaugeDuration, remaining);
         this.startMemoryCountdownGauge(gaugeDuration, Math.min(gaugeRemaining, remaining));
         this.updatePauseButton();
@@ -656,22 +804,67 @@
         }
       } else {
         this.setStatus(this.buildSelectionPrompt());
+        this.scheduleAutoHint();
       }
       this.updatePauseButton();
     }
 
+    resumeCareGuidedFlow() {
+      this.phase = GAME_PHASE.MEMORIZE;
+      const step = this.pausedRemaining && this.pausedRemaining.careFlowStep ? this.pausedRemaining.careFlowStep : "guide";
+      const remaining = this.pausedRemaining && this.pausedRemaining.phase ? this.pausedRemaining.phase : CARE_GUIDE_STAGE_MS;
+
+      this.careFlowStep = step;
+      this.carePresentationVisible = step === "presentation";
+      this.phaseEndAt = performance.now() + remaining;
+      this.renderGrid(false);
+      this.updatePhaseTimer(0);
+
+      if (step === "presentation") {
+        const gaugeDuration = this.pausedRemaining && this.pausedRemaining.memoryGaugeDuration ? this.pausedRemaining.memoryGaugeDuration : this.modeConfig.exposureTimeMs;
+        const gaugeRemaining = this.pausedRemaining && this.pausedRemaining.memoryGauge !== null ? this.pausedRemaining.memoryGauge : Math.min(gaugeDuration, remaining);
+        this.startMemoryCountdownGauge(gaugeDuration, Math.min(gaugeRemaining, remaining));
+        this.setStatus("불이 켜지는 곳을 같이 볼까요?");
+        this.setTimer(() => this.startCareCoverStage(), remaining);
+      } else if (step === "cover") {
+        this.stopMemoryCountdownGauge();
+        this.setStatus("좋아요. 이제 같은 곳을 찾아볼까요?");
+        this.setTimer(() => this.flipToSelecting(), remaining);
+      } else {
+        this.stopMemoryCountdownGauge();
+        this.setStatus("불이 켜지는 곳을 같이 볼까요?");
+        this.setTimer(() => this.startCarePresentationStage(), remaining);
+      }
+
+      this.updatePauseButton();
+    }
+
     handleExternalAnswer(payload) {
-      if (this.mode !== "ai_assisted" || !this.modeConfig.externalInputEnabled || this.phase !== GAME_PHASE.SELECTING) {
+      if (!this.modeConfig.externalInputEnabled || this.phase !== GAME_PHASE.SELECTING) {
         return false;
       }
 
-      const position = payload && (payload.selected_position || payload.selectedPosition);
-      const index = this.positionToIndex(position);
+      const answer = payload && (
+        payload.selected_answer
+        || payload.selectedAnswer
+        || payload.selected_position
+        || payload.selectedPosition
+        || payload.selected_index
+        || payload.selectedIndex
+        || payload.answer
+      );
+      const rawTranscript = payload && (payload.raw_transcript || payload.rawTranscript || "");
+      let index = this.externalAnswerToIndex(answer);
+      if (index < 0 && rawTranscript) {
+        index = this.externalAnswerToIndex(rawTranscript);
+      }
 
       this.externalInputs.push({
         input_type: payload.input_type || payload.inputType || "external",
-        selected_position: position,
-        raw_transcript: payload.raw_transcript || payload.rawTranscript || "",
+        selected_answer: answer,
+        selected_position: index >= 0 ? this.indexToPosition(index) : "",
+        selected_index: index,
+        raw_transcript: rawTranscript,
         confidence: payload.confidence || null,
         received_at: new Date().toISOString()
       });
@@ -682,6 +875,98 @@
 
       this.handleCellSelect(index, payload.input_type || "external");
       return true;
+    }
+
+    externalAnswerToIndex(answer) {
+      if (typeof answer === "number") {
+        return this.positionToIndex(answer - 1);
+      }
+
+      if (typeof answer !== "string") {
+        return -1;
+      }
+
+      const trimmed = answer.trim();
+      if (!trimmed) {
+        return -1;
+      }
+
+      const positionIndex = this.positionToIndex(trimmed);
+      if (positionIndex >= 0) {
+        return positionIndex;
+      }
+
+      const numericAnswer = this.parseSpokenNumber(trimmed);
+      if (numericAnswer === null) {
+        return -1;
+      }
+
+      return this.positionToIndex(numericAnswer - 1);
+    }
+
+    parseSpokenNumber(value) {
+      const normalized = String(value)
+        .trim()
+        .replace(/\s+/g, "")
+        .replace(/번째|번|개|칸|위치|전구|정답|답/g, "");
+      const directNumber = Number(normalized);
+
+      if (Number.isInteger(directNumber)) {
+        return directNumber;
+      }
+
+      const koreanNumbers = {
+        "일": 1,
+        "하나": 1,
+        "한개": 1,
+        "한": 1,
+        "이": 2,
+        "둘": 2,
+        "두개": 2,
+        "두": 2,
+        "삼": 3,
+        "셋": 3,
+        "세개": 3,
+        "세": 3,
+        "사": 4,
+        "넷": 4,
+        "네개": 4,
+        "네": 4,
+        "오": 5,
+        "다섯": 5,
+        "육": 6,
+        "여섯": 6,
+        "칠": 7,
+        "일곱": 7,
+        "팔": 8,
+        "여덟": 8,
+        "구": 9,
+        "아홉": 9,
+        "십": 10,
+        "열": 10,
+        "십일": 11,
+        "열하나": 11,
+        "십이": 12,
+        "열둘": 12,
+        "십삼": 13,
+        "열셋": 13,
+        "십사": 14,
+        "열넷": 14,
+        "십오": 15,
+        "열다섯": 15,
+        "십육": 16,
+        "열여섯": 16
+      };
+
+      return koreanNumbers[normalized] || null;
+    }
+
+    indexToPosition(index) {
+      if (typeof index !== "number" || index < 0 || index >= this.difficulty.gridRows * this.difficulty.gridCols) {
+        return "";
+      }
+
+      return "r" + (Math.floor(index / this.difficulty.gridCols) + 1) + "c" + ((index % this.difficulty.gridCols) + 1);
     }
 
     positionToIndex(position) {
@@ -825,7 +1110,11 @@
       }
       const canShowHint = this.phase === GAME_PHASE.SELECTING && this.modeConfig.hintEnabled;
       this.elements.hintButton.hidden = !canShowHint;
-      this.elements.hintButton.disabled = !canShowHint || this.hintActive || this.currentQuestionHintUsed;
+      this.elements.hintButton.disabled = !canShowHint || (!this.keepsHintButtonActive() && (this.hintActive || this.currentQuestionHintUsed));
+    }
+
+    keepsHintButtonActive() {
+      return this.mode === "care" || this.mode === "ai_assisted";
     }
 
     clearHintState() {
@@ -847,7 +1136,7 @@
       }
 
       if (this.elements.hintButton) {
-        this.elements.hintButton.disabled = this.currentQuestionHintUsed;
+        this.elements.hintButton.disabled = !this.keepsHintButtonActive() && this.currentQuestionHintUsed;
       }
 
       if (this.elements.grid) {
@@ -879,6 +1168,7 @@
       this.clearHintState();
       if (this.phase === GAME_PHASE.SELECTING) {
         this.setStatus(this.buildSelectionPrompt());
+        this.scheduleAutoHint();
       }
     }
 
@@ -917,10 +1207,16 @@
       const duration = Math.max(1, durationMs || 3000);
       const initialRemaining = Math.max(0, Math.min(duration, remainingMs === undefined ? duration : remainingMs));
       const start = performance.now();
+      const showPromptSeconds = this.mode !== "care" && this.mode !== "ai_assisted";
       this.memoryGaugeDurationMs = duration;
       this.memoryGaugeEndAt = start + initialRemaining;
-      this.elements.playPrompt.classList.add("has-memory-seconds");
-      this.elements.playPrompt.dataset.memorySeconds = Math.max(0, Math.ceil(initialRemaining / 1000)) + "초";
+      if (showPromptSeconds) {
+        this.elements.playPrompt.classList.add("has-memory-seconds");
+        this.elements.playPrompt.dataset.memorySeconds = Math.max(0, Math.ceil(initialRemaining / 1000)) + "초";
+      } else {
+        this.elements.playPrompt.classList.remove("has-memory-seconds");
+        delete this.elements.playPrompt.dataset.memorySeconds;
+      }
       if (gauge) {
         gauge.hidden = true;
       }
@@ -934,7 +1230,9 @@
       this.setInterval(() => {
         const remaining = Math.max(0, this.memoryGaugeEndAt - performance.now());
         const ratio = duration ? remaining / duration : 0;
-        this.elements.playPrompt.dataset.memorySeconds = Math.max(0, Math.ceil(remaining / 1000)) + "초";
+        if (showPromptSeconds) {
+          this.elements.playPrompt.dataset.memorySeconds = Math.max(0, Math.ceil(remaining / 1000)) + "초";
+        }
         if (fill) {
           fill.style.height = Math.round(ratio * 100) + "%";
         }
@@ -1038,6 +1336,10 @@
         if (this.elements.playPrompt) {
           this.elements.playPrompt.textContent = message;
         }
+        if (this.usesCareGuidedFlow()) {
+          this.elements.statusMessage.textContent = message;
+          return;
+        }
         this.elements.statusMessage.textContent = "방금 켜졌던 전구를 찾아주세요";
         return;
       }
@@ -1074,9 +1376,20 @@
       }
     }
 
-    showRoundTransition(title, subtitle) {
+    showRoundTransition(title, subtitle, note, voiceName) {
+      const delay = Math.max(0, (this.roundTransitionDelayUntil || 0) - performance.now());
+      if (delay > 0) {
+        this.roundTransitionDelayUntil = 0;
+        this.setTimer(() => {
+          if (this.phase === GAME_PHASE.FEEDBACK) {
+            this.showRoundTransition(title, subtitle, note, voiceName);
+          }
+        }, delay);
+        return;
+      }
+
       this.clearPromptFeedback();
-      const message = subtitle ? title + "\n" + subtitle : title;
+      const message = [title, subtitle, note].filter(Boolean).join("\n");
 
       if (this.elements.playArea) {
         this.elements.playArea.classList.add("is-transitioning");
@@ -1098,12 +1411,19 @@
         if (subtitle) {
           lines.push(["round-transition-subtitle", subtitle]);
         }
+        if (note) {
+          lines.push(["round-transition-note", note]);
+        }
         lines.forEach(([className, text]) => {
           const line = document.createElement("span");
           line.className = className;
           line.textContent = text;
           this.elements.roundTransitionMessage.appendChild(line);
         });
+      }
+
+      if (voiceName) {
+        this.audio.play(voiceName);
       }
     }
 
@@ -1125,6 +1445,45 @@
       this.updateHintButton();
     }
 
+    scheduleAutoHint() {
+      this.clearAutoHintTimer();
+      if (
+        this.phase !== GAME_PHASE.SELECTING
+        || !this.modeConfig.hintEnabled
+        || !this.modeConfig.autoHintEnabled
+        || !this.modeConfig.autoHintAfterMs
+        || this.hintActive
+      ) {
+        return;
+      }
+
+      this.autoHintTimer = this.setTimer(() => {
+        this.autoHintTimer = null;
+        if (this.phase !== GAME_PHASE.SELECTING || this.hintActive) {
+          return;
+        }
+        this.setStatus("조금 헷갈릴 수 있어요. 제가 힌트를 드릴게요.");
+        this.showHint();
+      }, this.modeConfig.autoHintAfterMs);
+    }
+
+    resetAutoHintInactivityTimer() {
+      if (!this.modeConfig.autoHintEnabled) {
+        return;
+      }
+
+      this.scheduleAutoHint();
+    }
+
+    clearAutoHintTimer() {
+      if (!this.autoHintTimer) {
+        return;
+      }
+
+      clearTimeout(this.autoHintTimer);
+      this.autoHintTimer = null;
+    }
+
     setTimer(callback, delay) {
       const id = setTimeout(callback, delay);
       this.timers.push(id);
@@ -1144,6 +1503,7 @@
       this.timers = [];
       this.intervals = [];
       this.hintTimer = null;
+      this.autoHintTimer = null;
     }
 
     clearAllTimers() {

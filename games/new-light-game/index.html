@@ -26,13 +26,13 @@
     </script>
     <link rel="stylesheet" href="css/base.css" />
     <link rel="stylesheet" href="css/screens.css?v=20260618-standard-reminder-3" />
-    <link rel="stylesheet" href="css/game-layout.css?v=20260618-left-hud-layout-55" />
+    <link rel="stylesheet" href="css/game-layout.css?v=20260618-play-prompt-outline-1" />
     <link rel="stylesheet" href="css/responsive.css" />
     <link rel="stylesheet" href="css/feedback.css" />
     <link rel="stylesheet" href="css/light-theme.css" />
     <link rel="stylesheet" href="css/modes/standard.css?v=20260618-standard-reminder-3" />
-    <link rel="stylesheet" href="css/modes/reminder.css?v=20260618-standard-reminder-3" />
-    <link rel="stylesheet" href="css/modes/care.css" />
+    <link rel="stylesheet" href="css/modes/reminder.css?v=20260618-reminder-result-fruit-1" />
+    <link rel="stylesheet" href="css/modes/care.css?v=20260618-care-ai-start-actions-1" />
     <link rel="stylesheet" href="css/modes/ai-assisted.css" />
     <link rel="stylesheet" href="css/accessibility.css?v=20260618-mobile-font-thickness" />
   </head>
@@ -50,7 +50,7 @@
         <section class="screen screen-loading is-active" data-screen="loading" aria-labelledby="loadingTitle">
           <div class="screen-center loading-layout">
             <div class="title-wrap">
-              <img class="title-image" src="assets/images/title.png" alt="빛나는 전구를 찾아라" />
+              <img class="title-image" src="assets/images/title.webp" alt="빛나는 전구를 찾아라" />
               <h1 class="title-fallback" id="loadingTitle">빛나는 전구를 찾아라</h1>
             </div>
             <p class="start-loading-message">게임을 준비하고 있어요</p>
@@ -115,7 +115,7 @@
           <button class="secondary-button corner-settings-button optional-settings" type="button" data-screen-target="settings" aria-label="설정"></button>
           <div class="start-layout">
             <div class="title-wrap start-title">
-              <img class="title-image" src="assets/images/title.png" alt="빛나는 전구를 찾아라" />
+              <img class="title-image" src="assets/images/title.webp" alt="빛나는 전구를 찾아라" />
               <h1 class="title-fallback" id="startTitle">빛나는 전구를 찾아라</h1>
             </div>
             <p class="main-copy">위치 기억 활동</p>
@@ -179,16 +179,16 @@
               <div class="tutorial-memory-preview" aria-label="기억 단계 예시 화면">
                 <div class="tutorial-memory-grid" aria-hidden="true">
                   <span class="tutorial-memory-cell is-lit">
-                    <img data-deferred-src="assets/images/turn_on.png" alt="" />
+                    <img data-deferred-src="assets/images/turn_on.webp" alt="" />
                   </span>
                   <span class="tutorial-memory-cell">
-                    <img data-deferred-src="assets/images/turn_off.png" alt="" />
+                    <img data-deferred-src="assets/images/turn_off.webp" alt="" />
                   </span>
                   <span class="tutorial-memory-cell">
-                    <img data-deferred-src="assets/images/turn_off.png" alt="" />
+                    <img data-deferred-src="assets/images/turn_off.webp" alt="" />
                   </span>
                   <span class="tutorial-memory-cell is-lit">
-                    <img data-deferred-src="assets/images/turn_on.png" alt="" />
+                    <img data-deferred-src="assets/images/turn_on.webp" alt="" />
                   </span>
                 </div>
               </div>
@@ -198,16 +198,16 @@
               <div class="tutorial-select-preview" aria-label="선택 단계 예시 화면">
                 <div class="tutorial-select-grid" aria-hidden="true">
                   <span class="tutorial-select-cell is-target">
-                    <img data-deferred-src="assets/images/turn_off.png" alt="" />
+                    <img data-deferred-src="assets/images/turn_off.webp" alt="" />
                   </span>
                   <span class="tutorial-select-cell">
-                    <img data-deferred-src="assets/images/turn_off.png" alt="" />
+                    <img data-deferred-src="assets/images/turn_off.webp" alt="" />
                   </span>
                   <span class="tutorial-select-cell">
-                    <img data-deferred-src="assets/images/turn_off.png" alt="" />
+                    <img data-deferred-src="assets/images/turn_off.webp" alt="" />
                   </span>
                   <span class="tutorial-select-cell is-target">
-                    <img data-deferred-src="assets/images/turn_off.png" alt="" />
+                    <img data-deferred-src="assets/images/turn_off.webp" alt="" />
                   </span>
                 </div>
                 <span class="tutorial-select-hand" aria-hidden="true">👆</span>
@@ -301,7 +301,7 @@
         <section class="screen screen-play" data-screen="play" aria-labelledby="playTitle">
           <h2 class="sr-only" id="playTitle">플레이 화면</h2>
           <header class="game-hud info-bar">
-            <div class="hud-box info-pill hud-progress-pill" role="progressbar" aria-label="진행" aria-valuemin="1" aria-valuemax="10" aria-valuenow="1">
+            <div class="hud-box optional-progress info-pill hud-progress-pill" role="progressbar" aria-label="진행" aria-valuemin="1" aria-valuemax="10" aria-valuenow="1">
               <div class="hud-progress-copy">
                 <span class="hud-progress-label">진행</span>
                 <strong id="hud-progress-current" class="hud-progress-current">1</strong>
@@ -323,6 +323,14 @@
                 <strong class="hud-activity-label">위치 기억 활동</strong>
                 <strong id="hudDifficulty" class="sr-only">쉬움</strong>
               </span>
+            </div>
+            <div class="care-memory-guide" aria-hidden="true">
+              <span class="care-memory-guide-icon">💡</span>
+              <strong>
+                천천히 보고<br />
+                기억한 위치를<br />
+                눌러보세요
+              </strong>
             </div>
             <div class="hud-box optional-timer" id="phaseTimerBox">
               <span>남은 시간</span>
@@ -349,11 +357,11 @@
           </header>
 
           <div class="progress-row">
-            <div class="progress-info">
+            <div class="progress-info optional-progress">
               <span>진행</span>
               <strong id="progressText">0%</strong>
             </div>
-            <div class="progress-track"><div class="progress-fill"></div></div>
+            <div class="progress-track optional-progress"><div class="progress-fill"></div></div>
             <div class="memory-track" aria-label="관찰 시간"><div class="memory-fill" id="memoryFill"></div></div>
             <span id="hintCount" hidden>0회</span>
             <button class="next-button" type="button" aria-label="다음 문제" disabled>다음 <span aria-hidden="true">›</span></button>
@@ -571,12 +579,12 @@
       </div>
     </div>
 
-    <script src="config/gameConfig.js?v=20260618-reminder-flow-1" defer></script>
+    <script src="config/gameConfig.js?v=20260618-external-answer-interface-1" defer></script>
     <script id="questionDataScript" data-src="assets/data/questionData.js" defer></script>
-    <script src="js/audio-display.js" defer></script>
-    <script src="js/result-bridge.js" defer></script>
-    <script src="js/session-board.js" defer></script>
-    <script src="js/play-input.js" defer></script>
-    <script src="js/screen-flow.js?v=20260618-reminder-flow-1" defer></script>
+    <script src="js/audio-display.js?v=20260618-soft-feedback-correct-voice-1" defer></script>
+    <script src="js/result-bridge.js?v=20260618-common-api-db-schema-1" defer></script>
+    <script src="js/session-board.js?v=20260618-common-api-db-schema-1" defer></script>
+    <script src="js/play-input.js?v=20260618-external-answer-interface-2" defer></script>
+    <script src="js/screen-flow.js?v=20260618-immediate-abort-bridge-1" defer></script>
   </body>
 </html>

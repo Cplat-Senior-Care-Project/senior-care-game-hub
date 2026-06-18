@@ -519,10 +519,10 @@
           <p class="card-copy">반짝이는 전구의 위치를 기억한 뒤 뒤집힌 박스에서 다시 찾아 눌러 보는 기억 활동입니다.</p>
         </div>
         <div class="mode-grid" aria-label="New 반짝이는 전구를 찾아라 모드">
-          <a class="mode-link standard" href="games/new-light-game/index.html?mode=standard" data-game-key="new-light-game" data-mode="standard">표준 모드</a>
-          <a class="mode-link reminder" href="games/new-light-game/index.html?mode=reminder" data-game-key="new-light-game" data-mode="reminder">알림 모드</a>
-          <a class="mode-link care" href="games/new-light-game/index.html?mode=care" data-game-key="new-light-game" data-mode="care">케어 모드</a>
-          <a class="mode-link ai_assisted" href="games/new-light-game/index.html?mode=ai_assisted" data-game-key="new-light-game" data-mode="ai_assisted">AI 연동 모드</a>
+          <a class="mode-link standard" href="games/new-light-game/index.html?mode=standard&game_key=light_memory" data-game-key="light_memory" data-mode="standard">표준 모드</a>
+          <a class="mode-link reminder" href="games/new-light-game/index.html?mode=reminder&game_key=light_memory" data-game-key="light_memory" data-mode="reminder">알림 모드</a>
+          <a class="mode-link care" href="games/new-light-game/index.html?mode=care&game_key=light_memory" data-game-key="light_memory" data-mode="care">케어 모드</a>
+          <a class="mode-link ai_assisted" href="games/new-light-game/index.html?mode=ai_assisted&game_key=light_memory" data-game-key="light_memory" data-mode="ai_assisted">AI 연동 모드</a>
         </div>
       </article>
     </section>
@@ -636,6 +636,8 @@
       var latestResult = null;
       var latestResultType = null;
       var events = [];
+      var activeFrameWindow = null;
+      var activeGameKey = "";
 
       var runtimeConfigStorageKeys = {
         "fruit-count-memory-game": "fruit-count-memory-game:runtime-config:v2",
@@ -718,6 +720,28 @@
         };
       }
 
+      function isActiveFrameMessage(event, message) {
+        if (event.source === frame.contentWindow || event.source === activeFrameWindow) {
+          return true;
+        }
+
+        var payload = message && message.payload ? message.payload : {};
+        var payloadGameKey = payload.game_key || payload.gameKey || payload.game_id || payload.gameId || "";
+        if (!activeGameKey || !payloadGameKey) {
+          return false;
+        }
+
+        if (payloadGameKey === activeGameKey) {
+          return true;
+        }
+
+        if (activeGameKey === "fruit-count-memory-game" && payloadGameKey === "counting_fruits") {
+          return true;
+        }
+
+        return false;
+      }
+
       function eventSummary(message) {
         var payload = message.payload || {};
         if (message.type === "SESSION_START") {
@@ -778,6 +802,10 @@
         resetRunState();
         runMeta.textContent = "게임을 불러오는 중입니다.";
         prepareRuntimeConfig(link).then(function () {
+          activeGameKey = link.dataset.gameKey || "";
+          activeFrameWindow = frame.contentWindow;
+          frame.dataset.gameKey = activeGameKey;
+          frame.dataset.mode = link.dataset.mode || "";
           frame.src = link.href;
           openCurrentRun.href = link.href;
           openCurrentRun.setAttribute("aria-disabled", "false");
@@ -794,12 +822,12 @@
       });
 
       window.addEventListener("message", function (event) {
-        if (event.source !== frame.contentWindow) {
+        var message = normalizeMessage(event.data);
+        if (!message) {
           return;
         }
 
-        var message = normalizeMessage(event.data);
-        if (!message) {
+        if (!isActiveFrameMessage(event, message)) {
           return;
         }
 

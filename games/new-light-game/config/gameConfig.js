@@ -43,22 +43,25 @@
     standard: {
       label: "표준모드",
       totalQuestions: 10,
-      exposureTimeMs: 3000,
+      exposureTimeMs: 4000,
       totalLimitMs: null,
       showConditionCheck: true,
       showFinishCheck: true,
       showDifficultySelect: true,
       showSettings: true,
       showHowTo: true,
+      showProgress: true,
       showScore: true,
       showTimer: true,
       showReplay: true,
+      replayLimit: 0,
       allowConditionSkip: true,
       allowFinishSkip: true,
       hintEnabled: true,
       autoHintEnabled: false,
       autoReturnMs: 0,
       autoHintAfterMs: 0,
+      positionHintType: "highlight",
       flashEffectLevel: "normal",
       highContrast: true,
       softFeedback: true,
@@ -68,22 +71,25 @@
     reminder: {
       label: "알림모드",
       totalQuestions: 10,
-      exposureTimeMs: 3000,
+      exposureTimeMs: 4000,
       totalLimitMs: null,
       showConditionCheck: false,
       showFinishCheck: false,
       showDifficultySelect: false,
       showSettings: true,
       showHowTo: true,
+      showProgress: true,
       showScore: true,
       showTimer: true,
       showReplay: true,
+      replayLimit: 0,
       allowConditionSkip: true,
       allowFinishSkip: true,
       hintEnabled: true,
       autoHintEnabled: false,
       autoReturnMs: 0,
       autoHintAfterMs: 0,
+      positionHintType: "highlight",
       flashEffectLevel: "normal",
       highContrast: true,
       softFeedback: true,
@@ -93,23 +99,25 @@
     care: {
       label: "케어모드",
       totalQuestions: 4,
-      exposureTimeMs: 3000,
-      totalLimitMs: 2 * 60 * 1000,
+      exposureTimeMs: 6000,
+      totalLimitMs: 1 * 60 * 1000,
       showConditionCheck: false,
       showFinishCheck: false,
       showDifficultySelect: false,
-      showSettings: false,
+      showSettings: true,
       showHowTo: false,
+      showProgress: false,
       showScore: false,
       showTimer: false,
       showReplay: false,
+      replayLimit: 0,
       allowConditionSkip: true,
       allowFinishSkip: true,
       hintEnabled: true,
       autoHintEnabled: true,
       autoReturnMs: 0,
-      autoHintAfterMs: 40000,
-      difficultyOverride: "care_fixed",
+      autoHintAfterMs: 10000,
+      positionHintType: "highlight",
       flashEffectLevel: "low",
       highContrast: true,
       softFeedback: true,
@@ -119,23 +127,25 @@
     ai_assisted: {
       label: "AI 연동모드",
       totalQuestions: 4,
-      exposureTimeMs: 3000,
-      totalLimitMs: 2 * 60 * 1000,
+      exposureTimeMs: 6000,
+      totalLimitMs: 1 * 60 * 1000,
       showConditionCheck: false,
       showFinishCheck: false,
       showDifficultySelect: false,
-      showSettings: false,
+      showSettings: true,
       showHowTo: false,
+      showProgress: false,
       showScore: false,
       showTimer: false,
       showReplay: false,
+      replayLimit: 0,
       allowConditionSkip: true,
       allowFinishSkip: true,
       hintEnabled: true,
       autoHintEnabled: true,
       autoReturnMs: 0,
-      autoHintAfterMs: 40000,
-      difficultyOverride: "care_fixed",
+      autoHintAfterMs: 10000,
+      positionHintType: "highlight",
       flashEffectLevel: "low",
       highContrast: true,
       softFeedback: true,
@@ -215,18 +225,47 @@
     return fallback;
   }
 
+  function normalizeConfigObject(value) {
+    if (!value) {
+      return {};
+    }
+
+    if (typeof value === "string") {
+      try {
+        const parsed = JSON.parse(value);
+        return parsed && typeof parsed === "object" ? parsed : {};
+      } catch (error) {
+        return {};
+      }
+    }
+
+    return typeof value === "object" ? value : {};
+  }
+
   function getRuntimeConfig() {
     const params = new URLSearchParams(global.location.search);
     const external = global.HD_GAME_CONFIG || {};
-    const nestedConfig = external.config || {};
-    const merged = Object.assign({}, DEFAULT_APP_CONFIG, nestedConfig, external);
+    const urlConfig = {};
 
     params.forEach((value, key) => {
-      merged[key] = value;
+      urlConfig[key] = value;
     });
+
+    const nestedConfig = Object.assign(
+      {},
+      normalizeConfigObject(external.config),
+      normalizeConfigObject(urlConfig.config)
+    );
+    const explicitConfig = Object.assign({}, nestedConfig, external, urlConfig);
+    const merged = Object.assign({}, DEFAULT_APP_CONFIG, explicitConfig);
 
     if (!MODE_CONFIG[merged.mode]) {
       merged.mode = DEFAULT_APP_CONFIG.mode;
+    }
+
+    const explicitDifficulty = pickValue(explicitConfig, ["difficulty", "difficulty_key", "difficultyKey", "difficulty_config", "difficultyConfig", "dfficulty_config", "dfficultyConfig"], null);
+    if (explicitDifficulty !== null) {
+      merged.difficulty = explicitDifficulty;
     }
 
     if (!DIFFICULTY_CONFIG[merged.difficulty]) {
@@ -251,9 +290,11 @@
         showDifficultySelect: normalizeBoolean(pickValue(merged, ["show_difficulty_select", "showDifficultySelect"], null), modeConfig.showDifficultySelect),
         showSettings: normalizeBoolean(pickValue(merged, ["show_settings", "showSettings"], null), modeConfig.showSettings),
         showHowTo: normalizeBoolean(pickValue(merged, ["show_how_to_play", "showHowTo"], null), modeConfig.showHowTo),
+        showProgress: normalizeBoolean(pickValue(merged, ["show_progress", "showProgress"], null), modeConfig.showProgress),
         showConditionCheck: normalizeBoolean(pickValue(merged, ["show_condition_check", "showConditionCheck"], null), modeConfig.showConditionCheck),
         showFinishCheck: normalizeBoolean(pickValue(merged, ["show_finish_check", "showFinishCheck"], null), modeConfig.showFinishCheck),
         showReplay: normalizeBoolean(pickValue(merged, ["show_replay", "allow_replay", "showReplay"], null), modeConfig.showReplay),
+        replayLimit: normalizeNumber(pickValue(merged, ["replay_limit", "replayLimit"], null), modeConfig.replayLimit),
         allowConditionSkip: normalizeBoolean(pickValue(merged, ["allow_condition_skip", "allowConditionSkip"], null), modeConfig.allowConditionSkip),
         allowFinishSkip: normalizeBoolean(pickValue(merged, ["allow_finish_skip", "allowFinishSkip"], null), modeConfig.allowFinishSkip),
         hintEnabled: normalizeBoolean(pickValue(merged, ["hint_enabled", "hintEnabled"], null), modeConfig.hintEnabled),
@@ -267,12 +308,13 @@
         gridCols: normalizeNumber(pickValue(merged, ["grid_cols", "gridCols"], null), null),
         targetCount: normalizeNumber(pickValue(merged, ["target_count", "targetCount"], null), null),
         maxTargetCount: normalizeNumber(pickValue(merged, ["max_target_count", "maxTargetCount"], null), null),
+        positionHintType: pickValue(merged, ["position_hint_type", "positionHintType"], modeConfig.positionHintType),
         resultLogLevel: pickValue(merged, ["result_log_level", "resultLogLevel"], modeConfig.resultLogLevel),
         flashEffectLevel: pickValue(merged, ["flash_effect_level", "flashEffectLevel"], modeConfig.flashEffectLevel),
         highContrast: normalizeBoolean(merged.high_contrast, modeConfig.highContrast),
         softFeedback: normalizeBoolean(pickValue(merged, ["soft_feedback", "softFeedback"], null), modeConfig.softFeedback),
         voiceGuideEnabled: normalizeBoolean(pickValue(merged, ["voice_guide_enabled", "voiceGuideEnabled"], null), modeConfig.voiceGuideEnabled),
-        externalInputEnabled: normalizeBoolean(pickValue(merged, ["external_input_enabled", "externalVoiceTextInput"], null), Boolean(modeConfig.externalVoiceTextInput))
+        externalInputEnabled: normalizeBoolean(pickValue(merged, ["external_input_enabled", "externalInputEnabled", "external_voice_text_input", "externalVoiceTextInput"], null), Boolean(modeConfig.externalVoiceTextInput))
       }),
       difficultyConfig: difficultyConfig,
       highContrast: normalizeBoolean(merged.high_contrast, modeConfig.highContrast)

@@ -23,8 +23,9 @@
   let conditionData = runtime.modeConfig.showConditionCheck ? {} : { skipped: true };
   let tutorialReturnScreen = "start";
   let orientationAutoPauseActive = false;
-  let startCountdownIntroTimer = null;
   let startCountdownFrame = null;
+  let hubMirrorFallbackActive = false;
+  let lastSentResultKey = "";
   const postConditionModal = document.getElementById("post-condition-modal");
 
   const conditionState = {
@@ -42,7 +43,7 @@
   };
 
   function registerPlayBulbAssets() {
-    const paths = ["assets/images/turn_on.png", "assets/images/turn_off.png"];
+    const paths = ["assets/images/turn_on.webp", "assets/images/turn_off.webp"];
     let loadedCount = 0;
     let failed = false;
 
@@ -91,9 +92,10 @@
   let settings = {
     music: true,
     sfx: true,
-    voice: true,
+    voice: runtime.modeConfig.voiceGuideEnabled !== false,
     score: true
   };
+  audio.setVoiceEnabled(settings.voice);
 
   function sleepIndexAt(offset) {
     const length = CONDITION_SLEEP_HOURS.length;
@@ -231,6 +233,7 @@
     },
     onExit: (result) => {
       pendingResult = result || window.__LAST_GAME_RESULT__;
+      sendSessionResult(pendingResult);
       showFinishCheck(pendingResult);
     }
   });
@@ -345,6 +348,9 @@
     if (name !== "play") {
       clearForcedPlayScreen();
     }
+    if (name === "start") {
+      audio.playBackground({ fadeIn: true });
+    }
   }
 
   function clearForcedPlayScreen() {
@@ -378,6 +384,7 @@
     const duration = 1800;
     let activeElapsed = 0;
     let lastFrameAt = performance.now();
+    audio.primeBackground();
 
     function update(now) {
       updateStageScale();
@@ -406,6 +413,8 @@
 
       setTimeout(() => {
         waitForLandscapeOrientation().then(() => {
+          audio.playBackground({ fadeIn: true });
+
           if (runtime.modeConfig.showConditionCheck) {
             openConditionCheck();
             return;
@@ -433,6 +442,7 @@
     toggleOptional(".optional-difficulty-label", runtime.modeConfig.showDifficultySelect || runtime.mode === "standard");
     toggleOptional(".optional-settings", runtime.modeConfig.showSettings);
     toggleOptional(".optional-howto", runtime.modeConfig.showHowTo);
+    toggleOptional(".optional-progress", runtime.modeConfig.showProgress);
     toggleOptional(".optional-score", runtime.modeConfig.showScore && settings.score);
     toggleOptional(".optional-timer", runtime.modeConfig.showTimer);
     toggleOptional(".optional-replay", runtime.modeConfig.showReplay);
@@ -459,11 +469,6 @@
   }
 
   function clearStartCountdown() {
-    if (startCountdownIntroTimer) {
-      window.clearTimeout(startCountdownIntroTimer);
-      startCountdownIntroTimer = null;
-    }
-
     if (startCountdownFrame) {
       window.cancelAnimationFrame(startCountdownFrame);
       startCountdownFrame = null;
@@ -512,10 +517,34 @@
       countdownElements.message.textContent = "게임이 곧 시작돼요!";
     }
 
-    startCountdownIntroTimer = window.setTimeout(() => {
-      startCountdownIntroTimer = null;
-      beginReadyCountdown();
-    }, START_READY_MESSAGE_TIME);
+    audio.play("readyVoice");
+    runStartCountdownIntro();
+  }
+
+  function runStartCountdownIntro() {
+    let remainingMs = START_READY_MESSAGE_TIME;
+    let lastFrameAt = performance.now();
+
+    function updateIntro(now) {
+      if (isPortraitViewport()) {
+        lastFrameAt = now;
+        startCountdownFrame = window.requestAnimationFrame(updateIntro);
+        return;
+      }
+
+      remainingMs -= Math.max(0, now - lastFrameAt);
+      lastFrameAt = now;
+
+      if (remainingMs <= 0) {
+        startCountdownFrame = null;
+        beginReadyCountdown();
+        return;
+      }
+
+      startCountdownFrame = window.requestAnimationFrame(updateIntro);
+    }
+
+    startCountdownFrame = window.requestAnimationFrame(updateIntro);
   }
 
   function prepareCountdownHud() {
@@ -557,14 +586,23 @@
     }
 
     countdownElements.layer.classList.remove("is-intro");
-    let startedAt = performance.now();
+    let activeElapsed = 0;
+    let lastFrameAt = performance.now();
     let lastDisplaySeconds = null;
 
     function updateCountdown(now) {
-      const elapsed = Math.max(0, now - startedAt);
-      const remaining = Math.max(0, START_COUNTDOWN_TIME - elapsed);
+      if (isPortraitViewport()) {
+        lastFrameAt = now;
+        startCountdownFrame = window.requestAnimationFrame(updateCountdown);
+        return;
+      }
+
+      activeElapsed += Math.max(0, now - lastFrameAt);
+      lastFrameAt = now;
+
+      const remaining = Math.max(0, START_COUNTDOWN_TIME - activeElapsed);
       const displaySeconds = Math.max(1, Math.ceil(remaining / 1000));
-      const secondProgress = (elapsed % 1000) / 1000;
+      const secondProgress = (activeElapsed % 1000) / 1000;
       const angle = secondProgress * 360;
 
       countdownElements.number.textContent = String(displaySeconds);
@@ -577,6 +615,7 @@
 
       if (remaining <= 0) {
         countdownElements.timer.style.setProperty("--countdown-angle", "360deg");
+        audio.play("start");
         clearStartCountdown();
         beginGame();
         return;
@@ -585,12 +624,13 @@
       startCountdownFrame = window.requestAnimationFrame(updateCountdown);
     }
 
-    updateCountdown(startedAt);
+    updateCountdown(lastFrameAt);
   }
 
   function beginGame() {
     audio.unlock();
     pendingResult = null;
+    lastSentResultKey = "";
     closeFinishCheck();
     document.getElementById("pauseHelpPanel").hidden = true;
     showScreen("play");
@@ -598,11 +638,17 @@
       schemaVersion: "1.0.0",
       sentAt: new Date().toISOString(),
       sessionId: sessionMeta.sessionId,
+      session_id: sessionMeta.sessionId,
       contentId: sessionMeta.contentId,
+      content_id: sessionMeta.contentId,
       gameKey: sessionMeta.gameKey,
+      game_key: sessionMeta.gameKey,
+      game_version: sessionMeta.gameVersion,
+      play_source: sessionMeta.playSource,
       type: "GAME_STARTED",
       status: "started",
       mode: runtime.mode,
+      app_mode: runtime.mode,
       difficulty: currentDifficulty
     }, "GAME_STARTED");
     game.start({
@@ -648,6 +694,7 @@
 
   function showFinishCheck(result) {
     pendingResult = result || pendingResult || window.__LAST_GAME_RESULT__ || null;
+    audio.pauseBackground();
     if (!runtime.modeConfig.showFinishCheck || finishCheckState.checkShown) {
       markFinishCheckSkipped();
       showResult(pendingResult);
@@ -749,28 +796,92 @@
   }
 
   function showResult(result) {
+    audio.pauseBackground();
     closeFinishCheck();
     renderResult(result);
     showScreen("result");
+    audio.play("complete");
 
-    if (runtime.modeConfig.autoReturnMs) {
+    const autoReturnMs = isCompactResultMode() && !runtime.modeConfig.autoReturnMs ? 3000 : runtime.modeConfig.autoReturnMs;
+    if (autoReturnMs) {
       setTimeout(() => {
         finishToHost();
-      }, runtime.modeConfig.autoReturnMs);
+      }, autoReturnMs);
     }
   }
 
   function renderResult(result) {
     const safeResult = result || {};
-    document.getElementById("resultTotal").textContent = safeResult.total_questions || 0;
-    document.getElementById("resultCorrect").textContent = safeResult.correct_count || 0;
-    document.getElementById("resultRate").textContent = (safeResult.success_rate || 0) + "%";
-    document.getElementById("resultHintCount").textContent = (safeResult.hint_triggered_count || 0) + "회";
+    const resultMessage = isCompactResultMode() ? createCompactResultMessage(safeResult) : null;
+    const totalQuestions = safeResult.total_questions || 0;
+    const correctCount = safeResult.correct_count || 0;
+    const successRate = typeof safeResult.success_rate === "number"
+      ? safeResult.success_rate
+      : totalQuestions
+        ? Math.round((correctCount / totalQuestions) * 100)
+        : 0;
+    const hintCount = typeof safeResult.hint_triggered_count === "number"
+      ? safeResult.hint_triggered_count
+      : safeResult.hint_count || 0;
+
+    document.getElementById("resultTotal").textContent = totalQuestions;
+    document.getElementById("resultCorrect").textContent = correctCount;
+    document.getElementById("resultRate").textContent = successRate + "%";
+    document.getElementById("resultHintCount").textContent = hintCount + "회";
     document.getElementById("resultCompare").textContent = "오늘 첫 기록을 남겼어요";
-    document.getElementById("resultMessage").textContent = safeResult.exitReason === "total_timeout"
-      ? "정해진 시간이 지나 활동을 마쳤어요."
-      : "천천히 집중해주신 것만으로도 참 좋습니다.";
+    if (resultMessage) {
+      document.getElementById("resultEmoji").textContent = resultMessage.emoji;
+      document.getElementById("resultTitle").textContent = resultMessage.title;
+      renderResultMessage(resultMessage.message);
+    } else {
+      document.getElementById("resultMessage").textContent = ["total_timeout", "time_over"].includes(safeResult.exitReason || safeResult.abandon_reason)
+        ? "정해진 시간이 지나 활동을 마쳤어요."
+        : "천천히 집중해주신 것만으로도 참 좋습니다.";
+    }
     applyRuntimeMode();
+  }
+
+  function isCompactResultMode() {
+    return runtime.mode === "reminder" || runtime.mode === "care" || runtime.mode === "ai_assisted";
+  }
+
+  function createCompactResultMessage(result) {
+    const rounds = Array.isArray(result.question_results)
+      ? result.question_results
+      : result.resultDetail && Array.isArray(result.resultDetail.rounds)
+        ? result.resultDetail.rounds
+        : Array.isArray(result.question_logs)
+          ? result.question_logs
+          : [];
+    const totalAnswered = rounds.length || result.played_round_count || result.completed_count || 0;
+
+    if (totalAnswered === 0) {
+      return {
+        emoji: "🤗",
+        title: "괜찮습니다.",
+        message: "편안한 때에 다시 이어가면 됩니다."
+      };
+    }
+
+    return {
+      emoji: "🤗",
+      title: "수고 많으셨습니다.",
+      message: "오늘도 차분히 집중해 주셨어요."
+    };
+  }
+
+  function renderResultMessage(message) {
+    const sentenceBreak = ". ";
+    const lines = message.includes(sentenceBreak) ? message.split(sentenceBreak) : [message];
+    const firstLine = lines.length > 1 ? lines[0] + "." : lines[0];
+    const secondLine = lines.length > 1 ? lines.slice(1).join(sentenceBreak) : "";
+    const renderedLines = secondLine ? [firstLine, secondLine] : [firstLine];
+    const nodes = renderedLines.flatMap((line, index) => {
+      const textNode = document.createTextNode(line);
+      return index === 0 ? [textNode] : [document.createElement("br"), textNode];
+    });
+
+    document.getElementById("resultMessage").replaceChildren(...nodes);
   }
 
   function formatSeconds(milliseconds) {
@@ -778,23 +889,348 @@
     return seconds.toFixed(seconds >= 10 ? 0 : 1) + "초";
   }
 
-  function finishToHost() {
-    sendBridgeMessage(window.__LAST_GAME_RESULT__ || pendingResult, (window.__LAST_GAME_RESULT__ || pendingResult || {}).type || "GAME_COMPLETED");
+  function finishToHost(resultOverride) {
+    const result = resultOverride || window.__LAST_GAME_RESULT__ || pendingResult;
+    if (result) {
+      sendSessionResult(result);
+    } else {
+      sendBridgeMessage(createAbandonedResultPayload("manual"), "SESSION_ABORT");
+      sendBridgeMessage(createExitRequestPayload("manual"), "GAME_EXIT_REQUESTED");
+    }
     closeFinishCheck();
-    showScreen("start");
+    scheduleReturnToHub();
+  }
+
+  function getModePlaySource() {
+    const modePlaySource = {
+      standard: "manual",
+      reminder: "reminder",
+      care: "care_session",
+      ai_assisted: "ai_recommendation"
+    };
+
+    return sessionMeta.playSource || modePlaySource[runtime.mode] || "manual";
+  }
+
+  function createAbandonedResultPayload(source) {
+    const now = new Date().toISOString();
+    const gameResult = {
+      status: "abandoned",
+      mode: runtime.mode,
+      app_mode: runtime.mode,
+      game_mode: "position_memory",
+      difficulty: currentDifficulty,
+      total_questions: 0,
+      completed_question_count: 0,
+      correct_count: 0,
+      wrong_count: 0,
+      hint_count: 0,
+      retry_count: 0,
+      pause_count: 0,
+      interaction_count: 0,
+      avg_response_time_ms: 0,
+      completion_rate: 0,
+      completed: false,
+      exit_reason: source === "time_over" ? "time_over" : "user_exit",
+      abandoned_at: now,
+      abandon_reason: source === "time_over" ? "time_over" : "user_exit",
+      error_code: null,
+      error_message: null,
+      error_phase: null,
+      question_logs: [],
+      result_detail_json: {},
+      process_data_json: {}
+    };
+
+    return {
+      session_id: sessionMeta.sessionId,
+      senior_id: sessionMeta.seniorId || sessionMeta.userId || sessionMeta.anonymousUserId || null,
+      user_id: sessionMeta.userId || null,
+      anonymous_user_id: sessionMeta.anonymousUserId || null,
+      guardian_id: sessionMeta.guardianId,
+      assignment_id: sessionMeta.assignmentId,
+      alarm_id: sessionMeta.alarmId,
+      schedule_id: sessionMeta.scheduleId,
+      tenant_id: sessionMeta.tenantId,
+      facility_id: sessionMeta.facilityId,
+      program_id: sessionMeta.programId,
+      reward_id: sessionMeta.rewardId,
+      recommendation_id: sessionMeta.recommendationId,
+      content_id: sessionMeta.contentId,
+      game_key: sessionMeta.gameKey,
+      game_version: sessionMeta.gameVersion || "1.0.0",
+      play_source: getModePlaySource(),
+      status: "abandoned",
+      mode: runtime.mode,
+      app_mode: runtime.mode,
+      game_mode: "position_memory",
+      difficulty: currentDifficulty,
+      started_at: now,
+      ended_at: now,
+      duration_ms: 0,
+      total_questions: 0,
+      completed_question_count: 0,
+      correct_count: 0,
+      wrong_count: 0,
+      hint_count: 0,
+      retry_count: 0,
+      pause_count: 0,
+      interaction_count: 0,
+      avg_response_time_ms: 0,
+      completion_rate: 0,
+      exit_reason: gameResult.exit_reason,
+      abandoned_at: now,
+      abandon_reason: gameResult.abandon_reason,
+      error_code: null,
+      error_message: null,
+      error_phase: null,
+      question_logs: [],
+      result_detail_json: {},
+      process_data_json: {},
+      client_context: sessionMeta.clientContext,
+      voice_context: sessionMeta.voiceContext,
+      meta: sessionMeta.meta,
+      game_result: gameResult,
+      game_result_json: gameResult
+    };
+  }
+
+  function createExitRequestPayload(source) {
+    return {
+      schemaVersion: "1.0.0",
+      sentAt: new Date().toISOString(),
+      sessionId: sessionMeta.sessionId,
+      session_id: sessionMeta.sessionId,
+      contentId: sessionMeta.contentId,
+      content_id: sessionMeta.contentId,
+      gameKey: sessionMeta.gameKey,
+      game_key: sessionMeta.gameKey,
+      game_version: sessionMeta.gameVersion,
+      play_source: sessionMeta.playSource,
+      type: "GAME_EXIT_REQUESTED",
+      status: "exit_requested",
+      mode: runtime.mode,
+      app_mode: runtime.mode,
+      source: source || "manual"
+    };
+  }
+
+  function returnToHub() {
+    window.location.href = new URL("../../index.html", window.location.href).href;
+  }
+
+  function requestExitToHub(source) {
+    game.stop("user_exit");
+    pendingResult = createAbandonedResultPayload(source || "start");
+    window.__LAST_GAME_RESULT__ = pendingResult;
+    sendSessionResult(pendingResult);
+    sendBridgeMessage(createExitRequestPayload(source), "GAME_EXIT_REQUESTED");
+    closeFinishCheck();
+    scheduleReturnToHub();
+  }
+
+  function createResultSendKey(result) {
+    if (!result) {
+      return "";
+    }
+
+    return [
+      result.session_id || result.sessionId || sessionMeta.sessionId,
+      result.status || "",
+      result.ended_at || result.endedAt || result.abandoned_at || ""
+    ].join(":");
+  }
+
+  function sendSessionResult(result) {
+    if (!result) {
+      return false;
+    }
+
+    const key = createResultSendKey(result);
+    if (key && key === lastSentResultKey) {
+      return false;
+    }
+
+    lastSentResultKey = key;
+    sendBridgeMessage(result, resolveSessionEventType(result));
+    return true;
   }
 
   function sendBridgeMessage(result, fallbackType) {
-    const payload = result && result.schemaVersion ? result : { type: fallbackType, result: result || null };
-
-    try {
-      window.parent.postMessage(payload, "*");
-    } catch (error) {
-      if (payload && payload.resultDetail) {
-        payload.completeSendFailed = true;
+    const isResultPayload = result && (result.schemaVersion || result.session_id || result.question_logs || result.result_detail_json);
+    const payload = { type: fallbackType, payload: result || null };
+    const targets = [
+      {
+        name: "ReactNativeWebView",
+        post: () => {
+          if (window.ReactNativeWebView && typeof window.ReactNativeWebView.postMessage === "function") {
+            window.ReactNativeWebView.postMessage(JSON.stringify(payload));
+          }
+        }
+      },
+      {
+        name: "parent",
+        post: () => {
+          if (window.parent && window.parent !== window && typeof window.parent.postMessage === "function") {
+            window.parent.postMessage(payload, "*");
+          }
+        }
+      },
+      {
+        name: "opener",
+        post: () => {
+          if (window.opener && !window.opener.closed && typeof window.opener.postMessage === "function") {
+            window.opener.postMessage(payload, "*");
+          }
+        }
       }
-      console.error("completeSendFailed", error);
+    ];
+
+    targets.forEach((target) => {
+      try {
+        target.post();
+      } catch (error) {
+        if (isResultPayload && result) {
+          result.complete_send_failed = true;
+        }
+        console.error("completeSendFailed:" + target.name, error);
+      }
+    });
+
+    if (window.console) {
+      console.log("[light game bridge] " + fallbackType, result || null);
     }
+
+    mirrorBridgeMessageToHub(payload);
+  }
+
+  function normalizeBridgeMessageForHub(message) {
+    const payload = message && message.payload ? message.payload : {};
+    let type = message && message.type ? message.type : "";
+
+    if (type === "GAME_READY") {
+      type = "READY";
+    }
+    if (type === "GAME_STARTED") {
+      type = "SESSION_START";
+    }
+    if (type === "GAME_EXIT_REQUESTED") {
+      type = "RETURN_TO_APP";
+    }
+    if (type === "GAME_ERROR") {
+      type = "ERROR";
+    }
+    if (type === "GAME_COMPLETED") {
+      type = payload.status === "abandoned" || payload.status === "error" ? "SESSION_ABORT" : "SESSION_COMPLETE";
+    }
+
+    return {
+      type,
+      rawType: message.type,
+      payload
+    };
+  }
+
+  function appendMirroredHubEvent(parentDocument, normalizedMessage) {
+    const eventLog = parentDocument.getElementById("hub-event-log");
+    if (!eventLog) {
+      return;
+    }
+
+    const emptyLog = eventLog.querySelector(".empty-log");
+    if (emptyLog) {
+      emptyLog.remove();
+    }
+
+    const row = parentDocument.createElement("details");
+    const summary = parentDocument.createElement("summary");
+    const index = eventLog.querySelectorAll(".event-row").length + 1;
+    const number = parentDocument.createElement("span");
+    const label = parentDocument.createElement("strong");
+    const time = parentDocument.createElement("time");
+    const pre = parentDocument.createElement("pre");
+
+    row.className = "event-row";
+    row.dataset.lightGameFallback = "true";
+    number.textContent = String(index);
+    label.textContent = normalizedMessage.type;
+    time.textContent = new Date().toLocaleTimeString();
+    pre.textContent = JSON.stringify(normalizedMessage.payload || {}, null, 2);
+    summary.append(number, label, time);
+    row.append(summary, pre);
+    eventLog.prepend(row);
+  }
+
+  function mirrorBridgeMessageToHub(message) {
+    window.setTimeout(() => {
+      try {
+        if (!window.parent || window.parent === window || !window.parent.document) {
+          return;
+        }
+
+        const parentDocument = window.parent.document;
+        const eventLog = parentDocument.getElementById("hub-event-log");
+        const resultJson = parentDocument.getElementById("latest-result-json");
+        if (!eventLog && !resultJson) {
+          return;
+        }
+
+        const normalizedMessage = normalizeBridgeMessageForHub(message);
+        const isResultEvent = normalizedMessage.type === "SESSION_COMPLETE" || normalizedMessage.type === "SESSION_ABORT";
+        const sessionId = normalizedMessage.payload && (normalizedMessage.payload.session_id || normalizedMessage.payload.sessionId);
+        const resultAlreadyRendered = Boolean(
+          isResultEvent
+          && resultJson
+          && sessionId
+          && resultJson.textContent
+          && resultJson.textContent.includes(sessionId)
+        );
+        const eventAlreadyRendered = Boolean(
+          eventLog
+          && eventLog.querySelector(".event-row")
+          && !hubMirrorFallbackActive
+        );
+
+        if (!isResultEvent && eventAlreadyRendered) {
+          return;
+        }
+        if (isResultEvent && resultAlreadyRendered) {
+          return;
+        }
+
+        hubMirrorFallbackActive = true;
+        appendMirroredHubEvent(parentDocument, normalizedMessage);
+
+        if (isResultEvent && resultJson) {
+          resultJson.textContent = JSON.stringify({
+            type: normalizedMessage.type,
+            payload: normalizedMessage.payload || {}
+          }, null, 2);
+          const saveResultButton = parentDocument.getElementById("save-result-button");
+          if (saveResultButton) {
+            saveResultButton.disabled = false;
+          }
+        }
+      } catch (error) {
+        if (window.console) {
+          console.warn("[light game bridge] hub fallback skipped", error);
+        }
+      }
+    }, 160);
+  }
+
+  function scheduleReturnToHub() {
+    window.setTimeout(returnToHub, 900);
+  }
+
+  function resolveSessionEventType(result) {
+    if (result && result.status === "completed") {
+      return "SESSION_COMPLETE";
+    }
+    if (result && result.status === "error") {
+      return "GAME_ERROR";
+    }
+    return "SESSION_ABORT";
   }
 
   function updateTutorial() {
@@ -1007,6 +1443,15 @@
     button.addEventListener("click", () => selectPostConditionOption(button));
   });
 
+  document.addEventListener("click", (event) => {
+    const button = event.target.closest("button");
+    if (!button || button.disabled || button.classList.contains("bulb-card")) {
+      return;
+    }
+
+    audio.play("button");
+  }, true);
+
   difficultyCards.forEach((card) => {
     card.addEventListener("click", () => {
       selectDifficulty(card.dataset.difficulty);
@@ -1032,8 +1477,16 @@
     openDifficultySelect();
   });
   document.getElementById("hintButton").addEventListener("click", () => game.showHint());
-  document.getElementById("pauseButton").addEventListener("click", () => game.pause());
-  document.getElementById("resumeButton").addEventListener("click", () => game.resume());
+  document.getElementById("pauseButton").addEventListener("click", () => {
+    audio.pauseBackground();
+    audio.pauseActiveVoice();
+    game.pause();
+  });
+  document.getElementById("resumeButton").addEventListener("click", () => {
+    audio.playBackground({ fadeIn: true });
+    audio.resumeActiveVoice();
+    game.resume();
+  });
   document.getElementById("pauseRestartButton").addEventListener("click", startReadyCountdown);
   document.getElementById("pauseHomeButton").addEventListener("click", () => game.exitToHome());
   document.getElementById("pauseHowtoButton").addEventListener("click", () => {
@@ -1048,8 +1501,8 @@
   document.getElementById("finishSubmit").addEventListener("click", submitFinishCheck);
   document.getElementById("finishSkip").addEventListener("click", skipFinishCheck);
   document.getElementById("resultStartButton").addEventListener("click", () => showScreen("start"));
-  document.getElementById("resultHomeButton").addEventListener("click", finishToHost);
-  document.getElementById("startReturnButton").addEventListener("click", finishToHost);
+  document.getElementById("resultHomeButton").addEventListener("click", () => finishToHost());
+  document.getElementById("startReturnButton").addEventListener("click", () => requestExitToHub("start"));
 
   document.getElementById("tutorialClose").addEventListener("click", () => {
     if (tutorialIndex > 0) {
@@ -1088,6 +1541,12 @@
       if (key === "sfx") {
         audio.setEnabled(settings[key]);
       }
+      if (key === "music") {
+        audio.setMusicEnabled(settings[key]);
+      }
+      if (key === "voice") {
+        audio.setVoiceEnabled(settings[key]);
+      }
       if (key === "score") {
         applyRuntimeMode();
       }
@@ -1124,6 +1583,22 @@
   selectDifficulty(currentDifficulty);
   renderConditionSleepDial();
   updateTutorial();
+  sendBridgeMessage({
+    schemaVersion: "1.0.0",
+    sentAt: new Date().toISOString(),
+    sessionId: sessionMeta.sessionId,
+    session_id: sessionMeta.sessionId,
+    contentId: sessionMeta.contentId,
+    content_id: sessionMeta.contentId,
+    gameKey: sessionMeta.gameKey,
+    game_key: sessionMeta.gameKey,
+    game_version: sessionMeta.gameVersion,
+    play_source: sessionMeta.playSource,
+    status: "ready",
+    mode: runtime.mode,
+    app_mode: runtime.mode,
+    difficulty: currentDifficulty
+  }, "GAME_READY");
   waitForLandscapeOrientation().then(() => loadDeferredGameAssets()).then(() => {
     registerPlayBulbAssets();
     startLoading();

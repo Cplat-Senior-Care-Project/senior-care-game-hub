@@ -4,26 +4,63 @@
   class GameAudio {
     constructor() {
       this.enabled = true;
+      this.musicEnabled = true;
+      this.voiceEnabled = true;
       this.context = null;
       this.masterGain = null;
+      this.backgroundAudio = null;
+      this.backgroundRestartTimer = null;
+      this.backgroundFadeTimer = null;
+      this.backgroundVolume = 0.28;
+      this.activeVoiceAudio = null;
+      this.pausedVoiceAudio = null;
     }
 
     setEnabled(enabled) {
       this.enabled = Boolean(enabled);
     }
 
-    unlock() {
-      if (!this.enabled) {
-        return;
-      }
+    setMusicEnabled(enabled) {
+      this.musicEnabled = Boolean(enabled);
 
-      const context = this.getContext();
-      if (context && context.state === "suspended") {
-        context.resume();
+      if (this.musicEnabled) {
+        this.playBackground({ fadeIn: true });
+      } else {
+        this.pauseBackground();
       }
     }
 
+    setVoiceEnabled(enabled) {
+      this.voiceEnabled = Boolean(enabled);
+    }
+
+    unlock() {
+      if (this.enabled) {
+        const context = this.getContext();
+        if (context && context.state === "suspended") {
+          context.resume();
+        }
+      }
+
+      this.playBackground({ fadeIn: true });
+    }
+
     play(soundName) {
+      const fileSound = this.getFileSound(soundName);
+      if (fileSound) {
+        if (fileSound.type === "voice") {
+          if (!this.voiceEnabled) {
+            return;
+          }
+        } else if (!this.enabled) {
+          return;
+        }
+
+        this.resumeContext();
+        this.playAudioFile(soundName, fileSound.src, fileSound.volume, fileSound.type);
+        return;
+      }
+
       if (!this.enabled) {
         return;
       }
@@ -33,9 +70,7 @@
         return;
       }
 
-      if (context.state === "suspended") {
-        context.resume();
-      }
+      this.resumeContext();
 
       const now = context.currentTime;
       const gain = this.masterGain;
@@ -80,6 +115,234 @@
       if (soundName === "countdown") {
         this.tone(520, now, 0.08, "sine", 0.04, gain);
         this.tone(780, now + 0.045, 0.09, "triangle", 0.028, gain);
+      }
+    }
+
+    getFileSound(soundName) {
+      const fileSounds = {
+        button: { src: "assets/audio/button-click2.wav", volume: 0.52, type: "sfx" },
+        countdown: { src: "assets/audio/countdown-tick.wav", volume: 0.64, type: "sfx" },
+        start: { src: "assets/audio/start.wav", volume: 0.72, type: "sfx" },
+        correct: { src: "assets/audio/correct2.wav", volume: 0.72, type: "sfx" },
+        retry: { src: "assets/audio/retry2.wav", volume: 0.7, type: "sfx" },
+        complete: { src: "assets/audio/complete2.wav", volume: 0.72, type: "sfx" },
+        readyVoice: { src: "assets/audio/voice-ready.wav", volume: 0.9, type: "voice" },
+        memoryVoice: { src: "assets/audio/voice-memory.wav", volume: 0.9, type: "voice" },
+        questionVoice: { src: "assets/audio/voice-question.wav", volume: 0.9, type: "voice" },
+        correctVoice: { src: "assets/audio/voice-correct.wav", volume: 0.9, type: "voice" },
+        retryVoice: { src: "assets/audio/voice-retry.wav", volume: 0.9, type: "voice" },
+        retry3Voice: { src: "assets/audio/voice-retry3.wav", volume: 0.9, type: "voice" },
+        careMemoryVoice: { src: "assets/audio/voice-care-memory.wav", volume: 0.9, type: "voice" },
+        careHideVoice: { src: "assets/audio/voice-care-hide.wav", volume: 0.9, type: "voice" },
+        careSelectVoice: { src: "assets/audio/voice-care-select.wav", volume: 0.9, type: "voice" },
+        careRetryVoice: { src: "assets/audio/voice-care-retry.wav", volume: 0.9, type: "voice" },
+        softFeedbackCorrectVoice: { src: "assets/audio/voice-soft_feedback_correct.wav", volume: 0.9, type: "voice" },
+        softFeedbackRetry3Voice: { src: "assets/audio/voice-soft_feedback_retry3.wav", volume: 0.9, type: "voice" }
+      };
+
+      return fileSounds[soundName] || null;
+    }
+
+    resumeContext() {
+      const context = this.getContext();
+      if (context && context.state === "suspended") {
+        context.resume();
+      }
+    }
+
+    primeBackground() {
+      if (!this.musicEnabled) {
+        return;
+      }
+
+      const audio = this.getBackgroundAudio();
+      if (!audio) {
+        return;
+      }
+
+      audio.muted = true;
+      audio.volume = 0;
+      const playPromise = audio.play();
+      if (playPromise && typeof playPromise.catch === "function") {
+        playPromise.catch(() => {});
+      }
+    }
+
+    playBackground(options = {}) {
+      if (!this.musicEnabled) {
+        return;
+      }
+
+      const audio = this.getBackgroundAudio();
+      if (!audio) {
+        return;
+      }
+
+      audio.muted = false;
+
+      if (options.fadeIn) {
+        this.fadeBackgroundTo(this.backgroundVolume, 700);
+      } else {
+        audio.volume = this.backgroundVolume;
+      }
+
+      const playPromise = audio.play();
+      if (playPromise && typeof playPromise.catch === "function") {
+        playPromise.catch(() => {});
+      }
+    }
+
+    playAudioFile(key, src, volume, type) {
+      if (typeof global.Audio !== "function") {
+        return;
+      }
+
+      if (type === "voice") {
+        this.stopActiveVoice();
+        this.pausedVoiceAudio = null;
+      }
+
+      const audio = new global.Audio(src);
+      audio.preload = "auto";
+      audio.volume = volume;
+      if (type === "voice") {
+        this.activeVoiceAudio = audio;
+        audio.addEventListener("ended", () => {
+          if (this.activeVoiceAudio === audio) {
+            this.activeVoiceAudio = null;
+          }
+        });
+      }
+      const playPromise = audio.play();
+      if (playPromise && typeof playPromise.catch === "function") {
+        playPromise.catch(() => {
+          if (this.activeVoiceAudio === audio) {
+            this.activeVoiceAudio = null;
+          }
+        });
+      }
+    }
+
+    stopActiveVoice() {
+      if (!this.activeVoiceAudio) {
+        return;
+      }
+
+      this.activeVoiceAudio.pause();
+      this.activeVoiceAudio.currentTime = 0;
+      this.activeVoiceAudio = null;
+    }
+
+    pauseActiveVoice() {
+      if (!this.activeVoiceAudio) {
+        return;
+      }
+
+      this.activeVoiceAudio.pause();
+      this.pausedVoiceAudio = this.activeVoiceAudio;
+    }
+
+    resumeActiveVoice() {
+      if (!this.pausedVoiceAudio || !this.voiceEnabled) {
+        return;
+      }
+
+      this.activeVoiceAudio = this.pausedVoiceAudio;
+      this.pausedVoiceAudio = null;
+      const playPromise = this.activeVoiceAudio.play();
+      if (playPromise && typeof playPromise.catch === "function") {
+        playPromise.catch(() => {});
+      }
+    }
+
+    pauseBackground() {
+      if (this.backgroundAudio) {
+        this.backgroundAudio.pause();
+        this.backgroundAudio.muted = false;
+      }
+      if (this.backgroundRestartTimer) {
+        clearTimeout(this.backgroundRestartTimer);
+        this.backgroundRestartTimer = null;
+      }
+      if (this.backgroundFadeTimer) {
+        clearInterval(this.backgroundFadeTimer);
+        this.backgroundFadeTimer = null;
+      }
+    }
+
+    getBackgroundAudio() {
+      if (this.backgroundAudio) {
+        return this.backgroundAudio;
+      }
+
+      if (typeof global.Audio !== "function") {
+        return null;
+      }
+
+      const audio = new global.Audio("assets/audio/background.wav");
+      audio.preload = "auto";
+      audio.loop = true;
+      audio.volume = this.backgroundVolume;
+      audio.addEventListener("timeupdate", () => this.scheduleSeamlessBackgroundRestart());
+      audio.addEventListener("ended", () => this.restartBackground());
+      this.backgroundAudio = audio;
+      return audio;
+    }
+
+    fadeBackgroundTo(targetVolume, durationMs) {
+      const audio = this.backgroundAudio;
+      if (!audio) {
+        return;
+      }
+
+      if (this.backgroundFadeTimer) {
+        clearInterval(this.backgroundFadeTimer);
+        this.backgroundFadeTimer = null;
+      }
+
+      const startVolume = Number.isFinite(audio.volume) ? audio.volume : 0;
+      const startedAt = Date.now();
+      audio.volume = startVolume;
+
+      this.backgroundFadeTimer = setInterval(() => {
+        const progress = Math.min(1, (Date.now() - startedAt) / durationMs);
+        audio.volume = startVolume + ((targetVolume - startVolume) * progress);
+
+        if (progress >= 1) {
+          clearInterval(this.backgroundFadeTimer);
+          this.backgroundFadeTimer = null;
+          audio.volume = targetVolume;
+        }
+      }, 50);
+    }
+
+    scheduleSeamlessBackgroundRestart() {
+      const audio = this.backgroundAudio;
+      if (!audio || !this.musicEnabled || !Number.isFinite(audio.duration) || audio.duration <= 0) {
+        return;
+      }
+
+      const remaining = audio.duration - audio.currentTime;
+      if (remaining > 0.18 || this.backgroundRestartTimer) {
+        return;
+      }
+
+      this.backgroundRestartTimer = setTimeout(() => {
+        this.backgroundRestartTimer = null;
+        this.restartBackground();
+      }, Math.max(0, (remaining * 1000) - 20));
+    }
+
+    restartBackground() {
+      const audio = this.backgroundAudio;
+      if (!audio || !this.musicEnabled) {
+        return;
+      }
+
+      audio.currentTime = 0;
+      const playPromise = audio.play();
+      if (playPromise && typeof playPromise.catch === "function") {
+        playPromise.catch(() => {});
       }
     }
 

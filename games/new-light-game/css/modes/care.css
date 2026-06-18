@@ -9,3 +9,23 @@ body[data-mode="care"] .status-bar p {
 body[data-mode="care"] .bulb-card.is-sparkling .card-inner {
   animation-duration: 1450ms;
 }
+
+body:is([data-mode="care"], [data-mode="ai_assisted"]) .screen-start .start-actions {
+  grid-template-columns: repeat(2, 340px);
+  width: auto;
+  gap: 40px;
+}
+
+body:is([data-mode="care"], [data-mode="ai_assisted"]) .screen-start #startButton,
+body:is([data-mode="care"], [data-mode="ai_assisted"]) .screen-start #startReturnButton {
+  display: inline-grid;
+  place-items: center;
+  justify-self: stretch;
+  min-width: 0;
+  min-height: 118px;
+  height: 118px;
+  padding: 0 34px;
+  font-size: 60px;
+  line-height: 1;
+  white-space: nowrap;
+}

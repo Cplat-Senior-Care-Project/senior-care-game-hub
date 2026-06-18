@@ -10,7 +10,7 @@
   color: var(--ink);
   background:
     linear-gradient(rgba(255, 247, 220, 0.88), rgba(255, 239, 194, 0.92)),
-    url("../assets/images/background.png") center / cover no-repeat,
+    url("../assets/images/background.webp") center / cover no-repeat,
     #f7daa0;
   text-align: center;
 }
