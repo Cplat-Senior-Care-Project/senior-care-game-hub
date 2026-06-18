@@ -190,7 +190,8 @@ function getQuestionElapsedMs(cur = state.current) {
 }
 
 function shouldShowScoreScreen() {
-  return false;
+  const cfg = state.appConfig || getAppConfig();
+  return cfg.show_score !== false;
 }
 
 function isCareMessageResultMode(mode = getAppMode()) {
@@ -1034,7 +1035,7 @@ applyAppConfig();
 const QUESTION_RULES_BY_DIFF = {
   easy: Array.from({ length: 10 }, () => ({ choices: 2, answers: 1, situations: 1 })),
   normal: Array.from({ length: 10 }, () => ({ choices: 3, answers: 1, situations: 1 })),
-  hard: Array.from({ length: 10 }, (_, idx) => ({ choices: 4, answers: idx >= 6 ? 3 : 2, situations: 2 })),
+  hard: Array.from({ length: 10 }, () => ({ choices: 4, answers: 2, situations: 2 })),
 };
 const SITUATION_TEMPLATE_PATH = "docs/situation-templates-draft.json";
 

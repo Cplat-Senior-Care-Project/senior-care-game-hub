@@ -1,0 +1,161 @@
+{
+   "checksum": "ba9f758e49c08cc8343fc165cdf6b04f",
+   "roots": {
+      "bookmark_bar": {
+         "children": [ {
+            "date_added": "13257331074842544",
+            "date_last_used": "0",
+            "guid": "f03d3ca7-dfa3-43fd-a011-6a98a5fa649c",
+            "id": "7",
+            "name": "교육(행정)기관 원격업무지원 시스템",
+            "show_icon": false,
+            "source": "sync",
+            "type": "url",
+            "url": "https://evpn.gen.go.kr/",
+            "visit_count": 0
+         }, {
+            "date_added": "13279003357360582",
+            "date_last_used": "0",
+            "guid": "aa8558b8-0cd8-4e14-bf4c-dede8642a1ab",
+            "id": "8",
+            "name": "강의실 홈  내강의실  광주문화예술회관 문화예술교실",
+            "show_icon": false,
+            "source": "sync",
+            "type": "url",
+            "url": "https://gjart.gwangju.go.kr/onedu/cmd.do?opencode=p0802",
+            "visit_count": 0
+         }, {
+            "date_added": "13404667404797721",
+            "date_last_used": "13424963778477123",
+            "guid": "f635b4aa-42c6-4cdb-a56f-48d15ab2ba6c",
+            "id": "9",
+            "name": "Whisk - labs.google/fx",
+            "show_icon": false,
+            "source": "sync",
+            "type": "url",
+            "url": "https://labs.google/fx/ko/tools/whisk",
+            "visit_count": 64
+         }, {
+            "date_added": "13405332313998939",
+            "date_last_used": "13405924748552971",
+            "guid": "dd664b36-07c7-4cbe-b53b-79a17ae3ee9d",
+            "id": "10",
+            "name": "AICE",
+            "show_icon": false,
+            "source": "sync",
+            "type": "url",
+            "url": "https://aice.study/main",
+            "visit_count": 5
+         }, {
+            "date_added": "13422777851730233",
+            "date_last_used": "0",
+            "guid": "1e52973f-9947-465d-a206-c19b40941625",
+            "id": "11",
+            "name": "이미지를 신속하게, 무료로 잘라내세요!",
+            "show_icon": false,
+            "source": "sync",
+            "type": "url",
+            "url": "https://www.iloveimg.com/ko/crop-image",
+            "visit_count": 1
+         }, {
+            "date_added": "13423802344625932",
+            "date_last_used": "13424066397993458",
+            "guid": "3828f5de-4968-4acf-adf6-22c7235e107c",
+            "id": "12",
+            "name": "무료 배경 지우기 사이트 - 온라인에서 무료로 이미지 배경 제거 | Photoroom",
+            "show_icon": false,
+            "source": "sync",
+            "type": "url",
+            "url": "https://www.photoroom.com/ko/tools/background-remover",
+            "visit_count": 2
+         }, {
+            "date_added": "13424188748091850",
+            "date_last_used": "13424576906142943",
+            "guid": "dca93ecd-d036-42af-9e84-409486bfa2b3",
+            "id": "13",
+            "name": "수노 | AI 음악 생성기",
+            "show_icon": false,
+            "source": "sync",
+            "type": "url",
+            "url": "https://suno.com/?__clerk_handshake=eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdW5vLmNvbS9jbGFpbXMvdG9rZW5fdHlwZSI6ImhhbmRzaGFrZSIsImlzcyI6Imh0dHBzOi8vYXV0aC5zdW5vLmNvbSIsImhhbmRzaGFrZSI6WyJfX3Nlc3Npb249OyBEb21haW49c3Vuby5jb207IGV4cGlyZXM9VGh1LCAwMSBKYW4gMTk3MCAwMDowMDowMCBHTVQ7IEh0dHBPbmx5OyBNYXgtQWdlPTA7IFNhbWVTaXRlPUxheDsgU2VjdXJlIiwiX19jbGllbnRfdWF0PTA7IERvbWFpbj1zdW5vLmNvbTsgTWF4LUFnZT0zMTUzNjAwMDsgU2FtZVNpdGU9TGF4OyBTZWN1cmUiLCJfX2NsZXJrX2hhbmRzaGFrZT07IGV4cGlyZXM9VGh1LCAwMSBKYW4gMTk3MCAwMDowMDowMCBHTVQ7IEh0dHBPbmx5OyBNYXgtQWdlPTA7IFNhbWVTaXRlPUxheDsgU2VjdXJlIl19.Wk-j4XlHWXsRDeB7X5ZRr1gcBaLKa5KgXufMy-zyv3QhwGOd8GuImgDTXrd9Lvl0-6z6kX3vgFmOD4UqHPSjE2KKTcPe7d5mLhtflpkjNBruKE11LPoF5MCeRwccAvMMN1Zz_Piph9S3xHR8qf-Mfh7MmFC2QcAYjrjYxi2Ea1WkxWjEhC7hoje5qolMRbWnZfXGMshK0U0CtZig6-Kq0lkBCOW2c6ZEdRiEHL8itSgXFY58uIoR9mypIuk0tiJtPZdfo2nVqwqqKx10-pH3Fl3wAUt9-i8XWzAkMGkdU1GDGeCQOWgaQoS1RFrPAZvh86junSK5z6-qMtEk3B-fYA",
+            "visit_count": 3
+         }, {
+            "date_added": "13424143237384093",
+            "date_last_used": "13424270641570387",
+            "guid": "dd26bcd9-8d3e-4121-ac87-b2d4f67a1baa",
+            "id": "14",
+            "name": "Google",
+            "show_icon": false,
+            "source": "sync",
+            "type": "url",
+            "url": "https://www.google.com/",
+            "visit_count": 2
+         }, {
+            "date_added": "13424270705919281",
+            "date_last_used": "13425040523297937",
+            "guid": "5c289aa7-2eab-47c7-a106-dc83b0872ebc",
+            "id": "15",
+            "name": "NAVER",
+            "show_icon": false,
+            "source": "sync",
+            "type": "url",
+            "url": "https://www.naver.com/",
+            "visit_count": 14
+         }, {
+            "date_added": "13424493106291177",
+            "date_last_used": "13424496034707012",
+            "guid": "79929169-db26-4eb1-a92c-7fb76811a303",
+            "id": "16",
+            "name": "Senior Care Game Hub",
+            "show_icon": false,
+            "source": "sync",
+            "type": "url",
+            "url": "https://cplat-senior-care-project.github.io/senior-care-game-hub/",
+            "visit_count": 2
+         } ],
+         "date_added": "13426222759162023",
+         "date_last_used": "0",
+         "date_modified": "13424493106291177",
+         "guid": "0bc5d13f-2cba-5d74-951f-3f233fe6c908",
+         "id": "1",
+         "name": "즐겨찾기 모음",
+         "source": "unknown",
+         "type": "folder"
+      },
+      "other": {
+         "children": [  ],
+         "date_added": "13426222759162023",
+         "date_last_used": "0",
+         "date_modified": "0",
+         "guid": "82b081ec-3dd3-529c-8475-ab6c344590dd",
+         "id": "2",
+         "name": "다른 즐겨찾기",
+         "source": "unknown",
+         "type": "folder"
+      },
+      "synced": {
+         "children": [  ],
+         "date_added": "13426222759162023",
+         "date_last_used": "0",
+         "date_modified": "0",
+         "guid": "4cf2e351-0e85-532b-bb37-df045d8f8d0f",
+         "id": "3",
+         "name": "모바일 즐겨찾기",
+         "source": "unknown",
+         "type": "folder"
+      },
+      "workspaces_v2": {
+         "children": [  ],
+         "date_added": "13426222759162023",
+         "date_last_used": "0",
+         "date_modified": "0",
+         "guid": "75aa6670-344f-549d-b742-660f029506ab",
+         "id": "5",
+         "name": "작업 영역",
+         "source": "unknown",
+         "type": "folder"
+      }
+   },
+   "sync_metadata": "CjEKDgiIgQISCHK4OJWeAQAAEgAqGGlYWStnSk9ZNHlBVnFlaEcydWw4c3c9PUgDoAYHEo4BCAMSiQEKHG5qZ0R1ODhlQ3J2WHA4NnBEN2ZIR2NxRnA4OD0SJGQxMjBkNTQ3LWUzYjgtNTk2Yy1hNGU3LWU5NjdlNjVlNWIxNBgAIAAoADCUhsG1jDM4i4rBtYwzQIuKwbWMM0oceXpOQjAxY241NEE3Y1JVMHVUKy9QZ21UdFVvPVoAZQAAAADCPgJgABKtAQgQEqgBChxwVlBvRThuSmUvTFcyL1Z0eEc0cWxtOFcwNms9EiQ3OTkyOTE2OS1kYjI2LTRlYjEtYTkyYy03ZmI3NjgxMWEzMDMYACAAKAAwjcWW6uczOLvPlurnM0C7z5bq5zNKHGwzNWNmZXNodnZXWlhySGFjN1FrU3JIMDBOZz1aHyId/WVzYXJaSERPQnZOV21WajlONGprc1dzZVFBST1lAAAAAMI+AmAFEq0BCA4SqAEKHE9IYkVLRGhKQXUrVzRKOU4yWHRNYlFVMWkwYz0SJGRkMjZiY2Q5LThkM2UtNDEyMS1hYzg3LWIyZDRmNjdhMWJhYRgAIAAoADDag6G35jM4r8yMjuYzQK/MjI7mM0ocNUFWTElFbXlRZ0pFelVud3hIcHR6eE8yVCtFPVofIh33clRFdVNPSDJvUS9JWTFOcXZHNDdWZlZGd3Q0PWVi6bJJwj4CYAUSjgEIAhKJAQocWWNTVG9udkVTUHdxQ3M0TDJjclZodjY4TDk4PRIkMzRlMDMyYTAtMzY4YS01MTZiLTliNjctODJlNWMyM2Q4OWNmGAAgACgAMI+GwbWMMzjCicG1jDNAwonBtYwzShxvUFZraHdCUmJWNjVLQ1dSMitJT05IV29PdTg9WgBlAAAAAMI+AmAAEqwBCAkSpwEKHGYzcHBBQ3Y3SDVuUlI5YlpOaGFTL2VYeTBQUT0SJGY2MzViNGFhLTQyYzYtNGNkYi1hNTZmLTQ4ZDE1YWIyYmE2YxgAIAAoADDi+NqA6TM4x7bV9dwzQMe21fXcM0ocZmRCRmtIeDVZOURpV0VXZk13Z1NVdWtnMHpzPVoeIhx0dnNYYkZlbFB5OEg2clJ4YVFCcEZYVVN2eWs9ZWf5AW/CPgJgBRKtAQgNEqgBChxFdUx3cFRLbDVlOTM5b2FwR1ZZWEJ3ek8ybWM9EiRkY2E5M2VjZC1kMDM2LTQyYWYtOWU4NC00MDk0ODZiZmEyYjMYACAAKAAwjMWW6uczOPqFqPrlM0D6haj65TNKHHNxMFFjcjlTV2RJSWFvNlN0NVVXVlFZLzJyYz1aHyId90ZjU1paUXNMQkpxanZsVzNTRXVFcEVFNjlTZz1l7crcm8I+AmAFEq0BCAwSqAEKHE5LaWl4MitlOU1xU3YvaE51U2VqcmVoVDBMVT0SJDM4MjhmNWRlLTQ5NjgtNGFjZi1hZGY2LTIyYzcyMzVlMTA3YxgAIAAoADDe2enL5TM4mK746OQzQJiu+OjkM0ocL0ZzWUF6YnljUmdsMjlMcUJVR1d4SUhnd1FBPVofIh3uckNPUnU0M01ENTRrZ1RKSmlaN0NnNG9HTEFVPWXC94qWwj4CYAUSrQEICxKoAQocMENCWHVablJJUUNkc0FKMDJmdFZLZTA4dnQwPRIkMWU1Mjk3M2YtOTk0Ny00NjVkLWEyMDYtYzE5YjQwOTQxNjI1GAAgACgAMKGDxtngMzjahcbZ4DNA2oXG2eAzShxxWXltTUlyQ1gzQXV0RWswd0s0V2k3TFhzNjA9Wh8iHd1va0FxZ0x2eVJqeXViSEJYV05Zc3JzSTVieTQ9ZVB0E7fCPgJgBRKtAQgPEqgBChxqT3g1MDk1TTUySFRFSGhzSDlYU0RjeGgzaTg9EiQ1YzI4OWFhNy0yZWFiLTQ3YzctYTEwNi1kYzgzYjA4NzJlYmMYACAAKAAw8fDiqekzOLmZobfmM0C5maG35jNKHDdzMk5QRUgzcEQxd1NRWWFzUnRyeDhXVURuVT1aHyId+2RXUmFhcTZ1NlZhQi85N3RDb3JiVFhJekVUND1l6+ZyJsI+AmAFEo4BCAESiQEKHHl4Si82ZnZrZWNyN2twNUVRekI0dFdMcGRiRT0SJGQzNGI2NjZhLTliNmEtNWY3NC1iZjM3LWMyYThhM2MzOGRkNBgAIAAoADCOhsG1jDM4lInBtYwzQJSJwbWMM0ocYVJDV0xnaEY5YjVJbnFLSUR2dUovanZRa0ZjPVoAZQAAAADCPgJgABKtAQgKEqgBChw4eXJ5RklRU2tQalFyYkZIcjRmaEsvVWcwOFU9EiRkZDY2NGIzNi0wN2M3LTRjYmUtYjUzYi03OWExN2FlM2VlOWQYACAAKAAw4rHV9dwzOPe21fXcM0D3ttX13DNKHHBsT2EyUzA2UnU4Q3VjYldhSXVwS0p3ekx1TT1aHyIdukJud2Ixa3JNVFBpN3d5aGxPZVdKeEVmYmNtVT1lwsWPwMI+AmAFEqwBCAcSpwEKHGlrbldYNVI0MDdwY2w0NWFwQlRTRERqdnR6RT0SJGYwM2QzY2E3LWRmYTMtNDNmZC1hMDExLTZhOThhNWZhNjQ5YxgAIAAoADDhsdX13DM46LbV9dwzQOi21fXcM0ocTWVNVU1xVCt1akVmSlIwbUxMeXNiaW96M0VvPVoeIhxTQm1IbFAvNmhaRktmZFdmWnR0TTJlMnVlc2M9ZQAAAADCPgJgBRKsAQgIEqcBChx3MFZrMkxqejRLWXZxNmREWDFuWDFhT3o2Tlk9EiRhYTg1NThiOC0wY2Q4LTRlMTQtYmY0Yy1kZWRlODY0MmExYWIYACAAKAAw4LHV9dwzONe21fXcM0DXttX13DNKHEw4VE54TUFlUjFuM1cwbmRSb05jZGZPcWFZTT1aHiIcZ0szSWlxb0J2S1F5dGpvcW1DWXVJYjB6Y0dvPWX65+TJwj4CYAUSjgEIBRKJAQocd1JCclpMKzZQQTlhdktnak5QN0pYRExjZnZzPRIkN2M5MzRiZTQtYmQyYy01Yjg1LWE2NDktODQxNGZkMWYxYjExGAAgACgAMNnMlYWfMzjBzZWFnzNAwc2VhZ8zShxubXg2NXNRRHZ4SThUZ0VlditBK250dG9TbjQ9WgBlAAAAAMI+AmAAMAA4AA==",
+   "version": 1
+}
