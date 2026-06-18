@@ -37,6 +37,7 @@
       this.currentSelections = [];
       this.currentInputTypes = [];
       this.hintTriggeredCount = 0;
+      this.hintActive = false;
       this.pauseCount = 0;
       this.interactionCount = 0;
       this.externalInputs = [];
@@ -165,6 +166,7 @@
       this.feedbackAction = "";
       this.selectedIndexes = [];
       this.currentSelections = [];
+      this.clearHintState();
       this.currentQuestionHintUsed = false;
       this.currentQuestionHintCount = 0;
       this.currentWrongCount = 0;
@@ -386,7 +388,7 @@
     }
 
     handleCellSelect(index, inputType) {
-      if (this.phase !== GAME_PHASE.SELECTING) {
+      if (this.phase !== GAME_PHASE.SELECTING || this.hintActive) {
         return;
       }
 
@@ -417,18 +419,11 @@
         if (this.targetIndexes.every((target) => this.selectedIndexes.includes(target))) {
           this.clearRoundTimers();
           this.freezeTotalCountdown();
-          this.showPromptFeedback("정답입니다!", "correct");
-          this.phase = GAME_PHASE.FEEDBACK;
-          this.feedbackEndAt = performance.now() + 2000;
-          this.feedbackAction = "finishRoundCorrect";
           this.updateHud();
-          this.setTimer(() => {
-            this.finishRound(true, "");
-          }, 2000);
+          this.finishRound(true, "");
           return;
         }
 
-        this.showPromptFeedback("정답입니다!", "correct");
         this.updateHud();
         return;
       }
@@ -468,7 +463,7 @@
         if (!isLastQuestion) {
           this.showRoundTransition("정답입니다!", "다음 문제로 넘어갈게요.");
         } else {
-          this.setStatus("정답입니다!");
+          this.setStatus("");
         }
         this.audio.play("correct");
       } else {
@@ -520,7 +515,7 @@
     }
 
     showHint() {
-      if (this.phase !== GAME_PHASE.SELECTING || !this.modeConfig.hintEnabled) {
+      if (this.phase !== GAME_PHASE.SELECTING || !this.modeConfig.hintEnabled || this.hintActive || this.currentQuestionHintUsed) {
         return;
       }
 
@@ -534,8 +529,18 @@
       this.currentQuestionHintCount += 1;
       this.hintTriggeredCount += 1;
       this.interactionCount += 1;
+      this.hintActive = true;
+      if (this.elements.playArea) {
+        this.elements.playArea.classList.add("is-hinting");
+      }
+      if (this.elements.hintButton) {
+        this.elements.hintButton.disabled = true;
+      }
       this.audio.play("hint");
-      this.setStatus("힌트입니다. 아직 찾지 못한 정답 위치가 깜빡입니다.");
+      this.setStatus("잠시 동안 보여 드릴게요!");
+      if (this.elements.playPrompt) {
+        this.elements.playPrompt.classList.add("is-hint-message");
+      }
       notFoundTargets.forEach((index) => {
         const button = this.findCell(index);
         if (button) {
@@ -550,7 +555,11 @@
             button.classList.remove("is-hint");
           }
         });
-      }, 5000);
+        this.clearHintState();
+        if (this.phase === GAME_PHASE.SELECTING) {
+          this.setStatus(this.buildSelectionPrompt());
+        }
+      }, 3000);
       this.updateHud();
     }
 
@@ -788,6 +797,37 @@
       this.updatePauseButton();
     }
 
+    updateHintButton() {
+      if (!this.elements.hintButton) {
+        return;
+      }
+      const canShowHint = this.phase === GAME_PHASE.SELECTING && this.modeConfig.hintEnabled;
+      this.elements.hintButton.hidden = !canShowHint;
+      this.elements.hintButton.disabled = !canShowHint || this.hintActive || this.currentQuestionHintUsed;
+    }
+
+    clearHintState() {
+      this.hintActive = false;
+
+      if (this.elements.playArea) {
+        this.elements.playArea.classList.remove("is-hinting");
+      }
+
+      if (this.elements.playPrompt) {
+        this.elements.playPrompt.classList.remove("is-hint-message");
+      }
+
+      if (this.elements.hintButton) {
+        this.elements.hintButton.disabled = this.currentQuestionHintUsed;
+      }
+
+      if (this.elements.grid) {
+        this.elements.grid.querySelectorAll(".bulb-card.is-hint").forEach((button) => {
+          button.classList.remove("is-hint");
+        });
+      }
+    }
+
     updatePhaseTimer(durationMs) {
       if (!durationMs || durationMs <= 0) {
         this.phaseEndAt = 0;
@@ -964,7 +1004,7 @@
 
     showRoundTransition(title, subtitle) {
       this.clearPromptFeedback();
-      const message = title + "\n" + subtitle;
+      const message = subtitle ? title + "\n" + subtitle : title;
 
       if (this.elements.playArea) {
         this.elements.playArea.classList.add("is-transitioning");
@@ -979,11 +1019,14 @@
       if (this.elements.roundTransitionMessage) {
         this.elements.roundTransitionMessage.hidden = false;
         this.elements.roundTransitionMessage.innerHTML = "";
-        [
+        const lines = [
           ["round-transition-emoji", "😊"],
-          ["round-transition-title", title],
-          ["round-transition-subtitle", subtitle]
-        ].forEach(([className, text]) => {
+          ["round-transition-title", title]
+        ];
+        if (subtitle) {
+          lines.push(["round-transition-subtitle", subtitle]);
+        }
+        lines.forEach(([className, text]) => {
           const line = document.createElement("span");
           line.className = className;
           line.textContent = text;
@@ -1007,6 +1050,7 @@
     updatePauseButton() {
       const canPause = this.phase === GAME_PHASE.MEMORIZE || this.phase === GAME_PHASE.SELECTING || this.phase === GAME_PHASE.FEEDBACK;
       this.elements.pauseButton.disabled = !canPause;
+      this.updateHintButton();
     }
 
     setTimer(callback, delay) {

@@ -255,6 +255,7 @@
 .step-button,
 .toggle-button,
 .hint-button,
+.play-hint-button,
 .pause-button,
 .difficulty-card {
   min-height: 64px;

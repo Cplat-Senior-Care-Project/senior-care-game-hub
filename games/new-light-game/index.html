@@ -16,7 +16,7 @@
         var verticalGutter = Math.max(0, (viewportHeight - (stageHeight * scale)) / (2 * scale));
         document.documentElement.style.setProperty("--game-scale", String(scale));
         document.documentElement.style.setProperty("--game-viewport-right-gutter", String(horizontalGutter) + "px");
-        document.documentElement.style.setProperty("--game-viewport-top-gutter", String(verticalGutter) + "px");
+        document.documentElement.style.setProperty("--game-viewport-top-gutter", String(Math.min(verticalGutter, 120)) + "px");
       })();
     </script>
     <link rel="stylesheet" href="css/base.css" />
@@ -350,7 +350,7 @@
             </div>
             <div class="progress-track"><div class="progress-fill"></div></div>
             <div class="memory-track" aria-label="관찰 시간"><div class="memory-fill" id="memoryFill"></div></div>
-            <button class="hint-button" type="button" id="hintButton">힌트 <span id="hintCount">0회</span></button>
+            <span id="hintCount" hidden>0회</span>
             <button class="next-button" type="button" aria-label="다음 문제" disabled>다음 <span aria-hidden="true">›</span></button>
           </div>
 
@@ -365,6 +365,11 @@
             </div>
             <div class="round-transition-message" id="roundTransitionMessage" aria-live="polite" hidden></div>
           </div>
+
+          <button class="play-hint-button game-button icon-button" type="button" id="hintButton" aria-label="힌트 보기" hidden>
+            <span class="play-hint-icon" aria-hidden="true">💡</span>
+            <span class="play-hint-label">힌트</span>
+          </button>
 
           <footer class="status-bar">
             <p id="statusMessage">빛나는 전구의 위치를 기억하세요!</p>

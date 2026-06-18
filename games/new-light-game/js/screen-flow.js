@@ -211,6 +211,7 @@
       memoryCountdownGauge: document.getElementById("memoryCountdownGauge"),
       memoryGaugeFill: document.getElementById("memoryGaugeFill"),
       memoryGaugeText: document.getElementById("memoryGaugeText"),
+      hintButton: document.getElementById("hintButton"),
       hintCount: document.getElementById("hintCount"),
       playPrompt: document.querySelector(".play-prompt"),
       playArea: document.querySelector(".play-area"),
@@ -241,7 +242,7 @@
     document.documentElement.style.setProperty("--game-scale", String(scale));
     document.documentElement.style.setProperty("--stage-scale", String(scale));
     document.documentElement.style.setProperty("--game-viewport-right-gutter", horizontalGutter + "px");
-    document.documentElement.style.setProperty("--game-viewport-top-gutter", verticalGutter + "px");
+    document.documentElement.style.setProperty("--game-viewport-top-gutter", Math.min(verticalGutter, 120) + "px");
     const isPortrait = isPortraitViewport(viewportWidth, viewportHeight);
     document.body.classList.toggle("is-portrait", isPortrait);
     const portraitLock = document.querySelector(".portrait-lock");
@@ -931,7 +932,10 @@
   }
 
   window.addEventListener("resize", updateStageScale);
-  window.addEventListener("orientationchange", updateStageScale);
+  window.addEventListener("orientationchange", () => {
+    updateStageScale();
+    window.setTimeout(updateStageScale, 160);
+  });
   if (window.visualViewport) {
     window.visualViewport.addEventListener("resize", updateStageScale);
   }
