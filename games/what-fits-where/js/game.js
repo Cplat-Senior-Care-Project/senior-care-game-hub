@@ -2063,6 +2063,7 @@ function resetPostGameConditionCheck() {
 function renderPostGameConditionCheck() {
   const data = _postGameCondition || {};
   const step = data.step || 0;
+  if (document.body) document.body.dataset.screen = step === 1 ? "screen-post-check-2" : "screen-post-check-1";
   document.querySelectorAll(".post-condition-option").forEach(btn => {
     const field = btn.dataset.postField;
     const selected = !!field && data[field] === btn.dataset.postValue;

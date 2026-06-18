@@ -2681,6 +2681,50 @@ h3 {
   font-size: 32px;
 }
 
+#post-condition-modal {
+  z-index: 90;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  gap: clamp(10px, 1.8cqh, 14px);
+  padding: calc(18px + var(--safe-top)) calc(28px + var(--safe-right)) calc(16px + var(--safe-bottom)) calc(28px + var(--safe-left));
+  background-color: #FAF7F0;
+  background-image: var(--viewport-bg-image);
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+}
+
+#post-condition-modal .post-condition-activity-label {
+  flex: 0 0 auto;
+  z-index: 1;
+}
+
+#post-condition-modal .post-condition-card {
+  flex: 0 1 auto;
+  display: flex;
+  flex-direction: column;
+  width: min(100%, 1040px);
+  height: min(622px, calc(100cqh - 88px));
+  min-height: min(560px, calc(100cqh - 108px));
+  max-height: calc(100cqh - 88px);
+}
+
+#post-condition-modal .post-condition-progress {
+  flex: 0 0 auto;
+  margin: 8px 0 22px;
+}
+
+#post-condition-modal .post-condition-page {
+  flex: 1 1 auto;
+  min-height: 0;
+  justify-content: center;
+}
+
+#post-condition-modal .post-condition-question {
+  flex: 0 0 auto;
+}
+
 #screen-difficulty.difficulty-screen {
   background: transparent !important;
 }
