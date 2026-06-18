@@ -2418,7 +2418,11 @@ function renderResultScreen(result) {
   switchScreen("screen-result");
 
   if ((state.appConfig || {}).auto_return_to_hub && !standardMode) {
-    window.setTimeout(() => { returnToHub(); }, 1200);
+    const configuredDelay = Number((state.appConfig || {}).auto_return_delay_ms);
+    const autoReturnDelay = Number.isFinite(configuredDelay) && configuredDelay >= 0
+      ? configuredDelay
+      : AUTO_RETURN_TO_HUB_DELAY_MS;
+    window.setTimeout(() => { returnToHub(); }, autoReturnDelay);
   }
 }
 

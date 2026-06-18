@@ -137,7 +137,7 @@
       btn.classList.add("shake");
       setTimeout(() => btn.classList.remove("shake"), 350);
       showFeedback(pickMsg(SOFT_WRONG_PICK), "no");
-      if (cur.wrongCount >= 2) revealAndAdvance();
+      if (cur.wrongCount >= MAX_WRONG_ATTEMPTS) revealAndAdvance();
     },
     renderReveal(q, content, explain) {
       renderPackReveal(q, content, explain);
@@ -190,7 +190,7 @@
       btn.classList.add("shake");
       setTimeout(() => btn.classList.remove("shake"), 350);
       showFeedback(pickMsg(SOFT_WRONG_REMOVE), "no");
-      if (cur.wrongCount >= 2) revealAndAdvance();
+      if (cur.wrongCount >= MAX_WRONG_ATTEMPTS) revealAndAdvance();
     },
     renderReveal(q, content, explain) {
       renderPackReveal(q, content, explain);
@@ -251,7 +251,7 @@
       btn.disabled = true;
       setTimeout(() => btn.classList.remove("shake"), 350);
       showFeedback(pickMsg(SOFT_WRONG_SIT), "no");
-      if (cur.wrongCount >= 2) revealAndAdvance();
+      if (cur.wrongCount >= MAX_WRONG_ATTEMPTS) revealAndAdvance();
     },
     renderReveal(q, content, explain) {
       content.innerHTML = `<div class="sit-answer">정답: ${q.answer}</div>`;

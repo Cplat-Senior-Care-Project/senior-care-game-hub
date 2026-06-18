@@ -4455,6 +4455,38 @@ body {
   filter: brightness(1.025);
 }
 
+.btn-big:hover,
+.primary:hover,
+.result-box .btn-return:hover,
+.post-actions .btn-return:hover,
+.help-nav button.primary-nav:hover {
+  background-image: var(--image-btn-pink);
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 100% 100%;
+}
+
+.btn-secondary:hover,
+.ghost:hover,
+.help-nav button:not(.primary-nav):hover,
+.modal .actions .keep:hover,
+.pause-btn:hover,
+.pause-btn.resume:hover,
+.pause-btn.restart:hover,
+.pause-btn.help:hover,
+.pause-btn.exit:hover,
+#screen-condition .mood-btn:hover,
+#screen-condition .sleep-btn:hover,
+#screen-condition .sleep-arrow:hover:not(:disabled),
+#screen-condition .cc-skip:hover,
+#screen-condition .cc-confirm:hover:not(:disabled),
+.post-options button:hover {
+  background-image: var(--image-btn-beige);
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 100% 100%;
+}
+
 .btn-big:active,
 .primary:active,
 .result-box .btn-return:active,
@@ -9058,6 +9090,11 @@ body {
 
 #screen-condition .mood-btn.sel::after {
   content: none;
+}
+
+#condition-confirm-button:focus,
+#condition-confirm-button:focus-visible {
+  outline: 0;
 }
 
 @container stage (orientation:landscape) and (max-height:560px) {

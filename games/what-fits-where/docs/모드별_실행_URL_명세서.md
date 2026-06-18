@@ -35,7 +35,7 @@ WebView를 호출할 때 URL 뒤에 다음 쿼리 파라미터들을 조합하�
 ### 2-2. 알림 모드 (Reminder Mode)
 푸시 알림 또는 정기 예약 일정을 통해 진입하여 정해진 난이도로 자동 시작하고 완료 후 즉시 허브로 복귀하는 모드입니다.
 
-* **동작 흐름**: (컨디션 체크 생략) $\rightarrow$ 시작 타이틀 화면 (설정된 난이도로 자동 시작) $\rightarrow$ 3초 카운트다운 $\rightarrow$ 게임 플레이 (10문항) $\rightarrow$ 완료 피드백 화면 $\rightarrow$ 1.2초 후 허브로 자동 복귀 (`returnUrl` 이동)
+* **동작 흐름**: (컨디션 체크 생략) $\rightarrow$ 시작 타이틀 화면 (설정된 난이도로 자동 시작) $\rightarrow$ 3초 카운트다운 $\rightarrow$ 게임 플레이 (10문항) $\rightarrow$ 완료 피드백 화면 $\rightarrow$ 3초 후 허브로 자동 복귀 (`returnUrl` 이동)
 * **권장 URL 예시**:
   * **쉬움 난이도로 진행 시**:
     ```http
@@ -49,7 +49,7 @@ WebView를 호출할 때 URL 뒤에 다음 쿼리 파라미터들을 조합하�
 ### 2-3. 케어 모드 (Care Mode)
 시니어 사용자의 인지 저하 및 조작 피로도를 줄이기 위해 모든 보조 UI를 간소화하고 짧게 푸는 치유 특화 모드입니다.
 
-* **동작 흐름**: (컨디션 체크, 난이도 선택 생략) $\rightarrow$ 쉬움 난이도로 자동 시작 $\rightarrow$ 3초 카운트다운 $\rightarrow$ 게임 플레이 (**5문항**, 화면 내 타이머 게이지 및 점수 노출 안 됨) $\rightarrow$ 20초간 무반응 시 **자동 힌트 안내** $\rightarrow$ 완료 피드백 화면 $\rightarrow$ 1.2초 후 허브로 자동 복귀 (`returnUrl` 이동)
+* **동작 흐름**: (컨디션 체크, 난이도 선택 생략) $\rightarrow$ 쉬움 난이도로 자동 시작 $\rightarrow$ 3초 카운트다운 $\rightarrow$ 게임 플레이 (**5문항**, 화면 내 타이머 게이지 및 점수 노출 안 됨) $\rightarrow$ 20초간 무반응 시 **자동 힌트 안내** $\rightarrow$ 완료 피드백 화면 $\rightarrow$ 3초 후 허브로 자동 복귀 (`returnUrl` 이동)
 * **권장 URL 예시**:
   ```http
   http://127.0.0.1:8080/?mode=care&userDifficultyGroup=low&session_id=sess_care_01&returnUrl=../../index.html

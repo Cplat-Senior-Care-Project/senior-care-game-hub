@@ -141,6 +141,7 @@
       default_difficulty: "easy",
       auto_start: true,
       auto_return_to_hub: true,
+      auto_return_delay_ms: 3000,
       play_source: "reminder",
     },
     care: {
@@ -163,6 +164,7 @@
         hard: [5],
       },
       auto_return_to_hub: true,
+      auto_return_delay_ms: 3000,
       play_source: "care_session",
     },
     ai_assisted: {
@@ -185,6 +187,7 @@
         hard: [5],
       },
       auto_return_to_hub: true,
+      auto_return_delay_ms: 3000,
       play_source: "ai_recommendation",
     },
   };
@@ -205,7 +208,7 @@ const DEFAULT_CONFIG = {
   background_music_enabled:true, sound_effect_enabled:true, voice_guide_enabled:true,
   soft_feedback:false,
   show_condition_check:true, show_finish_check:true, default_mood:null, default_sleep_hours:null,
-  auto_start:false, auto_return_to_hub:false, play_source:"manual",
+  auto_start:false, auto_return_to_hub:false, auto_return_delay_ms:3000, play_source:"manual",
   time_limit_sec:180, game_key:window.GAME_KEY || "what_fits_where", game_version:window.GAME_VERSION || "1.0.0",
 };
 
@@ -253,6 +256,8 @@ const pickMsg = arr => arr[(Math.random()*arr.length)|0];
 
 const GAME_TIME_LIMIT = 180;
 const AUTO_HINT_DELAY_MS = 20000;
+const MAX_WRONG_ATTEMPTS = 3;
+const AUTO_RETURN_TO_HUB_DELAY_MS = 3000;
 
 /* ===== CONDITION CHECK CONFIG ===== */
 
