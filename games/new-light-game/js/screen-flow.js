@@ -650,6 +650,58 @@
     document.getElementById("tutorialDone").hidden = tutorialIndex !== 1;
   }
 
+  function openTutorialOverlay(returnScreen) {
+    tutorialReturnScreen = returnScreen;
+    tutorialIndex = 0;
+    updateTutorial();
+    const howtoScreen = document.querySelector('[data-screen="howto"]');
+    howtoScreen.classList.add("is-active", "is-pause-overlay");
+  }
+
+  function closeTutorialOverlay(nextScreen) {
+    const howtoScreen = document.querySelector('[data-screen="howto"]');
+    howtoScreen.classList.remove("is-active", "is-pause-overlay");
+    if (nextScreen !== "play") {
+      showScreen(nextScreen);
+    }
+  }
+
+  function isMobileLandscape() {
+    return window.matchMedia("(orientation: landscape) and (pointer: coarse)").matches;
+  }
+
+  function requestAppFullscreen() {
+    if (
+      !isMobileLandscape()
+      || document.fullscreenElement
+      || document.webkitFullscreenElement
+    ) {
+      return;
+    }
+
+    const target = document.documentElement;
+    const request = target.requestFullscreen || target.webkitRequestFullscreen;
+
+    if (typeof request !== "function") {
+      updateStageScale();
+      return;
+    }
+
+    try {
+      const requestResult = request.call(target, { navigationUI: "hide" });
+      if (requestResult && typeof requestResult.then === "function") {
+        requestResult
+          .then(() => window.setTimeout(updateStageScale, 250))
+          .catch(updateStageScale);
+        return;
+      }
+
+      window.setTimeout(updateStageScale, 250);
+    } catch (error) {
+      updateStageScale();
+    }
+  }
+
   function updateToggleControl(control, isOn) {
     if (control.matches('input[type="checkbox"]')) {
       control.checked = isOn;
@@ -758,6 +810,7 @@
         game.stop();
       }
       if (button.dataset.screenTarget === "howto") {
+        document.querySelector('[data-screen="howto"]').classList.remove("is-pause-overlay");
         tutorialReturnScreen = document.body.dataset.activeScreen || "start";
         tutorialIndex = 0;
         updateTutorial();
@@ -803,14 +856,18 @@
   conditionElements.sleepDial.addEventListener("pointercancel", endConditionSleepDrag);
   conditionElements.confirmButton.addEventListener("click", () => submitCondition(false));
   conditionElements.skipButton.addEventListener("click", () => submitCondition(true));
-  document.getElementById("startButton").addEventListener("click", openDifficultySelect);
+  document.getElementById("startButton").addEventListener("click", () => {
+    requestAppFullscreen();
+    openDifficultySelect();
+  });
   document.getElementById("hintButton").addEventListener("click", () => game.showHint());
   document.getElementById("pauseButton").addEventListener("click", () => game.pause());
   document.getElementById("resumeButton").addEventListener("click", () => game.resume());
   document.getElementById("pauseRestartButton").addEventListener("click", startGame);
   document.getElementById("pauseHomeButton").addEventListener("click", () => game.exitToHome());
   document.getElementById("pauseHowtoButton").addEventListener("click", () => {
-    document.getElementById("pauseHelpPanel").hidden = false;
+    document.getElementById("pauseHelpPanel").hidden = true;
+    openTutorialOverlay("play");
   });
   document.getElementById("pauseHelpCloseButton").addEventListener("click", () => {
     document.getElementById("pauseHelpPanel").hidden = true;
@@ -831,6 +888,10 @@
     }
     const nextScreen = tutorialReturnScreen;
     tutorialReturnScreen = "start";
+    if (document.querySelector('[data-screen="howto"]').classList.contains("is-pause-overlay")) {
+      closeTutorialOverlay(nextScreen);
+      return;
+    }
     showScreen(nextScreen);
   });
   document.getElementById("tutorialNext").addEventListener("click", () => {
@@ -840,6 +901,10 @@
   document.getElementById("tutorialDone").addEventListener("click", () => {
     const nextScreen = tutorialReturnScreen;
     tutorialReturnScreen = "start";
+    if (document.querySelector('[data-screen="howto"]').classList.contains("is-pause-overlay")) {
+      closeTutorialOverlay(nextScreen);
+      return;
+    }
     showScreen(nextScreen);
   });
 
@@ -861,11 +926,7 @@
   const fullscreenButton = document.getElementById("fullscreenButton");
   if (fullscreenButton) {
     fullscreenButton.addEventListener("click", () => {
-      if (document.fullscreenElement) {
-        document.exitFullscreen();
-        return;
-      }
-      document.documentElement.requestFullscreen();
+      requestAppFullscreen();
     });
   }
 

@@ -853,6 +853,16 @@
   overflow: hidden;
 }
 
+.screen[data-screen="howto"].is-pause-overlay {
+  z-index: 8;
+  background: transparent;
+  pointer-events: auto;
+}
+
+.screen[data-screen="howto"].is-pause-overlay .tutorial-panel {
+  transform: translateY(0);
+}
+
 .screen[data-screen="howto"] .tutorial-panel {
   display: grid;
   justify-items: center;

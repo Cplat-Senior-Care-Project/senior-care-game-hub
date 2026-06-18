@@ -294,7 +294,7 @@
         4: { card: 110, gap: 10 }
       };
       const metrics = this.difficulty.gridRows === 3 && this.difficulty.gridCols === 4
-        ? { card: 128, gap: 16 }
+        ? { card: 145, gap: 14 }
         : cardMetrics[this.difficulty.gridRows] || cardMetrics[3];
       const padding = 48;
       const gridWidth = (this.difficulty.gridCols * metrics.card) + ((this.difficulty.gridCols - 1) * metrics.gap) + padding;
@@ -816,7 +816,7 @@
       const fill = this.elements.memoryGaugeFill;
       const text = this.elements.memoryGaugeText;
 
-      if (!gauge || !fill || !text) {
+      if (!gauge || !fill) {
         return;
       }
 
@@ -827,13 +827,17 @@
       this.memoryGaugeEndAt = start + initialRemaining;
       gauge.hidden = false;
       fill.style.height = Math.round((initialRemaining / duration) * 100) + "%";
-      text.textContent = String(Math.max(0, Math.ceil(initialRemaining / 1000)));
+      if (text) {
+        text.textContent = String(Math.max(0, Math.ceil(initialRemaining / 1000)));
+      }
 
       this.setInterval(() => {
         const remaining = Math.max(0, this.memoryGaugeEndAt - performance.now());
         const ratio = duration ? remaining / duration : 0;
         fill.style.height = Math.round(ratio * 100) + "%";
-        text.textContent = String(Math.max(0, Math.ceil(remaining / 1000)));
+        if (text) {
+          text.textContent = String(Math.max(0, Math.ceil(remaining / 1000)));
+        }
       }, 100);
     }
 

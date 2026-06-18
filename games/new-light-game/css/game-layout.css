@@ -1158,8 +1158,8 @@ body[data-active-screen="play"] .game-stage {
   display: grid;
   justify-items: center;
   width: 92px;
-  min-height: 304px;
-  padding: 20px 12px 14px;
+  min-height: 338px;
+  padding: 20px 12px;
   border: 5px solid #efcf77;
   border-radius: 38px;
   color: #8b4b13;
@@ -1181,7 +1181,7 @@ body[data-active-screen="play"] .game-stage {
   position: relative;
   display: block;
   width: 30px;
-  height: 224px;
+  height: 292px;
   margin-top: 0;
   overflow: visible;
   border: 3px solid #f0bc45;
@@ -1207,31 +1207,6 @@ body[data-active-screen="play"] .game-stage {
     inset 0 2px 0 rgba(255, 245, 158, 0.78),
     inset 0 -2px 0 rgba(204, 83, 9, 0.2);
   transition: height 120ms linear;
-}
-
-.screen-play .memory-gauge-badge {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 62px;
-  height: 62px;
-  margin-top: 8px;
-  border: 3px solid #efcf77;
-  border-radius: 50%;
-  color: #ef7d12;
-  font-size: 26px;
-  font-weight: 1000;
-  line-height: 1;
-  white-space: nowrap;
-  background: rgba(255, 253, 244, 0.98);
-  box-shadow:
-    inset 0 0 0 2px rgba(255, 255, 255, 0.8),
-    0 4px 8px rgba(116, 74, 25, 0.12);
-}
-
-.screen-play .memory-gauge-badge strong {
-  font-size: 32px;
-  line-height: 0.9;
 }
 
 .screen-play .play-area.is-transitioning .bulb-grid {
@@ -1310,8 +1285,8 @@ body[data-active-screen="play"] .game-stage {
 }
 
 .screen-play .grid-3x4 {
-  --card-size: 128px;
-  --grid-gap: 16px;
+  --card-size: 145px;
+  --grid-gap: 14px;
 }
 
 .screen-play .bulb-card {
