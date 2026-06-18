@@ -47,8 +47,11 @@
       this.exitedEarly = false;
       this.exitReason = "";
       this.totalEndAt = 0;
+      this.totalRemainingMs = 0;
       this.roundEndAt = 0;
       this.phaseEndAt = 0;
+      this.memoryGaugeEndAt = 0;
+      this.memoryGaugeDurationMs = 3000;
       this.feedbackEndAt = 0;
       this.feedbackAction = "";
       this.pausedRemaining = null;
@@ -80,7 +83,8 @@
       this.startedAtIso = new Date().toISOString();
 
       const totalLimit = this.modeConfig.totalLimitMs || this.difficulty.totalLimitMs;
-      this.totalEndAt = performance.now() + totalLimit;
+      this.totalRemainingMs = totalLimit;
+      this.totalEndAt = 0;
       this.elements.pauseOverlay.hidden = true;
       this.elements.resultNotice.textContent = "";
       this.startNextQuestion();
@@ -118,6 +122,7 @@
 
     stop(exitReason) {
       this.clearAllTimers();
+      this.stopMemoryCountdownGauge();
       this.phase = GAME_PHASE.IDLE;
 
       if (this.elements && this.elements.grid) {
@@ -147,7 +152,7 @@
         return;
       }
 
-      if (this.totalEndAt && performance.now() >= this.totalEndAt) {
+      if (this.totalRemainingMs <= 0) {
         this.finish("total_timeout");
         return;
       }
@@ -169,7 +174,9 @@
       this.currentRoundStartAt = performance.now();
       this.renderGrid(false);
       this.updateHud();
-      this.updatePhaseTimer(this.modeConfig.exposureTimeMs);
+      this.updatePhaseTimer(0);
+      this.phaseEndAt = performance.now() + this.modeConfig.exposureTimeMs;
+      this.startMemoryCountdownGauge(3000);
       this.setStatus(this.buildMemoryPrompt());
       this.audio.play("sparkle");
 
@@ -217,21 +224,16 @@
       }
 
       this.clearRoundTimers();
+      this.stopMemoryCountdownGauge();
       this.phase = GAME_PHASE.SELECTING;
       this.selectStartedAt = performance.now();
-      const roundLimitMs = this.modeConfig.roundTimeLimitMs === undefined ? 60000 : this.modeConfig.roundTimeLimitMs;
-      this.roundEndAt = roundLimitMs > 0 ? performance.now() + roundLimitMs : 0;
+      this.resumeTotalCountdown();
+      this.roundEndAt = 0;
       this.renderGrid(true);
-      this.updatePhaseTimer(roundLimitMs > 0 ? roundLimitMs : 0);
+      this.updatePhaseTimer(0);
       this.setStatus(this.buildSelectionPrompt());
       this.audio.play("flip");
       this.updatePauseButton();
-
-      if (roundLimitMs > 0) {
-        this.setTimer(() => {
-          this.finishRound(false, "timeout");
-        }, roundLimitMs);
-      }
 
       if (this.modeConfig.hintEnabled && this.modeConfig.autoHintEnabled && this.modeConfig.autoHintAfterMs) {
         this.setTimer(() => {
@@ -414,6 +416,7 @@
 
         if (this.targetIndexes.every((target) => this.selectedIndexes.includes(target))) {
           this.clearRoundTimers();
+          this.freezeTotalCountdown();
           this.showPromptFeedback("정답입니다!", "correct");
           this.phase = GAME_PHASE.FEEDBACK;
           this.feedbackEndAt = performance.now() + 2000;
@@ -451,15 +454,22 @@
       }
 
       this.clearRoundTimers();
+      this.freezeTotalCountdown();
       this.phase = GAME_PHASE.FEEDBACK;
       const now = performance.now();
       const selected = this.currentSelections.slice();
       const responseTime = Math.round(now - this.selectStartedAt);
       const firstResponseTime = this.firstResponseAt ? Math.round(this.firstResponseAt - this.selectStartedAt) : 0;
 
+      const isLastQuestion = this.currentQuestionNumber >= this.totalQuestions;
+
       if (isCorrect) {
         this.revealTargets("is-correct");
-        this.showRoundTransition("정답입니다!", "다음 문제로 넘어갈게요.");
+        if (!isLastQuestion) {
+          this.showRoundTransition("정답입니다!", "다음 문제로 넘어갈게요.");
+        } else {
+          this.setStatus("정답입니다!");
+        }
         this.audio.play("correct");
       } else {
         if (failReason === "wrong_limit") {
@@ -501,7 +511,7 @@
       });
 
       this.updateHud();
-      const nextDelay = isCorrect || failReason === "wrong_limit" ? 3000 : 5000;
+      const nextDelay = isLastQuestion && isCorrect ? 200 : (isCorrect || failReason === "wrong_limit" ? 3000 : 5000);
       this.feedbackEndAt = performance.now() + nextDelay;
       this.feedbackAction = "startNextQuestion";
       this.setTimer(() => {
@@ -550,14 +560,19 @@
       }
 
       this.phaseBeforePause = this.phase;
+      if (this.phaseBeforePause === GAME_PHASE.SELECTING) {
+        this.freezeTotalCountdown();
+      }
       this.phase = GAME_PHASE.PAUSED;
       this.pauseCount += 1;
       this.interactionCount += 1;
       this.pausedRemaining = {
         phase: this.phaseEndAt ? Math.max(0, this.phaseEndAt - performance.now()) : null,
+        memoryGauge: this.getMemoryGaugeRemaining(),
+        memoryGaugeDuration: this.memoryGaugeDurationMs,
         round: this.roundEndAt ? Math.max(0, this.roundEndAt - performance.now()) : null,
         feedback: this.feedbackEndAt ? Math.max(0, this.feedbackEndAt - performance.now()) : null,
-        total: this.totalEndAt ? Math.max(0, this.totalEndAt - performance.now()) : null
+        total: this.getTotalRemaining()
       };
       this.clearAllTimers();
       this.elements.pauseOverlay.hidden = false;
@@ -573,7 +588,8 @@
       this.elements.pauseOverlay.hidden = true;
 
       if (this.pausedRemaining && this.pausedRemaining.total !== null) {
-        this.totalEndAt = performance.now() + this.pausedRemaining.total;
+        this.totalRemainingMs = this.pausedRemaining.total;
+        this.totalEndAt = 0;
       }
 
       this.startTotalTimer();
@@ -583,7 +599,12 @@
         this.setStatus(this.buildMemoryPrompt());
         const remaining = this.pausedRemaining && this.pausedRemaining.phase ? this.pausedRemaining.phase : 1200;
         this.setTimer(() => this.flipToSelecting(), remaining);
-        this.updatePhaseTimer(remaining);
+        this.updatePhaseTimer(0);
+        this.phaseEndAt = performance.now() + remaining;
+        const gaugeDuration = this.pausedRemaining && this.pausedRemaining.memoryGaugeDuration ? this.pausedRemaining.memoryGaugeDuration : 3000;
+        const gaugeRemaining = this.pausedRemaining && this.pausedRemaining.memoryGauge !== null ? this.pausedRemaining.memoryGauge : Math.min(gaugeDuration, remaining);
+        this.startMemoryCountdownGauge(gaugeDuration, Math.min(gaugeRemaining, remaining));
+        this.updatePauseButton();
         return;
       }
 
@@ -601,16 +622,10 @@
       }
 
       this.phase = GAME_PHASE.SELECTING;
+      this.resumeTotalCountdown();
       this.setStatus(this.buildSelectionPrompt());
-      const remaining = this.pausedRemaining && this.pausedRemaining.round ? this.pausedRemaining.round : 60000;
-      if (remaining > 0) {
-        this.roundEndAt = performance.now() + remaining;
-        this.updatePhaseTimer(remaining);
-        this.setTimer(() => this.finishRound(false, "timeout"), remaining);
-      } else {
-        this.roundEndAt = 0;
-        this.updatePhaseTimer(0);
-      }
+      this.roundEndAt = 0;
+      this.updatePhaseTimer(0);
       this.updatePauseButton();
     }
 
@@ -796,14 +811,87 @@
       }, 100);
     }
 
+    startMemoryCountdownGauge(durationMs, remainingMs) {
+      const gauge = this.elements.memoryCountdownGauge;
+      const fill = this.elements.memoryGaugeFill;
+      const text = this.elements.memoryGaugeText;
+
+      if (!gauge || !fill || !text) {
+        return;
+      }
+
+      const duration = Math.max(1, durationMs || 3000);
+      const initialRemaining = Math.max(0, Math.min(duration, remainingMs === undefined ? duration : remainingMs));
+      const start = performance.now();
+      this.memoryGaugeDurationMs = duration;
+      this.memoryGaugeEndAt = start + initialRemaining;
+      gauge.hidden = false;
+      fill.style.height = Math.round((initialRemaining / duration) * 100) + "%";
+      text.textContent = String(Math.max(0, Math.ceil(initialRemaining / 1000)));
+
+      this.setInterval(() => {
+        const remaining = Math.max(0, this.memoryGaugeEndAt - performance.now());
+        const ratio = duration ? remaining / duration : 0;
+        fill.style.height = Math.round(ratio * 100) + "%";
+        text.textContent = String(Math.max(0, Math.ceil(remaining / 1000)));
+      }, 100);
+    }
+
+    stopMemoryCountdownGauge() {
+      const gauge = this.elements && this.elements.memoryCountdownGauge;
+      const fill = this.elements && this.elements.memoryGaugeFill;
+      const text = this.elements && this.elements.memoryGaugeText;
+
+      if (!gauge) {
+        return;
+      }
+
+      gauge.hidden = true;
+      this.memoryGaugeEndAt = 0;
+
+      if (fill) {
+        fill.style.height = "0%";
+      }
+
+      if (text) {
+        text.textContent = "3";
+      }
+    }
+
+    getMemoryGaugeRemaining() {
+      if (!this.memoryGaugeEndAt) {
+        return 0;
+      }
+
+      return Math.max(0, this.memoryGaugeEndAt - performance.now());
+    }
+
+    getTotalRemaining() {
+      if (this.phase === GAME_PHASE.SELECTING && this.totalEndAt) {
+        this.totalRemainingMs = Math.max(0, this.totalEndAt - performance.now());
+      }
+
+      return Math.max(0, this.totalRemainingMs || 0);
+    }
+
+    resumeTotalCountdown() {
+      const remaining = this.getTotalRemaining();
+      this.totalEndAt = remaining > 0 ? performance.now() + remaining : 0;
+    }
+
+    freezeTotalCountdown() {
+      this.totalRemainingMs = this.getTotalRemaining();
+      this.totalEndAt = 0;
+    }
+
     startTotalTimer() {
       clearInterval(this.totalInterval);
       const tick = () => {
-        const remaining = Math.max(0, this.totalEndAt - performance.now());
+        const remaining = this.getTotalRemaining();
         this.elements.totalTimer.textContent = this.formatClock(remaining);
         this.elements.totalTimerBox.classList.toggle("is-warning", remaining <= 10000);
 
-        if (remaining <= 0) {
+        if (remaining <= 0 && this.phase === GAME_PHASE.SELECTING) {
           this.finish("total_timeout");
         }
       };

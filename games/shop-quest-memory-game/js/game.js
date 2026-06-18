@@ -9,6 +9,7 @@
   const STAGE_WIDTH = 1280;
   const STAGE_HEIGHT = 720;
   const FEEDBACK_TIME = 1400;
+  const STANDARD_RETRY_FEEDBACK_TIME = 2000;
   const RETRY_FEEDBACK_TIME = 5000;
   const CARE_RETRY_FEEDBACK_TIME = 4000;
   const CORRECT_FEEDBACK_TIME = 3000;
@@ -959,7 +960,10 @@
     if (shouldUseDirectFeedback() || !isCareResultMode()) return null;
     return state.questionLogs.length > 0 ? "voiceCareResult2" : "voiceCareResult1";
   }
-  function getRetryFeedbackTime() { return isCareMode() ? CARE_RETRY_FEEDBACK_TIME : RETRY_FEEDBACK_TIME; }
+  function getRetryFeedbackTime() {
+    if (runtimeConfig && runtimeConfig.mode === "standard") return STANDARD_RETRY_FEEDBACK_TIME;
+    return isCareMode() ? CARE_RETRY_FEEDBACK_TIME : RETRY_FEEDBACK_TIME;
+  }
   function getTotalQuestions() { return Math.max(1, runtimeConfig ? runtimeConfig.totalQuestions : 10); }
   function escapeHtml(value) { return String(value).replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;"); }
   function findItem(id) { return SHOPPING_ITEMS.find((item) => item.id === id) || null; }

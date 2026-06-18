@@ -972,7 +972,7 @@ body[data-active-screen="play"] .game-stage {
 }
 
 .screen-play #totalTimerBox.is-warning #totalTimer {
-  color: var(--warn);
+  color: #d92626;
   animation: timer-color-pulse 900ms ease-in-out infinite;
 }
 
@@ -1148,6 +1148,90 @@ body[data-active-screen="play"] .game-stage {
   min-height: 0;
   transform: translateX(-50%);
   pointer-events: auto;
+}
+
+.screen-play .memory-countdown-gauge {
+  position: absolute;
+  top: 50%;
+  left: calc(100% + 28px);
+  z-index: 3;
+  display: grid;
+  justify-items: center;
+  width: 92px;
+  min-height: 304px;
+  padding: 20px 12px 14px;
+  border: 5px solid #efcf77;
+  border-radius: 38px;
+  color: #8b4b13;
+  background:
+    linear-gradient(180deg, rgba(255, 253, 244, 0.98), rgba(255, 246, 213, 0.96)),
+    #fff4bf;
+  box-shadow:
+    inset 0 0 0 4px rgba(255, 255, 255, 0.72),
+    0 10px 18px rgba(116, 74, 25, 0.18);
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+
+.screen-play .memory-countdown-gauge[hidden] {
+  display: none !important;
+}
+
+.screen-play .memory-gauge-track {
+  position: relative;
+  display: block;
+  width: 30px;
+  height: 224px;
+  margin-top: 0;
+  overflow: visible;
+  border: 3px solid #f0bc45;
+  border-radius: 16px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 252, 0.97), rgba(255, 248, 218, 0.96)),
+    #fff6d1;
+  box-shadow:
+    inset 0 0 0 2px rgba(255, 255, 255, 0.8),
+    0 3px 6px rgba(116, 74, 25, 0.14);
+}
+
+.screen-play .memory-gauge-fill {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  height: 100%;
+  border-radius: 12px;
+  background:
+    linear-gradient(180deg, #ffd33f 0%, #ffb018 46%, #ff7f12 100%);
+  box-shadow:
+    inset 0 2px 0 rgba(255, 245, 158, 0.78),
+    inset 0 -2px 0 rgba(204, 83, 9, 0.2);
+  transition: height 120ms linear;
+}
+
+.screen-play .memory-gauge-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 62px;
+  height: 62px;
+  margin-top: 8px;
+  border: 3px solid #efcf77;
+  border-radius: 50%;
+  color: #ef7d12;
+  font-size: 26px;
+  font-weight: 1000;
+  line-height: 1;
+  white-space: nowrap;
+  background: rgba(255, 253, 244, 0.98);
+  box-shadow:
+    inset 0 0 0 2px rgba(255, 255, 255, 0.8),
+    0 4px 8px rgba(116, 74, 25, 0.12);
+}
+
+.screen-play .memory-gauge-badge strong {
+  font-size: 32px;
+  line-height: 0.9;
 }
 
 .screen-play .play-area.is-transitioning .bulb-grid {

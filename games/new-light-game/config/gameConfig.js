@@ -263,7 +263,7 @@
         totalQuestions: questionCount !== null ? normalizeNumber(questionCount, modeConfig.totalQuestions) : modeConfig.totalQuestions,
         exposureTimeMs: exposureTimeMs !== null ? normalizeNumber(exposureTimeMs, modeConfig.exposureTimeMs) : modeConfig.exposureTimeMs,
         totalLimitMs: totalTimeLimitSec !== null ? normalizeNumber(totalTimeLimitSec, 0) * 1000 : modeConfig.totalLimitMs,
-        roundTimeLimitMs: roundTimeLimitSec !== null ? normalizeNumber(roundTimeLimitSec, 0) * 1000 : 60000,
+        roundTimeLimitMs: roundTimeLimitSec !== null ? normalizeNumber(roundTimeLimitSec, 0) * 1000 : 0,
         gridRows: normalizeNumber(pickValue(merged, ["grid_rows", "gridRows"], null), null),
         gridCols: normalizeNumber(pickValue(merged, ["grid_cols", "gridCols"], null), null),
         targetCount: normalizeNumber(pickValue(merged, ["target_count", "targetCount"], null), null),

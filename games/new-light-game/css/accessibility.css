@@ -1,0 +1,147 @@
+.game-stage,
+.game-stage * {
+  font-synthesis: none;
+}
+
+.portrait-lock,
+.game-stage h1,
+.game-stage h2,
+.game-stage h3,
+.game-stage p,
+.game-stage button,
+.game-stage .title-fallback,
+.game-stage .start-loading-message,
+.game-stage .start-loading-text,
+.game-stage .main-copy,
+.game-stage .mode-strip,
+.game-stage .primary-button,
+.game-stage .secondary-button,
+.game-stage .choice-button,
+.game-stage .condition-title-text,
+.game-stage .condition-section-title,
+.game-stage .condition-mood-button,
+.game-stage .condition-sleep-row,
+.game-stage .condition-confirm-button,
+.game-stage .condition-skip-button,
+.game-stage .post-condition-question-title,
+.game-stage .post-condition-option,
+.game-stage .setting-row strong,
+.game-stage .setting-row small,
+.game-stage .guide-text,
+.game-stage .round-title,
+.game-stage .round-kicker,
+.game-stage .game-countdown-message,
+.game-stage .game-countdown-face strong,
+.game-stage .modal-card h2,
+.game-stage .modal-card p,
+.game-stage .info-label,
+.game-stage .info-pill strong,
+.game-stage .feedback-title,
+.game-stage .feedback-message,
+.game-stage .feedback-bubble,
+.game-stage .hint-message,
+.game-stage .hint-button,
+.game-stage .result-message,
+.game-stage .result-content h2,
+.game-stage .error-message,
+.game-stage .error-symbol,
+.game-stage .tutorial-card #tutorial-title,
+.game-stage .tutorial-card #tutorial-message,
+.game-stage .tutorial-detail,
+.game-stage .pause-sound-button,
+.game-stage .settings-panel-title {
+  font-weight: 700 !important;
+  -webkit-text-stroke: 0 !important;
+  paint-order: normal !important;
+}
+
+@media (hover: none) and (pointer: coarse) {
+  :root {
+    --text-stroke: 0px;
+  }
+
+  html,
+  body,
+  .game-stage,
+  .screen,
+  .game-background,
+  img {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+
+  .game-stage,
+  .game-stage * {
+    font-synthesis: none;
+  }
+
+  .portrait-lock,
+  .game-stage h1,
+  .game-stage h2,
+  .game-stage h3,
+  .game-stage p,
+  .game-stage button,
+  .game-stage .title-fallback,
+  .game-stage .start-loading-message,
+  .game-stage .start-loading-text,
+  .game-stage .main-copy,
+  .game-stage .mode-strip,
+  .game-stage .primary-button,
+  .game-stage .secondary-button,
+  .game-stage .choice-button,
+  .game-stage .condition-title-text,
+  .game-stage .condition-section-title,
+  .game-stage .condition-mood-button,
+  .game-stage .condition-sleep-row,
+  .game-stage .condition-confirm-button,
+  .game-stage .condition-skip-button,
+  .game-stage .post-condition-question-title,
+  .game-stage .post-condition-option,
+  .game-stage .setting-row strong,
+  .game-stage .setting-row small,
+  .game-stage .guide-text,
+  .game-stage .round-title,
+  .game-stage .round-kicker,
+  .game-stage .game-countdown-message,
+  .game-stage .game-countdown-face strong,
+  .game-stage .modal-card h2,
+  .game-stage .modal-card p,
+  .game-stage .info-label,
+  .game-stage .info-pill strong,
+  .game-stage .feedback-title,
+  .game-stage .feedback-message,
+  .game-stage .feedback-bubble,
+  .game-stage .hint-message,
+  .game-stage .hint-button,
+  .game-stage .result-message,
+  .game-stage .result-content h2,
+  .game-stage .error-message,
+  .game-stage .error-symbol,
+  .game-stage .tutorial-card #tutorial-title,
+  .game-stage .tutorial-card #tutorial-message,
+  .game-stage .tutorial-detail,
+  .game-stage .pause-sound-button,
+  .game-stage .settings-panel-title {
+    font-weight: 700 !important;
+    -webkit-text-stroke: 0 !important;
+    -webkit-text-stroke-width: 0 !important;
+    paint-order: normal !important;
+  }
+
+  img,
+  .game-background,
+  .title-image,
+  .memory-card img,
+  .choice-card img {
+    -webkit-user-drag: none;
+    user-drag: none;
+  }
+
+  .screen-start .main-copy,
+  .screen-start .primary-button,
+  .screen-start .primary-button > span:first-child {
+    font-weight: 700 !important;
+    -webkit-text-stroke-width: 0 !important;
+  }
+}

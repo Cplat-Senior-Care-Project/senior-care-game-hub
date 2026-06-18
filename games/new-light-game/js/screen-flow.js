@@ -20,7 +20,7 @@
   let finishCheckPage = 0;
   let conditionData = runtime.modeConfig.showConditionCheck ? {} : { skipped: true };
   let tutorialReturnScreen = "start";
-  registerPlayBulbAssets();
+  let orientationAutoPauseActive = false;
   const postConditionModal = document.getElementById("post-condition-modal");
 
   const conditionState = {
@@ -55,6 +55,24 @@
         document.body.classList.remove("has-bulb-assets");
       };
       image.src = path;
+    });
+  }
+
+  function loadDeferredGameAssets() {
+    document.querySelectorAll("img[data-deferred-src]").forEach((image) => {
+      image.src = image.dataset.deferredSrc;
+      image.removeAttribute("data-deferred-src");
+    });
+
+    const questionDataScript = document.getElementById("questionDataScript");
+    if (!questionDataScript || questionDataScript.src) {
+      return Promise.resolve();
+    }
+
+    return new Promise((resolve) => {
+      questionDataScript.addEventListener("load", resolve, { once: true });
+      questionDataScript.addEventListener("error", resolve, { once: true });
+      questionDataScript.src = questionDataScript.dataset.src;
     });
   }
   const conditionElements = {
@@ -190,6 +208,9 @@
       remaining: document.getElementById("remainingText"),
       progressText: document.getElementById("progressText"),
       memoryFill: document.getElementById("memoryFill"),
+      memoryCountdownGauge: document.getElementById("memoryCountdownGauge"),
+      memoryGaugeFill: document.getElementById("memoryGaugeFill"),
+      memoryGaugeText: document.getElementById("memoryGaugeText"),
       hintCount: document.getElementById("hintCount"),
       playPrompt: document.querySelector(".play-prompt"),
       playArea: document.querySelector(".play-area"),
@@ -221,7 +242,79 @@
     document.documentElement.style.setProperty("--stage-scale", String(scale));
     document.documentElement.style.setProperty("--game-viewport-right-gutter", horizontalGutter + "px");
     document.documentElement.style.setProperty("--game-viewport-top-gutter", verticalGutter + "px");
-    document.body.classList.toggle("is-portrait", viewportHeight > viewportWidth);
+    const isPortrait = isPortraitViewport(viewportWidth, viewportHeight);
+    document.body.classList.toggle("is-portrait", isPortrait);
+    const portraitLock = document.querySelector(".portrait-lock");
+    if (portraitLock) {
+      portraitLock.setAttribute("aria-hidden", isPortrait ? "false" : "true");
+    }
+    syncOrientationPause(isPortrait);
+  }
+
+  function isPortraitViewport(viewportWidth, viewportHeight) {
+    const width = Number(viewportWidth) || window.innerWidth || document.documentElement.clientWidth || STAGE_WIDTH;
+    const height = Number(viewportHeight) || window.innerHeight || document.documentElement.clientHeight || STAGE_HEIGHT;
+    return height > width;
+  }
+
+  function waitForLandscapeOrientation() {
+    updateStageScale();
+    if (!isPortraitViewport()) {
+      return Promise.resolve();
+    }
+
+    return new Promise((resolve) => {
+      let animationFrameId = 0;
+      const visualViewport = window.visualViewport;
+      const cleanup = () => {
+        window.removeEventListener("resize", check);
+        window.removeEventListener("orientationchange", check);
+        if (visualViewport) {
+          visualViewport.removeEventListener("resize", check);
+        }
+        if (animationFrameId) {
+          window.cancelAnimationFrame(animationFrameId);
+        }
+      };
+      const check = () => {
+        updateStageScale();
+        if (!isPortraitViewport()) {
+          cleanup();
+          resolve();
+          return;
+        }
+        animationFrameId = window.requestAnimationFrame(check);
+      };
+
+      window.addEventListener("resize", check);
+      window.addEventListener("orientationchange", check);
+      if (visualViewport) {
+        visualViewport.addEventListener("resize", check);
+      }
+      animationFrameId = window.requestAnimationFrame(check);
+    });
+  }
+
+  function canPauseForOrientationGuard() {
+    return document.body.dataset.activeScreen === "play"
+      && [GAME_PHASE.MEMORIZE, GAME_PHASE.SELECTING, GAME_PHASE.FEEDBACK].includes(game.phase);
+  }
+
+  function syncOrientationPause(isPortrait) {
+    if (isPortrait) {
+      if (!orientationAutoPauseActive && canPauseForOrientationGuard()) {
+        orientationAutoPauseActive = true;
+        game.pause();
+      }
+      return;
+    }
+
+    if (!orientationAutoPauseActive) {
+      return;
+    }
+
+    orientationAutoPauseActive = false;
+    game.resume();
   }
 
   function showScreen(name) {
@@ -229,49 +322,9 @@
     screenElements.forEach((screen) => {
       screen.classList.toggle("is-active", screen.dataset.screen === name);
     });
-    if (name === "play") {
-      forcePlayScreenVisible();
-    } else {
+    if (name !== "play") {
       clearForcedPlayScreen();
     }
-  }
-
-  function setImportantStyle(element, property, value) {
-    if (!element) {
-      return;
-    }
-    element.style.setProperty(property, value, "important");
-  }
-
-  function forcePlayScreenVisible() {
-    const playScreen = document.querySelector('[data-screen="play"]');
-    if (!playScreen) {
-      return;
-    }
-
-    const gameStage = document.getElementById("gameStage");
-    const portraitLock = document.querySelector(".portrait-lock");
-    document.body.classList.remove("is-portrait");
-    setImportantStyle(gameStage, "visibility", "visible");
-    setImportantStyle(gameStage, "opacity", "1");
-    setImportantStyle(portraitLock, "display", "none");
-
-    setImportantStyle(playScreen, "display", "block");
-    setImportantStyle(playScreen, "visibility", "visible");
-    setImportantStyle(playScreen, "opacity", "1");
-
-    [
-      [".game-hud", "grid"],
-      [".play-prompt", "flex"],
-      [".play-area", "flex"],
-      [".progress-row", "block"],
-      [".pause-button", "flex"]
-    ].forEach(([selector, display]) => {
-      const element = playScreen.querySelector(selector);
-      setImportantStyle(element, "display", display);
-      setImportantStyle(element, "visibility", "visible");
-      setImportantStyle(element, "opacity", "1");
-    });
   }
 
   function clearForcedPlayScreen() {
@@ -303,10 +356,20 @@
 
   function startLoading() {
     const duration = 1800;
-    const startedAt = performance.now();
+    let activeElapsed = 0;
+    let lastFrameAt = performance.now();
 
     function update(now) {
-      const progress = Math.min(1, (now - startedAt) / duration);
+      updateStageScale();
+      if (isPortraitViewport()) {
+        lastFrameAt = now;
+        window.requestAnimationFrame(update);
+        return;
+      }
+
+      activeElapsed += Math.max(0, now - lastFrameAt);
+      lastFrameAt = now;
+      const progress = Math.min(1, activeElapsed / duration);
       const easedProgress = 1 - Math.pow(1 - progress, 3);
       const percent = Math.round(easedProgress * 100);
 
@@ -322,12 +385,14 @@
       loadingPercent.textContent = "100%";
 
       setTimeout(() => {
-        if (runtime.modeConfig.showConditionCheck) {
-          openConditionCheck();
-          return;
-        }
+        waitForLandscapeOrientation().then(() => {
+          if (runtime.modeConfig.showConditionCheck) {
+            openConditionCheck();
+            return;
+          }
 
-        showScreen("start");
+          showScreen("start");
+        });
       }, 260);
     }
 
@@ -369,6 +434,11 @@
   }
 
   function startGame() {
+    if (isPortraitViewport()) {
+      waitForLandscapeOrientation().then(startGame);
+      return;
+    }
+
     audio.unlock();
     pendingResult = null;
     closeFinishCheck();
@@ -393,7 +463,6 @@
       condition: conditionData,
       sessionMeta
     });
-    forcePlayScreenVisible();
   }
 
   function openDifficultySelect() {
@@ -576,10 +645,9 @@
     document.querySelectorAll(".tutorial-page").forEach((page, index) => {
       page.classList.toggle("is-active", index === tutorialIndex);
     });
-    document.getElementById("tutorialProgress").textContent = tutorialIndex + 1 + " / 5";
-    document.getElementById("tutorialPrev").disabled = tutorialIndex === 0;
-    document.getElementById("tutorialNext").hidden = tutorialIndex === 4;
-    document.getElementById("tutorialDone").hidden = tutorialIndex !== 4;
+    document.getElementById("tutorialClose").textContent = tutorialIndex === 0 ? "닫기" : "이전";
+    document.getElementById("tutorialNext").hidden = tutorialIndex !== 0;
+    document.getElementById("tutorialDone").hidden = tutorialIndex !== 1;
   }
 
   function updateToggleControl(control, isOn) {
@@ -689,6 +757,11 @@
       if (button.dataset.screenTarget !== "play") {
         game.stop();
       }
+      if (button.dataset.screenTarget === "howto") {
+        tutorialReturnScreen = document.body.dataset.activeScreen || "start";
+        tutorialIndex = 0;
+        updateTutorial();
+      }
       showScreen(button.dataset.screenTarget);
     });
   });
@@ -750,12 +823,18 @@
   document.getElementById("resultHomeButton").addEventListener("click", finishToHost);
   document.getElementById("startReturnButton").addEventListener("click", finishToHost);
 
-  document.getElementById("tutorialPrev").addEventListener("click", () => {
-    tutorialIndex = Math.max(0, tutorialIndex - 1);
-    updateTutorial();
+  document.getElementById("tutorialClose").addEventListener("click", () => {
+    if (tutorialIndex > 0) {
+      tutorialIndex = 0;
+      updateTutorial();
+      return;
+    }
+    const nextScreen = tutorialReturnScreen;
+    tutorialReturnScreen = "start";
+    showScreen(nextScreen);
   });
   document.getElementById("tutorialNext").addEventListener("click", () => {
-    tutorialIndex = Math.min(4, tutorialIndex + 1);
+    tutorialIndex = 1;
     updateTutorial();
   });
   document.getElementById("tutorialDone").addEventListener("click", () => {
@@ -810,5 +889,8 @@
   selectDifficulty(currentDifficulty);
   renderConditionSleepDial();
   updateTutorial();
-  startLoading();
+  waitForLandscapeOrientation().then(() => loadDeferredGameAssets()).then(() => {
+    registerPlayBulbAssets();
+    startLoading();
+  });
 })();

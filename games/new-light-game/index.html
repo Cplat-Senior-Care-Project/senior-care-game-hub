@@ -29,12 +29,16 @@
     <link rel="stylesheet" href="css/modes/reminder.css" />
     <link rel="stylesheet" href="css/modes/care.css" />
     <link rel="stylesheet" href="css/modes/ai-assisted.css" />
+    <link rel="stylesheet" href="css/accessibility.css?v=20260618-mobile-font-thickness" />
   </head>
   <body>
     <div class="app-viewport" id="appViewport">
-      <div class="portrait-lock" aria-live="polite">
-        <div class="rotate-symbol" aria-hidden="true"><span></span></div>
-        <p>가로 화면에서 더 편하게 볼 수 있어요.<br />기기를 가로로 돌려주세요.</p>
+      <div class="portrait-lock" role="status" aria-live="polite" aria-hidden="true">
+        <div class="portrait-lock-card">
+          <div class="orientation-phone" aria-hidden="true"></div>
+          <strong>기기를<br />가로로<br />돌려주세요</strong>
+          <span>이 게임은<br />가로 화면에<br />맞춰져 있어요.</span>
+        </div>
       </div>
 
       <main class="game-stage" id="gameStage">
@@ -163,33 +167,51 @@
           <div class="panel-layout tutorial-panel">
             <header class="panel-header">
               <p class="eyebrow">게임 방법</p>
-              <h2 id="howtoTitle">천천히 따라 해 보세요</h2>
+              <h2 id="howtoTitle">진행 방법</h2>
             </header>
-            <div class="tutorial-page is-active" data-tutorial-page="0">
-              <strong>1</strong>
-              <p>전구가 잠깐 빛납니다.</p>
+            <div class="tutorial-page tutorial-memory-page is-active" data-tutorial-page="0">
+              <p class="tutorial-memory-copy">빛나는 전구의 위치를 기억하세요!</p>
+              <div class="tutorial-memory-preview" aria-label="기억 단계 예시 화면">
+                <div class="tutorial-memory-grid" aria-hidden="true">
+                  <span class="tutorial-memory-cell is-lit">
+                    <img data-deferred-src="assets/images/turn_on.png" alt="" />
+                  </span>
+                  <span class="tutorial-memory-cell">
+                    <img data-deferred-src="assets/images/turn_off.png" alt="" />
+                  </span>
+                  <span class="tutorial-memory-cell">
+                    <img data-deferred-src="assets/images/turn_off.png" alt="" />
+                  </span>
+                  <span class="tutorial-memory-cell is-lit">
+                    <img data-deferred-src="assets/images/turn_on.png" alt="" />
+                  </span>
+                </div>
+              </div>
             </div>
-            <div class="tutorial-page" data-tutorial-page="1">
-              <strong>2</strong>
-              <p>빛난 자리를 눈으로 기억해 주세요.</p>
-            </div>
-            <div class="tutorial-page" data-tutorial-page="2">
-              <strong>3</strong>
-              <p>박스가 닫히면 같은 자리를 눌러 주세요.</p>
-            </div>
-            <div class="tutorial-page" data-tutorial-page="3">
-              <strong>4</strong>
-              <p>헷갈리면 힌트를 눌러도 괜찮아요.</p>
-            </div>
-            <div class="tutorial-page" data-tutorial-page="4">
-              <strong>5</strong>
-              <p>끝까지 편안하게 이어가면 됩니다.</p>
+            <div class="tutorial-page tutorial-select-page" data-tutorial-page="1">
+              <p class="tutorial-select-copy">빛나는 전구가 있었던 위치를 골라주세요!</p>
+              <div class="tutorial-select-preview" aria-label="선택 단계 예시 화면">
+                <div class="tutorial-select-grid" aria-hidden="true">
+                  <span class="tutorial-select-cell is-target">
+                    <img data-deferred-src="assets/images/turn_off.png" alt="" />
+                  </span>
+                  <span class="tutorial-select-cell">
+                    <img data-deferred-src="assets/images/turn_off.png" alt="" />
+                  </span>
+                  <span class="tutorial-select-cell">
+                    <img data-deferred-src="assets/images/turn_off.png" alt="" />
+                  </span>
+                  <span class="tutorial-select-cell is-target">
+                    <img data-deferred-src="assets/images/turn_off.png" alt="" />
+                  </span>
+                </div>
+                <span class="tutorial-select-hand" aria-hidden="true">👆</span>
+              </div>
             </div>
             <div class="tutorial-controls">
-              <button class="text-button" type="button" id="tutorialPrev">이전</button>
-              <span id="tutorialProgress">1 / 5</span>
+              <button class="text-button" type="button" id="tutorialClose">닫기</button>
               <button class="secondary-button" type="button" id="tutorialNext">다음</button>
-              <button class="primary-button" type="button" id="tutorialDone">완료</button>
+              <button class="primary-button" type="button" id="tutorialDone">닫기</button>
             </div>
           </div>
         </section>
@@ -336,6 +358,12 @@
 
           <div class="play-area">
             <div class="bulb-grid" id="bulbGrid" aria-label="전구 위치 선택"></div>
+            <div class="memory-countdown-gauge" id="memoryCountdownGauge" aria-label="기억 시간" hidden>
+              <span class="memory-gauge-track" aria-hidden="true">
+                <span class="memory-gauge-fill" id="memoryGaugeFill"></span>
+              </span>
+              <span class="memory-gauge-badge"><strong id="memoryGaugeText">3</strong>초</span>
+            </div>
             <div class="round-transition-message" id="roundTransitionMessage" aria-live="polite" hidden></div>
           </div>
 
@@ -524,7 +552,7 @@
     </div>
 
     <script src="config/gameConfig.js" defer></script>
-    <script src="assets/data/questionData.js" defer></script>
+    <script id="questionDataScript" data-src="assets/data/questionData.js" defer></script>
     <script src="js/audio-display.js" defer></script>
     <script src="js/result-bridge.js" defer></script>
     <script src="js/session-board.js" defer></script>
