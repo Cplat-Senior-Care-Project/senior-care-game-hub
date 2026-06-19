@@ -16,8 +16,15 @@
         ai_assisted: true
       };
       var params = new URLSearchParams(window.location.search);
-      var requestedMode = String(params.get("mode") || "standard").trim().toLowerCase();
+      var rawMode = params.get("mode");
+      var requestedMode = String(rawMode || "standard").trim().toLowerCase();
+      var requestedConfigUrl = String(params.get("configUrl") || "").trim().toLowerCase();
       var mode = Object.prototype.hasOwnProperty.call(modeMap, requestedMode) ? requestedMode : "standard";
+      if (!rawMode && requestedConfigUrl.indexOf("care.config") !== -1) {
+        mode = "care";
+      } else if (!rawMode && requestedConfigUrl.indexOf("ai_assisted") !== -1) {
+        mode = "ai_assisted";
+      }
       var stageWidth = 1280;
       var stageHeight = 720;
       var visualViewport = window.visualViewport;
@@ -94,7 +101,7 @@
           <button id="start-button" class="game-button primary-button" type="button">
             <span>게임 시작</span>
           </button>
-          <button id="tutorial-button" class="game-button start-side-button" type="button">
+          <button id="tutorial-button" class="game-button start-side-button" type="button" hidden aria-hidden="true">
             <span>게임 방법</span>
           </button>
         </div>
@@ -428,7 +435,7 @@
               <button id="pause-restart-button" class="game-button secondary-button pause-sub-button" type="button">다시하기</button>
               <button id="home-button" class="game-button secondary-button pause-sub-button" type="button">그만하기</button>
             </div>
-            <button id="pause-help-button" class="game-button secondary-button pause-help-button" type="button">
+            <button id="pause-help-button" class="game-button secondary-button pause-help-button" type="button" hidden aria-hidden="true">
               <span class="pause-help-icon" aria-hidden="true">?</span>
               <span>진행방법</span>
             </button>
@@ -590,11 +597,18 @@
         ai_assisted: "ai_assisted.config.json"
       };
       var params = new URLSearchParams(window.location.search);
-      var requestedMode = String(params.get("mode") || "standard").trim().toLowerCase();
+      var rawMode = params.get("mode");
+      var requestedMode = String(rawMode || "standard").trim().toLowerCase();
       var requestedConfigUrl = String(params.get("configUrl") || "").trim();
       var mode = Object.prototype.hasOwnProperty.call(modeMap, requestedMode) ? requestedMode : "standard";
+      var requestedConfigUrlForMode = requestedConfigUrl.toLowerCase();
+      if (!rawMode && requestedConfigUrlForMode.indexOf("care.config") !== -1) {
+        mode = "care";
+      } else if (!rawMode && requestedConfigUrlForMode.indexOf("ai_assisted") !== -1) {
+        mode = "ai_assisted";
+      }
       var assetVersion = mode === "care" || mode === "ai_assisted"
-        ? "care-ai-hide-tutorial-20260619"
+        ? "care-ai-hide-tutorial-legacy-20260619"
         : "care-standard-pause-20260608";
       window.__FRUIT_COUNT_GAME_MODE__ = mode;
       window.__FRUIT_COUNT_MODE_ASSETS__ = {
@@ -613,8 +627,8 @@
     })();
   </script>
   <script src="js/config-normalizer.js?v=ai-external-input-config-fix-20260602"></script>
-  <script src="js/app-bridge.js?v=care-ai-hide-tutorial-20260619"></script>
+  <script src="js/app-bridge.js?v=care-ai-hide-tutorial-legacy-20260619"></script>
   <audio id="background-audio" preload="none" loop></audio>
-  <script src="js/game.js?v=care-ai-hide-tutorial-20260619"></script>
+  <script src="js/game.js?v=care-ai-hide-tutorial-legacy-20260619"></script>
 </body>
 </html>
