@@ -1,26 +1,30 @@
 html:is([data-mode="care"], [data-mode="ai_assisted"]) .start-actions {
-  grid-template-columns: var(--start-side-width-base) auto var(--start-side-width-base);
+  --care-start-button-width: 360px;
+  --care-start-button-height: 128px;
+  grid-template-columns: repeat(2, var(--care-start-button-width));
+  gap: clamp(34px, 48px, 56px);
 }
 
-html:is([data-mode="care"], [data-mode="ai_assisted"]) #settings-button {
-  grid-column: 1;
-  grid-row: 1;
+html:is([data-mode="care"], [data-mode="ai_assisted"]) body[data-screen="start"] .app,
+html:is([data-mode="care"], [data-mode="ai_assisted"]) body[data-screen="start"] .start-screen {
+  overflow: visible;
 }
 
-html:is([data-mode="care"], [data-mode="ai_assisted"]) .start-screen #settings-button .settings-gear,
-html:is([data-mode="care"], [data-mode="ai_assisted"]) .start-screen #settings-button span:last-child {
-  top: 0;
-  display: inline-grid;
-  place-items: center;
-  align-self: center;
-  height: 1em;
-  line-height: 1;
-  transform: none;
+html:is([data-mode="care"], [data-mode="ai_assisted"]) body[data-screen="start"] .start-screen:not(.is-loading) > .corner-settings-button {
+  display: grid;
+}
+
+html:is([data-mode="care"], [data-mode="ai_assisted"]) .start-actions #settings-button {
+  display: none !important;
 }
 
 html:is([data-mode="care"], [data-mode="ai_assisted"]) #start-button {
   grid-column: 2;
   grid-row: 1;
+  width: var(--care-start-button-width);
+  min-width: var(--care-start-button-width);
+  max-width: var(--care-start-button-width);
+  min-height: var(--care-start-button-height);
 }
 
 html:is([data-mode="care"], [data-mode="ai_assisted"]) #start-button,
@@ -32,18 +36,18 @@ html:is([data-mode="care"], [data-mode="ai_assisted"]) #start-button > span:firs
 
 html:is([data-mode="care"], [data-mode="ai_assisted"]) .start-screen .start-exit-button {
   display: inline-flex;
-  grid-column: 3;
+  grid-column: 1;
   grid-row: 1;
   align-items: center;
   justify-content: center;
-  width: var(--start-side-width-base);
-  min-width: var(--start-side-width-base);
-  max-width: var(--start-side-width-base);
-  min-height: var(--start-side-height-base);
+  width: var(--care-start-button-width);
+  min-width: var(--care-start-button-width);
+  max-width: var(--care-start-button-width);
+  min-height: var(--care-start-button-height);
   border: 2px solid #ffb3a3;
-  border-radius: clamp(22px, 46.08px, 38px);
-  padding-block: clamp(calc(var(--start-side-pad-y-base) * 0.72), 12.96px, var(--start-side-pad-y-base));
-  padding-inline: clamp(calc(var(--start-side-pad-x-base) * 0.72), 38.4px, var(--start-side-pad-x-base));
+  border-radius: clamp(28px, 64px, 54px);
+  padding-block: var(--start-primary-pad-y-base);
+  padding-inline: var(--start-primary-pad-x-base);
   color: #fffdf3;
   background: linear-gradient(315deg, rgba(126, 29, 29, 0.24) 0%, rgba(207, 62, 52, 0.08) 48%, rgba(255, 151, 128, 0.24) 100%),
     #d95145;
@@ -52,11 +56,15 @@ html:is([data-mode="care"], [data-mode="ai_assisted"]) .start-screen .start-exit
     inset 0 0 0 1px #8f3028,
     inset 0 3px 0 rgba(255, 255, 244, 0.35),
     inset 0 -6px 0 rgba(104, 24, 22, 0.28);
-  font-size: var(--start-side-font-base);
+  font-size: clamp(30px, min(64px, 63.36px), var(--start-primary-font-base));
   font-weight: 1000;
   line-height: 1;
   text-shadow: 0 2px 0 rgba(96, 28, 22, 0.6),
     0 0 4px rgba(96, 28, 22, 0.34);
+}
+
+html:is([data-mode="care"], [data-mode="ai_assisted"]) .start-screen .start-exit-button > span {
+  white-space: nowrap;
 }
 
 html:is([data-mode="care"], [data-mode="ai_assisted"]) .start-screen .start-exit-button:active,

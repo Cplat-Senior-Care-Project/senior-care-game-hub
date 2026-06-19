@@ -14,6 +14,8 @@
       this.backgroundVolume = 0.28;
       this.activeVoiceAudio = null;
       this.pausedVoiceAudio = null;
+      this.activeFileAudios = new Set();
+      this.pageInBackground = global.document && global.document.visibilityState === "hidden";
     }
 
     setEnabled(enabled) {
@@ -23,7 +25,7 @@
     setMusicEnabled(enabled) {
       this.musicEnabled = Boolean(enabled);
 
-      if (this.musicEnabled) {
+      if (this.musicEnabled && !this.isSuppressedByPageState()) {
         this.playBackground({ fadeIn: true });
       } else {
         this.pauseBackground();
@@ -35,6 +37,10 @@
     }
 
     unlock() {
+      if (this.isSuppressedByPageState()) {
+        return;
+      }
+
       if (this.enabled) {
         const context = this.getContext();
         if (context && context.state === "suspended") {
@@ -46,6 +52,10 @@
     }
 
     play(soundName) {
+      if (this.isSuppressedByPageState()) {
+        return;
+      }
+
       const fileSound = this.getFileSound(soundName);
       if (fileSound) {
         if (fileSound.type === "voice") {
@@ -151,7 +161,7 @@
     }
 
     primeBackground() {
-      if (!this.musicEnabled) {
+      if (!this.musicEnabled || this.isSuppressedByPageState()) {
         return;
       }
 
@@ -169,7 +179,8 @@
     }
 
     playBackground(options = {}) {
-      if (!this.musicEnabled) {
+      if (!this.musicEnabled || this.isSuppressedByPageState()) {
+        this.pauseBackground();
         return;
       }
 
@@ -193,7 +204,7 @@
     }
 
     playAudioFile(key, src, volume, type) {
-      if (typeof global.Audio !== "function") {
+      if (typeof global.Audio !== "function" || this.isSuppressedByPageState()) {
         return;
       }
 
@@ -205,6 +216,12 @@
       const audio = new global.Audio(src);
       audio.preload = "auto";
       audio.volume = volume;
+      this.activeFileAudios.add(audio);
+      const forgetAudio = () => {
+        this.activeFileAudios.delete(audio);
+      };
+      audio.addEventListener("ended", forgetAudio);
+      audio.addEventListener("pause", forgetAudio);
       if (type === "voice") {
         this.activeVoiceAudio = audio;
         audio.addEventListener("ended", () => {
@@ -244,7 +261,7 @@
     }
 
     resumeActiveVoice() {
-      if (!this.pausedVoiceAudio || !this.voiceEnabled) {
+      if (!this.pausedVoiceAudio || !this.voiceEnabled || this.isSuppressedByPageState()) {
         return false;
       }
 
@@ -261,6 +278,7 @@
       if (this.backgroundAudio) {
         this.backgroundAudio.pause();
         this.backgroundAudio.muted = false;
+        this.backgroundAudio.volume = 0;
       }
       if (this.backgroundRestartTimer) {
         clearTimeout(this.backgroundRestartTimer);
@@ -337,7 +355,7 @@
 
     restartBackground() {
       const audio = this.backgroundAudio;
-      if (!audio || !this.musicEnabled) {
+      if (!audio || !this.musicEnabled || this.isSuppressedByPageState()) {
         return;
       }
 
@@ -345,6 +363,37 @@
       const playPromise = audio.play();
       if (playPromise && typeof playPromise.catch === "function") {
         playPromise.catch(() => {});
+      }
+    }
+
+    setPageInBackground(isInBackground) {
+      this.pageInBackground = Boolean(isInBackground);
+      if (this.pageInBackground) {
+        this.pauseAllForBackground();
+      }
+    }
+
+    isSuppressedByPageState() {
+      return this.pageInBackground || (global.document && global.document.visibilityState === "hidden");
+    }
+
+    pauseAllForBackground() {
+      this.stopActiveVoice();
+      this.pausedVoiceAudio = null;
+      this.pauseBackground();
+      this.activeFileAudios.forEach((audio) => {
+        audio.pause();
+        audio.volume = 0;
+        try {
+          audio.currentTime = 0;
+        } catch (error) {
+          // Best effort: lifecycle audio cleanup should not block the game.
+        }
+      });
+      this.activeFileAudios.clear();
+
+      if (this.context && this.context.state === "running") {
+        this.context.suspend().catch(() => {});
       }
     }
 

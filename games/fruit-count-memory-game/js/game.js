@@ -399,6 +399,7 @@
   let backgroundAudioUnlocked = false;
   let backgroundAudioIndex = 0;
   let backgroundLoopFrameId = null;
+  let isPageInBackground = document.visibilityState === "hidden";
   let activeVoiceGuideAudio = null;
   let voiceGuideTimerId = null;
   let reminderAudioReadyPromise = null;
@@ -2477,14 +2478,16 @@
     }
     if (els.settingsButton) {
       const useStartExitSlot = mode === "standard";
-      els.settingsButton.hidden = useStartExitSlot ? false : ui.showSettings === false;
+      const useCornerSettingsButton = mode === "standard" || mode === "care" || mode === "ai_assisted";
+      els.settingsButton.hidden = useCornerSettingsButton && !useStartExitSlot ? true : (useStartExitSlot ? false : ui.showSettings === false);
       els.settingsButton.setAttribute("aria-label", useStartExitSlot ? "게임 종료" : "설정");
       if (useStartExitSlot) {
         els.settingsButton.innerHTML = "<span>게임 종료</span>";
       }
     }
     if (els.cornerSettingsButton) {
-      els.cornerSettingsButton.hidden = mode !== "standard" || ui.showSettings === false;
+      const useCornerSettingsButton = mode === "standard" || mode === "care" || mode === "ai_assisted";
+      els.cornerSettingsButton.hidden = !useCornerSettingsButton || ui.showSettings === false;
     }
     if (els.settingsLeftPanel) {
       els.settingsLeftPanel.hidden = mode === "standard";
@@ -2493,7 +2496,7 @@
       els.tutorialButton.hidden = ui.showTutorial === false;
       const tutorialLabel = els.tutorialButton.querySelector("span");
       if (tutorialLabel) {
-        tutorialLabel.textContent = "진행방법";
+        tutorialLabel.textContent = "게임 방법";
       }
     }
     if (els.pauseHelpButton) {
@@ -4230,6 +4233,10 @@
       return;
     }
 
+    if (isAudioSuppressedByPageState()) {
+      return;
+    }
+
     if (!options.force && (!els.soundToggle || !els.soundToggle.checked)) {
       return;
     }
@@ -4295,7 +4302,7 @@
 
   function startVoiceGuide(type) {
     const track = AUDIO_TRACKS[type];
-    if (!track || track.channel !== "voice" || !isVoiceGuideEnabled() || state.isPaused) {
+    if (!track || track.channel !== "voice" || !isVoiceGuideEnabled() || state.isPaused || isAudioSuppressedByPageState()) {
       return;
     }
 
@@ -4400,6 +4407,7 @@
       && !els.conditionModal.classList.contains("is-hidden");
 
     return isBackgroundSoundEnabled()
+      && !isAudioSuppressedByPageState()
       && !state.isPaused
       && (isStandardConditionCheck || ["start", "difficulty", "countdown", "ready", "memory", "recall", "question", "feedback"].includes(state.phase));
   }
@@ -4487,6 +4495,11 @@
   }
 
   function playBackgroundMusic() {
+    if (isAudioSuppressedByPageState()) {
+      pauseExistingBackgroundMusic();
+      return;
+    }
+
     if (!shouldPlayBackgroundMusic()) {
       muteBackgroundMusic();
       return;
@@ -4510,6 +4523,10 @@
   }
 
   function unlockBackgroundMusicFromGesture() {
+    if (isAudioSuppressedByPageState()) {
+      return;
+    }
+
     const audio = getBackgroundAudio();
     if (!audio || !isBackgroundSoundEnabled()) {
       return;
@@ -4611,14 +4628,38 @@
     });
   }
 
+  function isAudioSuppressedByPageState() {
+    return isPageInBackground || document.visibilityState === "hidden";
+  }
+
+  function pauseAudioElement(audio, reset = false) {
+    if (!audio) {
+      return;
+    }
+
+    audio.pause();
+    audio.volume = 0;
+    if (reset) {
+      try {
+        audio.currentTime = 0;
+      } catch (error) {
+        // Best effort: background transitions should never block app lifecycle handling.
+      }
+    }
+  }
+
+  function pauseAllGameAudioForBackground() {
+    stopVoiceGuide();
+    stopBackgroundLoopWatch();
+    audioPools.forEach((pool) => {
+      pool.forEach((audio) => pauseAudioElement(audio));
+    });
+  }
+
   function pauseBackgroundMusic(reset = false) {
     stopBackgroundLoopWatch();
     getBackgroundAudioPool().forEach((audio) => {
-      audio.pause();
-      audio.volume = 0;
-      if (reset) {
-        audio.currentTime = 0;
-      }
+      pauseAudioElement(audio, reset);
     });
     backgroundAudio = getBackgroundAudioPool()[0] || null;
     backgroundAudioIndex = 0;
@@ -4636,11 +4677,7 @@
     }
 
     pool.forEach((audio) => {
-      audio.pause();
-      audio.volume = 0;
-      if (reset) {
-        audio.currentTime = 0;
-      }
+      pauseAudioElement(audio, reset);
     });
     backgroundAudio = pool[0] || null;
     backgroundAudioIndex = 0;
@@ -5296,15 +5333,25 @@
     });
     window.addEventListener("message", handleExternalInputMessage);
     window.addEventListener("pagehide", () => {
+      isPageInBackground = true;
+      pauseAllGameAudioForBackground();
       sendAbandonedResult("webview_closed");
     });
     window.addEventListener("beforeunload", () => {
+      isPageInBackground = true;
+      pauseAllGameAudioForBackground();
       sendAbandonedResult("webview_closed");
     });
     document.addEventListener("visibilitychange", () => {
       if (document.visibilityState === "hidden") {
+        isPageInBackground = true;
         telemetryState.lastBackgroundedAt = new Date().toISOString();
+        pauseAllGameAudioForBackground();
+        return;
       }
+
+      isPageInBackground = false;
+      syncBackgroundMusic();
     });
 
     window.addEventListener("resize", () => {

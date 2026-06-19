@@ -362,6 +362,22 @@
     }
   }
 
+  function handlePageBackgroundChange(isInBackground) {
+    audio.setPageInBackground(isInBackground);
+    if (isInBackground) {
+      return;
+    }
+
+    if (!settings.music) {
+      return;
+    }
+
+    const activeScreen = document.body.dataset.activeScreen;
+    if (activeScreen === "start" || activeScreen === "play") {
+      audio.playBackground({ fadeIn: true });
+    }
+  }
+
   function clearForcedPlayScreen() {
     const playScreen = document.querySelector('[data-screen="play"]');
     if (!playScreen) {
@@ -1584,6 +1600,14 @@
     if (data.type === "EXTERNAL_ANSWER") {
       game.handleExternalAnswer(data.payload || data);
     }
+  });
+  window.addEventListener("pagehide", () => handlePageBackgroundChange(true));
+  window.addEventListener("beforeunload", () => handlePageBackgroundChange(true));
+  window.addEventListener("pageshow", () => {
+    handlePageBackgroundChange(document.visibilityState === "hidden");
+  });
+  document.addEventListener("visibilitychange", () => {
+    handlePageBackgroundChange(document.visibilityState === "hidden");
   });
 
   updateStageScale();

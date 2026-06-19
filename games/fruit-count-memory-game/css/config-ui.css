@@ -1,8 +1,133 @@
 /* Config-driven UI overrides loaded after mode styles. */
 
-html[data-mode="care"][data-show-settings="true"] #settings-button,
-html[data-mode="ai_assisted"][data-show-settings="true"] #settings-button {
-  display: inline-flex !important;
+html[data-mode="care"] .app[data-screen="start"],
+html[data-mode="care"] .app[data-screen="start"] .start-screen,
+html[data-mode="ai_assisted"] .app[data-screen="start"],
+html[data-mode="ai_assisted"] .app[data-screen="start"] .start-screen {
+  overflow: visible;
+}
+
+html[data-mode="care"] #settings-button[hidden],
+html[data-mode="ai_assisted"] #settings-button[hidden] {
+  display: none !important;
+}
+
+html[data-mode="care"] .start-actions,
+html[data-mode="ai_assisted"] .start-actions {
+  grid-template-columns: repeat(2, 360px);
+  justify-content: center;
+  justify-items: center;
+  width: max-content;
+  gap: 72px;
+}
+
+html[data-mode="care"] #start-button,
+html[data-mode="ai_assisted"] #start-button {
+  grid-column: 2;
+  grid-row: 1;
+  order: 2;
+  box-sizing: border-box;
+  width: 360px;
+  min-width: 360px;
+  max-width: 360px;
+  height: 124px;
+  min-height: 124px;
+  max-height: 124px;
+}
+
+html[data-mode="care"] #start-exit-button,
+html[data-mode="ai_assisted"] #start-exit-button {
+  grid-column: 1;
+  grid-row: 1;
+  order: 1;
+  box-sizing: border-box;
+  width: 360px;
+  min-width: 360px;
+  max-width: 360px;
+  height: 124px;
+  min-height: 124px;
+  max-height: 124px;
+  padding-block: var(--start-primary-pad-y-base);
+  padding-inline: var(--start-primary-pad-x-base);
+  border-radius: clamp(28px, 64px, 54px);
+  font-size: clamp(30px, min(64px, 63.36px), var(--start-primary-font-base));
+  margin-bottom: clamp(7px, 8.64px, 10px);
+}
+
+html[data-mode="care"] #start-exit-button > span,
+html[data-mode="ai_assisted"] #start-exit-button > span {
+  position: relative;
+  z-index: 1;
+  display: inline-block;
+  white-space: nowrap;
+}
+
+html[data-mode="care"][data-show-settings="true"] #corner-settings-button.corner-settings-button,
+html[data-mode="ai_assisted"][data-show-settings="true"] #corner-settings-button.corner-settings-button {
+  position: absolute;
+  top: calc(-1 * var(--game-viewport-top-gutter, 0px));
+  right: calc(-1 * var(--game-viewport-right-gutter, 0px));
+  z-index: 4;
+  display: grid;
+  place-items: center;
+  width: 82px;
+  min-width: 82px;
+  max-width: 82px;
+  height: 82px;
+  min-height: 82px;
+  max-height: 82px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  color: #fffdf3;
+  background: #7f65b4;
+  box-shadow: inset 0 3px 0 rgba(255, 255, 255, 0.28),
+        inset 0 -4px 0 rgba(48, 37, 88, 0.28);
+  font-size: 56px;
+  font-weight: 1000;
+  line-height: 82px;
+  text-align: center;
+  text-shadow: none;
+  transition: transform 120ms ease, box-shadow 120ms ease, filter 120ms ease;
+}
+
+html[data-mode="care"] #corner-settings-button.corner-settings-button[hidden],
+html[data-mode="ai_assisted"] #corner-settings-button.corner-settings-button[hidden],
+html[data-mode="care"] #start-screen.is-loading > #corner-settings-button.corner-settings-button,
+html[data-mode="ai_assisted"] #start-screen.is-loading > #corner-settings-button.corner-settings-button {
+  display: none !important;
+}
+
+html[data-mode="care"] #corner-settings-button.corner-settings-button .settings-gear,
+html[data-mode="ai_assisted"] #corner-settings-button.corner-settings-button .settings-gear {
+  display: grid;
+  width: 58px;
+  height: 58px;
+  place-items: center;
+  line-height: 1;
+}
+
+html[data-mode="care"] #corner-settings-button.corner-settings-button .settings-gear svg,
+html[data-mode="ai_assisted"] #corner-settings-button.corner-settings-button .settings-gear svg {
+  display: block;
+  width: 58px;
+  height: 58px;
+}
+
+html[data-mode="care"] #corner-settings-button.corner-settings-button .settings-gear svg *,
+html[data-mode="ai_assisted"] #corner-settings-button.corner-settings-button .settings-gear svg * {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+html[data-mode="care"] #corner-settings-button.corner-settings-button:active,
+html[data-mode="care"] #corner-settings-button.corner-settings-button.is-pressed,
+html[data-mode="ai_assisted"] #corner-settings-button.corner-settings-button:active,
+html[data-mode="ai_assisted"] #corner-settings-button.corner-settings-button.is-pressed {
+  transform: translateY(3px) scale(0.98);
 }
 
 html[data-mode="care"][data-show-tutorial="true"] #tutorial-button,

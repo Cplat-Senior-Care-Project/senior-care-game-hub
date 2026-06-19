@@ -70,12 +70,12 @@
         .then((played) => {
           if (!played) {
             const frequency = NOTE_FREQUENCIES[noteName] || NOTE_FREQUENCIES.C4;
-            this.playTone(frequency, 0.38, "triangle", 0.34);
+            this.playMelodyTone(frequency);
           }
         })
         .catch(() => {
           const frequency = NOTE_FREQUENCIES[noteName] || NOTE_FREQUENCIES.C4;
-          this.playTone(frequency, 0.38, "triangle", 0.34);
+          this.playMelodyTone(frequency);
         });
     }
 
@@ -122,6 +122,55 @@
 
         playPromise.then(() => resolve(true)).catch(() => resolve(false));
       });
+    }
+
+    playMelodyTone(frequency) {
+      const context = this.ensureContext();
+      if (!context || !this.enabled || this.volume <= 0) {
+        return;
+      }
+
+      const now = context.currentTime;
+      const filter = context.createBiquadFilter();
+      const output = context.createGain();
+
+      filter.type = "lowpass";
+      filter.frequency.setValueAtTime(2400, now);
+      filter.Q.setValueAtTime(0.6, now);
+      output.gain.setValueAtTime(0.9, now);
+
+      filter.connect(output);
+      output.connect(context.destination);
+
+      this.playPartial(context, filter, frequency, 1, "sine", 0.34, 0.62, now);
+      this.playPartial(context, filter, frequency, 2, "triangle", 0.13, 0.32, now);
+      this.playPartial(context, filter, frequency, 3.01, "sine", 0.06, 0.22, now);
+
+      window.setTimeout(() => {
+        filter.disconnect();
+        output.disconnect();
+      }, 720);
+    }
+
+    playPartial(context, destination, baseFrequency, multiplier, waveform, gainScale, duration, startTime) {
+      const oscillator = context.createOscillator();
+      const gainNode = context.createGain();
+      const peak = Math.max(0.0001, this.volume * gainScale);
+      const attackEnd = startTime + 0.012;
+      const decayPoint = startTime + Math.min(0.12, duration * 0.4);
+      const end = startTime + duration;
+
+      oscillator.type = waveform;
+      oscillator.frequency.setValueAtTime(baseFrequency * multiplier, startTime);
+      gainNode.gain.setValueAtTime(0.0001, startTime);
+      gainNode.gain.exponentialRampToValueAtTime(peak, attackEnd);
+      gainNode.gain.exponentialRampToValueAtTime(Math.max(0.0001, peak * 0.24), decayPoint);
+      gainNode.gain.exponentialRampToValueAtTime(0.0001, end);
+
+      oscillator.connect(gainNode);
+      gainNode.connect(destination);
+      oscillator.start(startTime);
+      oscillator.stop(end + 0.03);
     }
 
     playTone(frequency, duration, waveform, gainScale) {

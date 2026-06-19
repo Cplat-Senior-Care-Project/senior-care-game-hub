@@ -195,6 +195,7 @@
   let backgroundLoopFrameId = null;
   let backgroundFadeFrameId = null;
   let backgroundCrossfadeActive = false;
+  let isPageInBackground = document.visibilityState === "hidden";
 
   const state = {
     phase: "start", difficultyKey: "easy", questionIndex: 0, question: null, selectedIds: [], wrongSelectedIds: [], collectedItems: [], correctCount: 0, wrongCount: 0, hintCount: 0, retryCount: 0, pauseCount: 0, interactionCount: 0, touchMissCount: 0, questionTouchMissCount: 0, missedItemCount: 0, questionLogs: [],
@@ -588,6 +589,7 @@
   }
 
   function unlockAudioFromGesture() {
+    if (isAudioSuppressedByPageState()) return;
     if (audioUnlocked || typeof Audio !== "function") return;
     audioUnlocked = true;
     Object.keys(AUDIO_TRACKS).forEach((type) => {
@@ -628,6 +630,7 @@
       playBackgroundMusic();
       return;
     }
+    if (isAudioSuppressedByPageState()) return;
     if (!options.force && (!els.soundToggle || !els.soundToggle.checked)) return;
     const pool = getAudioPool(type);
     if (pool.length === 0) return;
@@ -667,6 +670,7 @@
   function shouldPlayBackgroundMusic() {
     const screen = document.body.dataset.screen || (els.app && els.app.dataset.screen) || "";
     return isBackgroundSoundEnabled()
+      && !isAudioSuppressedByPageState()
       && screen !== "result"
       && screen !== "error"
       && ["start", "difficulty", "countdown", "memory", "transition", "question"].includes(state.phase);
@@ -679,6 +683,10 @@
   }
 
   function playBackgroundMusic() {
+    if (isAudioSuppressedByPageState()) {
+      pauseBackgroundMusic();
+      return;
+    }
     if (!shouldPlayBackgroundMusic()) {
       pauseBackgroundMusic();
       return;
@@ -704,18 +712,37 @@
     stopBackgroundLoopWatch();
     stopBackgroundCrossfade();
     getBackgroundAudioPool().forEach((audio) => {
-      audio.pause();
-      audio.volume = 0;
-      if (reset) {
-        try {
-          audio.currentTime = 0;
-        } catch (error) {
-          // Optional background audio should never block navigation.
-        }
-      }
+      pauseAudioElement(audio, reset);
     });
     backgroundAudioIndex = 0;
     backgroundAudio = getBackgroundAudioPool()[0] || null;
+  }
+
+  function isAudioSuppressedByPageState() {
+    return isPageInBackground || document.visibilityState === "hidden";
+  }
+
+  function pauseAudioElement(audio, reset = false) {
+    if (!audio) return;
+    delete audio.dataset.audioUnlocking;
+    audio.pause();
+    audio.muted = false;
+    audio.volume = 0;
+    if (!reset) return;
+    try {
+      audio.currentTime = 0;
+    } catch (error) {
+      // Optional audio cleanup should never block app lifecycle handling.
+    }
+  }
+
+  function pauseAllGameAudioForBackground() {
+    stopVoiceGuide();
+    stopBackgroundLoopWatch();
+    stopBackgroundCrossfade();
+    audioPools.forEach((pool) => {
+      pool.forEach((audio) => pauseAudioElement(audio));
+    });
   }
 
   function syncBackgroundMusic() {
@@ -898,7 +925,7 @@
 
   function startVoiceGuide(type) {
     const track = AUDIO_TRACKS[type];
-    if (!track || track.channel !== "voice" || !isVoiceGuideEnabled() || state.phase === "pause") return;
+    if (!track || track.channel !== "voice" || !isVoiceGuideEnabled() || state.phase === "pause" || isAudioSuppressedByPageState()) return;
     const pool = getAudioPool(type);
     const audio = pool[0];
     if (!audio) return;
@@ -2861,6 +2888,30 @@
     document.addEventListener("click", handleButtonClickSound, true);
     document.addEventListener("pointerdown", unlockAudioFromGesture, true);
     document.addEventListener("keydown", unlockAudioFromGesture, true);
+    window.addEventListener("pagehide", () => {
+      isPageInBackground = true;
+      pauseAllGameAudioForBackground();
+    });
+    window.addEventListener("beforeunload", () => {
+      isPageInBackground = true;
+      pauseAllGameAudioForBackground();
+    });
+    window.addEventListener("pageshow", () => {
+      isPageInBackground = document.visibilityState === "hidden";
+      if (!isPageInBackground) {
+        syncBackgroundMusic();
+      }
+    });
+    document.addEventListener("visibilitychange", () => {
+      if (document.visibilityState === "hidden") {
+        isPageInBackground = true;
+        pauseAllGameAudioForBackground();
+        return;
+      }
+
+      isPageInBackground = false;
+      syncBackgroundMusic();
+    });
   }
 
   async function boot() {

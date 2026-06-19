@@ -233,9 +233,11 @@
       const viewportWidth = viewport && viewport.width ? viewport.width : window.innerWidth || document.documentElement.clientWidth || stageWidth;
       const viewportHeight = viewport && viewport.height ? viewport.height : window.innerHeight || document.documentElement.clientHeight || stageHeight;
       const scale = Math.max(0.01, Math.min(viewportWidth / stageWidth, viewportHeight / stageHeight));
+      const horizontalGutter = Math.max(0, (viewportWidth - (stageWidth * scale)) / (2 * scale));
       const verticalGutter = Math.max(0, (viewportHeight - (stageHeight * scale)) / (2 * scale));
 
       document.documentElement.style.setProperty("--game-scale", String(scale));
+      document.documentElement.style.setProperty("--game-viewport-right-gutter", `${horizontalGutter}px`);
       document.documentElement.style.setProperty("--game-viewport-top-gutter", `${Math.min(verticalGutter, 120)}px`);
       document.body.classList.toggle("portrait-viewport", viewportWidth < viewportHeight);
       this.applyPlayStatusLayout(viewportWidth, viewportHeight);

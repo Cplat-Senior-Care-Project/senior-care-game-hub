@@ -12,8 +12,10 @@
       var viewportWidth = visualViewport && visualViewport.width ? visualViewport.width : window.innerWidth || document.documentElement.clientWidth || stageWidth;
       var viewportHeight = visualViewport && visualViewport.height ? visualViewport.height : window.innerHeight || document.documentElement.clientHeight || stageHeight;
       var scale = Math.max(0.01, Math.min(viewportWidth / stageWidth, viewportHeight / stageHeight));
+      var horizontalGutter = Math.max(0, (viewportWidth - (stageWidth * scale)) / (2 * scale));
       var verticalGutter = Math.max(0, (viewportHeight - (stageHeight * scale)) / (2 * scale));
       document.documentElement.style.setProperty("--game-scale", String(scale));
+      document.documentElement.style.setProperty("--game-viewport-right-gutter", String(horizontalGutter) + "px");
       document.documentElement.style.setProperty("--game-viewport-top-gutter", String(Math.min(verticalGutter, 120)) + "px");
     })();
   </script>
@@ -48,7 +50,14 @@
         <p class="lead home-lead">집중 판단 활동</p>
       </div>
 
-      <button class="settings-gear-button" type="button" data-go="settings" aria-label="설정">⚙</button>
+      <button class="settings-gear-button" type="button" data-go="settings" aria-label="설정">
+        <span class="settings-gear" aria-hidden="true">
+          <svg viewBox="0 0 24 24" focusable="false">
+            <circle cx="12" cy="12" r="3"></circle>
+            <path d="M19.4 15a1.7 1.7 0 0 0 .34 1.88l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06A1.7 1.7 0 0 0 15 19.4a1.7 1.7 0 0 0-1 .6V20a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1-.5a1.7 1.7 0 0 0-1.88.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-.6-1H4a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 .5-1a1.7 1.7 0 0 0-.34-1.88l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.7 1.7 0 0 0 9 4.6a1.7 1.7 0 0 0 1-.6V4a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 .5a1.7 1.7 0 0 0 1.88-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.7 1.7 0 0 0 19.4 9c.22.34.42.67.6 1H20a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-.5 1z"></path>
+          </svg>
+        </span>
+      </button>
       <nav class="menu-actions" aria-label="시작 메뉴">
         <button id="exitGameButton" class="secondary-button" type="button">게임 종료</button>
         <button id="startGameButton" class="primary-button start-button" type="button"><span>게임 시작</span></button>
@@ -187,7 +196,7 @@
       <h2 id="playTitle" class="sr-only">플레이 화면</h2>
       <header class="play-topbar">
         <div class="progress-wrap">
-          <span class="progress-label">집중 판단형</span>
+          <span class="progress-label">집중 판단 활동</span>
           <div class="progress-track" aria-label="남은 시간">
             <div id="progressFill" class="progress-fill"></div>
             <span id="timeText" class="progress-time">01:00</span>

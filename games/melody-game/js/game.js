@@ -36,7 +36,7 @@
       const config = window.MelodyRuntime && window.MelodyRuntime.resolveDifficultyConfig
         ? window.MelodyRuntime.resolveDifficultyConfig({ ...runtime, difficulty: resolvedDifficulty })
         : (window.GAME_CONFIG[resolvedDifficulty] || window.GAME_CONFIG.normal);
-      const song = this.pickSong(config.targetNoteCount);
+      const song = this.pickSong();
       const symbols = window.SYMBOL_CONFIG.slice(0, config.symbolCount);
 
       this.stopTick();
@@ -89,9 +89,9 @@
       this.render();
     }
 
-    pickSong(targetNoteCount) {
+    pickSong() {
       const songs = window.MELODY_DATA || [];
-      return songs.find((song) => song.notes.length >= targetNoteCount) || songs[0];
+      return songs[Math.floor(Math.random() * songs.length)] || { id: "fallback", title: "", notes: ["C4"] };
     }
 
     renderStaticInfo() {
@@ -256,6 +256,7 @@
 
       this.audio.ensureContext();
       this.audio.playClick();
+      button.blur();
       this.state.noTouchElapsed = 0;
 
       if (this.state.currentPrompt.isX) {
@@ -433,7 +434,8 @@
       const minutes = String(Math.floor(remainingSeconds / 60)).padStart(2, "0");
       const seconds = String(remainingSeconds % 60).padStart(2, "0");
       this.elements.timeText.textContent = `${minutes}:${seconds}`;
-      this.elements.progressFill.style.transform = `scaleX(${progressRate})`;
+      this.elements.progressFill.style.removeProperty("width");
+      this.elements.progressFill.style.setProperty("--progress-clip", `${(1 - progressRate) * 100}%`);
 
       if (this.state.currentPrompt) {
         this.elements.promptMessage.textContent = "";

@@ -99,7 +99,7 @@ h3 {
     inset 0 0 0 2px rgba(157, 101, 40, 0.12),
     inset 0 3px 0 rgba(255, 255, 244, 0.64),
     inset 0 -5px 0 rgba(214, 161, 39, 0.42);
-  transform: translateY(-8px);
+  transform: translateY(-28px);
 }
 
 .loading-track {
@@ -193,7 +193,7 @@ h3 {
   font-size: 50px;
   line-height: 1;
   text-shadow: 0 2px 0 rgba(255, 255, 255, 0.9);
-  transform: translateY(-8px);
+  transform: translateY(-28px);
 }
 
 .home-logo {
@@ -368,7 +368,7 @@ h3 {
   grid-template-columns: minmax(245px, 300px) minmax(370px, 410px) minmax(245px, 300px);
   position: absolute;
   left: 50%;
-  bottom: clamp(68px, 10cqh, 88px);
+  bottom: clamp(108px, 15cqh, 134px);
   width: min(1160px, 96cqw);
   gap: clamp(20px, 3cqw, 36px);
   align-items: center;
@@ -503,8 +503,8 @@ h3 {
   grid-column: 3;
   grid-row: 1;
   justify-self: stretch;
-  width: 190px;
-  min-width: 190px;
+  width: 215px;
+  min-width: 215px;
   padding: 0 20px;
   border: 3px solid #defca6;
   border-radius: 999px;
@@ -574,12 +574,12 @@ h3 {
 .difficulty-content {
   position: relative;
   display: grid;
-  grid-template-rows: 78px 1fr;
+  grid-template-rows: 90px 1fr;
   align-items: start;
   justify-items: center;
-  width: min(1080px, 96cqw);
-  min-height: 500px;
-  padding: 22px 58px 46px;
+  width: min(1180px, 98cqw);
+  min-height: 590px;
+  padding: 26px 64px 54px;
   overflow: hidden;
   border-radius: 22px;
   background:
@@ -591,7 +591,7 @@ h3 {
   align-self: center;
   margin: 0;
   color: #3f2919;
-  font-size: 42px;
+  font-size: 50px;
   font-weight: 1000;
   line-height: 1;
   transform: translateY(-8px);
@@ -638,7 +638,7 @@ h3 {
   grid-template-columns: repeat(3, minmax(0, 1fr));
   align-self: stretch;
   width: 100%;
-  gap: 48px;
+  gap: 56px;
 }
 
 .difficulty-option {
@@ -647,8 +647,8 @@ h3 {
   justify-items: center;
   align-content: start;
   min-width: 0;
-  min-height: 360px;
-  padding: 26px 18px 14px;
+  min-height: 430px;
+  padding: 34px 22px 18px;
   border: 4px solid #9ac64a;
   border-radius: 20px;
   color: #5f351a;
@@ -670,7 +670,7 @@ h3 {
 
 .difficulty-name {
   color: #23833d;
-  font-size: 34px;
+  font-size: 44px;
   line-height: 1;
 }
 
@@ -684,9 +684,9 @@ h3 {
 
 .difficulty-stars {
   display: flex;
-  gap: 5px;
-  margin-top: 16px;
-  font-size: 38px;
+  gap: 7px;
+  margin-top: 22px;
+  font-size: 48px;
   line-height: 1;
 }
 
@@ -708,9 +708,11 @@ h3 {
   align-self: end;
   justify-items: center;
   width: 100%;
-  min-height: 184px;
-  margin-top: 20px;
-  padding: 18px 8px 10px;
+  min-width: 0;
+  min-height: 226px;
+  margin-top: 26px;
+  padding: 24px 10px 14px;
+  overflow: hidden;
   border: 2px solid rgba(117, 89, 54, 0.16);
   border-radius: 12px;
   background: #fff8df;
@@ -719,7 +721,7 @@ h3 {
 .difficulty-desc {
   margin: 0;
   color: #5f351a;
-  font-size: 26px;
+  font-size: 32px;
   font-weight: 900;
   line-height: 1.25;
   word-break: keep-all;
@@ -731,13 +733,17 @@ h3 {
   justify-content: center;
   align-self: end;
   width: 100%;
-  gap: 5px;
-  margin-top: 10px;
+  min-width: 0;
+  gap: 7px;
+  margin-top: 16px;
 }
 
 .difficulty-pad-svg {
-  width: 54px;
-  height: 42px;
+  width: min(68px, calc((100% - 21px) / 4));
+  height: auto;
+  aspect-ratio: 68 / 52;
+  flex: 0 1 68px;
+  min-width: 0;
   overflow: visible;
 }
 
