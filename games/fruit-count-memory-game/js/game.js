@@ -2493,14 +2493,15 @@
       els.settingsLeftPanel.hidden = mode === "standard";
     }
     if (els.tutorialButton) {
-      els.tutorialButton.hidden = ui.showTutorial === false;
+      const hideTutorialControls = mode === "care" || mode === "ai_assisted" || ui.showTutorial === false;
+      els.tutorialButton.hidden = hideTutorialControls;
       const tutorialLabel = els.tutorialButton.querySelector("span");
       if (tutorialLabel) {
         tutorialLabel.textContent = "게임 방법";
       }
     }
     if (els.pauseHelpButton) {
-      els.pauseHelpButton.hidden = ui.showTutorial === false;
+      els.pauseHelpButton.hidden = mode === "care" || mode === "ai_assisted" || ui.showTutorial === false;
     }
     if (els.timerBox) {
       els.timerBox.hidden = !showTimer;

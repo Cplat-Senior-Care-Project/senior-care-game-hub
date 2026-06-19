@@ -466,7 +466,7 @@
     toggleOptional(".optional-difficulty", runtime.modeConfig.showDifficultySelect);
     toggleOptional(".optional-difficulty-label", runtime.modeConfig.showDifficultySelect || runtime.mode === "standard");
     toggleOptional(".optional-settings", runtime.modeConfig.showSettings);
-    toggleOptional(".optional-howto", runtime.modeConfig.showHowTo);
+    toggleOptional(".optional-howto", runtime.modeConfig.showHowTo && runtime.mode !== "care" && runtime.mode !== "ai_assisted");
     toggleOptional(".optional-progress", runtime.modeConfig.showProgress);
     toggleOptional(".optional-score", runtime.modeConfig.showScore && settings.score);
     toggleOptional(".optional-timer", runtime.modeConfig.showTimer);
@@ -479,6 +479,7 @@
   function toggleOptional(selector, visible) {
     document.querySelectorAll(selector).forEach((element) => {
       element.hidden = !visible;
+      element.setAttribute("aria-hidden", visible ? "false" : "true");
     });
   }
 

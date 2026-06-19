@@ -12,6 +12,13 @@ html[data-mode="ai_assisted"] #settings-button[hidden] {
   display: none !important;
 }
 
+html:is([data-mode="care"], [data-mode="ai_assisted"]) #tutorial-button,
+html:is([data-mode="care"], [data-mode="ai_assisted"]) #pause-help-button,
+html:is([data-mode="care"], [data-mode="ai_assisted"])[data-show-tutorial="false"] #tutorial-button,
+html:is([data-mode="care"], [data-mode="ai_assisted"])[data-show-tutorial="false"] #pause-help-button {
+  display: none !important;
+}
+
 html[data-mode="care"] .start-actions,
 html[data-mode="ai_assisted"] .start-actions {
   grid-template-columns: repeat(2, 360px);
@@ -714,4 +721,9 @@ html[data-result-style="care"] .result-content h2 {
   line-height: 1.08;
   white-space: normal;
   text-shadow: none;
+}
+
+html:is([data-mode="care"], [data-mode="ai_assisted"]) #tutorial-button,
+html:is([data-mode="care"], [data-mode="ai_assisted"]) #pause-help-button {
+  display: none !important;
 }

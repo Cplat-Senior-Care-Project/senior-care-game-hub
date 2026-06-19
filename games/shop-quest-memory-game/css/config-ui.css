@@ -1,6 +1,8 @@
 html[data-show-settings="false"] #settings-button,
 html[data-show-settings="false"] #corner-settings-button,
 html[data-show-tutorial="false"] #tutorial-button,
+html:is([data-mode="care"], [data-mode="ai_assisted"]) #tutorial-button,
+html:is([data-mode="care"], [data-mode="ai_assisted"]) #pause-help-button,
 html[data-show-timer="false"] #timer-box,
 html[data-show-progress="false"] .race-wrap,
 html[data-show-progress="false"] .hud-progress-pill,

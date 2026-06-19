@@ -1039,6 +1039,12 @@
     if (els.backgroundSoundToggle) els.backgroundSoundToggle.checked = state.settings.backgroundSoundEnabled;
     if (els.soundToggle) els.soundToggle.checked = state.settings.soundEnabled;
     if (els.voiceGuideToggle) els.voiceGuideToggle.checked = state.settings.voiceGuideEnabled;
+    if (els.tutorialButton) {
+      els.tutorialButton.hidden = mode === "care" || mode === "ai_assisted" || ui.showTutorial === false;
+    }
+    if (els.pauseHelpButton) {
+      els.pauseHelpButton.hidden = mode === "care" || mode === "ai_assisted" || ui.showTutorial === false;
+    }
     updatePauseSoundButtons();
     updateInputModeButtons();
   }

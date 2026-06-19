@@ -16,6 +16,12 @@ body:is([data-mode="care"], [data-mode="ai_assisted"]) .screen-start .start-acti
   gap: 40px;
 }
 
+body:is([data-mode="care"], [data-mode="ai_assisted"]) .optional-howto,
+body:is([data-mode="care"], [data-mode="ai_assisted"]) #pauseHowtoButton,
+body:is([data-mode="care"], [data-mode="ai_assisted"]) #pauseHelpPanel {
+  display: none !important;
+}
+
 body:is([data-mode="care"], [data-mode="ai_assisted"]) .screen-start #startButton,
 body:is([data-mode="care"], [data-mode="ai_assisted"]) .screen-start #startReturnButton {
   display: inline-grid;
