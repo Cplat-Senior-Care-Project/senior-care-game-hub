@@ -2451,6 +2451,23 @@
     };
   }
 
+  function setTutorialControlHidden(element, hidden) {
+    if (!element) {
+      return;
+    }
+    element.hidden = hidden;
+    element.setAttribute("aria-hidden", hidden ? "true" : "false");
+    if (hidden) {
+      element.style.setProperty("display", "none", "important");
+      element.style.setProperty("visibility", "hidden", "important");
+      element.style.setProperty("pointer-events", "none", "important");
+      return;
+    }
+    element.style.removeProperty("display");
+    element.style.removeProperty("visibility");
+    element.style.removeProperty("pointer-events");
+  }
+
   function applyModeUiSettings() {
     const mode = runtimeConfig.mode || DEFAULT_RUN_CONFIG.mode;
     const ui = runtimeConfig.ui || DEFAULT_RUN_CONFIG.ui;
@@ -2494,14 +2511,14 @@
     }
     if (els.tutorialButton) {
       const hideTutorialControls = mode === "care" || mode === "ai_assisted" || ui.showTutorial === false;
-      els.tutorialButton.hidden = hideTutorialControls;
+      setTutorialControlHidden(els.tutorialButton, hideTutorialControls);
       const tutorialLabel = els.tutorialButton.querySelector("span");
       if (tutorialLabel) {
         tutorialLabel.textContent = "게임 방법";
       }
     }
     if (els.pauseHelpButton) {
-      els.pauseHelpButton.hidden = mode === "care" || mode === "ai_assisted" || ui.showTutorial === false;
+      setTutorialControlHidden(els.pauseHelpButton, mode === "care" || mode === "ai_assisted" || ui.showTutorial === false);
     }
     if (els.timerBox) {
       els.timerBox.hidden = !showTimer;

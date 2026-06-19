@@ -12,11 +12,19 @@ html[data-mode="ai_assisted"] #settings-button[hidden] {
   display: none !important;
 }
 
-html:is([data-mode="care"], [data-mode="ai_assisted"]) #tutorial-button,
-html:is([data-mode="care"], [data-mode="ai_assisted"]) #pause-help-button,
-html:is([data-mode="care"], [data-mode="ai_assisted"])[data-show-tutorial="false"] #tutorial-button,
-html:is([data-mode="care"], [data-mode="ai_assisted"])[data-show-tutorial="false"] #pause-help-button {
+html[data-mode="care"] #tutorial-button,
+html[data-mode="care"] #pause-help-button,
+html[data-mode="ai_assisted"] #tutorial-button,
+html[data-mode="ai_assisted"] #pause-help-button,
+html.is-care-mode #tutorial-button,
+html.is-care-mode #pause-help-button,
+html.is-ai-assisted-mode #tutorial-button,
+html.is-ai-assisted-mode #pause-help-button,
+html[data-show-tutorial="false"] #tutorial-button,
+html[data-show-tutorial="false"] #pause-help-button {
   display: none !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
 }
 
 html[data-mode="care"] .start-actions,
@@ -135,16 +143,6 @@ html[data-mode="care"] #corner-settings-button.corner-settings-button.is-pressed
 html[data-mode="ai_assisted"] #corner-settings-button.corner-settings-button:active,
 html[data-mode="ai_assisted"] #corner-settings-button.corner-settings-button.is-pressed {
   transform: translateY(3px) scale(0.98);
-}
-
-html[data-mode="care"][data-show-tutorial="true"] #tutorial-button,
-html[data-mode="ai_assisted"][data-show-tutorial="true"] #tutorial-button {
-  display: inline-flex !important;
-}
-
-html[data-mode="care"][data-show-tutorial="true"] #pause-help-button:not([hidden]),
-html[data-mode="ai_assisted"][data-show-tutorial="true"] #pause-help-button:not([hidden]) {
-  display: inline-flex !important;
 }
 
 html[data-mode="care"] #tutorial-modal .tutorial-play-view,
@@ -723,7 +721,15 @@ html[data-result-style="care"] .result-content h2 {
   text-shadow: none;
 }
 
-html:is([data-mode="care"], [data-mode="ai_assisted"]) #tutorial-button,
-html:is([data-mode="care"], [data-mode="ai_assisted"]) #pause-help-button {
+html[data-mode="care"] #tutorial-button,
+html[data-mode="care"] #pause-help-button,
+html[data-mode="ai_assisted"] #tutorial-button,
+html[data-mode="ai_assisted"] #pause-help-button,
+html.is-care-mode #tutorial-button,
+html.is-care-mode #pause-help-button,
+html.is-ai-assisted-mode #tutorial-button,
+html.is-ai-assisted-mode #pause-help-button {
   display: none !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
 }
