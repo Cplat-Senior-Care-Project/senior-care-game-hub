@@ -1,0 +1,201 @@
+/* Base tokens, reset, app shell, reusable controls. */
+/* ===== CSS Reset + Variables ===== */
+:root {
+  /* Palette — v4 Premium */
+  --sage:        #6A8F62;
+  --sage-dark:   #506E48;
+  --sage-soft:   #E0EBD9;
+  --amber:       #C28A4E;
+  --amber-soft:  #F2E5CD;
+  --ink:         #2A2F2A;
+  --ink-soft:    #3F4940;
+  --muted:       #7A8579;
+  --line:        #E4E8DF;
+  --line-soft:   #EEF1EA;
+  --paper:       #FFFFFF;
+  --paper-warm:  #FBF8F0;
+  --danger:      #B86A4E;
+
+  /* Fluid sizes via vmin (smaller axis = height in landscape) */
+  --animal:      clamp(110px, 22vmin, 200px);
+  --food:        clamp(120px, 26vmin, 220px);
+  --bin:         clamp(118px, 22vmin, 176px);
+  --plate:       clamp(140px, 30vmin, 250px);
+
+  /* Type scale */
+  --t-xs:        clamp(11px, 1.5vmin, 14px);
+  --t-sm:        clamp(13px, 1.8vmin, 16px);
+  --t-base:      clamp(15px, 2.0vmin, 20px);
+  --t-md:        clamp(17px, 2.4vmin, 22px);
+  --t-lg:        clamp(19px, 2.8vmin, 26px);
+  --t-xl:        clamp(22px, 3.4vmin, 32px);
+  --t-2xl:       clamp(26px, 4.0vmin, 40px);
+  --t-3xl:       clamp(32px, 5.2vmin, 52px);
+
+  /* Spacing */
+  --s-xs:        clamp(4px, 0.7vmin, 8px);
+  --s-sm:        clamp(8px, 1.2vmin, 14px);
+  --s-md:        clamp(12px, 1.8vmin, 22px);
+  --s-lg:        clamp(18px, 2.8vmin, 36px);
+  --s-xl:        clamp(24px, 4vmin, 48px);
+
+  /* Radius */
+  --r-sm:        clamp(10px, 1.6vmin, 16px);
+  --r-md:        clamp(14px, 2.2vmin, 22px);
+  --r-lg:        clamp(18px, 2.8vmin, 28px);
+
+  /* Shadows */
+  --sh-card:     0 1px 2px rgba(60,80,50,.04), 0 8px 20px rgba(60,80,50,.07);
+  --sh-card-sel: 0 2px 4px rgba(60,80,50,.06), 0 18px 32px rgba(80,120,70,.16);
+  --sh-btn:      0 6px 16px rgba(80,110,72,.30);
+  --sh-btn-warm: 0 6px 16px rgba(180,130,70,.28);
+  --sh-modal:    0 30px 80px rgba(20,30,15,.30);
+
+  /* Background */
+  --bg:          linear-gradient(180deg, #F1F5EC 0%, #E5EDDA 60%, #DDE7CF 100%);
+
+  /* Safe areas (notched phones) */
+  --safe-t: env(safe-area-inset-top, 0px);
+  --safe-b: env(safe-area-inset-bottom, 0px);
+  --safe-l: env(safe-area-inset-left, 0px);
+  --safe-r: env(safe-area-inset-right, 0px);
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0; padding: 0;
+  color: var(--ink);
+  font-family: -apple-system, BlinkMacSystemFont, "Pretendard",
+               "Apple SD Gothic Neo", "Noto Sans KR", "Noto Sans CJK KR",
+               system-ui, sans-serif;
+  font-size: var(--t-base);
+  line-height: 1.4;
+  letter-spacing: -0.01em;
+  -webkit-user-select: none; user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  overscroll-behavior: none;
+  height: 100vh; height: 100dvh;
+  overflow: hidden;
+  background: var(--bg);
+}
+
+body.large { --t-base: clamp(17px, 2.4vmin, 24px); }
+body.force-landscape-css.portrait-viewport .app {
+  width: 100dvh;
+  height: 100dvw;
+  inset: 50% auto auto 50%;
+  transform: translate(-50%, -50%) rotate(90deg);
+  transform-origin: center;
+}
+body.force-landscape-css.portrait-viewport {
+  background: #E5EDDA;
+}
+
+button {
+  font: inherit; color: inherit; background: none; border: none;
+  padding: 0; cursor: pointer; letter-spacing: inherit;
+}
+.hidden { display: none !important; }
+
+img { user-drag: none; -webkit-user-drag: none; pointer-events: none; }
+
+/* ===== App + Screens ===== */
+.app {
+  position: fixed; inset: 0;
+  padding: calc(var(--safe-t) + var(--s-sm))
+           calc(var(--safe-r) + var(--s-md))
+           calc(var(--safe-b) + var(--s-sm))
+           calc(var(--safe-l) + var(--s-md));
+}
+
+.screen {
+  position: absolute; inset: 0;
+  padding: inherit;
+  display: none;
+  flex-direction: column;
+}
+.screen.on { display: flex; }
+
+.rotate-guide {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: max(24px, var(--safe-t)) max(20px, var(--safe-r)) max(24px, var(--safe-b)) max(20px, var(--safe-l));
+  background: rgba(241, 245, 236, .96);
+  color: var(--ink);
+  text-align: center;
+}
+body.requires-landscape.portrait-viewport:not(.force-landscape-css) .rotate-guide {
+  display: flex;
+}
+.rotate-guide-panel {
+  width: min(420px, 100%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--s-sm);
+}
+.rotate-icon {
+  width: 72px;
+  height: 72px;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  background: var(--paper);
+  border: 1.5px solid var(--line);
+  box-shadow: var(--sh-card);
+  color: var(--sage-dark);
+  font-size: 38px;
+  font-weight: 800;
+}
+.rotate-title {
+  font-size: var(--t-xl);
+  font-weight: 800;
+}
+.rotate-sub {
+  color: var(--ink-soft);
+  font-size: var(--t-md);
+  font-weight: 600;
+}
+
+/* Subtle vignette overlay shared across screens */
+.app::after {
+  content: ""; position: absolute; inset: 0; pointer-events: none;
+  background: radial-gradient(ellipse at center, transparent 50%, rgba(0,0,0,.04) 100%);
+}
+
+/* ===== Reusable controls ===== */
+.chip {
+  display: inline-flex; align-items: center; gap: var(--s-xs);
+  background: var(--paper); color: var(--ink);
+  border: 1.5px solid var(--line); border-radius: 999px;
+  padding: var(--s-sm) var(--s-md);
+  font-size: var(--t-md); font-weight: 600;
+  min-height: 44px;
+}
+.chip:active { transform: scale(.97); }
+
+.btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  gap: var(--s-xs);
+  background: var(--sage); color: #fff;
+  border-radius: var(--r-lg);
+  padding: var(--s-md) var(--s-lg);
+  font-size: var(--t-lg); font-weight: 700;
+  box-shadow: var(--sh-btn);
+  min-height: 56px;
+  transition: transform .1s;
+}
+.btn:active { transform: scale(.98); }
+.btn.lg { font-size: var(--t-xl); padding: var(--s-lg) var(--s-xl); min-height: 64px; }
+.btn.warm { background: var(--amber); box-shadow: var(--sh-btn-warm); }
+.btn.ghost {
+  background: var(--paper); color: var(--ink);
+  border: 1.5px solid var(--line);
+  box-shadow: var(--sh-card);
+}

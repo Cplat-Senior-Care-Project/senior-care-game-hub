@@ -481,10 +481,10 @@
           <p class="card-copy">오늘 필요한 물건을 보고 기억한 뒤 준비물을 확인하는 기억 활동입니다.</p>
         </div>
         <div class="mode-grid" aria-label="오늘의 준비물 모드">
-          <a class="mode-link standard" href="games/what-fits-where/index.html?mode=standard">표준 모드</a>
-          <a class="mode-link reminder" href="games/what-fits-where/index.html?mode=reminder">알림 모드</a>
-          <a class="mode-link care" href="games/what-fits-where/index.html?mode=care">케어 모드</a>
-          <a class="mode-link ai_assisted" href="games/what-fits-where/index.html?mode=ai_assisted">AI 연동 모드</a>
+          <a class="mode-link standard" href="games/what-fits-where/index.html?mode=standard" data-game-key="what_fits_where" data-mode="standard">표준 모드</a>
+          <a class="mode-link reminder" href="games/what-fits-where/index.html?mode=reminder" data-game-key="what_fits_where" data-mode="reminder">알림 모드</a>
+          <a class="mode-link care" href="games/what-fits-where/index.html?mode=care" data-game-key="what_fits_where" data-mode="care">케어 모드</a>
+          <a class="mode-link ai_assisted" href="games/what-fits-where/index.html?mode=ai_assisted" data-game-key="what_fits_where" data-mode="ai_assisted">AI 연동 모드</a>
         </div>
       </article>
 
@@ -495,10 +495,10 @@
           <p class="card-copy">동물에게 맞는 먹이를 고르고 순서대로 챙겨 주는 돌봄 기억 활동입니다.</p>
         </div>
         <div class="mode-grid" aria-label="작은 먹이 농장 모드">
-          <button class="mode-button" type="button" disabled>표준 모드 준비 중</button>
-          <button class="mode-button" type="button" disabled>알림 모드 준비 중</button>
-          <button class="mode-button" type="button" disabled>케어 모드 준비 중</button>
-          <button class="mode-button" type="button" disabled>AI 연동 모드 준비 중</button>
+          <a class="mode-link standard" href="games/animal-feeding-game/index.html?mode=standard" data-game-key="animal_feeding" data-mode="standard">표준 모드</a>
+          <a class="mode-link reminder" href="games/animal-feeding-game/index.html?mode=reminder" data-game-key="animal_feeding" data-mode="reminder">알림 모드</a>
+          <a class="mode-link care" href="games/animal-feeding-game/index.html?mode=care" data-game-key="animal_feeding" data-mode="care">케어 모드</a>
+          <a class="mode-link ai_assisted" href="games/animal-feeding-game/index.html?mode=ai_assisted" data-game-key="animal_feeding" data-mode="ai_assisted">AI 연동 모드</a>
         </div>
       </article>
 
@@ -713,10 +713,12 @@
         if (type === "GAME_READY") type = "READY";
         if (type === "GAME_STARTED") type = "SESSION_START";
         if (type === "GAME_EXIT_REQUESTED") type = "RETURN_TO_APP";
+        if (type === "RETURN_TO_HUB" || type === "RETURN_TO_HYODAM_CALL") type = "RETURN_TO_APP";
         if (type === "GAME_ERROR") type = "ERROR";
         if (type === "GAME_COMPLETED") {
           type = payload.status === "abandoned" || payload.status === "error" ? "SESSION_ABORT" : "SESSION_COMPLETE";
         }
+        if (type === "GAME_ABANDONED") type = "SESSION_ABORT";
 
         return {
           type: type,

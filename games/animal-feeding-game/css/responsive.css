@@ -1,0 +1,596 @@
+/* Mode behavior and responsive layout. Visual styling belongs in farm-theme.css. */
+
+body * {
+  letter-spacing: 0 !important;
+}
+
+.spot,
+.bin,
+.item {
+  outline: none;
+}
+
+.spot:focus-visible,
+.bin:focus-visible,
+.item:focus-visible,
+.btn:focus-visible,
+.chip:focus-visible,
+.diff:focus-visible,
+.mood-card:focus-visible {
+  box-shadow: 0 0 0 4px rgba(194, 138, 78, .32), var(--sh-card-sel);
+}
+
+body.mode-care,
+body.mode-ai {
+  --animal: clamp(138px, 26vmin, 230px);
+  --food: clamp(150px, 30vmin, 250px);
+  --bin: clamp(112px, 18vmin, 160px);
+}
+
+body.mode-care .app::after,
+body.mode-ai .app::after {
+  background: none;
+}
+
+body.mode-care #play,
+body.mode-ai #play {
+  padding: var(--s-md) var(--s-lg);
+}
+
+body.mode-care .topbar,
+body.mode-ai .topbar {
+  min-height: 54px;
+}
+
+body.mode-care .chip,
+body.mode-ai .chip {
+  min-height: 56px;
+  padding: var(--s-md) var(--s-lg);
+  border-radius: var(--r-md);
+}
+
+body.mode-care .prompt,
+body.mode-ai .prompt {
+  max-width: min(780px, 92vw);
+  padding: var(--s-md) var(--s-lg);
+  border-radius: var(--r-md);
+  white-space: normal;
+  line-height: 1.35;
+  font-size: var(--t-2xl);
+}
+
+body.mode-care .board::before,
+body.mode-ai .board::before {
+  width: clamp(420px, 72vmin, 760px);
+  height: clamp(280px, 54vmin, 520px);
+}
+
+body.mode-care .item-wrap,
+body.mode-ai .item-wrap {
+  top: 22%;
+}
+
+body.mode-care .item-label,
+body.mode-ai .item-label {
+  padding: var(--s-sm) var(--s-lg);
+  border-radius: var(--r-md);
+  font-size: var(--t-xl);
+}
+
+body.mode-reminder .spot .energy,
+body.mode-care .spot .energy,
+body.mode-ai .spot .energy {
+  display: none;
+}
+
+body.mode-standard .spot .energy {
+  display: block;
+}
+
+body.mode-care .spot .name,
+body.mode-ai .spot .name {
+  font-size: var(--t-lg);
+}
+
+body.mode-care .heart,
+body.mode-ai .heart,
+body.mode-reminder .heart {
+  display: none;
+}
+
+body.mode-reminder .stats,
+body.mode-care .stats,
+body.mode-ai .stats {
+  display: none;
+}
+
+body.mode-reminder #done,
+body.mode-care #done,
+body.mode-ai #done {
+  gap: var(--s-lg);
+}
+
+body.mode-reminder .done-title,
+body.mode-care .done-title,
+body.mode-ai .done-title {
+  font-size: var(--t-3xl);
+}
+
+body.mode-reminder .done-sub,
+body.mode-care .done-sub,
+body.mode-ai .done-sub,
+body.mode-reminder .done-return-note,
+body.mode-care .done-return-note,
+body.mode-ai .done-return-note {
+  font-size: var(--t-lg);
+}
+
+body.mode-reminder .done-actions,
+body.mode-care .done-actions,
+body.mode-ai .done-actions {
+  flex-direction: column;
+  min-width: min(360px, 82vw);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+body.reduced * {
+  animation: none !important;
+  transition: none !important;
+}
+
+@media (max-height: 500px), (max-width: 920px) {
+  :root {
+    --animal: clamp(82px, 22vmin, 130px);
+    --food: clamp(80px, 24vmin, 130px);
+    --bin: clamp(96px, 24vmin, 132px);
+  }
+
+  body.mode-care,
+  body.mode-ai {
+    --animal: clamp(104px, 27vmin, 126px);
+    --food: clamp(100px, 24vmin, 124px);
+    --bin: clamp(96px, 23vmin, 124px);
+  }
+
+  #play {
+    gap: 0;
+    grid-template-rows: auto auto 1fr;
+    padding: var(--s-xs) var(--s-sm);
+  }
+
+  .topbar {
+    min-height: 42px;
+  }
+
+  .dots {
+    gap: 6px;
+    padding: 4px 10px;
+  }
+
+  .dots i {
+    width: 7px;
+    height: 7px;
+  }
+
+  .dots i.cur {
+    width: 9px;
+    height: 9px;
+    box-shadow: 0 0 0 3px rgba(194, 138, 78, .18);
+  }
+
+  .prompt-wrap {
+    min-height: 42px;
+    margin-top: -2px;
+  }
+
+  .prompt {
+    min-height: 38px;
+    padding: 8px 22px;
+    border-radius: 18px;
+    font-size: clamp(16px, 3.6vmin, 24px);
+  }
+
+  .board {
+    min-height: 0;
+  }
+
+  .board::before {
+    top: 47%;
+    width: min(88vw, 760px);
+    height: min(58vh, 260px);
+  }
+
+  .item-wrap {
+    top: 11%;
+  }
+
+  body.mode-standard .board.animals-4.has-bin .item-wrap,
+  body.mode-reminder .board.animals-4.has-bin .item-wrap {
+    top: 5%;
+  }
+
+  .board.no-bin .item-wrap {
+    top: 8%;
+  }
+
+  .item-shadow {
+    width: calc(var(--food) * .85);
+    height: 12px;
+  }
+
+  .item-label {
+    min-width: clamp(86px, 19vmin, 124px);
+    min-height: clamp(32px, 7vmin, 44px);
+    margin-top: 4px;
+    padding: 5px 14px 8px;
+    border-radius: 0;
+    font-size: clamp(16px, 3.5vmin, 23px);
+  }
+
+  .spot,
+  .bin {
+    position: absolute !important;
+    top: auto !important;
+    bottom: 4px !important;
+    min-height: calc(var(--animal) + 52px);
+    padding: 7px 9px 9px;
+  }
+
+  .spot.tl,
+  .spot.tr,
+  .spot.bl,
+  .spot.br {
+    right: auto !important;
+    transform: translateX(-50%);
+  }
+
+  .board.animals-2 .spot.tl {
+    left: 34% !important;
+  }
+
+  .board.animals-2 .spot.tr {
+    left: 66% !important;
+  }
+
+  .board.animals-3 .spot.tl {
+    left: 22% !important;
+  }
+
+  .board.animals-3 .spot.tr {
+    left: 50% !important;
+  }
+
+  .board.animals-3 .spot.bl {
+    left: 78% !important;
+  }
+
+  .board.animals-4 .spot.tl {
+    left: 11% !important;
+  }
+
+  .board.animals-4 .spot.tr {
+    left: 35% !important;
+  }
+
+  .board.animals-4 .spot.bl {
+    left: 59% !important;
+  }
+
+  .board.animals-4 .spot.br {
+    left: 83% !important;
+  }
+
+  .board.animals-4.has-bin .spot.tl {
+    left: 9% !important;
+  }
+
+  .board.animals-4.has-bin .spot.tr {
+    left: 29% !important;
+  }
+
+  .board.animals-4.has-bin .spot.bl {
+    left: 49% !important;
+  }
+
+  .board.animals-4.has-bin .spot.br {
+    left: 69% !important;
+  }
+
+  .board.animals-4.has-bin .spot {
+    min-width: clamp(88px, 18vmin, 128px);
+  }
+
+  .spot .name,
+  .bin .name {
+    color: var(--ink);
+    font-weight: 800;
+  }
+
+  body.mode-standard .spot .energy {
+    display: block;
+    width: calc(var(--animal) * .72);
+    height: 7px;
+    margin-top: 2px;
+  }
+
+  .bin {
+    left: auto !important;
+    right: 4% !important;
+    top: 52% !important;
+    bottom: auto !important;
+    transform: translateY(-50%) !important;
+    min-width: calc(var(--bin) * 1.44);
+    min-height: calc(var(--bin) * 1.32);
+  }
+
+  .bin.target {
+    transform: translateY(-50%) scale(1.04) !important;
+  }
+
+  .board.animals-4.has-bin .bin {
+    right: 1% !important;
+    top: 50% !important;
+    bottom: auto !important;
+  }
+
+  body.mode-care #play,
+  body.mode-ai #play {
+    gap: 0;
+    padding: var(--s-xs) var(--s-md);
+  }
+
+  body.mode-care .topbar,
+  body.mode-ai .topbar {
+    min-height: 46px;
+  }
+
+  body.mode-care .chip,
+  body.mode-ai .chip {
+    min-height: 50px;
+    padding: var(--s-sm) var(--s-lg);
+    font-size: clamp(16px, 3.4vmin, 22px);
+  }
+
+  body.mode-care .prompt,
+  body.mode-ai .prompt {
+    padding: 10px 24px;
+    font-size: clamp(22px, 5.2vmin, 32px);
+  }
+
+  body.mode-care .board::before,
+  body.mode-ai .board::before {
+    width: min(92vw, 620px);
+    height: clamp(160px, 52vmin, 300px);
+  }
+
+  body.mode-care .board.no-bin .item-wrap,
+  body.mode-ai .board.no-bin .item-wrap {
+    top: 16%;
+  }
+
+  body.mode-care .board.has-bin .item-wrap,
+  body.mode-ai .board.has-bin .item-wrap {
+    top: -8%;
+  }
+
+  body.mode-care .board .spot,
+  body.mode-ai .board .spot,
+  body.mode-care .board .bin,
+  body.mode-ai .board .bin {
+    top: 52% !important;
+    bottom: auto !important;
+    width: clamp(132px, 30vmin, 178px);
+    min-width: clamp(132px, 30vmin, 178px);
+    min-height: clamp(126px, 30vmin, 166px);
+    padding: 8px 10px 10px;
+    transform: translate(-50%, -50%) !important;
+  }
+
+  body.mode-care .board.has-bin .spot,
+  body.mode-ai .board.has-bin .spot,
+  body.mode-care .board.has-bin .bin,
+  body.mode-ai .board.has-bin .bin {
+    top: 70% !important;
+    width: clamp(116px, 26vmin, 148px);
+    min-width: clamp(116px, 26vmin, 148px);
+    min-height: clamp(120px, 28vmin, 150px);
+  }
+
+  body.mode-care .board.animals-2.no-bin .spot.tl,
+  body.mode-ai .board.animals-2.no-bin .spot.tl {
+    left: 21% !important;
+  }
+
+  body.mode-care .board.animals-2.no-bin .spot.tr,
+  body.mode-ai .board.animals-2.no-bin .spot.tr {
+    left: 79% !important;
+  }
+
+  body.mode-care .board.animals-2.has-bin .spot.tl,
+  body.mode-ai .board.animals-2.has-bin .spot.tl {
+    left: 18% !important;
+  }
+
+  body.mode-care .board.animals-2.has-bin .spot.tr,
+  body.mode-ai .board.animals-2.has-bin .spot.tr {
+    left: 47% !important;
+  }
+
+  body.mode-care .board.animals-2.has-bin .bin,
+  body.mode-ai .board.animals-2.has-bin .bin {
+    left: 82% !important;
+    right: auto !important;
+    top: 60% !important;
+  }
+
+  body.mode-care .board .spot.target,
+  body.mode-care .board .bin.target,
+  body.mode-ai .board .spot.target,
+  body.mode-ai .board .bin.target {
+    transform: translate(-50%, -50%) scale(1.04) !important;
+  }
+
+  .how-grid {
+    gap: 8px;
+    margin-top: var(--s-sm);
+  }
+
+  .how-card {
+    gap: var(--s-xs);
+    padding: var(--s-sm);
+  }
+
+  .how-illust {
+    min-height: clamp(80px, 16vmin, 140px);
+  }
+
+  .how-illust > img {
+    width: clamp(64px, 14vmin, 100px);
+  }
+
+  .hero {
+    padding: var(--s-sm) 0 0;
+  }
+
+  .hero img {
+    width: clamp(80px, 16vmin, 130px);
+  }
+
+  .diff {
+    gap: var(--s-xs);
+    padding: var(--s-sm) var(--s-md);
+  }
+
+  .diff-icons img {
+    width: clamp(24px, 4.6vmin, 36px);
+  }
+
+  .done-hero {
+    min-height: clamp(92px, 22vmin, 154px);
+    width: min(97vw, 760px);
+    gap: clamp(4px, 1.2vw, 12px);
+    padding: 0 clamp(8px, 2vw, 18px);
+  }
+
+  .done-friend {
+    width: clamp(78px, 17vmin, 118px);
+    min-height: clamp(86px, 21vmin, 132px);
+  }
+
+  .done-friend img,
+  .done-animal {
+    height: clamp(54px, 13vmin, 86px);
+  }
+
+  .done-friend-name {
+    min-width: clamp(58px, 13vmin, 86px);
+    min-height: clamp(20px, 5vmin, 28px);
+    padding: 3px 8px 5px;
+    font-size: clamp(11px, 2.6vmin, 15px);
+  }
+
+  .mood-card {
+    min-width: clamp(100px, 16vmin, 160px);
+    padding: var(--s-md) var(--s-lg);
+  }
+
+  .mood-emoji {
+    font-size: clamp(36px, 7vmin, 60px);
+  }
+
+  .sheet {
+    padding: var(--s-md) var(--s-lg) var(--s-sm);
+    border-radius: 18px;
+  }
+}
+
+@media (max-height: 380px) {
+  :root {
+    --animal: clamp(70px, 20vmin, 110px);
+    --food: clamp(70px, 22vmin, 110px);
+    --bin: clamp(82px, 22vmin, 108px);
+  }
+
+  body.mode-care,
+  body.mode-ai {
+    --animal: clamp(72px, 22vmin, 96px);
+    --food: clamp(72px, 22vmin, 94px);
+    --bin: clamp(78px, 21vmin, 100px);
+  }
+
+  .start-title {
+    font-size: clamp(20px, 4.6vmin, 32px);
+  }
+
+  .start-sub {
+    font-size: clamp(12px, 2.4vmin, 16px);
+  }
+
+  #done {
+    gap: 5px;
+  }
+
+  .done-hero {
+    min-height: 102px;
+    padding-top: 6px;
+    width: 98vw;
+    gap: 2px;
+    justify-content: space-between;
+  }
+
+  .done-friend {
+    width: clamp(72px, 16vmin, 96px);
+    min-height: 94px;
+    padding-top: 14px;
+  }
+
+  .done-joy {
+    top: 0;
+    min-height: 22px;
+    padding: 3px 8px 4px;
+    font-size: clamp(10px, 2.2vmin, 13px);
+  }
+
+  #done.session-complete .done-joy {
+    animation-name: joyBubbleCompact;
+  }
+
+  .done-title-area {
+    padding: 7px 20px 10px;
+    border-radius: 18px;
+  }
+
+  .done-title {
+    font-size: clamp(22px, 5.2vmin, 30px);
+  }
+
+  .done-sub,
+  .done-return-note {
+    font-size: clamp(12px, 2.6vmin, 15px);
+  }
+
+  .stats {
+    gap: 5px;
+  }
+
+  .stat {
+    padding: 6px 12px;
+    min-width: 92px;
+  }
+
+  .done-actions {
+    gap: 7px;
+  }
+
+  .done-actions .btn {
+    min-height: 52px;
+    padding: 10px 22px;
+    font-size: clamp(16px, 4vmin, 21px);
+  }
+}

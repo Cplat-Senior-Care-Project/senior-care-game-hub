@@ -1,0 +1,154 @@
+{
+  "game_key": "animal_feeding",
+  "content_id": "cognitive_animal_feeding_001",
+  "version": "2.0.0",
+  "title": "작은 먹이 농장",
+  "cognitive_domains": [
+    "semantic_memory",
+    "selective_attention",
+    "visual_search",
+    "fine_motor_control"
+  ],
+  "animals": [
+    {
+      "id": "tiger",
+      "label": "호랑이",
+      "food_ids": ["meat"],
+      "image": "image/tiger.png"
+    },
+    {
+      "id": "monkey",
+      "label": "원숭이",
+      "food_ids": ["banana"],
+      "image": "image/monkey.png"
+    },
+    {
+      "id": "squirrel",
+      "label": "다람쥐",
+      "food_ids": ["acorn"],
+      "image": "image/squirrel.png"
+    },
+    {
+      "id": "panda",
+      "label": "판다",
+      "food_ids": ["bamboo"],
+      "image": "image/panda.png"
+    }
+  ],
+  "items": [
+    {
+      "id": "meat",
+      "label": "고기",
+      "type": "food",
+      "target": "tiger",
+      "image": "image/meat.png"
+    },
+    {
+      "id": "banana",
+      "label": "바나나",
+      "type": "food",
+      "target": "monkey",
+      "image": "image/banana.png"
+    },
+    {
+      "id": "acorn",
+      "label": "도토리",
+      "type": "food",
+      "target": "squirrel",
+      "image": "image/acorn.png"
+    },
+    {
+      "id": "bamboo",
+      "label": "대나무",
+      "type": "food",
+      "target": "panda",
+      "image": "image/bamboo.png"
+    },
+    {
+      "id": "paper",
+      "label": "종이",
+      "type": "trash",
+      "target": "bin",
+      "image": "image/paper.png"
+    },
+    {
+      "id": "bone",
+      "label": "생선가시",
+      "type": "trash",
+      "target": "bin",
+      "image": "image/bone.png"
+    }
+  ],
+  "difficulty_defaults": {
+    "easy": {
+      "animal_count": 2,
+      "question_count": 10,
+      "trash_count": 1
+    },
+    "normal": {
+      "animal_count": 3,
+      "question_count": 10,
+      "trash_count": 2
+    },
+    "hard": {
+      "animal_count": 4,
+      "question_count": 10,
+      "trash_count": 2
+    }
+  },
+  "mode_defaults": {
+    "standard": {
+      "show_difficulty_select": true,
+      "show_score": true,
+      "show_progress": true,
+      "show_help": true,
+      "show_finish_check": true,
+      "use_drag": true,
+      "allow_replay": true
+    },
+    "reminder": {
+      "auto_start": true,
+      "show_difficulty_select": false,
+      "show_score": false,
+      "show_progress": false,
+      "show_help": false,
+      "show_finish_check": false,
+      "auto_return_ms": 2500
+    },
+    "care": {
+      "difficulty": "easy",
+      "animal_count": 2,
+      "trash_count": 0,
+      "choice_count": 2,
+      "auto_start": true,
+      "show_difficulty_select": false,
+      "show_score": false,
+      "show_progress": false,
+      "show_help": false,
+      "show_how_to_play": false,
+      "show_finish_check": false,
+      "use_drag": false,
+      "soft_feedback": true
+    },
+    "ai_assisted": {
+      "difficulty": "easy",
+      "animal_count": 2,
+      "trash_count": 0,
+      "choice_count": 2,
+      "auto_start": true,
+      "show_difficulty_select": false,
+      "show_score": false,
+      "show_progress": false,
+      "show_help": false,
+      "show_how_to_play": false,
+      "show_finish_check": false,
+      "use_drag": false,
+      "soft_feedback": true
+    }
+  },
+  "question_generation": {
+    "animal_selection": "session_start_once_random_or_target_animals_config",
+    "queue_rule": "food_questions_for_session_animals_plus_distributed_trash_questions",
+    "repeat_mitigation": "avoid_consecutive_same_target_when_possible"
+  }
+}
