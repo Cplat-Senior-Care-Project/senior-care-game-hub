@@ -573,7 +573,7 @@
       var requestedConfigUrl = String(params.get("configUrl") || "").trim();
       var mode = Object.prototype.hasOwnProperty.call(modeMap, requestedMode) ? requestedMode : "standard";
       var assetVersion = mode === "care" || mode === "ai_assisted"
-        ? "care-ai-start-controls-20260616"
+        ? "care-ai-hide-tutorial-20260619"
         : "care-standard-pause-20260608";
       window.__FRUIT_COUNT_GAME_MODE__ = mode;
       window.__FRUIT_COUNT_MODE_ASSETS__ = {
@@ -592,8 +592,8 @@
     })();
   </script>
   <script src="js/config-normalizer.js?v=ai-external-input-config-fix-20260602"></script>
-  <script src="js/app-bridge.js?v=care-ai-start-controls-20260616"></script>
+  <script src="js/app-bridge.js?v=care-ai-hide-tutorial-20260619"></script>
   <audio id="background-audio" preload="none" loop></audio>
-  <script src="js/game.js?v=care-ai-start-controls-20260616"></script>
+  <script src="js/game.js?v=care-ai-hide-tutorial-20260619"></script>
 </body>
 </html>

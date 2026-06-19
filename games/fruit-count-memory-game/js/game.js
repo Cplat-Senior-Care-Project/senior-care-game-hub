@@ -2426,8 +2426,8 @@
     state.timeLeft = runtimeConfig.durationSeconds;
     applyRuntimeAudioSettings();
     updateSettingClasses();
-    applyModeUiSettings();
     applyModeExtension();
+    applyModeUiSettings();
     syncExternalInputInterface();
   }
 
