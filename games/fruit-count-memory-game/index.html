@@ -9,6 +9,15 @@
   <title>쏙쏙 개수 찾기</title>
   <script>
     (function () {
+      var modeMap = {
+        standard: true,
+        reminder: true,
+        care: true,
+        ai_assisted: true
+      };
+      var params = new URLSearchParams(window.location.search);
+      var requestedMode = String(params.get("mode") || "standard").trim().toLowerCase();
+      var mode = Object.prototype.hasOwnProperty.call(modeMap, requestedMode) ? requestedMode : "standard";
       var stageWidth = 1280;
       var stageHeight = 720;
       var visualViewport = window.visualViewport;
@@ -20,8 +29,20 @@
       document.documentElement.style.setProperty("--game-scale", String(scale));
       document.documentElement.style.setProperty("--game-viewport-right-gutter", String(horizontalGutter) + "px");
       document.documentElement.style.setProperty("--game-viewport-top-gutter", String(Math.min(verticalGutter, 120)) + "px");
+      document.documentElement.dataset.mode = mode;
+      window.__FRUIT_COUNT_INITIAL_MODE__ = mode;
     })();
   </script>
+  <style>
+    html[data-mode="care"] #tutorial-button,
+    html[data-mode="care"] #pause-help-button,
+    html[data-mode="ai_assisted"] #tutorial-button,
+    html[data-mode="ai_assisted"] #pause-help-button {
+      display: none !important;
+      visibility: hidden !important;
+      pointer-events: none !important;
+    }
+  </style>
   <link rel="stylesheet" href="css/base.css?v=config-source-20260602">
   <link rel="stylesheet" href="css/start.css?v=direct-20260528">
   <link rel="stylesheet" href="css/difficulty.css?v=direct-20260528">
