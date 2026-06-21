@@ -1,16 +1,50 @@
-/* ---------- Voice (with Korean availability check) ---------- */
+/* ---------- Voice (recorded guides with TTS fallback) ---------- */
+const VOICE_GUIDES = {
+  precheckMoodSleep: "audio/voice/precheck-mood-sleep.mp3",
+  selectDifficulty: "audio/voice/select-difficulty.mp3",
+  gameStartsIn3Seconds: "audio/voice/game-starts-in-3-seconds.mp3",
+  whoToFeed: "audio/voice/who-to-feed.mp3",
+  whereToCleanup: "audio/voice/where-to-cleanup.mp3",
+  tryAgain: "audio/voice/try-again.mp3",
+  wellDone: "audio/voice/well-done.mp3",
+  sessionComplete: "audio/voice/session-complete.mp3",
+  enoughForToday: "audio/voice/enough-for-today.mp3",
+  hint: "audio/voice/hint.mp3",
+  takingABreak: "audio/voice/taking-a-break.mp3",
+  finishCurrentState: "audio/voice/finish-current-state.mp3",
+  finishExtraInfo: "audio/voice/finish-extra-info.mp3",
+};
+const BUTTON_SOUND_SRC = "audio/sfx/button-click.mp3";
+const BGM_SRC = "audio/bgm/goblin-fate.mp3";
+const BGM_START_SECONDS = 3;
+const SFX_VOLUME_SCALE = 0.22;
+let activeGuideAudio = null;
+
 function detectVoice() {
-  if (!("speechSynthesis" in window)) { voiceAvailable = false; return; }
+  const hasRecordedGuide = typeof Audio !== "undefined" && Object.keys(VOICE_GUIDES).length > 0;
+  if (!("speechSynthesis" in window)) { voiceAvailable = hasRecordedGuide; return; }
   const voices = speechSynthesis.getVoices();
-  voiceAvailable = voices.some(v => /^ko/i.test(v.lang));
+  voiceAvailable = hasRecordedGuide || voices.some(v => /^ko/i.test(v.lang));
 }
 if ("speechSynthesis" in window) {
   speechSynthesis.onvoiceschanged = () => { detectVoice(); updateAudioControls(); };
 }
 detectVoice();
 
+function stopVoiceGuide() {
+  if (activeGuideAudio) {
+    try {
+      activeGuideAudio.pause();
+      activeGuideAudio.currentTime = 0;
+    } catch(e) {}
+    activeGuideAudio = null;
+  }
+}
+
 function speak(text) {
   if (!voiceOn || !voiceAvailable) return;
+  stopVoiceGuide();
+  if (!("speechSynthesis" in window)) return;
   try {
     const u = new SpeechSynthesisUtterance(text);
     u.lang = "ko-KR"; u.rate = 0.95; u.pitch = 1;
@@ -19,11 +53,44 @@ function speak(text) {
   } catch(e) {}
 }
 
+function playVoiceGuide(key, fallbackText = "") {
+  if (!voiceOn || !voiceAvailable) return Promise.resolve(false);
+  const src = VOICE_GUIDES[key];
+  if (!src || typeof Audio === "undefined") {
+    if (fallbackText) speak(fallbackText);
+    return Promise.resolve(false);
+  }
+  try {
+    if ("speechSynthesis" in window) speechSynthesis.cancel();
+    stopVoiceGuide();
+    const audio = new Audio(assetUrl(src));
+    activeGuideAudio = audio;
+    audio.preload = "auto";
+    audio.volume = 1;
+    audio.addEventListener("ended", () => {
+      if (activeGuideAudio === audio) activeGuideAudio = null;
+    }, { once: true });
+    audio.addEventListener("error", () => {
+      if (activeGuideAudio === audio) activeGuideAudio = null;
+      if (fallbackText) speak(fallbackText);
+    }, { once: true });
+    return audio.play().then(() => true).catch(() => {
+      if (activeGuideAudio === audio) activeGuideAudio = null;
+      if (fallbackText) speak(fallbackText);
+      return false;
+    });
+  } catch(e) {
+    if (fallbackText) speak(fallbackText);
+    return Promise.resolve(false);
+  }
+}
+
 /* ---------- Sound (WebAudio chimes, iOS-safe lazy init) ---------- */
 let ac = null;
 let mediaUnlocked = false;
 let bgmTimer = null;
 let bgmStep = 0;
+let bgmAudio = null;
 function ensureAudio() {
   if (ac) { if (ac.state === "suspended") ac.resume(); return; }
   try {
@@ -50,22 +117,22 @@ function setToggleState(button, on, unavailable = false) {
 }
 
 function updateVoiceBtn() {
-  const b = document.getElementById("voiceBtn");
-  if (!b) return;
+  const buttons = ["voiceBtn", "playVoiceBtn"].map(id => document.getElementById(id)).filter(Boolean);
+  if (!buttons.length) return;
   if (!voiceAvailable) {
     voiceOn = false;
-    setToggleState(b, false, true);
+    buttons.forEach(b => setToggleState(b, false, true));
     return;
   }
-  setToggleState(b, voiceOn);
+  buttons.forEach(b => setToggleState(b, voiceOn));
 }
 
 function updateSfxBtn() {
-  setToggleState(document.getElementById("sfxToggle"), sfxOn);
+  ["sfxToggle", "playSfxToggle"].forEach(id => setToggleState(document.getElementById(id), sfxOn));
 }
 
 function updateBgmBtn() {
-  setToggleState(document.getElementById("bgmToggle"), bgmOn);
+  ["bgmToggle", "playBgmToggle"].forEach(id => setToggleState(document.getElementById(id), bgmOn));
 }
 
 function playBgmNote(freq, dur = 0.42) {
@@ -84,7 +151,52 @@ function playBgmNote(freq, dur = 0.42) {
   } catch(e) {}
 }
 
-function startBackgroundMusic() {
+function seekBgmStart(audio) {
+  try {
+    audio.currentTime = BGM_START_SECONDS;
+  } catch(e) {
+    audio.addEventListener("loadedmetadata", () => {
+      try { audio.currentTime = BGM_START_SECONDS; } catch(_) {}
+    }, { once: true });
+  }
+}
+
+function getBgmAudio() {
+  if (typeof Audio === "undefined") return null;
+  if (bgmAudio) return bgmAudio;
+  try {
+    bgmAudio = new Audio(assetUrl(BGM_SRC));
+    bgmAudio.preload = "auto";
+    bgmAudio.volume = 0.28;
+    bgmAudio.addEventListener("ended", () => {
+      if (!bgmOn || !mediaUnlocked) return;
+      seekBgmStart(bgmAudio);
+      bgmAudio.play().catch(() => startSynthBackgroundMusic());
+    });
+    bgmAudio.addEventListener("error", () => startSynthBackgroundMusic());
+    seekBgmStart(bgmAudio);
+    return bgmAudio;
+  } catch(e) {
+    bgmAudio = null;
+    return null;
+  }
+}
+
+function startRecordedBackgroundMusic() {
+  const audio = getBgmAudio();
+  if (!audio) return false;
+  try {
+    if (audio.paused) {
+      if (!audio.currentTime || audio.currentTime < BGM_START_SECONDS) seekBgmStart(audio);
+      audio.play().catch(() => startSynthBackgroundMusic());
+    }
+    return true;
+  } catch(e) {
+    return false;
+  }
+}
+
+function startSynthBackgroundMusic() {
   if (!bgmOn || bgmTimer || !mediaUnlocked) return;
   const notes = [392, 440, 523.25, 440, 349.23, 392, 493.88, 392];
   playBgmNote(notes[bgmStep % notes.length]);
@@ -98,10 +210,23 @@ function startBackgroundMusic() {
   }, 1200);
 }
 
+function startBackgroundMusic() {
+  if (!bgmOn || !mediaUnlocked) return;
+  if (startRecordedBackgroundMusic()) return;
+  startSynthBackgroundMusic();
+}
+
 function stopBackgroundMusic() {
-  if (!bgmTimer) return;
-  clearInterval(bgmTimer);
-  bgmTimer = null;
+  if (bgmAudio) {
+    try {
+      bgmAudio.pause();
+      seekBgmStart(bgmAudio);
+    } catch(e) {}
+  }
+  if (bgmTimer) {
+    clearInterval(bgmTimer);
+    bgmTimer = null;
+  }
 }
 
 function syncBackgroundMusic() {
@@ -127,6 +252,21 @@ function unlockMedia() {
 }
 window.addEventListener("pointerdown", unlockMedia, { once: true });
 window.addEventListener("touchstart", unlockMedia, { once: true, passive: true });
+
+function playButtonSound() {
+  if (!sfxOn || typeof Audio === "undefined") return;
+  try {
+    const audio = new Audio(assetUrl(BUTTON_SOUND_SRC));
+    audio.volume = 0.16;
+    audio.play().catch(() => {});
+  } catch(e) {}
+}
+
+document.addEventListener("click", e => {
+  const button = e.target.closest?.("button");
+  if (!button || button.disabled) return;
+  playButtonSound();
+}, true);
 
 /* ---------- Display mode (fullscreen + landscape handoff) ---------- */
 let firstGestureDisplayRequested = false;
@@ -230,8 +370,12 @@ function updateStageScale(portrait = window.innerHeight > window.innerWidth) {
   const useCssLandscape = document.body.classList.contains("force-landscape-css") && portrait;
   const availableWidth = useCssLandscape ? window.innerHeight : window.innerWidth;
   const availableHeight = useCssLandscape ? window.innerWidth : window.innerHeight;
-  const scale = Math.min(availableWidth / STAGE_WIDTH, availableHeight / STAGE_HEIGHT);
-  document.documentElement.style.setProperty("--stage-scale", Math.max(0.01, scale).toFixed(5));
+  const scaleX = availableWidth / STAGE_WIDTH;
+  const scaleY = availableHeight / STAGE_HEIGHT;
+  const fallbackScale = Math.min(scaleX, scaleY);
+  document.documentElement.style.setProperty("--stage-scale", Math.max(0.01, fallbackScale).toFixed(5));
+  document.documentElement.style.setProperty("--stage-scale-x", Math.max(0.01, scaleX).toFixed(5));
+  document.documentElement.style.setProperty("--stage-scale-y", Math.max(0.01, scaleY).toFixed(5));
 }
 
 function updateDisplayState() {
@@ -254,7 +398,7 @@ function tone(freq, dur=0.18, type="sine", vol=0.06) {
   try {
     ensureAudio(); if (!ac) return;
     const o = ac.createOscillator(), g = ac.createGain();
-    o.type = type; o.frequency.value = freq; g.gain.value = vol;
+    o.type = type; o.frequency.value = freq; g.gain.value = vol * SFX_VOLUME_SCALE;
     o.connect(g); g.connect(ac.destination);
     o.start();
     g.gain.exponentialRampToValueAtTime(0.0001, ac.currentTime + dur);

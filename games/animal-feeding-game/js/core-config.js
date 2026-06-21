@@ -155,7 +155,7 @@ const SLOT_POS = {
 let state = null;
 let voiceOn = true;
 let sfxOn = true;
-let bgmOn = false;
+let bgmOn = true;
 let voiceAvailable = false;
 let cfg = { fontScale: 1, reducedMotion: false, userAlias: "손님" };
 let selectedDiff = "hard";
@@ -187,7 +187,10 @@ function normalizeRuntimeConfig(input) {
   const mode = modeAliases[rawMode] || rawMode;
   const isCareLike = mode === "care" || mode === "reminder" || mode === "ai_assisted";
   const isSimplifiedMode = mode === "care" || mode === "ai_assisted";
-  const isTapFirstMode = mode !== "standard";
+  const hasStandardStartScreen = mode === "standard" || isSimplifiedMode;
+  const useDragDefault = ["standard", "reminder", "care", "ai_assisted"].includes(mode);
+  const autoStartDefault = mode === "reminder";
+  const autoReturnDefaultMs = mode === "standard" ? 0 : 3000;
   const nested = p.config || {};
   const has = (camel, snake) => (
     nested[camel] !== undefined ||
@@ -220,33 +223,42 @@ function normalizeRuntimeConfig(input) {
   const animalCountConfigured = has("animalCount", "animal_count");
   const targetAnimals = normalizeAnimalIds(read("targetAnimals", "target_animals", read("animals", "animals", [])));
   const orientationLock = readDisplay(["orientationLock", "orientation_lock", "screenOrientation", "screen_orientation"], "landscape");
+  const returnUrl = read("returnUrl", "return_url",
+    read("hubUrl", "hub_url",
+      read("autoReturnUrl", "auto_return_url",
+        read("homeUrl", "home_url",
+          read("exitUrl", "exit_url", "")))));
+  const configuredAutoReturnMs = Number(read("autoReturnMs", "auto_return_ms", autoReturnDefaultMs)) || 0;
+  const autoReturnMs = mode === "standard"
+    ? configuredAutoReturnMs
+    : (configuredAutoReturnMs > 0 ? configuredAutoReturnMs : autoReturnDefaultMs);
 
   return {
     sessionId: p.session_id || p.sessionId || null,
     contentId: p.content_id || p.contentId || DEFAULT_CONTENT_ID,
     gameKey: p.game_key || p.gameKey || GAME_ID,
     mode,
-    difficulty: p.difficulty || (isSimplifiedMode ? "easy" : (mode === "reminder" ? "hard" : selectedDiff)),
+    difficulty: isSimplifiedMode ? "easy" : (p.difficulty || (mode === "reminder" ? "normal" : selectedDiff)),
     showTimer: !!read("showTimer", "show_timer", false),
     showScore: !!read("showScore", "show_score", mode === "standard"),
-    showDifficultySelect: !!read("showDifficultySelect", "show_difficulty_select", !isCareLike),
-    showSettings: !!read("showSettings", "show_settings", !isCareLike),
-    showHelp: !!read("showHelp", "show_help", !isCareLike),
-    showHowToPlay: !!read("showHowToPlay", "show_how_to_play", !isCareLike),
+    showDifficultySelect: mode === "standard" && !!read("showDifficultySelect", "show_difficulty_select", !isCareLike),
+    showSettings: !!read("showSettings", "show_settings", true),
+    showHelp: !!read("showHelp", "show_help", true),
+    showHowToPlay: !isSimplifiedMode && !!read("showHowToPlay", "show_how_to_play", !isCareLike),
     showFinishCheck: !!read("showFinishCheck", "show_finish_check", mode === "standard"),
     showProgress: !!read("showProgress", "show_progress", !isCareLike),
     allowReplay: !!read("allowReplay", "allow_replay", mode === "standard"),
-    autoStart: !!read("autoStart", "auto_start", isCareLike),
-    autoReturnMs: read("autoReturnMs", "auto_return_ms", mode === "reminder" ? 2500 : 0),
+    autoStart: !!read("autoStart", "auto_start", autoStartDefault) && mode === "reminder",
+    autoReturnMs,
     questionCount: Number(read("questionCount", "question_count", defaultQuestionCount)) || 0,
     animalCount: Math.max(0, Number(read("animalCount", "animal_count", animalCountFallback)) || 0),
     animalCountSource: animalCountConfigured ? "config" : "default",
     targetAnimals,
     choiceCount,
     trashCount,
-    useDrag: !!read("useDrag", "use_drag", !isTapFirstMode),
+    useDrag: useDragDefault || !!read("useDrag", "use_drag", useDragDefault),
     effectSoundEnabled: !!read("effectSoundEnabled", "effect_sound_enabled", true),
-    backgroundMusicEnabled: !!read("backgroundMusicEnabled", "background_music_enabled", false),
+    backgroundMusicEnabled: !!read("backgroundMusicEnabled", "background_music_enabled", true),
     hintEnabled: !!read("hintEnabled", "hint_enabled", true),
     autoHintEnabled: !!read("autoHintEnabled", "auto_hint_enabled", true),
     softFeedback: !!read("softFeedback", "soft_feedback", isSimplifiedMode),
@@ -256,6 +268,7 @@ function normalizeRuntimeConfig(input) {
     orientationLock: orientationLock === false || orientationLock === "none" ? null : String(orientationLock || "landscape"),
     nativeDisplayRequest: !!readDisplay(["nativeDisplayRequest", "native_display_request"], true),
     cssLandscapeFallback: !!readDisplay(["cssLandscapeFallback", "css_landscape_fallback"], true),
+    returnUrl,
     configSnapshot: null,
   };
 }
@@ -263,6 +276,10 @@ function normalizeRuntimeConfig(input) {
 function runtimeSnapshot() {
   const { configSnapshot, ...r } = runtime;
   return { ...r };
+}
+
+function shouldUseStandardStartScreen(mode = runtime?.mode) {
+  return mode === "standard" || mode === "care" || mode === "ai_assisted";
 }
 
 function applyRuntimeConfig(next) {
@@ -282,7 +299,13 @@ function applyRuntimeConfig(next) {
   document.body.classList.toggle("force-landscape-css", !!runtime.cssLandscapeFallback);
   displayRequestEmitted = false;
   if (typeof updateDisplayState === "function") updateDisplayState();
-  document.querySelectorAll(".diff").forEach(x => x.classList.toggle("selected", x.dataset.diff === selectedDiff));
+  document.querySelectorAll(".diff").forEach(x => {
+    const selected = !runtime.showDifficultySelect && x.dataset.diff === selectedDiff;
+    x.classList.toggle("selected", selected);
+    x.classList.remove("is-starting");
+    x.removeAttribute("aria-disabled");
+    x.setAttribute("aria-pressed", String(selected));
+  });
   updateModeUi();
   if (typeof updateAudioControls === "function") updateAudioControls();
   else if (typeof updateVoiceBtn === "function") updateVoiceBtn();
@@ -293,6 +316,9 @@ function updateModeUi() {
   document.getElementById("start")?.classList.toggle("hide-settings", !runtime.showSettings);
   document.getElementById("play")?.classList.toggle("hide-progress", !runtime.showProgress);
   document.getElementById("play")?.classList.toggle("hide-help", !runtime.showHelp);
+  document.getElementById("playSettingsWrap")?.classList.toggle("hidden", !runtime.showSettings);
+  document.getElementById("playSettingsPanel")?.classList.remove("open");
+  document.getElementById("playSettingsBtn")?.setAttribute("aria-expanded", "false");
   document.getElementById("againBtn")?.classList.toggle("hidden", !runtime.allowReplay);
   const doneBtn = document.getElementById("doneBtn");
   if (doneBtn) {
@@ -302,6 +328,8 @@ function updateModeUi() {
   }
   const howAgainBtn = document.getElementById("howAgainBtn");
   if (howAgainBtn) howAgainBtn.classList.toggle("hidden", !runtime.showHowToPlay);
+  const startReturnBtn = document.getElementById("startReturnBtn");
+  if (startReturnBtn) startReturnBtn.classList.toggle("hidden", !shouldUseStandardStartScreen());
 }
 
 function maybeAutoStart() {
@@ -324,6 +352,9 @@ function readUrlConfig() {
     if (q.has(key)) config[key] = q.get(key) === "true";
   };
   ["question_count", "animal_count", "choice_count", "trash_count", "auto_return_ms"].forEach(readNumber);
+  ["return_url", "hub_url", "auto_return_url", "home_url", "exit_url"].forEach(key => {
+    if (q.has(key)) config[key] = q.get(key);
+  });
   [
     "show_timer",
     "show_score",

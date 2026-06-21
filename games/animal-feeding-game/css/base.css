@@ -4,6 +4,8 @@
   --stage-width: 1280px;
   --stage-height: 720px;
   --stage-scale: 1;
+  --stage-scale-x: 1;
+  --stage-scale-y: 1;
 
   /* Palette — v4 Premium */
   --sage:        #6A8F62;
@@ -92,14 +94,12 @@ body::before {
   inset: 0;
   z-index: 0;
   pointer-events: none;
-  background:
-    linear-gradient(180deg, rgba(255,255,255,.12), rgba(247,244,230,.24)),
-    url("../image/farm-background.png") center bottom / cover no-repeat;
+  background: var(--bg);
 }
 
 body.large { --t-base: clamp(17px, 17.28px, 24px); }
 body.force-landscape-css.portrait-viewport .app {
-  transform: translate(-50%, -50%) rotate(90deg) scale(var(--stage-scale));
+  transform: translate(-50%, -50%) rotate(90deg) scale(var(--stage-scale-x), var(--stage-scale-y));
   transform-origin: center;
 }
 body.force-landscape-css.portrait-viewport {
@@ -124,7 +124,7 @@ img { user-drag: none; -webkit-user-drag: none; pointer-events: none; }
   height: var(--stage-height);
   overflow: hidden;
   container: game-stage / size;
-  transform: translate(-50%, -50%) scale(var(--stage-scale));
+  transform: translate(-50%, -50%) scale(var(--stage-scale-x), var(--stage-scale-y));
   transform-origin: center;
   padding: 0;
 }
@@ -214,7 +214,7 @@ body.requires-landscape.portrait-viewport:not(.force-landscape-css) .rotate-guid
   transition: transform .1s;
 }
 .btn:active { transform: scale(.98); }
-.btn.lg { font-size: var(--t-xl); padding: var(--s-lg) var(--s-xl); min-height: 64px; }
+.btn.lg { font-size: var(--t-lg); padding: var(--s-lg) var(--s-xl); min-height: 64px; }
 .btn.warm { background: var(--amber); box-shadow: var(--sh-btn-warm); }
 .btn.ghost {
   background: var(--paper); color: var(--ink);

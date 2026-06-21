@@ -1,31 +1,76 @@
 /* ---------- Screen routing ---------- */
 const SCREENS = ["loading", "start", "precheck", "how", "ready", "countdown", "play", "finish", "done", "mood", "error"];
+let difficultyStartTimer = null;
+
 function show(id) {
   SCREENS.forEach(s => document.getElementById(s).classList.toggle("on", s === id));
+}
+
+function resetDifficultyStartState(clearSelection = false) {
+  if (difficultyStartTimer) {
+    clearTimeout(difficultyStartTimer);
+    difficultyStartTimer = null;
+  }
+  document.querySelectorAll(".diff").forEach(button => {
+    const selected = !clearSelection && button.dataset.diff === selectedDiff;
+    button.classList.toggle("selected", selected);
+    button.classList.remove("is-starting");
+    button.removeAttribute("aria-disabled");
+    button.setAttribute("aria-pressed", String(selected));
+  });
+}
+
+function setDifficultyButtonState(activeButton, isStarting = false) {
+  document.querySelectorAll(".diff").forEach(button => {
+    const selected = button === activeButton;
+    button.classList.toggle("selected", selected);
+    button.classList.toggle("is-starting", isStarting && selected);
+    button.setAttribute("aria-pressed", String(selected));
+    if (isStarting) button.setAttribute("aria-disabled", "true");
+    else button.removeAttribute("aria-disabled");
+  });
 }
 
 function setStartStage(stage) {
   const start = document.getElementById("start");
   if (!start) return;
-  const difficultyReady = stage === "difficulty" || !runtime.showDifficultySelect;
+  const difficultyReady = stage === "difficulty";
   start.classList.toggle("precheck-pending", !difficultyReady);
   start.classList.toggle("difficulty-ready", difficultyReady);
 }
 
+function getInitialStartStage() {
+  const standardStart = typeof shouldUseStandardStartScreen === "function" && shouldUseStandardStartScreen();
+  if (!runtime.showDifficultySelect && standardStart) return "intro";
+  return startDifficultyUnlocked ? "difficulty" : "intro";
+}
+
 function showStartIntro(resetCheck = false) {
+  resetDifficultyStartState(true);
   if (resetCheck) {
     preGameCheck = { mood: "normal", sleepHours: 8, skipped: false, completed: false };
     startDifficultyUnlocked = !runtime.showDifficultySelect;
     resetPrecheckUi();
   }
-  setStartStage(startDifficultyUnlocked ? "difficulty" : "intro");
+  const stage = getInitialStartStage();
+  setStartStage(stage);
   show("start");
+  if (stage === "difficulty") {
+    setTimeout(() => playVoiceGuide("selectDifficulty", "난이도를 선택해주세요."), 80);
+  }
 }
 
 function showDifficultySelection() {
+  resetDifficultyStartState(true);
   startDifficultyUnlocked = true;
   setStartStage("difficulty");
   show("start");
+  setTimeout(() => playVoiceGuide("selectDifficulty", "난이도를 선택해주세요."), 80);
+}
+
+function showPrecheck() {
+  show("precheck");
+  setTimeout(() => playVoiceGuide("precheckMoodSleep", "오늘의 기분과 수면시간을 알려주세요."), 80);
 }
 
 function preloadImage(src) {
@@ -99,32 +144,42 @@ loading();
 /* ===========================================================
    2. START — voice/font toggles + difficulty
    =========================================================== */
-const settingsBtn = document.getElementById("settingsBtn");
-const settingsPanel = document.getElementById("settingsPanel");
-settingsBtn?.addEventListener("click", e => {
-  e.stopPropagation();
-  const open = !settingsPanel?.classList.contains("open");
-  settingsPanel?.classList.toggle("open", open);
-  settingsBtn.setAttribute("aria-expanded", String(open));
+const settingsMenus = [
+  { button: document.getElementById("settingsBtn"), panel: document.getElementById("settingsPanel") },
+  { button: document.getElementById("playSettingsBtn"), panel: document.getElementById("playSettingsPanel") },
+].filter(menu => menu.button && menu.panel);
+function closeSettingsMenus() {
+  settingsMenus.forEach(({ button, panel }) => {
+    panel.classList.remove("open");
+    button.setAttribute("aria-expanded", "false");
+  });
+}
+settingsMenus.forEach(({ button, panel }) => {
+  button.addEventListener("click", e => {
+    e.stopPropagation();
+    const open = !panel.classList.contains("open");
+    closeSettingsMenus();
+    panel.classList.toggle("open", open);
+    button.setAttribute("aria-expanded", String(open));
+  });
+  panel.addEventListener("click", e => e.stopPropagation());
 });
-settingsPanel?.addEventListener("click", e => e.stopPropagation());
 document.addEventListener("click", () => {
-  settingsPanel?.classList.remove("open");
-  settingsBtn?.setAttribute("aria-expanded", "false");
+  closeSettingsMenus();
 });
-document.getElementById("sfxToggle")?.addEventListener("click", () => {
+["sfxToggle", "playSfxToggle"].forEach(id => document.getElementById(id)?.addEventListener("click", () => {
   sfxOn = !sfxOn;
   updateAudioControls();
-});
-document.getElementById("bgmToggle")?.addEventListener("click", () => {
+}));
+["bgmToggle", "playBgmToggle"].forEach(id => document.getElementById(id)?.addEventListener("click", () => {
   bgmOn = !bgmOn;
   updateAudioControls();
-});
-document.getElementById("voiceBtn").addEventListener("click", e => {
+}));
+["voiceBtn", "playVoiceBtn"].forEach(id => document.getElementById(id)?.addEventListener("click", e => {
   if (!voiceAvailable) return;
   voiceOn = !voiceOn;
   updateAudioControls();
-});
+}));
 updateAudioControls();
 document.getElementById("fontBtn").addEventListener("click", e => {
   document.body.classList.toggle("large");
@@ -136,15 +191,30 @@ document.getElementById("displayBtn")?.addEventListener("click", () => {
 });
 
 document.querySelectorAll(".diff").forEach(b => {
+  b.setAttribute("aria-pressed", String(b.classList.contains("selected")));
   b.addEventListener("click", () => {
+    if (difficultyStartTimer) return;
     selectedDiff = b.dataset.diff;
-    document.querySelectorAll(".diff").forEach(x => x.classList.toggle("selected", x === b));
+    setDifficultyButtonState(b, true);
+
+    if (!startDifficultyUnlocked && runtime.showDifficultySelect) {
+      resetDifficultyStartState();
+      showPrecheck();
+      return;
+    }
+
+    enterGameDisplay("difficulty_card");
+    pendingDiff = selectedDiff;
+    difficultyStartTimer = setTimeout(() => {
+      difficultyStartTimer = null;
+      beginIntroFlow(selectedDiff);
+    }, 180);
   });
 });
 
 document.getElementById("startBtn").addEventListener("click", () => {
   if (!startDifficultyUnlocked && runtime.showDifficultySelect) {
-    show("precheck");
+    showPrecheck();
     return;
   }
   enterGameDisplay("start_button");
@@ -152,6 +222,22 @@ document.getElementById("startBtn").addEventListener("click", () => {
 });
 
 document.getElementById("howAgainBtn")?.addEventListener("click", () => show("how"));
+document.getElementById("startReturnBtn")?.addEventListener("click", () => {
+  const payload = { status: "abandoned", reason: "start_return", source: "start_screen" };
+  if (typeof returnToHost === "function") {
+    returnToHost(payload, { navigateToHub: true });
+    return;
+  }
+  RN({
+    type:"RETURN_TO_APP",
+    payload:{
+      session_id: runtime.sessionId || null,
+      mode: runtime.mode,
+      ...payload,
+    },
+  });
+  if (typeof navigateToHub === "function") navigateToHub();
+});
 
 function beginStandardStartFlow() {
   pendingDiff = selectedDiff;
@@ -171,6 +257,7 @@ function beginIntroFlow(diff) {
   pendingDiff = diff || selectedDiff;
   if (typeof prepareSessionPreview === "function") prepareSessionPreview(pendingDiff);
   show("ready");
+  playVoiceGuide("gameStartsIn3Seconds", "3초 뒤 게임이 시작됩니다.");
   setTimeout(() => runCountdown(pendingDiff), 900);
 }
 
@@ -197,7 +284,7 @@ document.getElementById("howStartBtn").addEventListener("click", () => {
   enterGameDisplay("how_start_button");
   localStorage.setItem("af_seen_how", "1");
   if (!startDifficultyUnlocked && runtime.showDifficultySelect) {
-    show("precheck");
+    showPrecheck();
     return;
   }
   beginIntroFlow(pendingDiff || selectedDiff);

@@ -275,27 +275,30 @@
                                            "allow_replay":  true
                                        },
                           "reminder":  {
+                                           "difficulty":  "normal",
                                            "auto_start":  true,
                                            "show_difficulty_select":  false,
                                            "show_score":  false,
                                            "show_progress":  false,
                                            "show_help":  false,
                                            "show_finish_check":  false,
-                                           "auto_return_ms":  2500
+                                           "use_drag":  true,
+                                           "auto_return_ms":  3000
                                        },
                           "care":  {
                                        "difficulty":  "easy",
                                        "animal_count":  2,
                                        "trash_count":  0,
                                        "choice_count":  2,
-                                       "auto_start":  true,
+                                       "auto_start":  false,
                                        "show_difficulty_select":  false,
                                        "show_score":  false,
                                        "show_progress":  false,
                                        "show_help":  false,
                                        "show_how_to_play":  false,
                                        "show_finish_check":  false,
-                                       "use_drag":  false,
+                                       "use_drag":  true,
+                                       "auto_return_ms":  3000,
                                        "soft_feedback":  true
                                    },
                           "ai_assisted":  {
@@ -303,14 +306,15 @@
                                               "animal_count":  2,
                                               "trash_count":  0,
                                               "choice_count":  2,
-                                              "auto_start":  true,
+                                              "auto_start":  false,
                                               "show_difficulty_select":  false,
                                               "show_score":  false,
                                               "show_progress":  false,
                                               "show_help":  false,
                                               "show_how_to_play":  false,
                                               "show_finish_check":  false,
-                                              "use_drag":  false,
+                                              "use_drag":  true,
+                                              "auto_return_ms":  3000,
                                               "soft_feedback":  true
                                           }
                       },

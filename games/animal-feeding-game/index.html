@@ -31,7 +31,12 @@
     <div class="start-top">
       <div class="activity-label">시각 활동</div>
       <div class="start-controls">
-        <button class="chip icon-chip settings-gear" id="settingsBtn" type="button" aria-label="소리 설정" aria-expanded="false">⚙</button>
+        <button class="chip icon-chip settings-gear" id="settingsBtn" type="button" aria-label="소리 설정" aria-expanded="false">
+          <svg class="settings-icon" viewBox="0 0 24 24" aria-hidden="true">
+            <circle cx="12" cy="12" r="3"/>
+            <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.09a2 2 0 0 1 1 1.73v.52a2 2 0 0 1-1 1.73l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2Z"/>
+          </svg>
+        </button>
         <button class="chip" id="fontBtn">글씨 크게</button>
         <button class="chip" id="displayBtn">⛶ 전체화면</button>
         <div class="settings-panel" id="settingsPanel" aria-label="소리 설정">
@@ -53,7 +58,6 @@
 
     <div class="start-title-area">
       <img class="start-title-image" src="image/game-title.png" alt="도깨비야! 무슨 색을 먹니?"/>
-      <div class="start-sub">도깨비 친구들에게 먹이를 나눠 주실래요?</div>
     </div>
 
     <div class="hero">
@@ -72,6 +76,7 @@
             <div>
               <div class="diff-k">쉬움</div>
               <div class="diff-s">두 친구 챙기기</div>
+              <div class="diff-desc">4종류의 도깨비 중 무작위로 2종류가 등장합니다</div>
             </div>
             <div class="diff-icons">
               <img src="image/mystery_goblin.png" alt=""/>
@@ -86,7 +91,8 @@
           <div class="diff-row">
             <div>
               <div class="diff-k">보통</div>
-              <div class="diff-s">세 친구 돌보기</div>
+              <div class="diff-s">세 친구 챙기기</div>
+              <div class="diff-desc">4종류의 도깨비 중 무작위로 3종류가 등장합니다</div>
             </div>
             <div class="diff-icons">
               <img src="image/mystery_goblin.png" alt=""/>
@@ -98,17 +104,18 @@
           <div class="diff-meta">3마리 · 10번 나누기</div>
         </button>
 
-        <button class="diff selected" data-diff="hard">
+        <button class="diff" data-diff="hard">
           <div class="diff-row">
             <div>
               <div class="diff-k">어려움</div>
               <div class="diff-s">모두 챙기기</div>
+              <div class="diff-desc">4종류의 도깨비가 모두 등장합니다</div>
             </div>
             <div class="diff-icons">
-              <img src="image/mystery_goblin.png" alt=""/>
-              <img src="image/mystery_goblin.png" alt=""/>
-              <img src="image/mystery_goblin.png" alt=""/>
-              <img src="image/mystery_goblin.png" alt=""/>
+              <img src="image/red_goblin.png" alt=""/>
+              <img src="image/green_goblin.png" alt=""/>
+              <img src="image/white_goblin.png" alt=""/>
+              <img src="image/yellow_goblin.png" alt=""/>
             </div>
           </div>
           <div class="diff-divider"></div>
@@ -120,6 +127,7 @@
       <div class="start-actions">
         <button class="btn ghost" id="howAgainBtn">게임 방법</button>
         <button class="btn lg" id="startBtn">시작하기</button>
+        <button class="btn ghost" id="startReturnBtn">효담콜로 돌아가기</button>
       </div>
     </div>
   </section>
@@ -237,8 +245,30 @@
     <div class="topbar">
       <div class="dots" id="dots" aria-label="진행 상황"></div>
       <div class="topbar-actions">
-        <button class="chip hud-chip" id="helpBtn"><span aria-hidden="true">?</span> 도움</button>
-        <button class="chip hud-chip quiet" id="quitBtn"><span aria-hidden="true">×</span> 그만</button>
+        <div class="hud-settings-wrap" id="playSettingsWrap">
+          <button class="chip icon-chip settings-gear hud-settings-gear" id="playSettingsBtn" type="button" aria-label="소리 설정" aria-expanded="false">
+            <svg class="settings-icon" viewBox="0 0 24 24" aria-hidden="true">
+              <circle cx="12" cy="12" r="3"/>
+              <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.09a2 2 0 0 1 1 1.73v.52a2 2 0 0 1-1 1.73l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2Z"/>
+            </svg>
+          </button>
+          <div class="settings-panel play-settings-panel" id="playSettingsPanel" aria-label="소리 설정">
+            <button class="settings-toggle" id="playSfxToggle" type="button">
+              <span>효과음</span>
+              <strong>켜짐</strong>
+            </button>
+            <button class="settings-toggle" id="playBgmToggle" type="button">
+              <span>배경음악</span>
+              <strong>꺼짐</strong>
+            </button>
+            <button class="settings-toggle" id="playVoiceBtn" type="button">
+              <span>안내음성</span>
+              <strong>켜짐</strong>
+            </button>
+          </div>
+        </div>
+        <button class="chip hud-chip" id="helpBtn">힌트</button>
+        <button class="chip hud-chip quiet" id="quitBtn">일시정지</button>
       </div>
     </div>
     <div class="prompt-wrap">

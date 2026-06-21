@@ -6,31 +6,23 @@ function doneCopy(completed) {
     return {
       title: "여기까지도 충분해요",
       sub: "잠시 쉬어가도 괜찮아요",
-      note: runtime.autoReturnMs > 0 ? "잠시 후 효담콜로 돌아갑니다" : "",
+      note: runtime.autoReturnMs > 0 ? "잠시 후 허브로 돌아갑니다" : "",
     };
   }
   if (runtime.mode === "reminder") {
     return {
       title: "정리했어요",
       sub: "짧은 활동을 조용히 마쳤어요",
-      note: "잠시 후 효담콜로 돌아갑니다",
+      note: "잠시 후 허브로 돌아갑니다",
       badge: "정리 완료",
     };
   }
-  if (runtime.mode === "care") {
+  if (runtime.mode === "care" || runtime.mode === "ai_assisted") {
     return {
       title: "오늘도 잘 돌봤어요",
-      sub: "농장 친구들과 천천히 함께했어요",
-      note: runtime.autoReturnMs > 0 ? "잠시 후 효담콜로 돌아갑니다" : "",
+      sub: "도깨비 친구들과 천천히 함께 했어요",
+      note: runtime.autoReturnMs > 0 ? "잠시 후 허브로 돌아갑니다" : "",
       badge: "참여 완료",
-    };
-  }
-  if (runtime.mode === "ai_assisted") {
-    return {
-      title: "대화로 돌아갈 준비가 됐어요",
-      sub: "짧은 활동을 잘 마쳤어요",
-      note: "AI 대화로 돌아갑니다",
-      badge: "복귀 준비",
     };
   }
   return {
@@ -61,7 +53,27 @@ const DONE_REACTIONS = {
   panda: "고마워요",
 };
 
-function returnToHost(extra = {}) {
+let autoReturnTimer = null;
+
+function getHubReturnUrl() {
+  const configuredUrl = runtime.returnUrl;
+  if (typeof configuredUrl === "string" && configuredUrl.trim()) {
+    try { return new URL(configuredUrl, window.location.href).href; } catch(_) {}
+  }
+  try { return new URL("../../index.html", window.location.href).href; } catch(_) {}
+  return "";
+}
+
+function navigateToHub() {
+  const hubUrl = getHubReturnUrl();
+  if (!hubUrl) return;
+  try { window.location.assign(hubUrl); }
+  catch(_) {
+    try { window.location.href = hubUrl; } catch(__) {}
+  }
+}
+
+function returnToHost(extra = {}, options = {}) {
   RN({
     type:"RETURN_TO_APP",
     payload:{
@@ -71,6 +83,19 @@ function returnToHost(extra = {}) {
       ...extra,
     },
   });
+  if (options.navigateToHub) {
+    setTimeout(navigateToHub, options.navigationDelayMs ?? 80);
+  }
+}
+
+function scheduleAutoReturn(delayOverrideMs = runtime.autoReturnMs) {
+  if (autoReturnTimer) clearTimeout(autoReturnTimer);
+  const delayMs = Math.max(0, Number(delayOverrideMs) || 0);
+  if (!delayMs) return;
+  autoReturnTimer = setTimeout(() => {
+    autoReturnTimer = null;
+    returnToHost({ auto_return: true }, { navigateToHub: true });
+  }, delayMs);
 }
 
 function finishSession(completed, reason = "user_quit", error = null) {
@@ -85,6 +110,7 @@ function finishSession(completed, reason = "user_quit", error = null) {
   state._errorCode = error?.code || null;
   state._errorMessage = error?.message || null;
   try { speechSynthesis.cancel(); } catch(_) {}
+  if (typeof stopVoiceGuide === "function") stopVoiceGuide();
 
   // hero row of session animals
   const row = document.getElementById("doneHero");
@@ -134,9 +160,11 @@ function finishSession(completed, reason = "user_quit", error = null) {
   if (againBtn) againBtn.classList.toggle("hidden", !!completed);
   if (doneBtn) doneBtn.textContent = completed ? "확인" : "오늘은 여기까지";
   show("done");
-  speak(completed
-    ? (runtime.softFeedback ? "오늘은 여기까지 해도 충분해요. 잘 참여해주셨어요." : "오늘도 잘 해내셨어요")
-    : "여기까지도 충분해요");
+  if (completed) {
+    playVoiceGuide("sessionComplete", runtime.softFeedback ? "오늘은 여기까지 해도 충분해요. 잘 참여해주셨어요." : "오늘도 잘 해내셨어요");
+  } else {
+    playVoiceGuide("enoughForToday", "여기까지도 충분해요");
+  }
 
   const legacyPayload = {
     ...sessionPayload(),
@@ -163,7 +191,7 @@ function finishSession(completed, reason = "user_quit", error = null) {
   }
   RN(completionMessage);
   if (runtime.autoReturnMs > 0) {
-    setTimeout(() => returnToHost(), runtime.autoReturnMs);
+    scheduleAutoReturn();
   }
 }
 
@@ -345,12 +373,17 @@ document.getElementById("againBtn").addEventListener("click", () => {
   beginIntroFlow(state ? state.difficulty : selectedDiff);
 });
 document.getElementById("doneBtn").addEventListener("click", () => {
+  if (autoReturnTimer) {
+    clearTimeout(autoReturnTimer);
+    autoReturnTimer = null;
+  }
   if (pendingCompletionMessage && state?._status === "completed") {
     showFinishStep(1);
     show("finish");
+    setTimeout(() => playVoiceGuide("finishCurrentState", "지금의 상태를 알려주세요."), 80);
     return;
   }
-  returnToHost();
+  returnToHost({}, { navigateToHub: true });
   if (typeof showStartIntro === "function") showStartIntro(true);
   else show("start");
 });
@@ -455,7 +488,7 @@ function submitFinishCheck(skipped = false) {
       pendingCompletionMessage.payload.result_detail_json.finish_check_payload = payload;
     }
     RN(pendingCompletionMessage);
-    if (pendingAutoReturnMs > 0) setTimeout(() => returnToHost(), pendingAutoReturnMs);
+    if (pendingAutoReturnMs > 0) scheduleAutoReturn(pendingAutoReturnMs);
     pendingCompletionMessage = null;
     pendingAutoReturnMs = 0;
   }
@@ -465,9 +498,11 @@ function submitFinishCheck(skipped = false) {
 
 document.getElementById("finishNextBtn")?.addEventListener("click", () => {
   showFinishStep(2);
+  setTimeout(() => playVoiceGuide("finishExtraInfo", "추가로 이것만 더 알려주세요."), 80);
 });
 document.getElementById("finishPrevBtn")?.addEventListener("click", () => {
   showFinishStep(1);
+  setTimeout(() => playVoiceGuide("finishCurrentState", "지금의 상태를 알려주세요."), 80);
 });
 document.getElementById("finishConfirmBtn")?.addEventListener("click", () => {
   submitFinishCheck(false);
@@ -507,6 +542,7 @@ function pauseSession(reason = "unknown") {
   document.body.classList.add("paused");
   state._pauseCount++;
   try { speechSynthesis.cancel(); } catch(_) {}
+  if (typeof stopVoiceGuide === "function") stopVoiceGuide();
   RN({ type:"SESSION_PAUSE", payload:{ session_id: state.sessionId, reason } });
 }
 
@@ -530,6 +566,7 @@ function applyAudioCommand(payload) {
   if (typeof payload.backgroundMusic === "boolean") bgmOn = payload.backgroundMusic;
   if (!voiceOn) {
     try { speechSynthesis.cancel(); } catch(_) {}
+    if (typeof stopVoiceGuide === "function") stopVoiceGuide();
   }
   updateAudioControls();
   RN({ type:"AUDIO_APPLIED", payload:{ voice: voiceOn, effect_sound_enabled: sfxOn, background_music_enabled: bgmOn } });

@@ -52,6 +52,14 @@ body.mode-ai .chip {
   border-radius: var(--r-md);
 }
 
+body.mode-care .icon-chip,
+body.mode-ai .icon-chip {
+  width: clamp(64px, 72px, 80px);
+  min-width: clamp(64px, 72px, 80px);
+  min-height: clamp(60px, 66px, 74px);
+  padding: 0;
+}
+
 body.mode-care .prompt,
 body.mode-ai .prompt {
   max-width: min(780px, 1177.6px);
@@ -358,6 +366,14 @@ body.reduced * {
     min-height: 50px;
     padding: var(--s-sm) var(--s-lg);
     font-size: clamp(16px, 24.48px, 22px);
+  }
+
+  body.mode-care .icon-chip,
+  body.mode-ai .icon-chip {
+    width: clamp(58px, 64px, 70px);
+    min-width: clamp(58px, 64px, 70px);
+    min-height: clamp(54px, 60px, 66px);
+    padding: 0;
   }
 
   body.mode-care .prompt,

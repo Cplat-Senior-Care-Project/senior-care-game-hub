@@ -32,8 +32,10 @@ function nextQuestion() {
   document.getElementById("itemLabel").textContent = item.label;
   clearSpotStates();
   renderDots();
-  setPrompt(item.type === "trash" ? "어디에 정리할까요?" : "누구에게 줄까요?", item.type === "trash" ? "dark" : null);
-  speak(item.label);
+  const promptText = item.type === "trash" ? "어디에 정리할까요?" : "누구에게 줄까요?";
+  setPrompt(promptText, item.type === "trash" ? "dark" : null);
+  if (item.type === "trash") playVoiceGuide("whereToCleanup", promptText);
+  else playVoiceGuide("whoToFeed", promptText);
   RN({ type:"QUESTION_START", payload: toQuestionStartPayload(cur, item) });
 }
 
@@ -231,7 +233,7 @@ function resolve(targetId, spotEl, inputType = "touch") {
       ? (targetId === "bin" ? "좋아요. 정리했어요." : "좋아요. 잘 보셨어요.")
       : (targetId === "bin" ? "정리 구역에 잘 보냈어요" : `${animal.label}가 좋아해요`);
     setPrompt(msg, "good");
-    speak(msg);
+    playVoiceGuide("wellDone", msg);
     document.getElementById("itemWrap").classList.add("item-delivered");
     state.correctCount++;
     finishQuestion();
@@ -249,13 +251,13 @@ function resolve(targetId, spotEl, inputType = "touch") {
       if (h) h.classList.add("hint", "soft-guide");
       const msg = runtime.softFeedback ? "조금 헷갈릴 수 있어요. 제가 힌트를 드릴게요." : "이 친구가 좋아할 것 같아요";
       setPrompt(msg, "warn");
-      speak(msg);
+      playVoiceGuide("hint", msg);
     } else {
       const h = document.querySelector(`.spot[data-target="${cur.correctTargetId}"], .bin[data-target="${cur.correctTargetId}"]`);
       if (h) h.classList.add("soft-guide");
       const msg = runtime.softFeedback ? "괜찮아요. 천천히 다시 같이 볼까요?" : "다시 한 번 살펴볼까요?";
       setPrompt(msg, "warn");
-      speak(msg);
+      playVoiceGuide("tryAgain", msg);
     }
   }
 }
@@ -284,12 +286,17 @@ function quitCopy() {
   return ["농장 벤치에서 쉬어 갈까요?", "여기까지도 충분해요.<br/>잠시 쉬고 다시 와도 좋아요."];
 }
 document.getElementById("quitBtn").addEventListener("click", () => {
+  pauseSession("user_pause");
+  playVoiceGuide("takingABreak", "잠시 쉬겠습니다.");
   const [title, message] = quitCopy();
   document.getElementById("quitTitle").textContent = title;
   document.getElementById("quitMessage").innerHTML = message;
   quitModal.classList.add("on");
 });
-document.getElementById("contBtn").addEventListener("click", () => quitModal.classList.remove("on"));
+document.getElementById("contBtn").addEventListener("click", () => {
+  quitModal.classList.remove("on");
+  resumeSession("user_resume");
+});
 document.getElementById("stopBtn").addEventListener("click", () => {
   quitModal.classList.remove("on");
   finishSession(false, "user_quit");
@@ -306,7 +313,7 @@ document.getElementById("helpBtn").addEventListener("click", () => {
     ? `괜찮아요. 반짝이는 ${targetLabel}을 봐주세요.`
     : `반짝이는 ${targetLabel}에게 보내요`;
   setPrompt(msg, "warn");
-  speak(msg);
+  playVoiceGuide("hint", msg);
   RN({
     type: "HELP_USED",
     payload: {

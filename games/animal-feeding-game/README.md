@@ -130,7 +130,7 @@ http://127.0.0.1:8000/index.html?mode=ai_assisted
 ## 4. URL Config 예시
 
 ```text
-http://127.0.0.1:8000/index.html?mode=care&difficulty=easy&question_count=10&animal_count=2&trash_count=0&show_progress=false&show_help=false&use_drag=false&auto_start=true
+http://127.0.0.1:8000/index.html?mode=care&difficulty=easy&question_count=10&animal_count=2&trash_count=0&show_progress=false&show_help=false&use_drag=true&auto_start=false
 ```
 
 URL query로 전달 가능한 주요 값:
@@ -164,9 +164,9 @@ URL query로 전달 가능한 주요 값:
 | 모드 | 권장 실행 방식 | 난이도 처리 | 기본 선택지 |
 |---|---|---|---|
 | `standard` | 시작 화면에서 사용자가 난이도 선택 | `easy`, `normal`, `hard` 사용자 선택 | 난이도 기준 동물 + 정리 구역 |
-| `reminder` | 앱 config로 자동 시작 | 앱이 `difficulty` 전달. 없으면 `hard` 기본값 | 난이도 기준 동물 + 정리 구역 |
-| `care` | 앱 config로 자동 시작 | `easy` 권장 | 4마리 중 세션 시작 시 2마리 랜덤, 정리 구역 없음 |
-| `ai_assisted` | AI 대화 중 앱 config로 자동 시작 | `easy` 권장 | 4마리 중 세션 시작 시 2마리 랜덤, 정리 구역 없음 |
+| `reminder` | 앱 config로 자동 시작 | 앱이 `difficulty` 전달. 없으면 `normal` 기본값 | 난이도 기준 동물 + 정리 구역 |
+| `care` | 표준 모드와 같은 초기 화면에서 `시작하기` 버튼으로 시작 | `easy` 고정 | 4마리 중 세션 시작 시 2마리 랜덤, 정리 구역 없음 |
+| `ai_assisted` | 표준 모드와 같은 초기 화면에서 `시작하기` 버튼으로 시작 | `easy` 고정 | 4마리 중 세션 시작 시 2마리 랜덤, 정리 구역 없음 |
 
 동물 랜덤 규칙:
 
@@ -198,9 +198,9 @@ URL query로 전달 가능한 주요 값:
       "animal_count": 2,
       "target_animals": ["tiger", "panda"],
       "trash_count": 0,
-      "use_drag": false,
-      "auto_start": true,
-      "auto_return_ms": 2500,
+      "use_drag": true,
+      "auto_start": false,
+      "auto_return_ms": 3000,
       "soft_feedback": true,
       "voice_guide_enabled": true,
       "result_log_level": "detailed"
@@ -346,7 +346,7 @@ QUESTION_START → QUESTION_RESULT ... → CONDITION_CHECK → FINISH_CHECK → 
     ],
     "correct_answer": "monkey",
     "correct_answer_label": "초록 도깨비",
-    "input_modes_enabled": ["touch", "external"]
+    "input_modes_enabled": ["touch", "drag", "external"]
   }
 }
 ```
@@ -388,7 +388,8 @@ QUESTION_START → QUESTION_RESULT ... → CONDITION_CHECK → FINISH_CHECK → 
 |---|---|
 | 로딩 | 로딩률 100% 후 시작 화면 진입 |
 | 표준 모드 | 난이도 선택 후 진행방법, 카운트다운, 플레이 진입 |
-| 알림/케어/AI | config에 따라 자동 시작 가능 |
+| 알림 | config에 따라 자동 시작 가능 |
+| 케어/AI | 표준 모드와 같은 초기 화면에서 시작 버튼으로 진입. 난이도 선택/컨디션 체크/게임 방법 보기는 생략 |
 | 모바일 가로 | 896 x 414 기준 가로/세로 스크롤 없음 |
 | 이미지 | 배경, 동물 우리, 먹이판, 정리 구역, 동물/먹이 이미지 표시 |
 | 앱 연동 | `READY`, `SESSION_START`, `QUESTION_RESULT`, `SESSION_COMPLETE` 수신 |
@@ -398,9 +399,9 @@ QUESTION_START → QUESTION_RESULT ... → CONDITION_CHECK → FINISH_CHECK → 
 | 모드 | 다시 하기 | 복귀 처리 |
 |---|---|---|
 | 표준 | 기본 노출 | `효담콜로 돌아가기` 버튼으로 `RETURN_TO_APP` 전송 |
-| 알림 | 기본 숨김 | 완료 화면 2.5초 표시 후 자동 `RETURN_TO_APP` 전송 |
-| 케어 | 기본 숨김 | `효담콜로 돌아가기` 버튼 또는 앱 config 흐름으로 복귀 |
-| AI 연동 | 기본 숨김 | `AI 대화로 돌아가기` 버튼 또는 AI/app 흐름으로 복귀 |
+| 알림 | 기본 숨김 | 완료 화면 3초 표시 후 자동 `RETURN_TO_APP` 전송 및 허브 이동 |
+| 케어 | 기본 숨김 | 완료 화면 3초 표시 후 자동 `RETURN_TO_APP` 전송 및 허브 이동 |
+| AI 연동 | 기본 숨김 | 완료 화면 3초 표시 후 자동 `RETURN_TO_APP` 전송 및 허브 이동 |
 
 ## 9. 주의 사항
 
