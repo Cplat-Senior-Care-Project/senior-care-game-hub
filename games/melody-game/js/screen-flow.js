@@ -7,6 +7,7 @@
       this.game = options.game;
       this.app = document.getElementById("app");
       this.screens = Array.from(document.querySelectorAll(".screen"));
+      this.homeScreen = document.getElementById("homeScreen");
       this.loadingFill = document.getElementById("loadingFill");
       this.loadingPercent = document.getElementById("loadingPercent");
       this.backgroundSoundToggle = document.getElementById("background-sound-toggle");
@@ -15,12 +16,22 @@
       this.soundLabel = document.getElementById("sound-label");
       this.voiceGuideToggle = document.getElementById("voice-guide-toggle");
       this.voiceGuideLabel = document.getElementById("voice-guide-label");
+      this.pauseBackgroundSoundButton = document.getElementById("pause-background-sound-button");
+      this.pauseSoundButton = document.getElementById("pause-sound-button");
+      this.pauseVoiceGuideButton = document.getElementById("pause-voice-guide-button");
       this.difficultyCards = Array.from(document.querySelectorAll("[data-difficulty]"));
       this.startGameButton = document.getElementById("startGameButton");
       this.difficultyStartButton = document.getElementById("difficultyStartButton");
       this.exitGameButton = document.getElementById("exitGameButton");
       this.retryButton = document.getElementById("retryButton");
       this.homeButton = document.getElementById("homeButton");
+      this.hostReturnButton = document.getElementById("hostReturnButton");
+      this.howtoScreen = document.getElementById("howtoScreen");
+      this.howtoPageOne = document.querySelector(".howto-page-one");
+      this.howtoPageTwo = document.querySelector(".howto-page-two");
+      this.howtoNextButton = document.getElementById("howtoNextButton");
+      this.howtoPrevButton = null;
+      this.howtoReturnScreen = "home";
       this.playScreen = document.getElementById("playScreen");
       this.playTopbar = this.playScreen ? this.playScreen.querySelector(".play-topbar") : null;
       this.progressWrap = this.playScreen ? this.playScreen.querySelector(".progress-wrap") : null;
@@ -31,6 +42,7 @@
     }
 
     init() {
+      this.prepareHowtoPages();
       this.bindEvents();
       this.loadSettings();
       this.selectDifficulty(this.selectedDifficulty, false);
@@ -48,7 +60,7 @@
         button.addEventListener("pointerup", () => {
           const target = button.dataset.go;
           this.audio.playClick();
-          this.showScreen(target);
+          this.handleScreenNavigation(target);
         });
       });
 
@@ -61,16 +73,30 @@
 
       this.startGameButton && this.startGameButton.addEventListener("pointerup", () => {
         this.audio.playClick();
+        this.requestDisplayFromGesture("home_start");
         this.showScreen("difficulty");
       });
+      this.homeScreen && this.homeScreen.addEventListener("pointerup", (event) => this.handleHomeBackgroundPress(event));
       this.difficultyStartButton && this.difficultyStartButton.addEventListener("pointerup", () => this.beginGame());
       this.exitGameButton && this.exitGameButton.addEventListener("pointerup", () => this.handleExitAction());
       this.retryButton && this.retryButton.addEventListener("pointerup", () => this.beginGame());
       this.homeButton && this.homeButton.addEventListener("pointerup", () => this.handleHomeAction());
+      this.hostReturnButton && this.hostReturnButton.addEventListener("pointerup", () => this.handleHostReturnAction());
+      this.howtoNextButton && this.howtoNextButton.addEventListener("pointerup", () => {
+        this.audio.playClick();
+        this.showHowtoPage(2);
+      });
+      this.howtoPrevButton && this.howtoPrevButton.addEventListener("pointerup", () => {
+        this.audio.playClick();
+        this.showHowtoPage(1);
+      });
 
       this.backgroundSoundToggle && this.backgroundSoundToggle.addEventListener("change", () => this.applySettings());
       this.soundToggle && this.soundToggle.addEventListener("change", () => this.applySettings());
       this.voiceGuideToggle && this.voiceGuideToggle.addEventListener("change", () => this.applySettings());
+      this.pauseBackgroundSoundButton && this.pauseBackgroundSoundButton.addEventListener("pointerup", () => this.togglePauseSoundSetting(this.backgroundSoundToggle));
+      this.pauseSoundButton && this.pauseSoundButton.addEventListener("pointerup", () => this.togglePauseSoundSetting(this.soundToggle));
+      this.pauseVoiceGuideButton && this.pauseVoiceGuideButton.addEventListener("pointerup", () => this.togglePauseSoundSetting(this.voiceGuideToggle));
       window.addEventListener("resize", () => this.updateScaleVariable());
       window.addEventListener("orientationchange", () => this.updateScaleVariable());
       if (window.visualViewport) {
@@ -97,12 +123,131 @@
       return true;
     }
 
+    requestDisplayFromGesture(source) {
+      if (window.DisplayBridge) {
+        window.DisplayBridge.requestDisplay(source || "user_gesture");
+      }
+    }
+
+    handleHomeBackgroundPress(event) {
+      if (
+        event.target
+        && typeof event.target.closest === "function"
+        && event.target.closest("button, a, input, select, textarea, label")
+      ) {
+        return;
+      }
+
+      this.requestDisplayFromGesture("home_background");
+    }
+
     showScreen(name) {
+      document.body.classList.remove("is-howto-over-play");
+      if (name === "howto") {
+        this.showHowtoPage(1);
+      }
       document.body.dataset.activeScreen = name;
       this.screens.forEach((screen) => {
         screen.classList.toggle("is-active", screen.dataset.screen === name);
       });
       this.applyPlayStatusLayout();
+    }
+
+    handleScreenNavigation(target) {
+      if (target === "howto") {
+        if (this.isScreenActive("play")) {
+          this.howtoReturnScreen = "play";
+          this.showHowtoOverPlay();
+          return;
+        }
+
+        this.howtoReturnScreen = "home";
+        this.showScreen("howto");
+        return;
+      }
+
+      if (target === "home" && this.isScreenActive("howto") && this.howtoReturnScreen === "play") {
+        this.closeHowtoOverPlay();
+        this.howtoReturnScreen = "home";
+        return;
+      }
+
+      this.howtoReturnScreen = "home";
+      this.showScreen(target);
+    }
+
+    isScreenActive(name) {
+      return this.screens.some((screen) => screen.dataset.screen === name && screen.classList.contains("is-active"));
+    }
+
+    showHowtoOverPlay() {
+      this.showHowtoPage(1);
+      document.body.dataset.activeScreen = "play";
+      document.body.classList.add("is-howto-over-play");
+      this.screens.forEach((screen) => {
+        const screenName = screen.dataset.screen;
+        screen.classList.toggle("is-active", screenName === "play" || screenName === "howto");
+      });
+      this.applyPlayStatusLayout();
+    }
+
+    closeHowtoOverPlay() {
+      document.body.dataset.activeScreen = "play";
+      document.body.classList.remove("is-howto-over-play");
+      if (this.howtoScreen) {
+        this.howtoScreen.classList.remove("is-active");
+      }
+      if (this.playScreen) {
+        this.playScreen.classList.add("is-active");
+      }
+      this.applyPlayStatusLayout();
+    }
+
+    prepareHowtoPages() {
+      if (!this.howtoPageOne || !this.howtoPageTwo || this.howtoPageTwo.children.length) {
+        return;
+      }
+
+      const clone = this.howtoPageOne.cloneNode(true);
+      const actions = clone.querySelector(".howto-actions");
+      const previewShape = clone.querySelector(".howto-preview-symbol .symbol-shape");
+      const attentionText = clone.querySelector(".howto-attention-text");
+      const tapHand = clone.querySelector(".howto-tap-hand");
+
+      if (tapHand) {
+        tapHand.remove();
+      }
+
+      if (attentionText) {
+        attentionText.textContent = "X가 나오면 누르지 말고 기다리세요!";
+      }
+
+      if (previewShape) {
+        previewShape.className = "symbol-shape shape-x";
+      }
+
+      if (actions) {
+        actions.className = "howto-actions howto-actions-final";
+        actions.innerHTML = [
+          '<button id="howtoPrevButton" class="secondary-button howto-action-button howto-close-button" type="button">이전</button>',
+          '<button class="secondary-button howto-action-button howto-close-button howto-green-button" type="button" data-go="home">닫기</button>'
+        ].join("");
+      }
+
+      this.howtoPageTwo.replaceChildren(...Array.from(clone.childNodes));
+      this.howtoPrevButton = document.getElementById("howtoPrevButton");
+    }
+
+    showHowtoPage(pageNumber) {
+      const showSecondPage = Number(pageNumber) === 2;
+      if (this.howtoPageOne) {
+        this.howtoPageOne.classList.toggle("is-active", !showSecondPage);
+        this.howtoPageOne.setAttribute("aria-hidden", String(showSecondPage));
+      }
+      if (this.howtoPageTwo) {
+        this.howtoPageTwo.classList.toggle("is-active", showSecondPage);
+        this.howtoPageTwo.setAttribute("aria-hidden", String(!showSecondPage));
+      }
     }
 
     startLoading() {
@@ -171,12 +316,12 @@
     }
 
     handleHomeAction() {
-      const runtime = window.MelodyRuntime.runtime;
       this.audio.playClick();
-      if (runtime.mode === "standard") {
-        this.showScreen("home");
-        return;
-      }
+      this.showScreen("home");
+    }
+
+    handleHostReturnAction() {
+      this.audio.playClick();
       if (window.ResultBridge) {
         window.ResultBridge.returnToHost("user_complete");
       }
@@ -224,6 +369,33 @@
       if (this.backgroundSoundToggle) this.storageSet("melodyDrumBackgroundSound", String(this.backgroundSoundToggle.checked));
       if (this.soundToggle) this.storageSet("melodyDrumEffectSound", String(this.soundToggle.checked));
       if (this.voiceGuideToggle) this.storageSet("melodyDrumVoiceGuide", String(this.voiceGuideToggle.checked));
+      this.updatePauseSoundButton(this.pauseBackgroundSoundButton, this.backgroundSoundToggle && this.backgroundSoundToggle.checked);
+      this.updatePauseSoundButton(this.pauseSoundButton, this.soundToggle && this.soundToggle.checked);
+      this.updatePauseSoundButton(this.pauseVoiceGuideButton, this.voiceGuideToggle && this.voiceGuideToggle.checked);
+    }
+
+    togglePauseSoundSetting(toggle) {
+      if (!toggle) {
+        return;
+      }
+
+      toggle.checked = !toggle.checked;
+      this.audio.playClick();
+      this.applySettings();
+    }
+
+    updatePauseSoundButton(button, enabled) {
+      if (!button) {
+        return;
+      }
+
+      const isEnabled = Boolean(enabled);
+      const toggleText = button.querySelector(".pause-toggle-visual span");
+      button.classList.toggle("is-off", !isEnabled);
+      button.setAttribute("aria-pressed", String(isEnabled));
+      if (toggleText) {
+        toggleText.textContent = isEnabled ? "ON" : "OFF";
+      }
     }
 
     updateScaleVariable() {
@@ -294,7 +466,10 @@
       this.selectDifficulty(runtime.difficulty || this.selectedDifficulty, false);
       if (this.retryButton) this.retryButton.classList.toggle("is-hidden", !runtime.allowReplay);
       if (this.homeButton) {
-        this.homeButton.textContent = runtime.mode === "ai_assisted" ? "AI \ub300\ud654\ub85c \ub3cc\uc544\uac00\uae30" : "\ucc98\uc74c\uc73c\ub85c";
+        this.homeButton.textContent = "\ud648\uc73c\ub85c \ub3cc\uc544\uac00\uae30";
+      }
+      if (this.hostReturnButton) {
+        this.hostReturnButton.textContent = "\ud6a8\ub2f4\ucf5c\ub85c \ub3cc\uc544\uac00\uae30";
       }
       if (this.startGameButton) {
         const startButtonLabel = this.startGameButton.querySelector("span");

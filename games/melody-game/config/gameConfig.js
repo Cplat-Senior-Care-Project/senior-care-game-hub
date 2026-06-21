@@ -1,32 +1,32 @@
-(function () {
+﻿(function () {
   "use strict";
 
   window.GAME_CONFIG = {
     easy: {
-      label: "쉬움",
+      label: "\uc26c\uc6c0",
       padCount: 2,
       symbolCount: 2,
       previewEnabled: true,
       xPatternEnabled: false,
-      sessionTime: 60,
+      sessionTime: 120,
       targetNoteCount: 8
     },
     normal: {
-      label: "보통",
+      label: "\ubcf4\ud1b5",
       padCount: 3,
       symbolCount: 3,
       previewEnabled: true,
       xPatternEnabled: false,
-      sessionTime: 60,
+      sessionTime: 120,
       targetNoteCount: 12
     },
     hard: {
-      label: "어려움",
+      label: "\uc5b4\ub824\uc6c0",
       padCount: 4,
       symbolCount: 4,
-      previewEnabled: false,
-      xPatternEnabled: false,
-      sessionTime: 60,
+      previewEnabled: true,
+      xPatternEnabled: true,
+      sessionTime: 120,
       targetNoteCount: 16
     }
   };
@@ -34,26 +34,26 @@
   window.SYMBOL_CONFIG = [
     {
       id: "triangle",
-      label: "보라색 세모",
-      shortLabel: "세모",
+      label: "\ube68\uac04\uc0c9 \uc138\ubaa8",
+      shortLabel: "\uc138\ubaa8",
       shapeClass: "shape-triangle"
     },
     {
       id: "square",
-      label: "초록색 네모",
-      shortLabel: "네모",
+      label: "\ud30c\ub780\uc0c9 \ub124\ubaa8",
+      shortLabel: "\ub124\ubaa8",
       shapeClass: "shape-square"
     },
     {
       id: "circle",
-      label: "파란색 원",
-      shortLabel: "원",
+      label: "\ucd08\ub85d\uc0c9 \uc6d0",
+      shortLabel: "\uc6d0",
       shapeClass: "shape-circle"
     },
     {
       id: "star",
-      label: "노란색 별",
-      shortLabel: "별",
+      label: "\ub178\ub780\uc0c9 \ubcc4",
+      shortLabel: "\ubcc4",
       shapeClass: "shape-star"
     }
   ];

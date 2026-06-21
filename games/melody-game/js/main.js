@@ -6,8 +6,9 @@
 
   const game = new window.MelodyDrumGame({
     audio,
-    onFinish(result) {
-      if (window.ResultBridge) {
+    onFinish(result, options) {
+      const shouldSubmit = !options || options.submit !== false;
+      if (shouldSubmit && window.ResultBridge) {
         window.ResultBridge.handleSessionComplete(result);
       }
       window.ResultManager.renderResult(result);

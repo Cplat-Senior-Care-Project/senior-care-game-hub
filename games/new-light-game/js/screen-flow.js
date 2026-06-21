@@ -12,6 +12,11 @@
   const CONDITION_SLEEP_DRAG_STEP_PX = 42;
   const START_READY_MESSAGE_TIME = 2000;
   const START_COUNTDOWN_TIME = 3000;
+  const EXTERNAL_INPUT_API_NAME = "LightMemoryGameExternalInput";
+  const EXTERNAL_ANSWER_MESSAGE_TYPE = "LIGHT_MEMORY_EXTERNAL_ANSWER";
+  const EXTERNAL_ANSWER_MESSAGE_TYPE_ALIAS = "EXTERNAL_ANSWER";
+  const EXTERNAL_ANSWER_RESULT_MESSAGE_TYPE = "LIGHT_MEMORY_EXTERNAL_ANSWER_RESULT";
+  const EXTERNAL_ANSWER_RESULT_MESSAGE_TYPE_ALIAS = "EXTERNAL_ANSWER_RESULT";
   const audio = new GameAudio();
   const runtimeSessionId = runtime.raw.session_id || runtime.raw.sessionId || ResultBuilder.buildSessionId();
   const sessionMeta = LightGameSessionBoard.buildSessionMeta(runtime, runtimeSessionId);
@@ -472,8 +477,8 @@
     toggleOptional(".optional-timer", runtime.modeConfig.showTimer);
     toggleOptional(".optional-replay", runtime.modeConfig.showReplay);
     document.getElementById("hintButton").hidden = !runtime.modeConfig.hintEnabled;
-    document.getElementById("conditionSkip").hidden = !runtime.modeConfig.allowConditionSkip;
-    document.getElementById("finishSkip").hidden = !runtime.modeConfig.allowFinishSkip;
+    document.getElementById("conditionSkip").hidden = !runtime.modeConfig.showConditionCheck;
+    document.getElementById("finishSkip").hidden = !runtime.modeConfig.showFinishCheck;
   }
 
   function toggleOptional(selector, visible) {
@@ -675,7 +680,8 @@
       status: "started",
       mode: runtime.mode,
       app_mode: runtime.mode,
-      difficulty: currentDifficulty
+      difficulty: currentDifficulty,
+      external_input: getExternalInputStatus()
     }, "GAME_STARTED");
     game.start({
       difficultyKey: currentDifficulty,
@@ -788,12 +794,6 @@
       if (pendingResult.condition) {
         pendingResult.condition.after = finishData;
       }
-      if (pendingResult.resultDetail) {
-        pendingResult.resultDetail.finish_check_skipped = false;
-      }
-      if (pendingResult.result_detail_json) {
-        pendingResult.result_detail_json.finish_check_skipped = false;
-      }
       window.__LAST_GAME_RESULT__ = pendingResult;
     }
     showResult(pendingResult);
@@ -805,12 +805,6 @@
       pendingResult.finish_check_skipped = true;
       if (pendingResult.condition) {
         pendingResult.condition.after = null;
-      }
-      if (pendingResult.resultDetail) {
-        pendingResult.resultDetail.finish_check_skipped = true;
-      }
-      if (pendingResult.result_detail_json) {
-        pendingResult.result_detail_json.finish_check_skipped = true;
       }
       window.__LAST_GAME_RESULT__ = pendingResult;
     }
@@ -1083,15 +1077,53 @@
     return true;
   }
 
-  function sendBridgeMessage(result, fallbackType) {
-    const isResultPayload = result && (result.schemaVersion || result.session_id || result.question_logs || result.result_detail_json);
-    const payload = { type: fallbackType, payload: result || null };
+  function getBridgeMethodNames(type) {
+    const methods = {
+      GAME_READY: ["sendGameReady", "sendReady"],
+      GAME_STARTED: ["sendGameStarted", "sendStarted"],
+      SESSION_COMPLETE: ["sendGameCompleteResult", "sendComplete"],
+      SESSION_ABORT: ["sendGameAbandonedResult", "sendAbort"],
+      GAME_EXIT_REQUESTED: ["sendGameExit", "sendExit", "exitGame"],
+      GAME_ERROR: ["sendGameErrorResult", "sendError"]
+    };
+
+    return methods[type] || [];
+  }
+
+  function callAppBridge(type, payload) {
+    const bridge = window.LightMemoryGameAppBridge;
+    if (!bridge || typeof bridge !== "object") {
+      return false;
+    }
+
+    const methodNames = getBridgeMethodNames(type);
+    for (const methodName of methodNames) {
+      if (typeof bridge[methodName] === "function") {
+        bridge[methodName](payload);
+        return true;
+      }
+    }
+
+    if (typeof bridge.sendMessage === "function") {
+      bridge.sendMessage(type, payload);
+      return true;
+    }
+
+    if (typeof bridge.postToNative === "function") {
+      bridge.postToNative(type, payload);
+      return true;
+    }
+
+    return false;
+  }
+
+  function sendBridgeMessageDirectly(message, result, isResultPayload) {
     const targets = [
       {
         name: "ReactNativeWebView",
         post: () => {
           if (window.ReactNativeWebView && typeof window.ReactNativeWebView.postMessage === "function") {
-            window.ReactNativeWebView.postMessage(JSON.stringify(payload));
+            window.ReactNativeWebView.postMessage(JSON.stringify(message));
           }
         }
       },
@@ -1099,7 +1131,7 @@
         name: "parent",
         post: () => {
           if (window.parent && window.parent !== window && typeof window.parent.postMessage === "function") {
-            window.parent.postMessage(payload, "*");
+            window.parent.postMessage(message, "*");
           }
         }
       },
@@ -1107,7 +1139,7 @@
         name: "opener",
         post: () => {
           if (window.opener && !window.opener.closed && typeof window.opener.postMessage === "function") {
-            window.opener.postMessage(payload, "*");
+            window.opener.postMessage(message, "*");
           }
         }
       }
@@ -1123,6 +1155,25 @@
         console.error("completeSendFailed:" + target.name, error);
       }
     });
+  }
+
+  function sendBridgeMessage(result, fallbackType) {
+    const isResultPayload = result && (result.schemaVersion || result.session_id || result.question_logs || result.result_detail_json);
+    const payload = { type: fallbackType, payload: result || null };
+    let bridgeSent = false;
+
+    try {
+      bridgeSent = callAppBridge(fallbackType, result || null);
+    } catch (error) {
+      if (isResultPayload && result) {
+        result.complete_send_failed = true;
+      }
+      console.error("completeSendFailed:LightMemoryGameAppBridge", error);
+    }
+
+    if (!bridgeSent) {
+      sendBridgeMessageDirectly(payload, result, isResultPayload);
+    }
 
     if (window.console) {
       console.log("[light game bridge] " + fallbackType, result || null);
@@ -1258,6 +1309,99 @@
       return "GAME_ERROR";
     }
     return "SESSION_ABORT";
+  }
+
+  function isExternalAnswerMessageType(type) {
+    return type === EXTERNAL_ANSWER_MESSAGE_TYPE || type === EXTERNAL_ANSWER_MESSAGE_TYPE_ALIAS;
+  }
+
+  function getExternalAnswerResultMessageType(type) {
+    return type === EXTERNAL_ANSWER_MESSAGE_TYPE_ALIAS
+      ? EXTERNAL_ANSWER_RESULT_MESSAGE_TYPE_ALIAS
+      : EXTERNAL_ANSWER_RESULT_MESSAGE_TYPE;
+  }
+
+  function getExternalInputStatus() {
+    return {
+      enabled: Boolean(runtime.modeConfig.externalInputEnabled),
+      mode: runtime.mode,
+      phase: game.phase,
+      can_accept: Boolean(runtime.modeConfig.externalInputEnabled && game.phase === GAME_PHASE.SELECTING)
+    };
+  }
+
+  function submitExternalAnswer(payload) {
+    const accepted = game.handleExternalAnswer(payload || {});
+    const status = getExternalInputStatus();
+    let reason = null;
+
+    if (!accepted) {
+      if (!runtime.modeConfig.externalInputEnabled) {
+        reason = "external_input_disabled";
+      } else if (game.phase !== GAME_PHASE.SELECTING) {
+        reason = "not_selecting_phase";
+      } else {
+        reason = "invalid_answer";
+      }
+    }
+
+    return {
+      ok: Boolean(accepted),
+      accepted: Boolean(accepted),
+      reason,
+      status
+    };
+  }
+
+  function syncExternalInputInterface() {
+    const api = Object.freeze({
+      submitAnswer: submitExternalAnswer,
+      getStatus: getExternalInputStatus
+    });
+
+    window[EXTERNAL_INPUT_API_NAME] = api;
+    window.LightGameExternalInput = api;
+  }
+
+  function parseBridgeEventData(data) {
+    if (typeof data === "string") {
+      try {
+        return JSON.parse(data);
+      } catch (error) {
+        return null;
+      }
+    }
+
+    return data && typeof data === "object" ? data : null;
+  }
+
+  function respondToExternalAnswer(event, requestType, requestPayload, result) {
+    const response = {
+      type: getExternalAnswerResultMessageType(requestType),
+      requestId: requestPayload && (requestPayload.requestId || requestPayload.request_id || null),
+      payload: result
+    };
+
+    if (event.source && typeof event.source.postMessage === "function") {
+      try {
+        event.source.postMessage(response, "*");
+      } catch (error) {
+        if (window.console && typeof window.console.warn === "function") {
+          window.console.warn("[light external input] failed to respond", error);
+        }
+      }
+    }
+
+    const bridge = window.LightMemoryGameAppBridge;
+    if (bridge && typeof bridge.sendExternalAnswerResult === "function") {
+      try {
+        bridge.sendExternalAnswerResult(result, response.type);
+      } catch (error) {
+        if (window.console && typeof window.console.warn === "function") {
+          window.console.warn("[light external input] failed to notify bridge", error);
+        }
+      }
+    }
   }
 
   function updateTutorial() {
@@ -1596,11 +1740,14 @@
     window.visualViewport.addEventListener("resize", updateStageScale);
   }
   window.addEventListener("message", (event) => {
-    const data = event.data || {};
-
-    if (data.type === "EXTERNAL_ANSWER") {
-      game.handleExternalAnswer(data.payload || data);
+    const data = parseBridgeEventData(event.data);
+    if (!data || !isExternalAnswerMessageType(data.type)) {
+      return;
     }
+
+    const payload = data.payload || data;
+    const result = submitExternalAnswer(payload);
+    respondToExternalAnswer(event, data.type, payload, result);
   });
   window.addEventListener("pagehide", () => handlePageBackgroundChange(true));
   window.addEventListener("beforeunload", () => handlePageBackgroundChange(true));
@@ -1618,6 +1765,7 @@
   selectDifficulty(currentDifficulty);
   renderConditionSleepDial();
   updateTutorial();
+  syncExternalInputInterface();
   sendBridgeMessage({
     schemaVersion: "1.0.0",
     sentAt: new Date().toISOString(),
@@ -1632,7 +1780,8 @@
     status: "ready",
     mode: runtime.mode,
     app_mode: runtime.mode,
-    difficulty: currentDifficulty
+    difficulty: currentDifficulty,
+    external_input: getExternalInputStatus()
   }, "GAME_READY");
   waitForLandscapeOrientation().then(() => loadDeferredGameAssets()).then(() => {
     registerPlayBulbAssets();

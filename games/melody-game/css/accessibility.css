@@ -1,0 +1,148 @@
+/* Font smoothing and weight rules matched to fruit-count-memory-game. */
+.app,
+.app * {
+  font-synthesis: none;
+}
+
+.orientation-notice p,
+.app h1,
+.app h2,
+.app h3,
+.app p,
+.app li,
+.app button,
+.app .brand-badge,
+.app .lead,
+.app .progress-label,
+.app .progress-time,
+.app .instruction-text,
+.app .difficulty-name,
+.app .difficulty-desc,
+.app .difficulty-title,
+.app .howto-attention-text,
+.app .howto-play-preview p,
+.app .howto-list,
+.app .settings-panel-title,
+.app .setting-row strong,
+.app .setting-row small,
+.app .pause-title,
+.app .pause-subtitle,
+.app .pause-sound-button,
+.app .result-message,
+.app .feedback-title,
+.app .feedback-message {
+  font-weight: 700 !important;
+  -webkit-text-stroke: 0 !important;
+  paint-order: normal !important;
+}
+
+@media (hover: none) and (pointer: coarse) {
+  :root {
+    --text-stroke: 0px;
+  }
+
+  html,
+  body,
+  .app,
+  .screen,
+  .game-background,
+  img {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+
+  .app,
+  .app * {
+    font-synthesis: none;
+  }
+
+  .orientation-notice p,
+  .app h1,
+  .app h2,
+  .app h3,
+  .app p,
+  .app li,
+  .app button,
+  .app .brand-badge,
+  .app .lead,
+  .app .progress-label,
+  .app .progress-time,
+  .app .instruction-text,
+  .app .difficulty-name,
+  .app .difficulty-desc,
+  .app .difficulty-title,
+  .app .howto-attention-text,
+  .app .howto-play-preview p,
+  .app .howto-list,
+  .app .settings-panel-title,
+  .app .setting-row strong,
+  .app .setting-row small,
+  .app .pause-title,
+  .app .pause-subtitle,
+  .app .pause-sound-button,
+  .app .result-message,
+  .app .feedback-title,
+  .app .feedback-message {
+    font-weight: 700 !important;
+    -webkit-text-stroke-width: 0;
+  }
+
+  img,
+  .game-background {
+    -webkit-user-drag: none;
+    user-drag: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.001ms !important;
+  }
+
+  .howto-page-one.is-active .howto-tap-hand {
+    animation: howto-tap-hand 3.4s ease-in-out infinite !important;
+  }
+
+  .howto-page-one.is-active .howto-preview-symbol {
+    animation: howto-correct-ring-flash 3.4s ease-in-out infinite !important;
+  }
+
+  .howto-page-one.is-active .howto-preview-symbol .shape-triangle {
+    animation: howto-triangle-fly-left 3.4s ease-in-out infinite !important;
+  }
+
+  .howto-page-one.is-active .howto-preview-pad-red .howto-preview-pad-art {
+    animation: howto-red-pad-press 3.4s ease-in-out infinite !important;
+  }
+
+  .howto-page-two.is-active .howto-preview-symbol {
+    animation: howto-x-ring-flash 3.6s ease-in-out infinite !important;
+  }
+
+  .howto-page-two.is-active .howto-preview-symbol .shape-x {
+    animation: howto-x-fly-left 3.6s ease-in-out infinite !important;
+  }
+
+  .current-symbol.is-success-glow::before {
+    animation: successRingGlow 520ms ease-out both !important;
+  }
+
+  .current-symbol.is-error-glow::before {
+    animation: errorRingGlow 520ms ease-out both !important;
+  }
+
+  .drum-pad.is-hint {
+    animation: melodyHintNudge 720ms ease-in-out 3 !important;
+  }
+}
+
+.app #resultSuccessRate {
+  -webkit-text-stroke: 5px #fffaf0 !important;
+  paint-order: stroke fill !important;
+}

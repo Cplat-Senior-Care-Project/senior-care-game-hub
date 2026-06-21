@@ -198,11 +198,8 @@
 | `exposure_time_ms` | 기억 단계 표시 시간 |
 | `hint_enabled` | 힌트 기능 사용 여부 |
 | `auto_hint_enabled` | 자동 힌트 사용 여부 |
-| `position_hint_type` | 힌트 표시 방식. 현재 기본값은 `highlight` |
 | `show_condition_check` | 컨디션 체크 노출 여부 |
 | `show_finish_check` | 마무리 체크 노출 여부 |
-| `condition_check_skipped` | 컨디션 체크 생략 여부 |
-| `finish_check_skipped` | 마무리 체크 생략 여부 |
 
 ## 9. 현재 구현상 주의사항
 

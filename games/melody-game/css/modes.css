@@ -98,6 +98,27 @@ body.mode-ai .primary-button {
   background: linear-gradient(180deg, color-mix(in srgb, var(--mode-accent) 78%, #ffffff), var(--mode-accent));
 }
 
+body .pause-panel .pause-main-button,
+body.mode-standard .pause-panel .pause-main-button,
+body.mode-reminder .pause-panel .pause-main-button,
+body.mode-care .pause-panel .pause-main-button,
+body.mode-ai .pause-panel .pause-main-button {
+  border: 3px solid #fde9a5;
+  background:
+    linear-gradient(315deg, rgba(54, 109, 24, 0.2) 0%, rgba(120, 173, 52, 0.04) 46%, rgba(184, 219, 88, 0.22) 100%),
+    #78ad34;
+  color: #fffdf3;
+  box-shadow:
+    0 clamp(5px, 7.2px, 9px) clamp(12px, 15.84px, 22px) rgba(47, 65, 21, 0.22),
+    0 0 0 1px #245312,
+    inset 0 0 0 1px #245312,
+    inset 0 clamp(2px, 3.24px, 4px) 0 rgba(255, 255, 244, 0.42),
+    inset 0 clamp(-6px, -7.2px, -4px) 0 rgba(43, 79, 18, 0.38);
+  text-shadow:
+    0 2px 0 rgba(56, 69, 32, 0.72),
+    0 0 4px rgba(56, 69, 32, 0.42);
+}
+
 body.hide-difficulty-select [data-go="difficulty"],
 body.hide-settings [data-go="settings"],
 body.hide-help [data-go="howto"],
@@ -146,5 +167,5 @@ body.mode-ai .pad-area {
 body.mode-reminder .result-actions,
 body.mode-care .result-actions,
 body.mode-ai .result-actions {
-  grid-template-columns: minmax(220px, 420px);
+  grid-template-columns: repeat(2, minmax(260px, 1fr));
 }

@@ -172,4 +172,14 @@
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto !important; transition-duration: 0.01ms !important; }
+
+  .tutorial-preview .tutorial-tap-target,
+  .tutorial-preview .tutorial-tap-target > img,
+  .tutorial-selection-stage .tutorial-flying-choice,
+  .tutorial-selection-stage .tutorial-stage-touch-pointer,
+  .tutorial-selection-stage .tutorial-stage-drag-pointer,
+  .tutorial-selection-stage .tutorial-slot-item {
+    animation-duration: 3.2s !important;
+    animation-iteration-count: infinite !important;
+  }
 }

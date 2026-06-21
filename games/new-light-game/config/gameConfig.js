@@ -54,14 +54,10 @@
       showScore: true,
       showTimer: true,
       showReplay: true,
-      replayLimit: 0,
-      allowConditionSkip: true,
-      allowFinishSkip: true,
       hintEnabled: true,
       autoHintEnabled: false,
       autoReturnMs: 0,
       autoHintAfterMs: 0,
-      positionHintType: "highlight",
       flashEffectLevel: "normal",
       highContrast: true,
       softFeedback: true,
@@ -82,14 +78,10 @@
       showScore: true,
       showTimer: true,
       showReplay: true,
-      replayLimit: 0,
-      allowConditionSkip: true,
-      allowFinishSkip: true,
       hintEnabled: true,
       autoHintEnabled: false,
       autoReturnMs: 0,
       autoHintAfterMs: 0,
-      positionHintType: "highlight",
       flashEffectLevel: "normal",
       highContrast: true,
       softFeedback: true,
@@ -110,14 +102,10 @@
       showScore: false,
       showTimer: false,
       showReplay: false,
-      replayLimit: 0,
-      allowConditionSkip: true,
-      allowFinishSkip: true,
       hintEnabled: true,
       autoHintEnabled: true,
       autoReturnMs: 0,
       autoHintAfterMs: 10000,
-      positionHintType: "highlight",
       flashEffectLevel: "low",
       highContrast: true,
       softFeedback: true,
@@ -138,14 +126,10 @@
       showScore: false,
       showTimer: false,
       showReplay: false,
-      replayLimit: 0,
-      allowConditionSkip: true,
-      allowFinishSkip: true,
       hintEnabled: true,
       autoHintEnabled: true,
       autoReturnMs: 0,
       autoHintAfterMs: 10000,
-      positionHintType: "highlight",
       flashEffectLevel: "low",
       highContrast: true,
       softFeedback: true,
@@ -242,9 +226,30 @@
     return typeof value === "object" ? value : {};
   }
 
+  function readBridgeRuntimeConfig() {
+    const bridge = global.LightMemoryGameAppBridge;
+    if (!bridge || typeof bridge.getRuntimeConfig !== "function") {
+      return {};
+    }
+
+    try {
+      const config = bridge.getRuntimeConfig();
+      if (!config || typeof config !== "object" || typeof config.then === "function") {
+        return {};
+      }
+      return config;
+    } catch (error) {
+      if (global.console && typeof global.console.warn === "function") {
+        global.console.warn("[light game config] bridge runtime config ignored", error);
+      }
+      return {};
+    }
+  }
+
   function getRuntimeConfig() {
     const params = new URLSearchParams(global.location.search);
-    const external = global.HD_GAME_CONFIG || {};
+    const bridgeConfig = readBridgeRuntimeConfig();
+    const external = Object.assign({}, global.HD_GAME_CONFIG || {}, bridgeConfig);
     const urlConfig = {};
 
     params.forEach((value, key) => {
@@ -294,9 +299,6 @@
         showConditionCheck: normalizeBoolean(pickValue(merged, ["show_condition_check", "showConditionCheck"], null), modeConfig.showConditionCheck),
         showFinishCheck: normalizeBoolean(pickValue(merged, ["show_finish_check", "showFinishCheck"], null), modeConfig.showFinishCheck),
         showReplay: normalizeBoolean(pickValue(merged, ["show_replay", "allow_replay", "showReplay"], null), modeConfig.showReplay),
-        replayLimit: normalizeNumber(pickValue(merged, ["replay_limit", "replayLimit"], null), modeConfig.replayLimit),
-        allowConditionSkip: normalizeBoolean(pickValue(merged, ["allow_condition_skip", "allowConditionSkip"], null), modeConfig.allowConditionSkip),
-        allowFinishSkip: normalizeBoolean(pickValue(merged, ["allow_finish_skip", "allowFinishSkip"], null), modeConfig.allowFinishSkip),
         hintEnabled: normalizeBoolean(pickValue(merged, ["hint_enabled", "hintEnabled"], null), modeConfig.hintEnabled),
         autoHintEnabled: normalizeBoolean(pickValue(merged, ["auto_hint_enabled", "autoHintEnabled"], null), modeConfig.autoHintEnabled),
         autoHintAfterMs: autoHintDelaySec !== null ? normalizeNumber(autoHintDelaySec, 0) * 1000 : modeConfig.autoHintAfterMs,
@@ -308,16 +310,15 @@
         gridCols: normalizeNumber(pickValue(merged, ["grid_cols", "gridCols"], null), null),
         targetCount: normalizeNumber(pickValue(merged, ["target_count", "targetCount"], null), null),
         maxTargetCount: normalizeNumber(pickValue(merged, ["max_target_count", "maxTargetCount"], null), null),
-        positionHintType: pickValue(merged, ["position_hint_type", "positionHintType"], modeConfig.positionHintType),
         resultLogLevel: pickValue(merged, ["result_log_level", "resultLogLevel"], modeConfig.resultLogLevel),
         flashEffectLevel: pickValue(merged, ["flash_effect_level", "flashEffectLevel"], modeConfig.flashEffectLevel),
-        highContrast: normalizeBoolean(merged.high_contrast, modeConfig.highContrast),
+        highContrast: normalizeBoolean(pickValue(merged, ["high_contrast", "highContrast"], null), modeConfig.highContrast),
         softFeedback: normalizeBoolean(pickValue(merged, ["soft_feedback", "softFeedback"], null), modeConfig.softFeedback),
         voiceGuideEnabled: normalizeBoolean(pickValue(merged, ["voice_guide_enabled", "voiceGuideEnabled"], null), modeConfig.voiceGuideEnabled),
         externalInputEnabled: normalizeBoolean(pickValue(merged, ["external_input_enabled", "externalInputEnabled", "external_voice_text_input", "externalVoiceTextInput"], null), Boolean(modeConfig.externalVoiceTextInput))
       }),
       difficultyConfig: difficultyConfig,
-      highContrast: normalizeBoolean(merged.high_contrast, modeConfig.highContrast)
+      highContrast: normalizeBoolean(pickValue(merged, ["high_contrast", "highContrast"], null), modeConfig.highContrast)
     };
   }
 

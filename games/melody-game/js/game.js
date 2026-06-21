@@ -17,16 +17,25 @@
         pauseOverlay: document.getElementById("pauseOverlay"),
         pauseButton: document.getElementById("pauseButton"),
         resumeButton: document.getElementById("resumeButton"),
+        pauseRestartButton: document.getElementById("pauseRestartButton"),
         quitButton: document.getElementById("quitButton")
       };
 
       this.tickHandle = null;
+      this.previewAnimationHandle = null;
+      this.previewFlightElement = null;
+      this.previewFlightAnimation = null;
+      this.correctAnimationHandle = null;
+      this.correctFlightElement = null;
+      this.correctFlightAnimation = null;
+      this.successGlowHandle = null;
       this.state = null;
       this.lastTick = 0;
       this.boundTick = this.tick.bind(this);
 
       this.elements.pauseButton.addEventListener("pointerup", () => this.pause());
       this.elements.resumeButton.addEventListener("pointerup", () => this.resume());
+      this.elements.pauseRestartButton && this.elements.pauseRestartButton.addEventListener("pointerup", () => this.restart());
       this.elements.quitButton.addEventListener("pointerup", () => this.quit());
     }
 
@@ -68,6 +77,7 @@
         consecutiveWrong: 0,
         currentPrompt: null,
         nextPrompt: null,
+        nextSong: null,
         hintShownThisTrial: false,
         paused: false,
         feedbackLocked: false,
@@ -81,7 +91,7 @@
       this.elements.pauseOverlay.classList.remove("is-visible");
       this.elements.feedbackOverlay.className = "feedback-overlay";
       this.renderPads();
-      this.state.nextPrompt = this.generatePrompt();
+      this.state.nextPrompt = this.generatePrompt(0);
       this.advanceTrial();
       this.renderStaticInfo();
       this.lastTick = performance.now();
@@ -89,9 +99,12 @@
       this.render();
     }
 
-    pickSong() {
+    pickSong(excludeSongId) {
       const songs = window.MELODY_DATA || [];
-      return songs[Math.floor(Math.random() * songs.length)] || { id: "fallback", title: "", notes: ["C4"] };
+      const candidates = excludeSongId && songs.length > 1
+        ? songs.filter((song) => song.id !== excludeSongId)
+        : songs;
+      return candidates[Math.floor(Math.random() * candidates.length)] || { id: "fallback", title: "", notes: ["C4"] };
     }
 
     renderStaticInfo() {
@@ -119,6 +132,93 @@
       });
 
       this.elements.padArea.appendChild(fragment);
+    }
+
+    getNotesForSong(song) {
+      if (!this.state || !song) {
+        return ["C4"];
+      }
+
+      if (this.state.config.xPatternEnabled && Array.isArray(song.hardNotes) && song.hardNotes.length) {
+        return song.hardNotes;
+      }
+
+      return Array.isArray(song.notes) && song.notes.length ? song.notes : ["C4"];
+    }
+
+    getActiveNotes() {
+      return this.getNotesForSong(this.state && this.state.song);
+    }
+
+    getNoteAt(index, song) {
+      const notes = this.getNotesForSong(song || (this.state && this.state.song));
+      const noteIndex = Math.max(0, Math.min(notes.length - 1, index));
+      return notes[noteIndex];
+    }
+
+    normalizeNoteEntry(noteEntry) {
+      if (noteEntry && typeof noteEntry === "object") {
+        const duration = Number(noteEntry.duration);
+        return {
+          name: noteEntry.name || noteEntry.note || "C4",
+          duration: Number.isFinite(duration) ? duration : null
+        };
+      }
+
+      return {
+        name: noteEntry,
+        duration: null
+      };
+    }
+
+    getNoteName(noteEntry) {
+      return this.normalizeNoteEntry(noteEntry).name;
+    }
+
+    getPromptSong(noteIndex) {
+      const notes = this.getActiveNotes();
+
+      if (noteIndex < notes.length) {
+        return this.state.song;
+      }
+
+      if (!this.state.nextSong) {
+        this.state.nextSong = this.pickSong(this.state.song && this.state.song.id);
+      }
+
+      return this.state.nextSong;
+    }
+
+    getPromptNoteIndex(noteIndex, song) {
+      const currentNotes = this.getActiveNotes();
+
+      if (song === this.state.song && noteIndex < currentNotes.length) {
+        return noteIndex;
+      }
+
+      return 0;
+    }
+
+    syncSongForCurrentIndex() {
+      const notes = this.getActiveNotes();
+
+      if (this.state.currentNoteIndex < notes.length) {
+        return;
+      }
+
+      const previousSongId = this.state.song && this.state.song.id;
+      this.state.song = this.state.nextSong || this.pickSong(previousSongId);
+      this.state.currentNoteIndex = 0;
+      this.state.nextSong = null;
+
+      if (this.state.nextPrompt && this.state.nextPrompt.songId !== this.state.song.id) {
+        this.state.nextPrompt = null;
+      }
+    }
+
+    isRestNote(noteEntry) {
+      const noteName = this.getNoteName(noteEntry);
+      return ["REST", "R", "쉼표", "쉼"].includes(String(noteName || "").trim().toUpperCase());
     }
 
     getSymbolHtml(symbol) {
@@ -195,22 +295,46 @@
       return "";
     }
 
-    generatePrompt() {
+    generatePrompt(noteIndex) {
       const { symbols } = this.state;
-      const shouldShowX = false;
+      const targetNoteIndex = Number.isFinite(noteIndex) ? noteIndex : this.state.currentNoteIndex;
+      const promptSong = this.getPromptSong(targetNoteIndex);
+      const promptNoteIndex = this.getPromptNoteIndex(targetNoteIndex, promptSong);
+      const promptNote = this.getNoteAt(promptNoteIndex, promptSong);
+      const shouldShowX = Boolean(this.state.config.xPatternEnabled && this.isRestNote(promptNote));
 
       if (shouldShowX) {
         return {
           id: "x",
-          label: "빨간색 X",
+          label: "보라색 X",
           shortLabel: "X",
           shapeClass: "shape-x",
-          isX: true
+          isX: true,
+          noteIndex: promptNoteIndex,
+          songId: promptSong.id
         };
       }
 
       const index = Math.floor(Math.random() * symbols.length);
-      return symbols[index];
+      return {
+        ...symbols[index],
+        noteIndex: promptNoteIndex,
+        songId: promptSong.id
+      };
+    }
+
+    generateAlternatePrompt(noteIndex, previousPrompt) {
+      let nextPrompt = this.generatePrompt(noteIndex);
+
+      if (!previousPrompt || previousPrompt.isX || nextPrompt.isX) {
+        return nextPrompt;
+      }
+
+      for (let attempt = 0; attempt < 8 && nextPrompt.id === previousPrompt.id; attempt += 1) {
+        nextPrompt = this.generatePrompt(noteIndex);
+      }
+
+      return nextPrompt;
     }
 
     advanceTrial() {
@@ -218,13 +342,136 @@
         return;
       }
 
-      this.state.currentPrompt = this.state.nextPrompt || this.generatePrompt();
-      this.state.nextPrompt = this.generatePrompt();
+      this.syncSongForCurrentIndex();
+
+      const shouldAnimateFromPreview = Boolean(this.state.currentPrompt && this.state.config.previewEnabled);
+      const previewRect = shouldAnimateFromPreview && this.elements.nextSymbol
+        ? this.elements.nextSymbol.getBoundingClientRect()
+        : null;
+      this.state.currentPrompt = this.state.nextPrompt || this.generatePrompt(this.state.currentNoteIndex);
+      this.state.nextPrompt = this.generatePrompt(this.state.currentNoteIndex + 1);
       this.state.trialElapsed = 0;
       this.state.noTouchElapsed = 0;
       this.state.hintShownThisTrial = false;
 
+      if (this.state.currentPrompt.isX) {
+        this.state.xPresentCount += 1;
+      }
+
       this.render();
+
+      if (shouldAnimateFromPreview && previewRect) {
+        this.animatePreviewAdvance(previewRect, this.state.currentPrompt);
+      }
+    }
+
+    animatePreviewAdvance(previewRect, incomingPrompt) {
+      const currentSymbol = this.elements.currentSymbol;
+      const nextSymbol = this.elements.nextSymbol;
+
+      if (!currentSymbol || !nextSymbol || !incomingPrompt) {
+        return;
+      }
+
+      const currentRect = currentSymbol.getBoundingClientRect();
+      const previewCenterX = previewRect.left + previewRect.width / 2;
+      const previewCenterY = previewRect.top + previewRect.height / 2;
+      const currentCenterX = currentRect.left + currentRect.width / 2;
+      const currentCenterY = currentRect.top + currentRect.height / 2;
+      const previewScale = currentRect.width > 0
+        ? Math.max(0.36, Math.min(0.72, previewRect.width / currentRect.width))
+        : 0.58;
+
+      this.clearPreviewAnimation();
+
+      const flightSymbol = document.createElement("div");
+      flightSymbol.className = "symbol-flight";
+      flightSymbol.innerHTML = this.getSymbolHtml(incomingPrompt);
+      flightSymbol.style.left = `${currentRect.left}px`;
+      flightSymbol.style.top = `${currentRect.top}px`;
+      flightSymbol.style.width = `${currentRect.width}px`;
+      flightSymbol.style.height = `${currentRect.height}px`;
+      flightSymbol.style.setProperty("--preview-fly-x", `${previewCenterX - currentCenterX}px`);
+      flightSymbol.style.setProperty("--preview-fly-y", `${previewCenterY - currentCenterY}px`);
+      flightSymbol.style.setProperty("--preview-fly-scale", previewScale.toFixed(3));
+      flightSymbol.style.transform = "translate(var(--preview-fly-x), var(--preview-fly-y)) scale(var(--preview-fly-scale))";
+
+      document.body.appendChild(flightSymbol);
+      this.previewFlightElement = flightSymbol;
+      currentSymbol.classList.add("is-flight-target-hidden");
+      nextSymbol.classList.add("is-refreshing");
+
+      const finishPreviewAnimation = () => {
+        if (didFinish) {
+          return;
+        }
+
+        didFinish = true;
+        window.clearTimeout(this.previewAnimationHandle);
+        if (this.previewFlightElement === flightSymbol) {
+          this.previewFlightElement = null;
+        }
+        if (this.previewFlightAnimation === flightAnimation) {
+          this.previewFlightAnimation = null;
+        }
+        flightSymbol.remove();
+        currentSymbol.classList.remove("is-flight-target-hidden");
+        nextSymbol.classList.remove("is-refreshing");
+        this.previewAnimationHandle = null;
+      };
+
+      let didFinish = false;
+      const flightAnimation = typeof flightSymbol.animate === "function" ? flightSymbol.animate([
+        {
+          opacity: 0.72,
+          transform: "translate(var(--preview-fly-x), var(--preview-fly-y)) scale(var(--preview-fly-scale))"
+        },
+        {
+          offset: 0.72,
+          opacity: 1,
+          transform: "translate(-18px, 0) scale(1.07)"
+        },
+        {
+          opacity: 1,
+          transform: "translate(0, 0) scale(1)"
+        }
+      ], {
+        duration: 680,
+        easing: "cubic-bezier(0.18, 0.88, 0.24, 1)",
+        fill: "both"
+      }) : null;
+
+      this.previewFlightAnimation = flightAnimation;
+
+      if (flightAnimation) {
+        flightAnimation.addEventListener("finish", finishPreviewAnimation, { once: true });
+        this.previewAnimationHandle = window.setTimeout(finishPreviewAnimation, 760);
+      } else {
+        this.previewAnimationHandle = window.setTimeout(finishPreviewAnimation, 120);
+      }
+    }
+
+    clearPreviewAnimation() {
+      window.clearTimeout(this.previewAnimationHandle);
+      this.previewAnimationHandle = null;
+
+      if (this.previewFlightElement) {
+        this.previewFlightElement.remove();
+        this.previewFlightElement = null;
+      }
+
+      if (this.previewFlightAnimation) {
+        this.previewFlightAnimation.cancel();
+        this.previewFlightAnimation = null;
+      }
+
+      if (this.elements.currentSymbol) {
+        this.elements.currentSymbol.classList.remove("is-from-preview", "is-flight-target-hidden");
+      }
+
+      if (this.elements.nextSymbol) {
+        this.elements.nextSymbol.classList.remove("is-refreshing");
+      }
     }
 
     tick() {
@@ -244,6 +491,15 @@
       if (this.state.sessionRemaining <= 0) {
         this.finish();
         return;
+      }
+
+      if (this.state.currentPrompt && this.state.currentPrompt.isX && this.state.noTouchElapsed >= 1.5) {
+        this.handleXSuccess();
+        return;
+      }
+
+      if (this.state.currentPrompt && !this.state.currentPrompt.isX && this.state.noTouchElapsed >= 5) {
+        this.showHint(false);
       }
 
       this.render();
@@ -273,30 +529,162 @@
 
     handleCorrect(button) {
       const reactionMs = Math.round(this.state.trialElapsed * 1000);
-      const notes = this.state.song.notes;
-      const noteName = notes[this.state.currentNoteIndex % notes.length];
+      const noteIndex = Number.isFinite(this.state.currentPrompt.noteIndex)
+        ? this.state.currentPrompt.noteIndex
+        : this.state.currentNoteIndex;
+      const note = this.normalizeNoteEntry(this.getNoteAt(noteIndex));
 
       this.state.totalTrials += 1;
       this.state.correctCount += 1;
       this.state.completedNoteCount += 1;
-      this.state.currentNoteIndex += 1;
+      this.state.currentNoteIndex = noteIndex + 1;
       this.state.consecutiveWrong = 0;
       this.state.reactionTimes.push(reactionMs);
 
-      this.audio.playNote(noteName, this.state.currentNoteIndex - 1);
+      if (!this.isRestNote(note)) {
+        this.audio.playNote(note.name, noteIndex, note.duration);
+      }
       this.flashPad(button, "is-correct");
+      this.flashRing("success");
 
+      this.animateSymbolExit("top-left");
       this.advanceTrial();
     }
 
+    flashRing(tone) {
+      const currentSymbol = this.elements.currentSymbol;
+
+      if (!currentSymbol) {
+        return;
+      }
+
+      window.clearTimeout(this.successGlowHandle);
+      currentSymbol.classList.remove("is-success-glow", "is-error-glow");
+      void currentSymbol.offsetWidth;
+      currentSymbol.classList.add(tone === "error" ? "is-error-glow" : "is-success-glow");
+      this.successGlowHandle = window.setTimeout(() => {
+        currentSymbol.classList.remove("is-success-glow", "is-error-glow");
+        this.successGlowHandle = null;
+      }, 520);
+    }
+
+    animateSymbolExit(direction) {
+      const currentSymbol = this.elements.currentSymbol;
+
+      if (!currentSymbol || !this.state || !this.state.currentPrompt) {
+        return;
+      }
+
+      const currentRect = currentSymbol.getBoundingClientRect();
+      if (currentRect.width <= 0 || currentRect.height <= 0) {
+        return;
+      }
+
+      this.clearCorrectAnimation();
+
+      const flightSymbol = document.createElement("div");
+      flightSymbol.className = "symbol-correct-flight";
+      flightSymbol.innerHTML = this.getSymbolHtml(this.state.currentPrompt);
+      flightSymbol.style.left = `${currentRect.left}px`;
+      flightSymbol.style.top = `${currentRect.top}px`;
+      flightSymbol.style.width = `${currentRect.width}px`;
+      flightSymbol.style.height = `${currentRect.height}px`;
+      const targetX = 18;
+      const targetY = direction === "bottom-left"
+        ? Math.max(18, window.innerHeight - currentRect.height - 18)
+        : 18;
+      const rotation = direction === "bottom-left" ? 760 : -760;
+      const midRotation = direction === "bottom-left" ? 280 : -280;
+      flightSymbol.style.setProperty("--symbol-exit-x", `${targetX - currentRect.left}px`);
+      flightSymbol.style.setProperty("--symbol-exit-y", `${targetY - currentRect.top}px`);
+      flightSymbol.style.setProperty("--symbol-exit-rotation", `${rotation}deg`);
+      flightSymbol.style.setProperty("--symbol-exit-mid-rotation", `${midRotation}deg`);
+
+      document.body.appendChild(flightSymbol);
+      this.correctFlightElement = flightSymbol;
+
+      let didFinish = false;
+      const finishCorrectAnimation = () => {
+        if (didFinish) {
+          return;
+        }
+
+        didFinish = true;
+        window.clearTimeout(this.correctAnimationHandle);
+        if (this.correctFlightElement === flightSymbol) {
+          this.correctFlightElement = null;
+        }
+        if (this.correctFlightAnimation === flightAnimation) {
+          this.correctFlightAnimation = null;
+        }
+        flightSymbol.remove();
+        this.correctAnimationHandle = null;
+      };
+
+      const flightAnimation = typeof flightSymbol.animate === "function" ? flightSymbol.animate([
+        {
+          opacity: 1,
+          transform: "translate(0, 0) rotate(0deg) scale(1)"
+        },
+        {
+          offset: 0.42,
+          opacity: 0.95,
+          transform: "translate(calc(var(--symbol-exit-x) * 0.42), calc(var(--symbol-exit-y) * 0.42)) rotate(var(--symbol-exit-mid-rotation)) scale(0.86)"
+        },
+        {
+          opacity: 0,
+          transform: "translate(var(--symbol-exit-x), var(--symbol-exit-y)) rotate(var(--symbol-exit-rotation)) scale(0.28)"
+        }
+      ], {
+        duration: 560,
+        easing: "cubic-bezier(0.3, 0.02, 0.28, 1)",
+        fill: "both"
+      }) : null;
+
+      this.correctFlightAnimation = flightAnimation;
+
+      if (flightAnimation) {
+        flightAnimation.addEventListener("finish", finishCorrectAnimation, { once: true });
+        this.correctAnimationHandle = window.setTimeout(finishCorrectAnimation, 640);
+      } else {
+        this.correctAnimationHandle = window.setTimeout(finishCorrectAnimation, 120);
+      }
+    }
+
+    clearCorrectAnimation() {
+      window.clearTimeout(this.correctAnimationHandle);
+      this.correctAnimationHandle = null;
+
+      if (this.correctFlightElement) {
+        this.correctFlightElement.remove();
+        this.correctFlightElement = null;
+      }
+
+      if (this.correctFlightAnimation) {
+        this.correctFlightAnimation.cancel();
+        this.correctFlightAnimation = null;
+      }
+
+      if (this.elements.currentSymbol) {
+        this.elements.currentSymbol.classList.remove("is-correct-exiting");
+      }
+    }
+
     handleWrong(button) {
+      const noteIndex = Number.isFinite(this.state.currentPrompt.noteIndex)
+        ? this.state.currentPrompt.noteIndex
+        : this.state.currentNoteIndex;
+      const previousPrompt = this.state.currentPrompt;
+
       this.state.totalTrials += 1;
       this.state.wrongCount += 1;
+      this.state.currentNoteIndex = noteIndex;
+      this.state.nextPrompt = this.generateAlternatePrompt(noteIndex, previousPrompt);
       this.state.consecutiveWrong += 1;
       this.flashPad(button, "is-wrong");
-
-      this.showFeedback("아쉬워요! 다시 해볼까요?", "gentle", 1000);
-      this.render();
+      this.flashRing("error");
+      this.animateSymbolExit("bottom-left");
+      this.advanceTrial();
     }
 
     handleMissed() {
@@ -307,19 +695,34 @@
     }
 
     handleXSuccess() {
+      const noteIndex = Number.isFinite(this.state.currentPrompt.noteIndex)
+        ? this.state.currentPrompt.noteIndex
+        : this.state.currentNoteIndex;
+
       this.state.totalTrials += 1;
       this.state.xSuccessCount += 1;
+      this.state.completedNoteCount += 1;
+      this.state.currentNoteIndex = noteIndex + 1;
       this.state.consecutiveWrong = 0;
-      this.showFeedback("잘 기다렸어요!", "positive", 650, () => this.advanceTrial());
+      this.flashRing("success");
+      this.animateSymbolExit("top-left");
+      this.advanceTrial();
     }
 
     handleXFail(button) {
+      const noteIndex = Number.isFinite(this.state.currentPrompt.noteIndex)
+        ? this.state.currentPrompt.noteIndex
+        : this.state.currentNoteIndex;
+
       this.state.totalTrials += 1;
       this.state.xFailCount += 1;
       this.state.wrongCount += 1;
+      this.state.currentNoteIndex = noteIndex + 1;
       this.state.consecutiveWrong += 1;
       this.flashPad(button, "is-wrong");
-      this.showFeedback("X 표식은 기다리는 표식이에요.", "gentle", 1000, () => this.advanceTrial());
+      this.flashRing("error");
+      this.animateSymbolExit("bottom-left");
+      this.advanceTrial();
       this.render();
     }
 
@@ -354,7 +757,7 @@
 
       const pad = this.elements.padArea.querySelector(`[data-symbol-id="${this.state.currentPrompt.id}"]`);
       if (pad) {
-        this.flashPad(pad, "is-hint", 2000);
+        this.flashPad(pad, "is-hint", 2200);
       }
     }
 
@@ -389,13 +792,33 @@
       this.elements.pauseOverlay.classList.remove("is-visible");
     }
 
+    restart() {
+      if (!this.state) {
+        return;
+      }
+
+      const difficulty = this.state.difficulty;
+      const runtimeConfig = this.state.runtimeConfig;
+      this.stopTick();
+      this.elements.pauseOverlay.classList.remove("is-visible");
+      this.elements.feedbackOverlay.className = "feedback-overlay";
+      this.start(difficulty, runtimeConfig);
+    }
+
     quit() {
       this.stopTick();
       if (this.state) {
+        const result = window.ResultManager.calculateResult(this.state);
+        result.completed = false;
+        result.ended_reason = "user_quit";
         if (window.ResultBridge) {
           window.ResultBridge.handleSessionAbort(this.state, "user_quit");
         }
         this.state.ended = true;
+        this.elements.pauseOverlay.classList.remove("is-visible");
+        this.elements.feedbackOverlay.className = "feedback-overlay";
+        this.onFinish(result, { submit: false });
+        return;
       }
       this.elements.pauseOverlay.classList.remove("is-visible");
       window.dispatchEvent(new CustomEvent("melody-drum:go-home"));
@@ -419,6 +842,14 @@
       if (this.tickHandle) {
         window.clearInterval(this.tickHandle);
         this.tickHandle = null;
+      }
+
+      this.clearPreviewAnimation();
+      this.clearCorrectAnimation();
+      window.clearTimeout(this.successGlowHandle);
+      this.successGlowHandle = null;
+      if (this.elements.currentSymbol) {
+        this.elements.currentSymbol.classList.remove("is-success-glow", "is-error-glow");
       }
     }
 

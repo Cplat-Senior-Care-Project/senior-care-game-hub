@@ -3,23 +3,31 @@
 
   const NOTE_FREQUENCIES = {
     C4: 261.63,
+    "C#4": 277.18,
     D4: 293.66,
     E4: 329.63,
     F4: 349.23,
+    "F#4": 369.99,
     G4: 392.0,
+    "G#4": 415.3,
     A4: 440.0,
+    "A#4": 466.16,
+    Bb4: 466.16,
     B4: 493.88,
-    C5: 523.25
+    C5: 523.25,
+    "C#5": 554.37,
+    D5: 587.33
   };
 
   class MelodyAudio {
     constructor() {
       this.context = null;
       this.enabled = true;
-      this.volume = 0.7;
+      this.volume = 1;
+      this.noteVolumeBoost = this.isMobileDevice() ? 2.8 : 1.8;
       this.audioCache = new Map();
       this.missingAudioFiles = new Set();
-      this.audioSupported = typeof Audio !== "undefined";
+      this.audioSupported = typeof fetch === "function";
     }
 
     setEnabled(enabled) {
@@ -28,7 +36,11 @@
 
     setVolume(value) {
       const nextValue = Number(value);
-      this.volume = Math.min(1, Math.max(0, Number.isFinite(nextValue) ? nextValue : 0.7));
+      this.volume = Math.min(1, Math.max(0, Number.isFinite(nextValue) ? nextValue : 1));
+    }
+
+    isMobileDevice() {
+      return /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent || "");
     }
 
     ensureContext() {
@@ -86,6 +98,12 @@
           return;
         }
 
+        const context = this.ensureContext();
+        if (!context) {
+          resolve(false);
+          return;
+        }
+
         const fileNumber = String((noteIndex % 6) + 1).padStart(2, "0");
         const src = `assets/audio/note_${fileNumber}.mp3`;
         if (this.missingAudioFiles.has(src)) {
@@ -93,35 +111,76 @@
           return;
         }
 
-        let audio = this.audioCache.get(src);
+        let audioBufferPromise = this.audioCache.get(src);
 
-        if (!audio) {
-          audio = new Audio(src);
-          audio.preload = "auto";
-          audio.volume = this.volume;
-          audio.addEventListener("error", () => {
-            this.missingAudioFiles.add(src);
-            this.audioCache.set(src, null);
-          }, { once: true });
-          this.audioCache.set(src, audio);
+        if (!audioBufferPromise) {
+          audioBufferPromise = fetch(src)
+            .then((response) => {
+              if (!response.ok) {
+                throw new Error(`Audio file not found: ${src}`);
+              }
+              return response.arrayBuffer();
+            })
+            .then((arrayBuffer) => this.decodeAudioBuffer(context, arrayBuffer))
+            .catch(() => {
+              this.missingAudioFiles.add(src);
+              this.audioCache.set(src, null);
+              return null;
+            });
+          this.audioCache.set(src, audioBufferPromise);
         }
 
-        if (!audio) {
+        if (!audioBufferPromise) {
           resolve(false);
           return;
         }
 
-        audio.currentTime = 0;
-        audio.volume = this.volume;
-        const playPromise = audio.play();
+        audioBufferPromise
+          .then((audioBuffer) => {
+            if (!audioBuffer) {
+              resolve(false);
+              return;
+            }
 
-        if (!playPromise || typeof playPromise.then !== "function") {
-          resolve(true);
-          return;
-        }
-
-        playPromise.then(() => resolve(true)).catch(() => resolve(false));
+            this.playAudioBuffer(context, audioBuffer);
+            resolve(true);
+          })
+          .catch(() => resolve(false));
       });
+    }
+
+    decodeAudioBuffer(context, arrayBuffer) {
+      return new Promise((resolve, reject) => {
+        const decoded = context.decodeAudioData(arrayBuffer.slice(0), resolve, reject);
+        if (decoded && typeof decoded.then === "function") {
+          decoded.then(resolve).catch(reject);
+        }
+      });
+    }
+
+    playAudioBuffer(context, audioBuffer) {
+      const source = context.createBufferSource();
+      const gainNode = context.createGain();
+      const compressor = context.createDynamicsCompressor();
+      const now = context.currentTime;
+
+      source.buffer = audioBuffer;
+      gainNode.gain.setValueAtTime(Math.min(3, this.volume * this.noteVolumeBoost), now);
+      compressor.threshold.setValueAtTime(-14, now);
+      compressor.knee.setValueAtTime(18, now);
+      compressor.ratio.setValueAtTime(8, now);
+      compressor.attack.setValueAtTime(0.003, now);
+      compressor.release.setValueAtTime(0.12, now);
+
+      source.connect(gainNode);
+      gainNode.connect(compressor);
+      compressor.connect(context.destination);
+      source.start(now);
+      source.onended = () => {
+        source.disconnect();
+        gainNode.disconnect();
+        compressor.disconnect();
+      };
     }
 
     playMelodyTone(frequency) {
@@ -133,22 +192,30 @@
       const now = context.currentTime;
       const filter = context.createBiquadFilter();
       const output = context.createGain();
+      const compressor = context.createDynamicsCompressor();
 
       filter.type = "lowpass";
       filter.frequency.setValueAtTime(2400, now);
       filter.Q.setValueAtTime(0.6, now);
-      output.gain.setValueAtTime(0.9, now);
+      output.gain.setValueAtTime(this.noteVolumeBoost, now);
+      compressor.threshold.setValueAtTime(-14, now);
+      compressor.knee.setValueAtTime(18, now);
+      compressor.ratio.setValueAtTime(8, now);
+      compressor.attack.setValueAtTime(0.003, now);
+      compressor.release.setValueAtTime(0.12, now);
 
       filter.connect(output);
-      output.connect(context.destination);
+      output.connect(compressor);
+      compressor.connect(context.destination);
 
-      this.playPartial(context, filter, frequency, 1, "sine", 0.34, 0.62, now);
-      this.playPartial(context, filter, frequency, 2, "triangle", 0.13, 0.32, now);
-      this.playPartial(context, filter, frequency, 3.01, "sine", 0.06, 0.22, now);
+      this.playPartial(context, filter, frequency, 1, "sine", 0.48, 0.62, now);
+      this.playPartial(context, filter, frequency, 2, "triangle", 0.18, 0.32, now);
+      this.playPartial(context, filter, frequency, 3.01, "sine", 0.09, 0.22, now);
 
       window.setTimeout(() => {
         filter.disconnect();
         output.disconnect();
+        compressor.disconnect();
       }, 720);
     }
 

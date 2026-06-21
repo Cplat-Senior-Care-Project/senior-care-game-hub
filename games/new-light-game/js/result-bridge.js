@@ -101,9 +101,7 @@
       show_settings: Boolean(modeConfig.showSettings),
       show_how_to_play: Boolean(modeConfig.showHowTo),
       show_condition_check: !beforeSkipped,
-      allow_condition_skip: Boolean(modeConfig.allowConditionSkip),
       show_finish_check: !afterSkipped,
-      allow_finish_skip: Boolean(modeConfig.allowFinishSkip),
       question_count: gameState.totalQuestions,
       grid_rows: difficulty.gridRows,
       grid_cols: difficulty.gridCols,
@@ -111,10 +109,8 @@
       max_target_count: modeConfig.maxTargetCount || difficulty.targetCount,
       exposure_time_ms: modeConfig.exposureTimeMs,
       allow_replay: Boolean(modeConfig.showReplay),
-      replay_limit: modeConfig.replayLimit || 0,
       hint_enabled: Boolean(modeConfig.hintEnabled),
       auto_hint_enabled: Boolean(modeConfig.autoHintEnabled),
-      position_hint_type: modeConfig.positionHintType || "",
       flash_effect_level: modeConfig.flashEffectLevel,
       high_contrast: Boolean(modeConfig.highContrast),
       soft_feedback: Boolean(modeConfig.softFeedback),
@@ -169,14 +165,10 @@
       maxWrongPerRound: 3,
       exposure_time_ms: gameState.modeConfig.exposureTimeMs,
       flash_effect_level: gameState.modeConfig.flashEffectLevel,
-      position_hint_type: gameState.modeConfig.positionHintType,
-      replay_limit: gameState.modeConfig.replayLimit || 0,
       high_contrast: Boolean(gameState.modeConfig.highContrast),
       near_miss_count: 0,
       replay_count: 0,
       difficulty_downshifted: false,
-      condition_check_skipped: beforeSkipped,
-      finish_check_skipped: afterSkipped,
       rounds: roundLogs
     };
     const resultDetailJson = {
@@ -190,11 +182,7 @@
       high_contrast: resultDetail.high_contrast,
       near_miss_count: resultDetail.near_miss_count,
       replay_count: resultDetail.replay_count,
-      difficulty_downshifted: resultDetail.difficulty_downshifted,
-      flower_distractor_enabled: false,
-      flower_distractor_start_question: null,
-      condition_check_skipped: resultDetail.condition_check_skipped,
-      finish_check_skipped: resultDetail.finish_check_skipped
+      difficulty_downshifted: resultDetail.difficulty_downshifted
     };
     const processDataJson = {
       hint_count: metrics.hintCount,

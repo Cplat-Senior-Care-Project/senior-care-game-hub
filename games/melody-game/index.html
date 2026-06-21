@@ -25,6 +25,7 @@
   <link rel="stylesheet" href="css/feedback.css">
   <link rel="stylesheet" href="css/modes.css">
   <link rel="stylesheet" href="css/responsive.css">
+  <link rel="stylesheet" href="css/accessibility.css">
 </head>
 <body>
   <div id="orientationNotice" class="orientation-notice" aria-live="polite">
@@ -119,6 +120,58 @@
         <button class="icon-button" type="button" data-go="home" aria-label="처음 화면으로">‹</button>
         <h2 id="howtoTitle">게임 방법</h2>
       </header>
+      <div class="howto-page howto-page-one is-active" data-howto-page="1">
+      <p class="howto-attention-text">화면에 표시를 잘 봐주세요!</p>
+      <div class="howto-play-preview" aria-hidden="true">
+        <div class="howto-preview-topbar">
+          <span>02:00</span>
+          <i></i>
+        </div>
+        <div class="howto-preview-stage">
+          <span class="howto-preview-decoration howto-preview-decoration-left"></span>
+          <div class="howto-preview-symbol">
+            <span class="symbol-shape shape-triangle"></span>
+          </div>
+          <span class="howto-preview-decoration howto-preview-decoration-right"></span>
+        </div>
+        <p>같은 모양 버튼을 눌러주세요!</p>
+        <span class="howto-tap-hand" aria-hidden="true">👆</span>
+        <div class="howto-preview-pads">
+          <span class="howto-preview-pad howto-preview-pad-red">
+            <span class="howto-preview-pad-art" aria-hidden="true">
+              <svg viewBox="0 0 220 186" focusable="false">
+                <path class="howto-pad-lower" d="M14 101 C14 78 55 64 110 64 C165 64 206 78 206 101 L206 118 A96 60 0 0 1 14 118 Z" />
+                <path class="howto-pad-side" d="M25 74 C25 40 62 18 110 18 C158 18 195 40 195 74 L195 100 C195 131 158 155 110 155 C62 155 25 131 25 100 Z" />
+                <path class="howto-pad-rim" d="M14 101 A96 60 0 0 0 206 101" />
+                <ellipse class="howto-pad-face" cx="110" cy="69" rx="82" ry="55" />
+                <polygon class="howto-pad-shape" points="110 37 144 100 76 100" />
+              </svg>
+            </span>
+          </span>
+          <span class="howto-preview-pad howto-preview-pad-blue">
+            <span class="howto-preview-pad-art" aria-hidden="true">
+              <svg viewBox="0 0 220 186" focusable="false">
+                <path class="howto-pad-lower" d="M14 101 C14 78 55 64 110 64 C165 64 206 78 206 101 L206 118 A96 60 0 0 1 14 118 Z" />
+                <path class="howto-pad-side" d="M25 74 C25 40 62 18 110 18 C158 18 195 40 195 74 L195 100 C195 131 158 155 110 155 C62 155 25 131 25 100 Z" />
+                <path class="howto-pad-rim" d="M14 101 A96 60 0 0 0 206 101" />
+                <ellipse class="howto-pad-face" cx="110" cy="69" rx="82" ry="55" />
+                <rect class="howto-pad-shape" x="80" y="40" width="60" height="60" rx="9" />
+              </svg>
+            </span>
+          </span>
+          <span class="howto-preview-pad howto-preview-pad-green">
+            <span class="howto-preview-pad-art" aria-hidden="true">
+              <svg viewBox="0 0 220 186" focusable="false">
+                <path class="howto-pad-lower" d="M14 101 C14 78 55 64 110 64 C165 64 206 78 206 101 L206 118 A96 60 0 0 1 14 118 Z" />
+                <path class="howto-pad-side" d="M25 74 C25 40 62 18 110 18 C158 18 195 40 195 74 L195 100 C195 131 158 155 110 155 C62 155 25 131 25 100 Z" />
+                <path class="howto-pad-rim" d="M14 101 A96 60 0 0 0 206 101" />
+                <ellipse class="howto-pad-face" cx="110" cy="69" rx="82" ry="55" />
+                <circle class="howto-pad-shape" cx="110" cy="70" r="32" />
+              </svg>
+            </span>
+          </span>
+        </div>
+      </div>
       <ol class="howto-list">
         <li><span class="step-mark">1</span>화면의 표시를 잘 봅니다.</li>
         <li><span class="step-mark">2</span>같은 모양의 멜로디 패드를 눌러주세요.</li>
@@ -126,7 +179,12 @@
         <li><span class="step-mark">4</span>빨간 X가 나오면 누르지 말고 기다리세요.</li>
         <li><span class="step-mark">5</span>제한 시간 안에 많이 맞혀 보세요.</li>
       </ol>
-      <button class="primary-button wide-action" type="button" data-go="home">알겠어요</button>
+      <div class="howto-actions howto-actions-first">
+        <button class="secondary-button howto-action-button howto-close-button" type="button" data-go="home">닫기</button>
+        <button id="howtoNextButton" class="primary-button howto-action-button howto-next-button" type="button">다음</button>
+      </div>
+      </div>
+      <div class="howto-page howto-page-two" data-howto-page="2" aria-hidden="true"></div>
     </section>
 
     <section id="settingsScreen" class="screen" data-screen="settings" aria-labelledby="settingsTitle">
@@ -199,7 +257,7 @@
           <span class="progress-label">집중 판단 활동</span>
           <div class="progress-track" aria-label="남은 시간">
             <div id="progressFill" class="progress-fill"></div>
-            <span id="timeText" class="progress-time">01:00</span>
+            <span id="timeText" class="progress-time">02:00</span>
           </div>
           <button id="pauseButton" class="pause-button" type="button">일시정지</button>
         </div>
@@ -221,41 +279,100 @@
       <div id="feedbackOverlay" class="feedback-overlay" aria-live="assertive"></div>
 
       <div id="pauseOverlay" class="pause-overlay" aria-live="polite">
-        <div class="pause-panel">
-          <h3>잠시 쉬는 중이에요</h3>
-          <button id="resumeButton" class="primary-button" type="button">계속하기</button>
-          <button id="quitButton" class="secondary-button" type="button">처음으로</button>
+        <div class="pause-panel" role="dialog" aria-modal="true" aria-labelledby="pauseTitle">
+          <h3 id="pauseTitle">잠시 쉬어가요</h3>
+          <p>준비되면 이어서 해볼까요?</p>
+          <div class="pause-layout">
+            <div class="pause-action-panel">
+              <button id="resumeButton" class="primary-button pause-main-button" type="button">계속하기</button>
+              <div class="pause-small-actions">
+                <button id="pauseRestartButton" class="secondary-button pause-sub-button" type="button">다시하기</button>
+                <button id="quitButton" class="secondary-button pause-sub-button" type="button">그만하기</button>
+              </div>
+              <button id="pauseHelpButton" class="secondary-button pause-help-button" type="button" data-go="howto">
+                <span class="pause-help-icon" aria-hidden="true">?</span>
+                <span>진행방법</span>
+              </button>
+            </div>
+            <section class="pause-sound-panel" aria-label="소리 설정">
+              <div class="pause-sound-options">
+                <button id="pause-background-sound-button" class="pause-sound-button" type="button" aria-pressed="true">
+                  <span class="pause-sound-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                      <path d="M9 18V5l12-2v13"></path>
+                      <circle cx="6" cy="18" r="3"></circle>
+                      <circle cx="18" cy="16" r="3"></circle>
+                    </svg>
+                  </span>
+                  <span class="pause-sound-name">배경음</span>
+                  <span class="pause-toggle-visual" aria-hidden="true"><span>ON</span><i></i></span>
+                </button>
+                <button id="pause-sound-button" class="pause-sound-button" type="button" aria-pressed="true">
+                  <span class="pause-sound-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                      <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+                      <path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+                      <path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path>
+                    </svg>
+                  </span>
+                  <span class="pause-sound-name">효과음</span>
+                  <span class="pause-toggle-visual" aria-hidden="true"><span>ON</span><i></i></span>
+                </button>
+                <button id="pause-voice-guide-button" class="pause-sound-button" type="button" aria-pressed="true">
+                  <span class="pause-sound-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                      <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+                      <path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+                      <path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path>
+                    </svg>
+                  </span>
+                  <span class="pause-sound-name">안내음성</span>
+                  <span class="pause-toggle-visual" aria-hidden="true"><span>ON</span><i></i></span>
+                </button>
+              </div>
+            </section>
+          </div>
         </div>
       </div>
     </section>
 
-    <section id="resultScreen" class="screen" data-screen="result" aria-labelledby="resultTitle">
-      <header class="screen-header">
-        <button class="icon-button" type="button" data-go="home" aria-label="처음 화면으로">‹</button>
-        <h2 id="resultTitle">연주 결과</h2>
-      </header>
-      <div class="result-summary">
-        <div>
-          <span>연주한 노래</span>
-          <strong id="resultSongTitle">아직 기록 없음</strong>
+    <section id="resultScreen" class="screen" data-screen="result">
+      <div class="result-simple-card">
+        <div class="memory-card memory-ribbon-card result-ribbon-card">
+          <svg class="memory-ribbon-svg" viewBox="0 0 1120 180" aria-hidden="true" focusable="false">
+            <defs>
+              <linearGradient id="memoryRibbonFill" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#ff9b31" />
+                <stop offset="100%" stop-color="#ff6412" />
+              </linearGradient>
+              <linearGradient id="memoryRibbonFold" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#f47b18" />
+                <stop offset="100%" stop-color="#c84c08" />
+              </linearGradient>
+            </defs>
+            <g class="memory-ribbon-shadow">
+              <path d="M70 70 L180 64 L180 122 L70 128 L105 96 Z" />
+              <path d="M1050 70 L940 64 L940 122 L1050 128 L1015 96 Z" />
+              <path d="M175 40 H945 Q970 40 970 65 V115 Q970 140 945 140 H175 Q150 140 150 115 V65 Q150 40 175 40 Z" />
+            </g>
+            <path class="memory-ribbon-tail" d="M70 70 L180 64 L180 122 L70 128 L105 96 Z" />
+            <path class="memory-ribbon-tail" d="M1050 70 L940 64 L940 122 L1050 128 L1015 96 Z" />
+            <path class="memory-ribbon-fold" d="M180 122 L255 140 L180 140 Z" />
+            <path class="memory-ribbon-fold" d="M940 122 L865 140 L940 140 Z" />
+            <rect class="memory-ribbon-main" x="150" y="40" width="820" height="100" rx="24" />
+            <rect class="memory-ribbon-highlight" x="167" y="57" width="786" height="66" rx="18" />
+          </svg>
+          <p class="guide-text memory-ribbon-text">오늘의 결과</p>
         </div>
-        <div>
-          <span>연주 진행률</span>
-          <strong id="resultProgress">0%</strong>
+        <div class="result-content-group">
+          <span class="result-simple-label">성공률</span>
+          <strong id="resultSuccessRate">0%</strong>
+          <p id="resultMessage">끝까지 집중했어요!</p>
         </div>
-      </div>
-      <div class="result-grid">
-        <div class="result-item"><span>정답 수</span><strong id="resultCorrect">0</strong></div>
-        <div class="result-item"><span>오답 수</span><strong id="resultWrong">0</strong></div>
-        <div class="result-item"><span>놓친 수</span><strong id="resultMissed">0</strong></div>
-        <div class="result-item"><span>성공률</span><strong id="resultSuccessRate">0%</strong></div>
-        <div class="result-item"><span>평균 반응 시간</span><strong id="resultAverageTime">0ms</strong></div>
-        <div class="result-item"><span>X 참기 성공</span><strong id="resultXSuccess">0</strong></div>
-        <div class="result-item"><span>X 실수</span><strong id="resultXFail">0</strong></div>
       </div>
       <div class="result-actions">
-        <button id="retryButton" class="primary-button" type="button">다시하기</button>
-        <button id="homeButton" class="secondary-button" type="button">처음으로</button>
+        <button id="homeButton" class="secondary-button" type="button">홈으로 돌아가기</button>
+        <button id="hostReturnButton" class="primary-button" type="button">효담콜로 돌아가기</button>
       </div>
     </section>
   </main>

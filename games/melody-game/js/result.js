@@ -61,16 +61,10 @@
         element.textContent = text;
       }
     };
+    const rate = Number(result.success_rate) || 0;
 
-    setText("resultSongTitle", result.song_title);
-    setText("resultProgress", `${result.progress_rate}%`);
-    setText("resultCorrect", result.correct_count);
-    setText("resultWrong", result.wrong_count);
-    setText("resultMissed", result.missed_count);
-    setText("resultSuccessRate", `${result.success_rate}%`);
-    setText("resultAverageTime", `${result.average_reaction_time_ms}ms`);
-    setText("resultXSuccess", result.x_success_count);
-    setText("resultXFail", result.x_fail_count);
+    setText("resultSuccessRate", `${rate}%`);
+    setText("resultMessage", "오늘도 잘 참여했어요!");
   }
 
   window.ResultManager = {

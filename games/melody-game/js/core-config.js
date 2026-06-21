@@ -43,8 +43,8 @@
       autoReturnMs: 2500,
       softFeedback: true,
       previewEnabled: true,
-      xPatternEnabled: false,
-      sessionTime: 45,
+      xPatternEnabled: null,
+      sessionTime: 120,
       targetNoteCount: 10
     },
     care: {
@@ -60,8 +60,8 @@
       autoReturnMs: 0,
       softFeedback: true,
       previewEnabled: true,
-      xPatternEnabled: false,
-      sessionTime: 40,
+      xPatternEnabled: null,
+      sessionTime: 120,
       targetNoteCount: 8
     },
     ai_assisted: {
@@ -77,8 +77,8 @@
       autoReturnMs: 0,
       softFeedback: true,
       previewEnabled: true,
-      xPatternEnabled: false,
-      sessionTime: 35,
+      xPatternEnabled: null,
+      sessionTime: 120,
       targetNoteCount: 8
     }
   };

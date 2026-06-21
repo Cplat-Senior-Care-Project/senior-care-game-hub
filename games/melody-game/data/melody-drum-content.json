@@ -23,14 +23,14 @@
                           "care":  {
                                        "difficulty":  "easy",
                                        "auto_start":  true,
-                                       "session_time":  40,
+                                       "session_time":  120,
                                        "target_note_count":  8,
                                        "allow_replay":  false
                                    },
                           "ai_assisted":  {
                                               "difficulty":  "easy",
                                               "auto_start":  true,
-                                              "session_time":  35,
+                                              "session_time":  120,
                                               "target_note_count":  8,
                                               "allow_replay":  false
                                           }
