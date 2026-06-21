@@ -1,8 +1,8 @@
-# 작은 먹이 농장 코드 README / 실행 가이드
+# 도깨비야! 무슨 색을 먹니? 코드 README / 실행 가이드
 
 ## 1. 개요
 
-`작은 먹이 농장`은 동물에게 맞는 먹이를 주고, 정리 물건은 정리 구역으로 보내는 WebView 기반 시니어 인지 활동 게임입니다.
+`도깨비야! 무슨 색을 먹니?`은 동물에게 맞는 먹이를 주고, 정리 물건은 정리 구역으로 보내는 WebView 기반 시니어 인지 활동 게임입니다.
 
 지원 모드는 4가지입니다.
 
@@ -44,10 +44,10 @@
    ├─ monkey.png
    ├─ squirrel.png
    ├─ panda.png
-   ├─ meat.png
-   ├─ banana.png
-   ├─ acorn.png
-   ├─ bamboo.png
+   ├─ kiwi.png
+   ├─ green_grape.png
+   ├─ pea_pod.png
+   ├─ broccoli.png
    ├─ paper.png
    ├─ bone.png
    └─ bin.png
@@ -170,7 +170,7 @@ URL query로 전달 가능한 주요 값:
 
 동물 랜덤 규칙:
 
-- 세션 시작 시 필요한 동물 수만큼 `호랑이`, `원숭이`, `다람쥐`, `판다` 중에서 랜덤 선택합니다.
+- 세션 시작 시 필요한 동물 수만큼 `빨간 도깨비`, `초록 도깨비`, `하얀 도깨비`, `노란 도깨비` 중에서 랜덤 선택합니다.
 - 한 세션이 시작되면 선택된 동물은 10문항 동안 고정됩니다.
 - 문항 중에는 동물 구성이 바뀌지 않습니다.
 - 앱이 `target_animals`를 전달하면 해당 동물을 우선 사용합니다.
@@ -334,18 +334,18 @@ QUESTION_START → QUESTION_RESULT ... → CONDITION_CHECK → FINISH_CHECK → 
     "prompt_text": "누구에게 줄까요?",
     "prompt_type": "image",
     "item": {
-      "item_id": "banana",
-      "label": "바나나",
+      "item_id": "green_grape",
+      "label": "청포도",
       "type": "food",
-      "image_src": "image/banana.png"
+      "image_src": "image/green_grape.png"
     },
     "choices": [
-      { "answer_id": "tiger", "label": "호랑이", "type": "animal", "image_src": "image/tiger.png" },
-      { "answer_id": "monkey", "label": "원숭이", "type": "animal", "image_src": "image/monkey.png" },
+      { "answer_id": "tiger", "label": "빨간 도깨비", "type": "animal", "image_src": "image/tiger.png" },
+      { "answer_id": "monkey", "label": "초록 도깨비", "type": "animal", "image_src": "image/monkey.png" },
       { "answer_id": "bin", "label": "휴지통", "type": "cleanup", "image_src": "image/bin.png" }
     ],
     "correct_answer": "monkey",
-    "correct_answer_label": "원숭이",
+    "correct_answer_label": "초록 도깨비",
     "input_modes_enabled": ["touch", "external"]
   }
 }
@@ -372,11 +372,11 @@ QUESTION_START → QUESTION_RESULT ... → CONDITION_CHECK → FINISH_CHECK → 
       "hint_used": false,
       "response_time_ms": 2400,
       "input_type": "touch",
-      "item_id": "banana",
-      "item_label": "바나나",
+      "item_id": "green_grape",
+      "item_label": "청포도",
       "item_type": "food",
-      "correct_answer_label": "원숭이",
-      "selected_answer_label": "원숭이"
+      "correct_answer_label": "초록 도깨비",
+      "selected_answer_label": "초록 도깨비"
     }
   }
 }

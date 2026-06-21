@@ -1,5 +1,5 @@
 /* ============================================================
-   작은 먹이 농장 — 시니어 인지훈련 게임
+   도깨비야! 무슨 색을 먹니? — 시니어 인지훈련 게임
    Vanilla JS / 오프라인 / WebView 가로모드
    ============================================================ */
 
@@ -67,13 +67,13 @@ function showErrorScreen(error) {
 }
 
 const ANIMALS = {
-  tiger:    { id:"tiger",    label:"호랑이", img:"image/tiger.png",
+  tiger:    { id:"tiger",    label:"빨간 도깨비", img:"image/red_goblin.png", correctImg:"image/red_goblin_correct.png",
               cheers:["든든해요","고마워요","어흥, 좋아요","잘 먹을게요"] },
-  monkey:   { id:"monkey",   label:"원숭이", img:"image/monkey.png",
+  monkey:   { id:"monkey",   label:"초록 도깨비", img:"image/green_goblin.png", correctImg:"image/green_goblin_correct.png",
               cheers:["우키, 좋아요","고마워요","맛있게 먹을게요","신나요"] },
-  squirrel: { id:"squirrel", label:"다람쥐", img:"image/squirrel.png",
-              cheers:["냠냠 좋아요","고마워요","따뜻해요","도토리 시간이에요"] },
-  panda:    { id:"panda",    label:"판다",   img:"image/panda.png",
+  squirrel: { id:"squirrel", label:"하얀 도깨비", img:"image/white_goblin.png", correctImg:"image/white_goblin_correct.png",
+              cheers:["냠냠 좋아요","고마워요","따뜻해요","좋은 시간이네요"] },
+  panda:    { id:"panda",    label:"노란 도깨비",   img:"image/yellow_goblin.png", correctImg:"image/yellow_goblin_correct.png",
               cheers:["아삭아삭 좋아요","고마워요","마음에 들어요","천천히 먹을게요"] },
   bin:      { id:"bin",      label:"휴지통", img:"image/bin.png",
               cheers:["정리했어요","깔끔해졌어요","잘 치웠어요"] },
@@ -87,12 +87,32 @@ function pickCheer(animalId) {
 }
 
 const FOODS = [
-  { id:"meat",    label:"고기",   img:"image/meat.png",   type:"food",  target:"tiger" },
-  { id:"banana",  label:"바나나", img:"image/banana.png", type:"food",  target:"monkey" },
-  { id:"acorn",   label:"도토리", img:"image/acorn.png",  type:"food",  target:"squirrel" },
-  { id:"bamboo",  label:"대나무", img:"image/bamboo.png", type:"food",  target:"panda" },
-  { id:"paper",   label:"종이",   img:"image/paper.png",  type:"trash", target:"bin" },
-  { id:"bone",    label:"생선가시", img:"image/bone.png", type:"trash", target:"bin" },
+  { id:"tomato",             label:"토마토",        img:"image/tomato.png",             type:"food",  target:"tiger" },
+  { id:"cherry",             label:"체리",          img:"image/cherry.png",             type:"food",  target:"tiger" },
+  { id:"apple",              label:"사과",          img:"image/apple.png",              type:"food",  target:"tiger" },
+  { id:"red_chili_pepper",   label:"빨간 고추",     img:"image/red_chili_pepper.png",   type:"food",  target:"tiger" },
+  { id:"red_bell_pepper",    label:"빨간 파프리카", img:"image/red_bell_pepper.png",    type:"food",  target:"tiger" },
+  { id:"strawberry",         label:"딸기",          img:"image/strawberry.png",         type:"food",  target:"tiger" },
+  { id:"kiwi",               label:"키위",          img:"image/kiwi.png",               type:"food",  target:"monkey" },
+  { id:"green_grape",        label:"청포도",        img:"image/green_grape.png",        type:"food",  target:"monkey" },
+  { id:"pea_pod",            label:"완두콩",        img:"image/pea_pod.png",            type:"food",  target:"monkey" },
+  { id:"broccoli",           label:"브로콜리",      img:"image/broccoli.png",           type:"food",  target:"monkey" },
+  { id:"cucumber",           label:"오이",          img:"image/cucumber.png",           type:"food",  target:"monkey" },
+  { id:"green_apple",        label:"초록 사과",     img:"image/green_apple.png",        type:"food",  target:"monkey" },
+  { id:"garlic",             label:"마늘",          img:"image/garlic.png",             type:"food",  target:"squirrel" },
+  { id:"onion",              label:"양파",          img:"image/onion.png",              type:"food",  target:"squirrel" },
+  { id:"pear",               label:"배",            img:"image/pear.png",               type:"food",  target:"squirrel" },
+  { id:"peach",              label:"복숭아",        img:"image/peach.png",              type:"food",  target:"squirrel" },
+  { id:"mushroom",           label:"버섯",          img:"image/mushroom.png",           type:"food",  target:"squirrel" },
+  { id:"radish",             label:"무",            img:"image/radish.png",             type:"food",  target:"squirrel" },
+  { id:"corn",               label:"옥수수",        img:"image/corn.png",               type:"food",  target:"panda" },
+  { id:"lemon",              label:"레몬",          img:"image/lemon.png",              type:"food",  target:"panda" },
+  { id:"mango",              label:"망고",          img:"image/mango.png",              type:"food",  target:"panda" },
+  { id:"pineapple",          label:"파인애플",      img:"image/pineapple.png",          type:"food",  target:"panda" },
+  { id:"yellow_bell_pepper", label:"노란 파프리카", img:"image/yellow_bell_pepper.png", type:"food",  target:"panda" },
+  { id:"yellow_banana",      label:"바나나",        img:"image/yellow_banana.png",      type:"food",  target:"panda" },
+  { id:"paper",              label:"종이",          img:"image/paper.png",              type:"trash", target:"bin" },
+  { id:"bone",               label:"생선가시",      img:"image/bone.png",               type:"trash", target:"bin" },
 ];
 
 const DIFFS = {
@@ -145,6 +165,7 @@ let fatalError = null;
 let displayRequestEmitted = false;
 let finishCheck = { condition: null, sleep: null };
 let pendingDiff = null;
+let pendingSessionSettings = null;
 let countdownTimer = null;
 let pendingCompletionMessage = null;
 let pendingAutoReturnMs = 0;

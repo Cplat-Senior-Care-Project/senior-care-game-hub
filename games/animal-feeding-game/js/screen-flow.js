@@ -21,6 +21,7 @@ function loading(){
   const pct = document.getElementById("pct");
   const all = [
     ...Object.values(ANIMALS).map(a => a.img),
+    ...Object.values(ANIMALS).map(a => a.correctImg).filter(Boolean),
     ...FOODS.map(f => f.img),
   ];
   let loaded = 0;
@@ -119,6 +120,7 @@ function beginActivityIntro() {
 
 function beginIntroFlow(diff) {
   pendingDiff = diff || selectedDiff;
+  if (typeof prepareSessionPreview === "function") prepareSessionPreview(pendingDiff);
   show("ready");
   setTimeout(() => runCountdown(pendingDiff), 900);
 }

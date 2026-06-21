@@ -48,6 +48,10 @@ function clearSpotStates() {
   document.getElementById("board")?.classList.remove("answer-good", "answer-warn");
   document.querySelectorAll(".spot, .bin").forEach(s => {
     s.classList.remove("target", "hint", "good", "bad", "soft-guide", "dim", "react-tiger", "react-monkey", "react-squirrel", "react-panda", "react-bin");
+    const targetId = s.dataset.target;
+    const normalImg = ANIMALS[targetId]?.img;
+    const pic = s.querySelector(".pic");
+    if (pic && normalImg) pic.style.backgroundImage = `url('${assetUrl(normalImg)}')`;
   });
 }
 
@@ -208,6 +212,9 @@ function resolve(targetId, spotEl, inputType = "touch") {
     cur.selectedTargetId = targetId;
     cur.responseTimeMs = Math.round(performance.now() - cur._t0);
     spotEl.classList.add("good", `react-${targetId}`);
+    const correctImg = ANIMALS[targetId]?.correctImg;
+    const pic = spotEl.querySelector(".pic");
+    if (pic && correctImg) pic.style.backgroundImage = `url('${assetUrl(correctImg)}')`;
     // set a random cheer for THIS round
     const bub = spotEl.querySelector(".bubble");
     if (bub) bub.textContent = pickCheer(targetId);

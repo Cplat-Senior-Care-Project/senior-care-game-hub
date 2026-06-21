@@ -1,25 +1,40 @@
 /* ===========================================================
    4. SESSION + QUEUE
    =========================================================== */
+function shuffleItems(items) {
+  const shuffled = items.slice();
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+  return shuffled;
+}
+
 function buildQueue(d) {
   const foodItems  = FOODS.filter(f => f.type === "food"  && d.animals.includes(f.target));
   const trashItems = FOODS.filter(f => f.type === "trash");
   const nFood = d.rounds - d.trash;
 
-  const foods = foodItems.slice();
-  for (let i = foods.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [foods[i], foods[j]] = [foods[j], foods[i]];
-  }
-
   const qs = [];
-  for (let i = 0; i < nFood; i++) {
+  const usedFoodIds = new Set();
+  const foodTargets = shuffleItems(d.animals.filter(id => foodItems.some(f => f.target === id)));
+
+  foodTargets.forEach(targetId => {
+    if (qs.length >= nFood) return;
+    const candidates = shuffleItems(foodItems.filter(f => f.target === targetId && !usedFoodIds.has(f.id)));
+    const next = candidates[0] || foodItems.find(f => f.target === targetId);
+    if (!next) return;
+    qs.push(next);
+    usedFoodIds.add(next.id);
+  });
+
+  let foods = shuffleItems(foodItems.filter(f => !usedFoodIds.has(f.id)));
+  while (qs.length < nFood && foodItems.length) {
+    if (!foods.length) foods = shuffleItems(foodItems);
     const last = qs[qs.length - 1];
-    let next = foods[i % foods.length];
-    if (last && next.target === last.target && foods.length > 1) {
-      const alt = foods.find(f => f.target !== last.target);
-      if (alt) next = alt;
-    }
+    let nextIndex = foods.findIndex(f => !last || f.target !== last.target);
+    if (nextIndex < 0) nextIndex = 0;
+    const [next] = foods.splice(nextIndex, 1);
     qs.push(next);
   }
 
@@ -58,7 +73,9 @@ function sessionSettings(diff) {
     ? requestedAnimals.length
     : (runtime.animalCount || base.animals.length);
   const animalCount = Math.max(1, Math.min(ANIMAL_POOL.length, requestedCount));
-  const animals = pickSessionAnimals(animalCount, requestedAnimals);
+  const fixedTargets = [...new Set(requestedAnimals)];
+  const effectiveCount = Math.max(animalCount, fixedTargets.length);
+  const animals = pickSessionAnimals(effectiveCount, fixedTargets);
   const rounds = runtime.questionCount || base.rounds;
   const trash = runtime.trashCount >= 0 ? runtime.trashCount : base.trash;
   return {
@@ -66,6 +83,27 @@ function sessionSettings(diff) {
     rounds: Math.max(1, rounds),
     trash: Math.max(0, Math.min(trash, Math.max(0, rounds - 1))),
   };
+}
+
+function renderReadyFriends(animalIds) {
+  const readyFriends = document.getElementById("readyFriends");
+  if (!readyFriends) return;
+  readyFriends.innerHTML = "";
+  animalIds.forEach(id => {
+    const animal = ANIMALS[id];
+    if (!animal) return;
+    const img = document.createElement("img");
+    img.src = assetUrl(animal.img);
+    img.alt = "";
+    readyFriends.appendChild(img);
+  });
+}
+
+function prepareSessionPreview(diff) {
+  const settings = sessionSettings(diff);
+  pendingSessionSettings = { diff, settings };
+  renderReadyFriends(settings.animals);
+  return settings;
 }
 
 function sessionPayload() {
@@ -81,7 +119,11 @@ function sessionPayload() {
 }
 
 function startSession(diff) {
-  const d = sessionSettings(diff);
+  const prepared = pendingSessionSettings && pendingSessionSettings.diff === diff
+    ? pendingSessionSettings.settings
+    : null;
+  const d = prepared || sessionSettings(diff);
+  pendingSessionSettings = null;
   state = {
     sessionId: runtime.sessionId || uid(),
     contentId: runtime.contentId,

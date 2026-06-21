@@ -4,7 +4,7 @@
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover"/>
 <meta name="apple-mobile-web-app-capable" content="yes"/>
-<title>작은 먹이 농장</title>
+<title>도깨비야! 무슨 색을 먹니?</title>
 <link rel="icon" href="data:,"/>
 <link rel="stylesheet" href="css/base.css"/>
 <link rel="stylesheet" href="css/screens.css"/>
@@ -29,7 +29,7 @@
   <!-- ============== 2. START ============== -->
   <section id="start" class="screen">
     <div class="start-top">
-      <div class="start-brand">작은 먹이 농장</div>
+      <div class="start-brand">도깨비야! 무슨 색을 먹니?</div>
       <div class="start-controls">
         <button class="chip" id="voiceBtn">🔊 음성</button>
         <button class="chip" id="fontBtn">가 크게</button>
@@ -38,15 +38,15 @@
     </div>
 
     <div class="start-title-area">
-      <div class="start-title">오늘의 작은 먹이 농장</div>
+      <div class="start-title">도깨비야! 무슨 색을 먹니?</div>
       <div class="start-sub">농장 친구들에게 먹이를 나눠 주실래요?</div>
     </div>
 
     <div class="hero">
-      <img src="image/tiger.png" alt="호랑이"/>
-      <img src="image/monkey.png" alt="원숭이"/>
-      <img src="image/squirrel.png" alt="다람쥐"/>
-      <img src="image/panda.png" alt="판다"/>
+      <img src="image/red_goblin.png" alt="빨간 도깨비"/>
+      <img src="image/green_goblin.png" alt="초록 도깨비"/>
+      <img src="image/white_goblin.png" alt="하얀 도깨비"/>
+      <img src="image/yellow_goblin.png" alt="노란 도깨비"/>
     </div>
 
     <div>
@@ -59,8 +59,8 @@
               <div class="diff-s">두 친구 챙기기</div>
             </div>
             <div class="diff-icons">
-              <img src="image/tiger.png" alt=""/>
-              <img src="image/monkey.png" alt=""/>
+              <img src="image/mystery_goblin.png" alt=""/>
+              <img src="image/mystery_goblin.png" alt=""/>
             </div>
           </div>
           <div class="diff-divider"></div>
@@ -74,9 +74,9 @@
               <div class="diff-s">세 친구 돌보기</div>
             </div>
             <div class="diff-icons">
-              <img src="image/tiger.png" alt=""/>
-              <img src="image/monkey.png" alt=""/>
-              <img src="image/squirrel.png" alt=""/>
+              <img src="image/mystery_goblin.png" alt=""/>
+              <img src="image/mystery_goblin.png" alt=""/>
+              <img src="image/mystery_goblin.png" alt=""/>
             </div>
           </div>
           <div class="diff-divider"></div>
@@ -90,10 +90,10 @@
               <div class="diff-s">모두 챙기기</div>
             </div>
             <div class="diff-icons">
-              <img src="image/tiger.png" alt=""/>
-              <img src="image/monkey.png" alt=""/>
-              <img src="image/squirrel.png" alt=""/>
-              <img src="image/panda.png" alt=""/>
+              <img src="image/mystery_goblin.png" alt=""/>
+              <img src="image/mystery_goblin.png" alt=""/>
+              <img src="image/mystery_goblin.png" alt=""/>
+              <img src="image/mystery_goblin.png" alt=""/>
             </div>
           </div>
           <div class="diff-divider"></div>
@@ -117,19 +117,19 @@
     <div class="how-grid">
       <div class="how-card">
         <div class="how-num">1</div>
-        <div class="how-illust glow"><img src="image/meat.png" alt=""/></div>
+        <div class="how-illust glow"><img src="image/kiwi.png" alt=""/></div>
         <div class="how-card-title">먹이를 봐요</div>
         <div class="how-card-desc">가운데 먹이판에 먹이가 나와요</div>
       </div>
       <div class="how-card">
         <div class="how-num">2</div>
-        <div class="how-illust highlight"><img src="image/tiger.png" alt=""/></div>
+        <div class="how-illust highlight"><img src="image/red_goblin.png" alt=""/></div>
         <div class="how-card-title">친구를 골라요</div>
         <div class="how-card-desc">좋아할 친구에게 전해요</div>
       </div>
       <div class="how-card">
         <div class="how-num">3</div>
-        <div class="how-illust happy"><img src="image/tiger.png" alt=""/></div>
+        <div class="how-illust happy"><img src="image/red_goblin.png" alt=""/></div>
         <div class="how-card-title">친구가 반겨요</div>
         <div class="how-card-desc">맞으면 따뜻하게 반응해요</div>
       </div>
@@ -146,10 +146,10 @@
       <div class="done-eyebrow">시작 준비</div>
       <div class="ready-title">먹이 농장을 열게요</div>
       <div class="ready-sub">친구들이 자리에 앉았어요</div>
-      <div class="ready-friends" aria-hidden="true">
-        <img src="image/tiger.png" alt=""/>
-        <img src="image/monkey.png" alt=""/>
-        <img src="image/squirrel.png" alt=""/>
+      <div class="ready-friends" id="readyFriends" aria-hidden="true">
+        <img src="image/red_goblin.png" alt=""/>
+        <img src="image/green_goblin.png" alt=""/>
+        <img src="image/white_goblin.png" alt=""/>
       </div>
     </div>
   </section>
@@ -181,7 +181,7 @@
       <div class="item-wrap has-glow" id="itemWrap">
         <div class="item" id="item" role="button" aria-label="먹이"></div>
         <div class="item-shadow"></div>
-        <div class="item-label" id="itemLabel">고기</div>
+        <div class="item-label" id="itemLabel">키위</div>
       </div>
     </div>
   </section>

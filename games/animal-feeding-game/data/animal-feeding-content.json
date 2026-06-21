@@ -1,154 +1,322 @@
 {
-  "game_key": "animal_feeding",
-  "content_id": "cognitive_animal_feeding_001",
-  "version": "2.0.0",
-  "title": "작은 먹이 농장",
-  "cognitive_domains": [
-    "semantic_memory",
-    "selective_attention",
-    "visual_search",
-    "fine_motor_control"
-  ],
-  "animals": [
-    {
-      "id": "tiger",
-      "label": "호랑이",
-      "food_ids": ["meat"],
-      "image": "image/tiger.png"
-    },
-    {
-      "id": "monkey",
-      "label": "원숭이",
-      "food_ids": ["banana"],
-      "image": "image/monkey.png"
-    },
-    {
-      "id": "squirrel",
-      "label": "다람쥐",
-      "food_ids": ["acorn"],
-      "image": "image/squirrel.png"
-    },
-    {
-      "id": "panda",
-      "label": "판다",
-      "food_ids": ["bamboo"],
-      "image": "image/panda.png"
-    }
-  ],
-  "items": [
-    {
-      "id": "meat",
-      "label": "고기",
-      "type": "food",
-      "target": "tiger",
-      "image": "image/meat.png"
-    },
-    {
-      "id": "banana",
-      "label": "바나나",
-      "type": "food",
-      "target": "monkey",
-      "image": "image/banana.png"
-    },
-    {
-      "id": "acorn",
-      "label": "도토리",
-      "type": "food",
-      "target": "squirrel",
-      "image": "image/acorn.png"
-    },
-    {
-      "id": "bamboo",
-      "label": "대나무",
-      "type": "food",
-      "target": "panda",
-      "image": "image/bamboo.png"
-    },
-    {
-      "id": "paper",
-      "label": "종이",
-      "type": "trash",
-      "target": "bin",
-      "image": "image/paper.png"
-    },
-    {
-      "id": "bone",
-      "label": "생선가시",
-      "type": "trash",
-      "target": "bin",
-      "image": "image/bone.png"
-    }
-  ],
-  "difficulty_defaults": {
-    "easy": {
-      "animal_count": 2,
-      "question_count": 10,
-      "trash_count": 1
-    },
-    "normal": {
-      "animal_count": 3,
-      "question_count": 10,
-      "trash_count": 2
-    },
-    "hard": {
-      "animal_count": 4,
-      "question_count": 10,
-      "trash_count": 2
-    }
-  },
-  "mode_defaults": {
-    "standard": {
-      "show_difficulty_select": true,
-      "show_score": true,
-      "show_progress": true,
-      "show_help": true,
-      "show_finish_check": true,
-      "use_drag": true,
-      "allow_replay": true
-    },
-    "reminder": {
-      "auto_start": true,
-      "show_difficulty_select": false,
-      "show_score": false,
-      "show_progress": false,
-      "show_help": false,
-      "show_finish_check": false,
-      "auto_return_ms": 2500
-    },
-    "care": {
-      "difficulty": "easy",
-      "animal_count": 2,
-      "trash_count": 0,
-      "choice_count": 2,
-      "auto_start": true,
-      "show_difficulty_select": false,
-      "show_score": false,
-      "show_progress": false,
-      "show_help": false,
-      "show_how_to_play": false,
-      "show_finish_check": false,
-      "use_drag": false,
-      "soft_feedback": true
-    },
-    "ai_assisted": {
-      "difficulty": "easy",
-      "animal_count": 2,
-      "trash_count": 0,
-      "choice_count": 2,
-      "auto_start": true,
-      "show_difficulty_select": false,
-      "show_score": false,
-      "show_progress": false,
-      "show_help": false,
-      "show_how_to_play": false,
-      "show_finish_check": false,
-      "use_drag": false,
-      "soft_feedback": true
-    }
-  },
-  "question_generation": {
-    "animal_selection": "session_start_once_random_or_target_animals_config",
-    "queue_rule": "food_questions_for_session_animals_plus_distributed_trash_questions",
-    "repeat_mitigation": "avoid_consecutive_same_target_when_possible"
-  }
+    "game_key":  "animal_feeding",
+    "content_id":  "cognitive_animal_feeding_001",
+    "version":  "2.0.0",
+    "title":  "도깨비야! 무슨 색을 먹니?",
+    "cognitive_domains":  [
+                              "semantic_memory",
+                              "selective_attention",
+                              "visual_search",
+                              "fine_motor_control"
+                          ],
+    "animals":  [
+                    {
+                        "id":  "tiger",
+                        "label":  "빨간 도깨비",
+                        "food_ids":  [
+                                         "tomato",
+                                         "cherry",
+                                         "apple",
+                                         "red_chili_pepper",
+                                         "red_bell_pepper",
+                                         "strawberry"
+                                     ],
+                        "image":  "image/red_goblin.png"
+                    },
+                    {
+                        "id":  "monkey",
+                        "label":  "초록 도깨비",
+                        "food_ids":  [
+                                         "kiwi",
+                                         "green_grape",
+                                         "pea_pod",
+                                         "broccoli",
+                                         "cucumber",
+                                         "green_apple"
+                                     ],
+                        "image":  "image/green_goblin.png"
+                    },
+                    {
+                        "id":  "squirrel",
+                        "label":  "하얀 도깨비",
+                        "food_ids":  [
+                                         "garlic",
+                                         "onion",
+                                         "pear",
+                                         "peach",
+                                         "mushroom",
+                                         "radish"
+                                     ],
+                        "image":  "image/white_goblin.png"
+                    },
+                    {
+                        "id":  "panda",
+                        "label":  "노란 도깨비",
+                        "food_ids":  [
+                                         "corn",
+                                         "lemon",
+                                         "mango",
+                                         "pineapple",
+                                         "yellow_bell_pepper",
+                                         "yellow_banana"
+                                     ],
+                        "image":  "image/yellow_goblin.png"
+                    }
+                ],
+    "items":  [
+                  {
+                      "id":  "tomato",
+                      "label":  "토마토",
+                      "type":  "food",
+                      "target":  "tiger",
+                      "image":  "image/tomato.png"
+                  },
+                  {
+                      "id":  "cherry",
+                      "label":  "체리",
+                      "type":  "food",
+                      "target":  "tiger",
+                      "image":  "image/cherry.png"
+                  },
+                  {
+                      "id":  "apple",
+                      "label":  "사과",
+                      "type":  "food",
+                      "target":  "tiger",
+                      "image":  "image/apple.png"
+                  },
+                  {
+                      "id":  "red_chili_pepper",
+                      "label":  "빨간 고추",
+                      "type":  "food",
+                      "target":  "tiger",
+                      "image":  "image/red_chili_pepper.png"
+                  },
+                  {
+                      "id":  "red_bell_pepper",
+                      "label":  "빨간 파프리카",
+                      "type":  "food",
+                      "target":  "tiger",
+                      "image":  "image/red_bell_pepper.png"
+                  },
+                  {
+                      "id":  "strawberry",
+                      "label":  "딸기",
+                      "type":  "food",
+                      "target":  "tiger",
+                      "image":  "image/strawberry.png"
+                  },
+                  {
+                      "id":  "kiwi",
+                      "label":  "키위",
+                      "type":  "food",
+                      "target":  "monkey",
+                      "image":  "image/kiwi.png"
+                  },
+                  {
+                      "id":  "green_grape",
+                      "label":  "청포도",
+                      "type":  "food",
+                      "target":  "monkey",
+                      "image":  "image/green_grape.png"
+                  },
+                  {
+                      "id":  "pea_pod",
+                      "label":  "완두콩",
+                      "type":  "food",
+                      "target":  "monkey",
+                      "image":  "image/pea_pod.png"
+                  },
+                  {
+                      "id":  "broccoli",
+                      "label":  "브로콜리",
+                      "type":  "food",
+                      "target":  "monkey",
+                      "image":  "image/broccoli.png"
+                  },
+                  {
+                      "id":  "cucumber",
+                      "label":  "오이",
+                      "type":  "food",
+                      "target":  "monkey",
+                      "image":  "image/cucumber.png"
+                  },
+                  {
+                      "id":  "green_apple",
+                      "label":  "초록 사과",
+                      "type":  "food",
+                      "target":  "monkey",
+                      "image":  "image/green_apple.png"
+                  },
+                  {
+                      "id":  "paper",
+                      "label":  "종이",
+                      "type":  "trash",
+                      "target":  "bin",
+                      "image":  "image/paper.png"
+                  },
+                  {
+                      "id":  "bone",
+                      "label":  "생선가시",
+                      "type":  "trash",
+                      "target":  "bin",
+                      "image":  "image/bone.png"
+                  },
+                  {
+                      "id":  "garlic",
+                      "label":  "마늘",
+                      "type":  "food",
+                      "target":  "squirrel",
+                      "image":  "image/garlic.png"
+                  },
+                  {
+                      "id":  "onion",
+                      "label":  "양파",
+                      "type":  "food",
+                      "target":  "squirrel",
+                      "image":  "image/onion.png"
+                  },
+                  {
+                      "id":  "pear",
+                      "label":  "배",
+                      "type":  "food",
+                      "target":  "squirrel",
+                      "image":  "image/pear.png"
+                  },
+                  {
+                      "id":  "peach",
+                      "label":  "복숭아",
+                      "type":  "food",
+                      "target":  "squirrel",
+                      "image":  "image/peach.png"
+                  },
+                  {
+                      "id":  "mushroom",
+                      "label":  "버섯",
+                      "type":  "food",
+                      "target":  "squirrel",
+                      "image":  "image/mushroom.png"
+                  },
+                  {
+                      "id":  "radish",
+                      "label":  "무",
+                      "type":  "food",
+                      "target":  "squirrel",
+                      "image":  "image/radish.png"
+                  },
+                  {
+                      "id":  "corn",
+                      "label":  "옥수수",
+                      "type":  "food",
+                      "target":  "panda",
+                      "image":  "image/corn.png"
+                  },
+                  {
+                      "id":  "lemon",
+                      "label":  "레몬",
+                      "type":  "food",
+                      "target":  "panda",
+                      "image":  "image/lemon.png"
+                  },
+                  {
+                      "id":  "mango",
+                      "label":  "망고",
+                      "type":  "food",
+                      "target":  "panda",
+                      "image":  "image/mango.png"
+                  },
+                  {
+                      "id":  "pineapple",
+                      "label":  "파인애플",
+                      "type":  "food",
+                      "target":  "panda",
+                      "image":  "image/pineapple.png"
+                  },
+                  {
+                      "id":  "yellow_bell_pepper",
+                      "label":  "노란 파프리카",
+                      "type":  "food",
+                      "target":  "panda",
+                      "image":  "image/yellow_bell_pepper.png"
+                  },
+                  {
+                      "id":  "yellow_banana",
+                      "label":  "바나나",
+                      "type":  "food",
+                      "target":  "panda",
+                      "image":  "image/yellow_banana.png"
+                  }
+              ],
+    "difficulty_defaults":  {
+                                "easy":  {
+                                             "animal_count":  2,
+                                             "question_count":  10,
+                                             "trash_count":  1
+                                         },
+                                "normal":  {
+                                               "animal_count":  3,
+                                               "question_count":  10,
+                                               "trash_count":  2
+                                           },
+                                "hard":  {
+                                             "animal_count":  4,
+                                             "question_count":  10,
+                                             "trash_count":  2
+                                         }
+                            },
+    "mode_defaults":  {
+                          "standard":  {
+                                           "show_difficulty_select":  true,
+                                           "show_score":  true,
+                                           "show_progress":  true,
+                                           "show_help":  true,
+                                           "show_finish_check":  true,
+                                           "use_drag":  true,
+                                           "allow_replay":  true
+                                       },
+                          "reminder":  {
+                                           "auto_start":  true,
+                                           "show_difficulty_select":  false,
+                                           "show_score":  false,
+                                           "show_progress":  false,
+                                           "show_help":  false,
+                                           "show_finish_check":  false,
+                                           "auto_return_ms":  2500
+                                       },
+                          "care":  {
+                                       "difficulty":  "easy",
+                                       "animal_count":  2,
+                                       "trash_count":  0,
+                                       "choice_count":  2,
+                                       "auto_start":  true,
+                                       "show_difficulty_select":  false,
+                                       "show_score":  false,
+                                       "show_progress":  false,
+                                       "show_help":  false,
+                                       "show_how_to_play":  false,
+                                       "show_finish_check":  false,
+                                       "use_drag":  false,
+                                       "soft_feedback":  true
+                                   },
+                          "ai_assisted":  {
+                                              "difficulty":  "easy",
+                                              "animal_count":  2,
+                                              "trash_count":  0,
+                                              "choice_count":  2,
+                                              "auto_start":  true,
+                                              "show_difficulty_select":  false,
+                                              "show_score":  false,
+                                              "show_progress":  false,
+                                              "show_help":  false,
+                                              "show_how_to_play":  false,
+                                              "show_finish_check":  false,
+                                              "use_drag":  false,
+                                              "soft_feedback":  true
+                                          }
+                      },
+    "question_generation":  {
+                                "animal_selection":  "session_start_once_random_or_target_animals_config",
+                                "queue_rule":  "food_questions_for_session_animals_plus_distributed_trash_questions",
+                                "repeat_mitigation":  "avoid_consecutive_same_target_when_possible"
+                            }
 }

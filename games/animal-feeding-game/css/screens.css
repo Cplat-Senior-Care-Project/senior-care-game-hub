@@ -36,8 +36,8 @@
   height: clamp(78px, 12vmin, 138px);
   transform: translateX(-50%);
   background:
-    url("../image/tiger.png") left bottom / 46% auto no-repeat,
-    url("../image/monkey.png") right bottom / 46% auto no-repeat;
+    url("../image/red_goblin.png") left bottom / 46% auto no-repeat,
+    url("../image/green_goblin.png") right bottom / 46% auto no-repeat;
   opacity: .96;
   filter: drop-shadow(0 16px 18px rgba(52,64,43,.16));
   pointer-events: none;
