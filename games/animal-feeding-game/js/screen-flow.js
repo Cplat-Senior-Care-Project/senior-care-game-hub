@@ -1,7 +1,31 @@
 /* ---------- Screen routing ---------- */
-const SCREENS = ["loading", "start", "how", "ready", "countdown", "play", "finish", "done", "mood", "error"];
+const SCREENS = ["loading", "start", "precheck", "how", "ready", "countdown", "play", "finish", "done", "mood", "error"];
 function show(id) {
   SCREENS.forEach(s => document.getElementById(s).classList.toggle("on", s === id));
+}
+
+function setStartStage(stage) {
+  const start = document.getElementById("start");
+  if (!start) return;
+  const difficultyReady = stage === "difficulty" || !runtime.showDifficultySelect;
+  start.classList.toggle("precheck-pending", !difficultyReady);
+  start.classList.toggle("difficulty-ready", difficultyReady);
+}
+
+function showStartIntro(resetCheck = false) {
+  if (resetCheck) {
+    preGameCheck = { mood: "normal", sleepHours: 8, skipped: false, completed: false };
+    startDifficultyUnlocked = !runtime.showDifficultySelect;
+    resetPrecheckUi();
+  }
+  setStartStage(startDifficultyUnlocked ? "difficulty" : "intro");
+  show("start");
+}
+
+function showDifficultySelection() {
+  startDifficultyUnlocked = true;
+  setStartStage("difficulty");
+  show("start");
 }
 
 function preloadImage(src) {
@@ -64,7 +88,7 @@ function loading(){
         RN({ type:"READY", payload:{ version: VERSION } });
         emitDisplayRequest("ready");
         if (runtime.autoStart) maybeAutoStart();
-        else show("start");
+        else showStartIntro(true);
       }, 400);
     }
   }, 160);
@@ -75,16 +99,37 @@ loading();
 /* ===========================================================
    2. START — voice/font toggles + difficulty
    =========================================================== */
+const settingsBtn = document.getElementById("settingsBtn");
+const settingsPanel = document.getElementById("settingsPanel");
+settingsBtn?.addEventListener("click", e => {
+  e.stopPropagation();
+  const open = !settingsPanel?.classList.contains("open");
+  settingsPanel?.classList.toggle("open", open);
+  settingsBtn.setAttribute("aria-expanded", String(open));
+});
+settingsPanel?.addEventListener("click", e => e.stopPropagation());
+document.addEventListener("click", () => {
+  settingsPanel?.classList.remove("open");
+  settingsBtn?.setAttribute("aria-expanded", "false");
+});
+document.getElementById("sfxToggle")?.addEventListener("click", () => {
+  sfxOn = !sfxOn;
+  updateAudioControls();
+});
+document.getElementById("bgmToggle")?.addEventListener("click", () => {
+  bgmOn = !bgmOn;
+  updateAudioControls();
+});
 document.getElementById("voiceBtn").addEventListener("click", e => {
   if (!voiceAvailable) return;
   voiceOn = !voiceOn;
-  updateVoiceBtn();
+  updateAudioControls();
 });
-updateVoiceBtn();
+updateAudioControls();
 document.getElementById("fontBtn").addEventListener("click", e => {
   document.body.classList.toggle("large");
   const on = document.body.classList.contains("large");
-  e.currentTarget.textContent = on ? "가 보통" : "가 크게";
+  e.currentTarget.textContent = on ? "글씨 보통" : "글씨 크게";
 });
 document.getElementById("displayBtn")?.addEventListener("click", () => {
   enterGameDisplay("display_button");
@@ -98,6 +143,10 @@ document.querySelectorAll(".diff").forEach(b => {
 });
 
 document.getElementById("startBtn").addEventListener("click", () => {
+  if (!startDifficultyUnlocked && runtime.showDifficultySelect) {
+    show("precheck");
+    return;
+  }
   enterGameDisplay("start_button");
   beginStandardStartFlow();
 });
@@ -147,6 +196,10 @@ function runCountdown(diff) {
 document.getElementById("howStartBtn").addEventListener("click", () => {
   enterGameDisplay("how_start_button");
   localStorage.setItem("af_seen_how", "1");
+  if (!startDifficultyUnlocked && runtime.showDifficultySelect) {
+    show("precheck");
+    return;
+  }
   beginIntroFlow(pendingDiff || selectedDiff);
 });
 document.getElementById("howSkipBtn").addEventListener("click", () => {
@@ -155,5 +208,54 @@ document.getElementById("howSkipBtn").addEventListener("click", () => {
     beginIntroFlow(pendingDiff || selectedDiff);
     return;
   }
-  show("start");
+  showStartIntro();
 });
+
+/* ===========================================================
+   3b. PRE CHECK
+   =========================================================== */
+function updateSleepValue() {
+  const range = document.getElementById("preSleepRange");
+  const value = document.getElementById("preSleepValue");
+  if (!range || !value) return;
+  preGameCheck.sleepHours = Number(range.value) || 8;
+  value.textContent = `${preGameCheck.sleepHours}시간`;
+}
+
+function resetPrecheckUi() {
+  document.querySelectorAll("[data-pre-mood]").forEach(btn => {
+    btn.classList.toggle("selected", btn.dataset.preMood === "normal");
+  });
+  const range = document.getElementById("preSleepRange");
+  if (range) range.value = "8";
+  updateSleepValue();
+}
+
+document.querySelectorAll("[data-pre-mood]").forEach(btn => {
+  btn.addEventListener("click", () => {
+    preGameCheck.mood = btn.dataset.preMood;
+    document.querySelectorAll("[data-pre-mood]").forEach(x => x.classList.toggle("selected", x === btn));
+  });
+});
+
+document.getElementById("preSleepRange")?.addEventListener("input", updateSleepValue);
+
+function submitPrecheck(skipped = false) {
+  const moodLabels = { good: "좋음", normal: "보통", bad: "나쁨" };
+  updateSleepValue();
+  preGameCheck = {
+    phase: "pre",
+    skipped,
+    completed: true,
+    mood: skipped ? null : preGameCheck.mood,
+    mood_label: skipped ? null : (moodLabels[preGameCheck.mood] || null),
+    sleep_hours: skipped ? null : preGameCheck.sleepHours,
+  };
+  RN({ type:"CONDITION_CHECK", payload: preGameCheck });
+  showDifficultySelection();
+}
+
+document.getElementById("precheckNextBtn")?.addEventListener("click", () => submitPrecheck(false));
+document.getElementById("precheckSkipBtn")?.addEventListener("click", () => submitPrecheck(true));
+
+resetPrecheckUi();

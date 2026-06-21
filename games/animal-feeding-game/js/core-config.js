@@ -155,6 +155,7 @@ const SLOT_POS = {
 let state = null;
 let voiceOn = true;
 let sfxOn = true;
+let bgmOn = false;
 let voiceAvailable = false;
 let cfg = { fontScale: 1, reducedMotion: false, userAlias: "손님" };
 let selectedDiff = "hard";
@@ -163,7 +164,9 @@ let autoStarted = false;
 let assetsReady = false;
 let fatalError = null;
 let displayRequestEmitted = false;
-let finishCheck = { condition: null, sleep: null };
+let finishCheck = { mood: null, fatigue: null, difficulty: null, help: null, replay: null };
+let preGameCheck = { mood: "normal", sleepHours: 8, skipped: false, completed: false };
+let startDifficultyUnlocked = false;
 let pendingDiff = null;
 let pendingSessionSettings = null;
 let countdownTimer = null;
@@ -243,6 +246,7 @@ function normalizeRuntimeConfig(input) {
     trashCount,
     useDrag: !!read("useDrag", "use_drag", !isTapFirstMode),
     effectSoundEnabled: !!read("effectSoundEnabled", "effect_sound_enabled", true),
+    backgroundMusicEnabled: !!read("backgroundMusicEnabled", "background_music_enabled", false),
     hintEnabled: !!read("hintEnabled", "hint_enabled", true),
     autoHintEnabled: !!read("autoHintEnabled", "auto_hint_enabled", true),
     softFeedback: !!read("softFeedback", "soft_feedback", isSimplifiedMode),
@@ -268,6 +272,7 @@ function applyRuntimeConfig(next) {
   selectedDiff = runtime.difficulty || selectedDiff;
   voiceOn = runtime.voiceGuideEnabled;
   sfxOn = runtime.effectSoundEnabled;
+  bgmOn = runtime.backgroundMusicEnabled;
   document.body.classList.toggle("mode-standard", runtime.mode === "standard");
   document.body.classList.toggle("mode-care", runtime.mode === "care");
   document.body.classList.toggle("mode-reminder", runtime.mode === "reminder");
@@ -279,7 +284,8 @@ function applyRuntimeConfig(next) {
   if (typeof updateDisplayState === "function") updateDisplayState();
   document.querySelectorAll(".diff").forEach(x => x.classList.toggle("selected", x.dataset.diff === selectedDiff));
   updateModeUi();
-  if (typeof updateVoiceBtn === "function") updateVoiceBtn();
+  if (typeof updateAudioControls === "function") updateAudioControls();
+  else if (typeof updateVoiceBtn === "function") updateVoiceBtn();
 }
 
 function updateModeUi() {
@@ -332,6 +338,7 @@ function readUrlConfig() {
     "soft_feedback",
     "voice_guide_enabled",
     "effect_sound_enabled",
+    "background_music_enabled",
   ].forEach(readBool);
   return {
     mode,
@@ -354,6 +361,7 @@ function receiveNativeMessage(raw) {
         ...p,
         voiceGuideEnabled: typeof p.voice === "boolean" ? p.voice : p.voiceGuideEnabled,
         effectSoundEnabled: typeof p.effectSound === "boolean" ? p.effectSound : p.effectSoundEnabled,
+        backgroundMusicEnabled: typeof p.backgroundMusic === "boolean" ? p.backgroundMusic : p.backgroundMusicEnabled,
       });
       RN({ type:"CONFIG_APPLIED", payload:{ config_snapshot: runtime.configSnapshot } });
       emitDisplayRequest("config");

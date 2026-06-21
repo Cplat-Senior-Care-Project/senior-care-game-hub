@@ -41,7 +41,7 @@ body.mode-ai #play {
 .prompt-wrap { text-align: center; position: relative; z-index: 2; }
 .prompt {
   display: inline-flex; align-items: center; gap: 10px;
-  padding: clamp(10px, 1.6vmin, 14px) clamp(20px, 3vmin, 30px);
+  padding: clamp(10px, 11.52px, 14px) clamp(20px, 21.6px, 30px);
   border-radius: 999px;
   background: var(--paper); color: var(--ink);
   border: 1.5px solid var(--line);
@@ -62,7 +62,7 @@ body.mode-ai #play {
 .board::before {
   content: ""; position: absolute;
   left: 50%; top: 50%; transform: translate(-50%, -50%);
-  width: clamp(380px, 70vmin, 700px); height: clamp(240px, 50vmin, 460px);
+  width: clamp(380px, 504px, 700px); height: clamp(240px, 360px, 460px);
   z-index: 0; pointer-events: none;
 }
 
@@ -208,6 +208,11 @@ body.paused .item {
   background: radial-gradient(ellipse, rgba(60,50,30,.22) 0%, transparent 70%);
   margin-top: -10px;
 }
+.item-wrap.item-delivered .item,
+.item-wrap.item-delivered .item-shadow,
+.item-wrap.item-delivered .item-label {
+  opacity: 0;
+}
 .item-label {
   margin-top: var(--s-sm);
   padding: 8px 22px;
@@ -276,7 +281,7 @@ body.paused .item {
     radial-gradient(ellipse at 50% 100%, rgba(126,158,103,.18), rgba(126,158,103,0) 58%);
   border: 1px solid rgba(83,118,72,.20);
   border-radius: 18px;
-  padding: clamp(22px, 3vmin, 34px) clamp(24px, 3.6vmin, 40px) clamp(18px, 2.6vmin, 30px);
+  padding: clamp(22px, 21.6px, 34px) clamp(24px, 25.92px, 40px) clamp(18px, 18.72px, 30px);
   max-width: 500px; width: 100%;
   text-align: center;
   display: flex; flex-direction: column; gap: var(--s-md); align-items: center;
@@ -298,7 +303,7 @@ body.paused .item {
   pointer-events: none;
 }
 .sheet-icon-circle {
-  width: clamp(56px, 9vmin, 80px); height: clamp(56px, 9vmin, 80px);
+  width: clamp(56px, 64.8px, 80px); height: clamp(56px, 64.8px, 80px);
   border-radius: 50%; background: var(--amber-soft);
   display: flex; align-items: center; justify-content: center;
 }
@@ -356,8 +361,8 @@ body.paused .item {
   position: absolute;
   left: 50%;
   bottom: 10%;
-  width: min(860px, 80vw);
-  height: min(260px, 36vh);
+  width: min(860px, 1024px);
+  height: min(260px, 259.2px);
   transform: translateX(-50%);
   border-radius: 50%;
   background:
@@ -384,7 +389,7 @@ body.paused .item {
   border-radius: 16px;
   padding: var(--s-lg) var(--s-lg);
   display: flex; flex-direction: column; align-items: center; gap: var(--s-sm);
-  min-width: clamp(140px, 18vmin, 200px);
+  min-width: clamp(140px, 129.6px, 200px);
   box-shadow:
     inset 0 1px 0 rgba(255,255,255,.72),
     0 14px 28px rgba(58,74,47,.11);
@@ -415,8 +420,8 @@ body.paused .item {
 .mood-emoji {
   position: relative;
   z-index: 1;
-  width: clamp(74px, 11vmin, 112px);
-  height: clamp(74px, 11vmin, 112px);
+  width: clamp(74px, 79.2px, 112px);
+  height: clamp(74px, 79.2px, 112px);
   display: grid;
   place-items: center;
   border-radius: 50%;
@@ -425,7 +430,7 @@ body.paused .item {
     linear-gradient(180deg, #FFF4C7, #E9BC5C);
   border: 1px solid rgba(194,138,78,.22);
   box-shadow: inset 0 1px 0 rgba(255,255,255,.64);
-  font-size: clamp(38px, 7vmin, 62px);
+  font-size: clamp(38px, 50.4px, 62px);
   line-height: 1;
 }
 .mood-label {
@@ -466,8 +471,8 @@ body.paused .item {
   position: absolute;
   left: 50%;
   bottom: 13%;
-  width: min(760px, 74vw);
-  height: min(230px, 32vh);
+  width: min(760px, 947.2px);
+  height: min(230px, 230.4px);
   transform: translateX(-50%);
   border-radius: 50%;
   background:
@@ -480,11 +485,11 @@ body.paused .item {
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
-  gap: clamp(10px, 2.4vmin, 28px);
-  min-height: clamp(150px, 25vmin, 238px);
-  width: min(96vw, 860px);
+  gap: clamp(10px, 17.28px, 28px);
+  min-height: clamp(150px, 180px, 238px);
+  width: min(1228.8px, 860px);
   max-width: 100%;
-  padding: var(--s-sm) clamp(18px, 4vw, 54px) 0;
+  padding: var(--s-sm) clamp(18px, 51.2px, 54px) 0;
   position: relative;
   z-index: 1;
   border-radius: 0;
@@ -497,8 +502,8 @@ body.paused .item {
   position: absolute;
   left: 50%;
   bottom: -4px;
-  width: min(820px, 88vw);
-  height: clamp(20px, 4vmin, 38px);
+  width: min(820px, 1126.4px);
+  height: clamp(20px, 28.8px, 38px);
   transform: translateX(-50%);
   border-radius: 50%;
   background: radial-gradient(ellipse, rgba(72, 103, 58, .20), rgba(72, 103, 58, 0) 72%);
@@ -507,13 +512,13 @@ body.paused .item {
 
 .done-friend {
   position: relative;
-  width: clamp(110px, 15vmin, 154px);
-  min-height: clamp(126px, 20vmin, 184px);
+  width: clamp(110px, 108px, 154px);
+  min-height: clamp(126px, 144px, 184px);
   display: flex;
   align-items: center;
   justify-content: flex-start;
   flex-direction: column;
-  padding-top: clamp(8px, 1.5vmin, 16px);
+  padding-top: clamp(8px, 10.8px, 16px);
   isolation: isolate;
 }
 
@@ -521,9 +526,9 @@ body.paused .item {
   content: "";
   position: absolute;
   left: 50%;
-  top: clamp(2px, .8vmin, 8px);
-  width: clamp(48px, 7vmin, 72px);
-  height: clamp(48px, 7vmin, 72px);
+  top: clamp(2px, 5.76px, 8px);
+  width: clamp(48px, 50.4px, 72px);
+  height: clamp(48px, 50.4px, 72px);
   transform: translateX(-50%);
   border-radius: 50%;
   background:
@@ -550,11 +555,11 @@ body.paused .item {
 .done-joy {
   position: absolute;
   left: 50%;
-  top: clamp(0px, .6vmin, 8px);
+  top: clamp(0px, 4.32px, 8px);
   transform: translate(-50%, -38%);
   z-index: 5;
-  min-width: clamp(58px, 8vmin, 86px);
-  min-height: clamp(22px, 3.4vmin, 30px);
+  min-width: clamp(58px, 57.6px, 86px);
+  min-height: clamp(22px, 24.48px, 30px);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -564,7 +569,7 @@ body.paused .item {
   border: 2px solid rgba(210, 153, 72, .44);
   box-shadow: 0 8px 15px rgba(84, 65, 36, .12);
   color: #513018;
-  font-size: clamp(11px, 1.7vmin, 15px);
+  font-size: clamp(11px, 12.24px, 15px);
   font-weight: 900;
   line-height: 1;
   white-space: nowrap;
@@ -587,7 +592,7 @@ body.paused .item {
 
 .done-friend img,
 .done-animal {
-  height: clamp(78px, 13vmin, 122px);
+  height: clamp(78px, 93.6px, 122px);
   width: auto;
   filter: drop-shadow(0 16px 18px rgba(40,30,10,.18));
   position: relative;
@@ -597,8 +602,8 @@ body.paused .item {
 .done-friend-name {
   position: relative;
   z-index: 3;
-  min-width: clamp(82px, 10vmin, 116px);
-  min-height: clamp(26px, 4vmin, 36px);
+  min-width: clamp(82px, 72px, 116px);
+  min-height: clamp(26px, 28.8px, 36px);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -606,7 +611,7 @@ body.paused .item {
   padding: 4px 12px 6px;
   background: url("../image/nameplate.png") center / 100% 100% no-repeat;
   color: #3A2412;
-  font-size: clamp(14px, 2vmin, 18px);
+  font-size: clamp(14px, 14.4px, 18px);
   font-weight: 900;
   line-height: 1;
   text-shadow: 0 1px 0 rgba(255,255,255,.55);
@@ -673,7 +678,7 @@ body.mode-reminder .done-return-note {
 .stat {
   padding: 8px 14px;
   text-align: center;
-  min-width: clamp(86px, 12vmin, 128px);
+  min-width: clamp(86px, 86.4px, 128px);
   border-radius: 999px;
   background: rgba(255,255,255,.68);
   border: 1px solid rgba(106,143,98,.14);
@@ -681,7 +686,7 @@ body.mode-reminder .done-return-note {
 .stat + .stat { border-left: 0; }
 .stat b {
   display: inline;
-  font-size: clamp(16px, 2.8vmin, 22px);
+  font-size: clamp(16px, 20.16px, 22px);
   font-weight: 850;
   color: #4E7044;
   letter-spacing: -0.02em;
@@ -689,10 +694,34 @@ body.mode-reminder .done-return-note {
 .stat span {
   display: inline;
   margin-left: 5px;
-  font-size: clamp(11px, 1.8vmin, 14px);
+  font-size: clamp(11px, 12.96px, 14px);
   color: var(--muted);
   font-weight: 750;
   letter-spacing: 0;
+}
+
+.score-stat {
+  min-width: clamp(118px, 129.6px, 168px);
+  padding: clamp(10px, 12.24px, 14px) clamp(14px, 17.28px, 20px);
+  border-radius: 18px;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.88), rgba(255,250,238,.78));
+}
+
+.score-stat b,
+.score-stat span {
+  display: block;
+  margin-left: 0;
+}
+
+.score-stat b {
+  font-size: clamp(24px, 34.56px, 38px);
+  line-height: 1;
+}
+
+.score-stat span {
+  margin-top: 5px;
+  font-size: clamp(13px, 15.84px, 17px);
 }
 
 .done-actions {

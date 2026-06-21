@@ -61,6 +61,7 @@ function resetItemPos() {
   it.style.left = ""; it.style.top = ""; it.style.transform = "";
   wrap.style.left = ""; wrap.style.top = ""; wrap.style.transform = "";
   wrap.style.opacity = "";
+  wrap.classList.remove("item-delivered");
 }
 
 function burstHearts(spotEl) {
@@ -231,8 +232,7 @@ function resolve(targetId, spotEl, inputType = "touch") {
       : (targetId === "bin" ? "정리 구역에 잘 보냈어요" : `${animal.label}가 좋아해요`);
     setPrompt(msg, "good");
     speak(msg);
-    // hide item
-    document.getElementById("itemWrap").style.opacity = "0";
+    document.getElementById("itemWrap").classList.add("item-delivered");
     state.correctCount++;
     finishQuestion();
   } else {

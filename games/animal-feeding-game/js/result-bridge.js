@@ -43,10 +43,14 @@ function doneCopy(completed) {
 
 function doneStatsHtml() {
   if (runtime.mode !== "standard" || !runtime.showScore) return "";
-  const hintCount = state._results.filter(r => r.hintUsed).length;
+  const total = Math.max(state._results.length || state.completedRounds || 0, 0);
+  const wrong = state._results.filter(r => (r.wrongDropCount || 0) > 0).length;
+  const correct = Math.max(total - wrong, 0);
+  const accuracy = total ? Math.round((correct / total) * 100) : 0;
   return `
-    <div class="stat"><b>${state.completedRounds}</b><span>나눈 먹이</span></div>
-    <div class="stat"><b>${hintCount}</b><span>도움 받은 횟수</span></div>
+    <div class="stat score-stat"><b>${correct}</b><span>정답 문항수</span></div>
+    <div class="stat score-stat"><b>${wrong}</b><span>오답 문항수</span></div>
+    <div class="stat score-stat"><b>${accuracy}%</b><span>정답률</span></div>
   `;
 }
 
@@ -112,14 +116,24 @@ function finishSession(completed, reason = "user_quit", error = null) {
 
   const copy = doneCopy(completed);
   const doneEyebrow = document.querySelector("#done .done-eyebrow");
-  if (doneEyebrow) doneEyebrow.textContent = copy.badge || "활동 완료";
-  document.getElementById("doneTitle").textContent = copy.title;
-  document.getElementById("doneSub").textContent = copy.sub;
+  if (completed && runtime.showScore) {
+    if (doneEyebrow) doneEyebrow.textContent = "점수 확인";
+    document.getElementById("doneTitle").textContent = "오늘 활동 점수예요";
+    document.getElementById("doneSub").textContent = "잘 맞힌 문항과 다시 볼 문항을 확인해요";
+  } else {
+    if (doneEyebrow) doneEyebrow.textContent = copy.badge || "활동 완료";
+    document.getElementById("doneTitle").textContent = copy.title;
+    document.getElementById("doneSub").textContent = copy.sub;
+  }
   document.getElementById("doneReturnNote").textContent = copy.note;
 
   const shouldFinishCheck = completed && runtime.showFinishCheck;
   if (shouldFinishCheck) resetFinishCheck();
-  show(shouldFinishCheck ? "finish" : "done");
+  const againBtn = document.getElementById("againBtn");
+  const doneBtn = document.getElementById("doneBtn");
+  if (againBtn) againBtn.classList.toggle("hidden", !!completed);
+  if (doneBtn) doneBtn.textContent = completed ? "확인" : "오늘은 여기까지";
+  show("done");
   speak(completed
     ? (runtime.softFeedback ? "오늘은 여기까지 해도 충분해요. 잘 참여해주셨어요." : "오늘도 잘 해내셨어요")
     : "여기까지도 충분해요");
@@ -307,6 +321,7 @@ function toCommonSessionLog(payload) {
       raw_results: rs,
       process,
       reward: payload.reward || null,
+      pre_condition_check: state.preConditionCheck || null,
       finish_check: null,
       condition_check: null,
       abandon: abandonInfo,
@@ -330,8 +345,14 @@ document.getElementById("againBtn").addEventListener("click", () => {
   beginIntroFlow(state ? state.difficulty : selectedDiff);
 });
 document.getElementById("doneBtn").addEventListener("click", () => {
+  if (pendingCompletionMessage && state?._status === "completed") {
+    showFinishStep(1);
+    show("finish");
+    return;
+  }
   returnToHost();
-  show("start");
+  if (typeof showStartIntro === "function") showStartIntro(true);
+  else show("start");
 });
 
 document.querySelectorAll("[data-finish]").forEach(btn => {
@@ -343,45 +364,71 @@ document.querySelectorAll("[data-finish]").forEach(btn => {
 });
 
 function resetFinishCheck() {
-  finishCheck = { condition: null, sleep: null };
+  finishCheck = { mood: null, fatigue: null, difficulty: null, help: null, replay: null };
   document.querySelectorAll("[data-finish]").forEach(x => x.classList.remove("selected"));
+  showFinishStep(1);
+}
+
+function showFinishStep(step) {
+  const isSecond = step === 2;
+  document.getElementById("finishStepOne")?.classList.toggle("on", !isSecond);
+  document.getElementById("finishStepTwo")?.classList.toggle("on", isSecond);
+  document.getElementById("finishActionsOne")?.classList.toggle("on", !isSecond);
+  document.getElementById("finishActionsTwo")?.classList.toggle("on", isSecond);
 }
 
 function finishCheckPayload(skipped = false) {
-  const hasCondition = !!finishCheck.condition;
-  const hasSleep = !!finishCheck.sleep;
-  const sleepMeta = {
-    enough: { hoursRange: "7h_plus", label: "7시간 이상" },
-    normal: { hoursRange: "5_6h", label: "5~6시간" },
-    short: { hoursRange: "under_5h", label: "5시간 미만" },
-  }[finishCheck.sleep] || null;
+  const hasMood = !!finishCheck.mood;
+  const hasFatigue = !!finishCheck.fatigue;
+  const hasDifficulty = !!finishCheck.difficulty;
+  const hasHelp = !!finishCheck.help;
+  const hasReplay = !!finishCheck.replay;
   return {
     phase: "post_combined",
     skipped,
-    condition_skipped: skipped || !hasCondition,
-    sleep_skipped: skipped || !hasSleep,
-    finish_skipped: skipped || !hasSleep,
-    condition_mood: skipped ? null : finishCheck.condition,
-    sleep_value: skipped ? null : finishCheck.sleep,
-    sleep_hours_range: skipped ? null : sleepMeta?.hoursRange || null,
-    sleep_label: skipped ? null : sleepMeta?.label || null,
+    condition_skipped: skipped || !hasMood,
+    fatigue_skipped: skipped || !hasFatigue,
+    difficulty_skipped: skipped || !hasDifficulty,
+    help_skipped: skipped || !hasHelp,
+    replay_skipped: skipped || !hasReplay,
+    finish_skipped: skipped,
+    condition_mood: skipped ? null : finishCheck.mood,
+    fatigue_value: skipped ? null : finishCheck.fatigue,
+    difficulty_value: skipped ? null : finishCheck.difficulty,
+    help_needed: skipped ? null : finishCheck.help,
+    replay_wanted: skipped ? null : finishCheck.replay,
     condition_check: {
       phase: "post",
-      skipped: skipped || !hasCondition,
-      mood: skipped ? null : finishCheck.condition,
+      skipped: skipped || !hasMood,
+      mood: skipped ? null : finishCheck.mood,
     },
-    sleep_check: {
+    fatigue_check: {
       phase: "post",
-      skipped: skipped || !hasSleep,
-      value: skipped ? null : finishCheck.sleep,
-      hours_range: skipped ? null : sleepMeta?.hoursRange || null,
-      label: skipped ? null : sleepMeta?.label || null,
+      skipped: skipped || !hasFatigue,
+      value: skipped ? null : finishCheck.fatigue,
+    },
+    difficulty_check: {
+      phase: "post",
+      skipped: skipped || !hasDifficulty,
+      value: skipped ? null : finishCheck.difficulty,
+    },
+    help_check: {
+      phase: "post",
+      skipped: skipped || !hasHelp,
+      needed: skipped ? null : finishCheck.help,
+    },
+    replay_check: {
+      phase: "post",
+      skipped: skipped || !hasReplay,
+      wanted: skipped ? null : finishCheck.replay,
     },
     finish_check: {
-      skipped: skipped || !hasSleep,
-      sleep_value: skipped ? null : finishCheck.sleep,
-      sleep_hours_range: skipped ? null : sleepMeta?.hoursRange || null,
-      label: skipped ? null : sleepMeta?.label || null,
+      skipped,
+      mood: skipped ? null : finishCheck.mood,
+      fatigue: skipped ? null : finishCheck.fatigue,
+      difficulty: skipped ? null : finishCheck.difficulty,
+      help_needed: skipped ? null : finishCheck.help,
+      replay_wanted: skipped ? null : finishCheck.replay,
     },
   };
 }
@@ -392,12 +439,18 @@ function submitFinishCheck(skipped = false) {
   RN({ type:"FINISH_CHECK", payload });
   if (pendingCompletionMessage) {
     pendingCompletionMessage.payload.condition_check = payload.condition_check;
-    pendingCompletionMessage.payload.sleep_check = payload.sleep_check;
+    pendingCompletionMessage.payload.fatigue_check = payload.fatigue_check;
+    pendingCompletionMessage.payload.difficulty_check = payload.difficulty_check;
+    pendingCompletionMessage.payload.help_check = payload.help_check;
+    pendingCompletionMessage.payload.replay_check = payload.replay_check;
     pendingCompletionMessage.payload.finish_check = payload.finish_check;
     pendingCompletionMessage.payload.finish_check_payload = payload;
     if (pendingCompletionMessage.payload.result_detail_json) {
       pendingCompletionMessage.payload.result_detail_json.condition_check = payload.condition_check;
-      pendingCompletionMessage.payload.result_detail_json.sleep_check = payload.sleep_check;
+      pendingCompletionMessage.payload.result_detail_json.fatigue_check = payload.fatigue_check;
+      pendingCompletionMessage.payload.result_detail_json.difficulty_check = payload.difficulty_check;
+      pendingCompletionMessage.payload.result_detail_json.help_check = payload.help_check;
+      pendingCompletionMessage.payload.result_detail_json.replay_check = payload.replay_check;
       pendingCompletionMessage.payload.result_detail_json.finish_check = payload.finish_check;
       pendingCompletionMessage.payload.result_detail_json.finish_check_payload = payload;
     }
@@ -406,9 +459,16 @@ function submitFinishCheck(skipped = false) {
     pendingCompletionMessage = null;
     pendingAutoReturnMs = 0;
   }
-  show("done");
+  if (typeof showStartIntro === "function") showStartIntro(true);
+  else show("start");
 }
 
+document.getElementById("finishNextBtn")?.addEventListener("click", () => {
+  showFinishStep(2);
+});
+document.getElementById("finishPrevBtn")?.addEventListener("click", () => {
+  showFinishStep(1);
+});
 document.getElementById("finishConfirmBtn")?.addEventListener("click", () => {
   submitFinishCheck(false);
 });
@@ -461,15 +521,18 @@ function applyAudioCommand(payload) {
   if (typeof payload.muted === "boolean") {
     voiceOn = !payload.muted;
     sfxOn = !payload.muted;
+    bgmOn = !payload.muted;
   }
   if (typeof payload.voice === "boolean") voiceOn = payload.voice;
   if (typeof payload.voice_guide_enabled === "boolean") voiceOn = payload.voice_guide_enabled;
   if (typeof payload.effect_sound_enabled === "boolean") sfxOn = payload.effect_sound_enabled;
+  if (typeof payload.background_music_enabled === "boolean") bgmOn = payload.background_music_enabled;
+  if (typeof payload.backgroundMusic === "boolean") bgmOn = payload.backgroundMusic;
   if (!voiceOn) {
     try { speechSynthesis.cancel(); } catch(_) {}
   }
-  updateVoiceBtn();
-  RN({ type:"AUDIO_APPLIED", payload:{ voice: voiceOn, effect_sound_enabled: sfxOn } });
+  updateAudioControls();
+  RN({ type:"AUDIO_APPLIED", payload:{ voice: voiceOn, effect_sound_enabled: sfxOn, background_music_enabled: bgmOn } });
 }
 
 function handleExternalAnswer(payload) {

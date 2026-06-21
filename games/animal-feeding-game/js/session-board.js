@@ -132,6 +132,7 @@ function startSession(diff) {
     version: VERSION,
     mode: runtime.mode,
     configSnapshot: runtime.configSnapshot || runtimeSnapshot(),
+    preConditionCheck: preGameCheck?.completed ? { ...preGameCheck } : null,
     userAlias: cfg.userAlias,
     difficulty: diff,
     startedAt: new Date().toISOString(),

@@ -15,16 +15,19 @@ body * {
 .item:focus-visible,
 .btn:focus-visible,
 .chip:focus-visible,
+.settings-toggle:focus-visible,
 .diff:focus-visible,
-.mood-card:focus-visible {
+.mood-card:focus-visible,
+.precheck-choice:focus-visible,
+#preSleepRange:focus-visible {
   box-shadow: 0 0 0 4px rgba(194, 138, 78, .32), var(--sh-card-sel);
 }
 
 body.mode-care,
 body.mode-ai {
-  --animal: clamp(138px, 26vmin, 230px);
-  --food: clamp(150px, 30vmin, 250px);
-  --bin: clamp(112px, 18vmin, 160px);
+  --animal: clamp(138px, 187.2px, 230px);
+  --food: clamp(150px, 216px, 250px);
+  --bin: clamp(112px, 129.6px, 160px);
 }
 
 body.mode-care .app::after,
@@ -51,7 +54,7 @@ body.mode-ai .chip {
 
 body.mode-care .prompt,
 body.mode-ai .prompt {
-  max-width: min(780px, 92vw);
+  max-width: min(780px, 1177.6px);
   padding: var(--s-md) var(--s-lg);
   border-radius: var(--r-md);
   white-space: normal;
@@ -61,8 +64,8 @@ body.mode-ai .prompt {
 
 body.mode-care .board::before,
 body.mode-ai .board::before {
-  width: clamp(420px, 72vmin, 760px);
-  height: clamp(280px, 54vmin, 520px);
+  width: clamp(420px, 518.4px, 760px);
+  height: clamp(280px, 388.8px, 520px);
 }
 
 body.mode-care .item-wrap,
@@ -129,7 +132,7 @@ body.mode-reminder .done-actions,
 body.mode-care .done-actions,
 body.mode-ai .done-actions {
   flex-direction: column;
-  min-width: min(360px, 82vw);
+  min-width: min(360px, 1049.6px);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -144,18 +147,18 @@ body.reduced * {
   transition: none !important;
 }
 
-@media (max-height: 500px), (max-width: 920px) {
+@container game-stage (max-height: 500px) or (max-width: 920px) {
   :root {
-    --animal: clamp(82px, 22vmin, 130px);
-    --food: clamp(80px, 24vmin, 130px);
-    --bin: clamp(96px, 24vmin, 132px);
+    --animal: clamp(82px, 158.4px, 130px);
+    --food: clamp(80px, 172.8px, 130px);
+    --bin: clamp(96px, 172.8px, 132px);
   }
 
   body.mode-care,
   body.mode-ai {
-    --animal: clamp(104px, 27vmin, 126px);
-    --food: clamp(100px, 24vmin, 124px);
-    --bin: clamp(96px, 23vmin, 124px);
+    --animal: clamp(104px, 194.4px, 126px);
+    --food: clamp(100px, 172.8px, 124px);
+    --bin: clamp(96px, 165.6px, 124px);
   }
 
   #play {
@@ -193,7 +196,7 @@ body.reduced * {
     min-height: 38px;
     padding: 8px 22px;
     border-radius: 18px;
-    font-size: clamp(16px, 3.6vmin, 24px);
+    font-size: clamp(16px, 25.92px, 24px);
   }
 
   .board {
@@ -202,8 +205,8 @@ body.reduced * {
 
   .board::before {
     top: 47%;
-    width: min(88vw, 760px);
-    height: min(58vh, 260px);
+    width: min(1126.4px, 760px);
+    height: min(417.6px, 260px);
   }
 
   .item-wrap {
@@ -225,12 +228,12 @@ body.reduced * {
   }
 
   .item-label {
-    min-width: clamp(86px, 19vmin, 124px);
-    min-height: clamp(32px, 7vmin, 44px);
+    min-width: clamp(86px, 136.8px, 124px);
+    min-height: clamp(32px, 50.4px, 44px);
     margin-top: 4px;
     padding: 5px 14px 8px;
     border-radius: 0;
-    font-size: clamp(16px, 3.5vmin, 23px);
+    font-size: clamp(16px, 25.2px, 23px);
   }
 
   .spot,
@@ -303,7 +306,7 @@ body.reduced * {
   }
 
   .board.animals-4.has-bin .spot {
-    min-width: clamp(88px, 18vmin, 128px);
+    min-width: clamp(88px, 129.6px, 128px);
   }
 
   .spot .name,
@@ -354,19 +357,19 @@ body.reduced * {
   body.mode-ai .chip {
     min-height: 50px;
     padding: var(--s-sm) var(--s-lg);
-    font-size: clamp(16px, 3.4vmin, 22px);
+    font-size: clamp(16px, 24.48px, 22px);
   }
 
   body.mode-care .prompt,
   body.mode-ai .prompt {
     padding: 10px 24px;
-    font-size: clamp(22px, 5.2vmin, 32px);
+    font-size: clamp(22px, 37.44px, 32px);
   }
 
   body.mode-care .board::before,
   body.mode-ai .board::before {
-    width: min(92vw, 620px);
-    height: clamp(160px, 52vmin, 300px);
+    width: min(1177.6px, 620px);
+    height: clamp(160px, 374.4px, 300px);
   }
 
   body.mode-care .board.no-bin .item-wrap,
@@ -385,9 +388,9 @@ body.reduced * {
   body.mode-ai .board .bin {
     top: 52% !important;
     bottom: auto !important;
-    width: clamp(132px, 30vmin, 178px);
-    min-width: clamp(132px, 30vmin, 178px);
-    min-height: clamp(126px, 30vmin, 166px);
+    width: clamp(132px, 216px, 178px);
+    min-width: clamp(132px, 216px, 178px);
+    min-height: clamp(126px, 216px, 166px);
     padding: 8px 10px 10px;
     transform: translate(-50%, -50%) !important;
   }
@@ -397,9 +400,9 @@ body.reduced * {
   body.mode-care .board.has-bin .bin,
   body.mode-ai .board.has-bin .bin {
     top: 70% !important;
-    width: clamp(116px, 26vmin, 148px);
-    min-width: clamp(116px, 26vmin, 148px);
-    min-height: clamp(120px, 28vmin, 150px);
+    width: clamp(116px, 187.2px, 148px);
+    min-width: clamp(116px, 187.2px, 148px);
+    min-height: clamp(120px, 201.6px, 150px);
   }
 
   body.mode-care .board.animals-2.no-bin .spot.tl,
@@ -447,11 +450,11 @@ body.reduced * {
   }
 
   .how-illust {
-    min-height: clamp(80px, 16vmin, 140px);
+    min-height: clamp(80px, 115.2px, 140px);
   }
 
   .how-illust > img {
-    width: clamp(64px, 14vmin, 100px);
+    width: clamp(64px, 100.8px, 100px);
   }
 
   .hero {
@@ -459,7 +462,8 @@ body.reduced * {
   }
 
   .hero img {
-    width: clamp(80px, 16vmin, 130px);
+    width: auto;
+    height: clamp(80px, 115.2px, 130px);
   }
 
   .diff {
@@ -468,40 +472,40 @@ body.reduced * {
   }
 
   .diff-icons img {
-    width: clamp(24px, 4.6vmin, 36px);
+    width: clamp(24px, 33.12px, 36px);
   }
 
   .done-hero {
-    min-height: clamp(92px, 22vmin, 154px);
-    width: min(97vw, 760px);
-    gap: clamp(4px, 1.2vw, 12px);
-    padding: 0 clamp(8px, 2vw, 18px);
+    min-height: clamp(92px, 158.4px, 154px);
+    width: min(1241.6px, 760px);
+    gap: clamp(4px, 15.36px, 12px);
+    padding: 0 clamp(8px, 25.6px, 18px);
   }
 
   .done-friend {
-    width: clamp(78px, 17vmin, 118px);
-    min-height: clamp(86px, 21vmin, 132px);
+    width: clamp(78px, 122.4px, 118px);
+    min-height: clamp(86px, 151.2px, 132px);
   }
 
   .done-friend img,
   .done-animal {
-    height: clamp(54px, 13vmin, 86px);
+    height: clamp(54px, 93.6px, 86px);
   }
 
   .done-friend-name {
-    min-width: clamp(58px, 13vmin, 86px);
-    min-height: clamp(20px, 5vmin, 28px);
+    min-width: clamp(58px, 93.6px, 86px);
+    min-height: clamp(20px, 36px, 28px);
     padding: 3px 8px 5px;
-    font-size: clamp(11px, 2.6vmin, 15px);
+    font-size: clamp(11px, 18.72px, 15px);
   }
 
   .mood-card {
-    min-width: clamp(100px, 16vmin, 160px);
+    min-width: clamp(100px, 115.2px, 160px);
     padding: var(--s-md) var(--s-lg);
   }
 
   .mood-emoji {
-    font-size: clamp(36px, 7vmin, 60px);
+    font-size: clamp(36px, 50.4px, 60px);
   }
 
   .sheet {
@@ -510,26 +514,26 @@ body.reduced * {
   }
 }
 
-@media (max-height: 380px) {
+@container game-stage (max-height: 380px) {
   :root {
-    --animal: clamp(70px, 20vmin, 110px);
-    --food: clamp(70px, 22vmin, 110px);
-    --bin: clamp(82px, 22vmin, 108px);
+    --animal: clamp(70px, 144px, 110px);
+    --food: clamp(70px, 158.4px, 110px);
+    --bin: clamp(82px, 158.4px, 108px);
   }
 
   body.mode-care,
   body.mode-ai {
-    --animal: clamp(72px, 22vmin, 96px);
-    --food: clamp(72px, 22vmin, 94px);
-    --bin: clamp(78px, 21vmin, 100px);
+    --animal: clamp(72px, 158.4px, 96px);
+    --food: clamp(72px, 158.4px, 94px);
+    --bin: clamp(78px, 151.2px, 100px);
   }
 
   .start-title {
-    font-size: clamp(20px, 4.6vmin, 32px);
+    font-size: clamp(20px, 33.12px, 32px);
   }
 
   .start-sub {
-    font-size: clamp(12px, 2.4vmin, 16px);
+    font-size: clamp(12px, 17.28px, 16px);
   }
 
   #done {
@@ -539,13 +543,13 @@ body.reduced * {
   .done-hero {
     min-height: 102px;
     padding-top: 6px;
-    width: 98vw;
+    width: 1254.4px;
     gap: 2px;
     justify-content: space-between;
   }
 
   .done-friend {
-    width: clamp(72px, 16vmin, 96px);
+    width: clamp(72px, 115.2px, 96px);
     min-height: 94px;
     padding-top: 14px;
   }
@@ -554,7 +558,7 @@ body.reduced * {
     top: 0;
     min-height: 22px;
     padding: 3px 8px 4px;
-    font-size: clamp(10px, 2.2vmin, 13px);
+    font-size: clamp(10px, 15.84px, 13px);
   }
 
   #done.session-complete .done-joy {
@@ -567,12 +571,12 @@ body.reduced * {
   }
 
   .done-title {
-    font-size: clamp(22px, 5.2vmin, 30px);
+    font-size: clamp(22px, 37.44px, 30px);
   }
 
   .done-sub,
   .done-return-note {
-    font-size: clamp(12px, 2.6vmin, 15px);
+    font-size: clamp(12px, 18.72px, 15px);
   }
 
   .stats {
@@ -591,6 +595,6 @@ body.reduced * {
   .done-actions .btn {
     min-height: 52px;
     padding: 10px 22px;
-    font-size: clamp(16px, 4vmin, 21px);
+    font-size: clamp(16px, 28.8px, 21px);
   }
 }

@@ -20,7 +20,7 @@
   <!-- ============== 1. LOADING ============== -->
   <section id="loading" class="screen on">
     <div class="sun-pulse" aria-hidden="true"></div>
-    <div class="loading-title">농장 친구들을 부르고 있어요</div>
+    <div class="loading-title">도깨비 친구들을 부르고 있어요</div>
     <div class="loading-sub">잠시만 기다려 주세요</div>
     <div class="bar" aria-label="로딩 진행률"><span id="bar"></span></div>
     <div class="loading-pct" id="pct">0%</div>
@@ -29,17 +29,31 @@
   <!-- ============== 2. START ============== -->
   <section id="start" class="screen">
     <div class="start-top">
-      <div class="start-brand">도깨비야! 무슨 색을 먹니?</div>
+      <div class="activity-label">시각 활동</div>
       <div class="start-controls">
-        <button class="chip" id="voiceBtn">🔊 음성</button>
-        <button class="chip" id="fontBtn">가 크게</button>
+        <button class="chip icon-chip settings-gear" id="settingsBtn" type="button" aria-label="소리 설정" aria-expanded="false">⚙</button>
+        <button class="chip" id="fontBtn">글씨 크게</button>
         <button class="chip" id="displayBtn">⛶ 전체화면</button>
+        <div class="settings-panel" id="settingsPanel" aria-label="소리 설정">
+          <button class="settings-toggle" id="sfxToggle" type="button">
+            <span>효과음</span>
+            <strong>켜짐</strong>
+          </button>
+          <button class="settings-toggle" id="bgmToggle" type="button">
+            <span>배경음악</span>
+            <strong>꺼짐</strong>
+          </button>
+          <button class="settings-toggle" id="voiceBtn" type="button">
+            <span>안내음성</span>
+            <strong>켜짐</strong>
+          </button>
+        </div>
       </div>
     </div>
 
     <div class="start-title-area">
-      <div class="start-title">도깨비야! 무슨 색을 먹니?</div>
-      <div class="start-sub">농장 친구들에게 먹이를 나눠 주실래요?</div>
+      <img class="start-title-image" src="image/game-title.png" alt="도깨비야! 무슨 색을 먹니?"/>
+      <div class="start-sub">도깨비 친구들에게 먹이를 나눠 주실래요?</div>
     </div>
 
     <div class="hero">
@@ -49,8 +63,9 @@
       <img src="image/yellow_goblin.png" alt="노란 도깨비"/>
     </div>
 
-    <div>
-      <div class="diff-label">오늘 농장 활동 선택</div>
+    <div class="start-flow-area">
+      <div class="difficulty-panel">
+      <div class="diff-label">난이도 선택</div>
       <div class="diffs">
         <button class="diff" data-diff="easy">
           <div class="diff-row">
@@ -100,51 +115,102 @@
           <div class="diff-meta">4마리 · 10번 나누기</div>
         </button>
       </div>
+      </div>
 
       <div class="start-actions">
-        <button class="btn ghost" id="howAgainBtn">농장 안내 보기</button>
-        <button class="btn lg" id="startBtn">농장으로 가기</button>
+        <button class="btn ghost" id="howAgainBtn">게임 방법</button>
+        <button class="btn lg" id="startBtn">시작하기</button>
       </div>
     </div>
   </section>
 
-  <!-- ============== 3. HOW TO PLAY ============== -->
+  <!-- ============== 3. PRE CHECK ============== -->
+  <section id="precheck" class="screen">
+    <div class="activity-label">시각 활동</div>
+    <div class="precheck-panel">
+      <div class="done-eyebrow">시작 전 확인</div>
+      <div class="precheck-title">오늘 컨디션을 알려주세요</div>
+      <div class="precheck-sub">건너뛰어도 괜찮아요. 선택하면 기록에 함께 남겨요</div>
+
+      <div class="precheck-grid">
+        <div class="precheck-group precheck-mood">
+          <div class="precheck-group-title">기분</div>
+          <div class="precheck-mood-list" aria-label="게임 전 기분 선택">
+            <button class="precheck-choice" data-pre-mood="good">
+              <strong>좋음</strong>
+              <span>가볍고 좋아요</span>
+            </button>
+            <button class="precheck-choice selected" data-pre-mood="normal">
+              <strong>보통</strong>
+              <span>평소와 비슷해요</span>
+            </button>
+            <button class="precheck-choice" data-pre-mood="bad">
+              <strong>나쁨</strong>
+              <span>조금 힘들어요</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="precheck-group precheck-sleep">
+          <div class="precheck-group-title">수면시간</div>
+          <div class="sleep-picker" aria-label="게임 전 수면시간 선택">
+            <div class="sleep-value"><strong id="preSleepValue">8시간</strong></div>
+            <input id="preSleepRange" type="range" min="4" max="12" step="1" value="8" aria-label="수면시간"/>
+            <div class="sleep-scale" aria-hidden="true">
+              <span>4시간</span>
+              <span>8시간</span>
+              <span>12시간</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="precheck-actions">
+        <button class="btn ghost" id="precheckSkipBtn">건너뛰기</button>
+        <button class="btn lg" id="precheckNextBtn">난이도 선택하기</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============== 4. HOW TO PLAY ============== -->
   <section id="how" class="screen">
+    <div class="activity-label">시각 활동</div>
     <div class="how-header">
       <div class="how-eyebrow">FARM GUIDE</div>
-      <div class="how-title">농장에서는 이렇게 해요</div>
+      <div class="how-title">이렇게 하세요</div>
     </div>
     <div class="how-grid">
       <div class="how-card">
         <div class="how-num">1</div>
-        <div class="how-illust glow"><img src="image/kiwi.png" alt=""/></div>
-        <div class="how-card-title">먹이를 봐요</div>
-        <div class="how-card-desc">가운데 먹이판에 먹이가 나와요</div>
+        <div class="how-illust glow"><img src="image/apple.png" alt=""/></div>
+        <div class="how-card-title">먹이 색을 봐요</div>
+        <div class="how-card-desc">가운데 먹이의 색깔을 천천히 살펴봐요</div>
       </div>
       <div class="how-card">
         <div class="how-num">2</div>
         <div class="how-illust highlight"><img src="image/red_goblin.png" alt=""/></div>
-        <div class="how-card-title">친구를 골라요</div>
-        <div class="how-card-desc">좋아할 친구에게 전해요</div>
+        <div class="how-card-title">같은 색 친구를 골라요</div>
+        <div class="how-card-desc">먹이와 같은 색 도깨비에게 전해요</div>
       </div>
       <div class="how-card">
         <div class="how-num">3</div>
-        <div class="how-illust happy"><img src="image/red_goblin.png" alt=""/></div>
-        <div class="how-card-title">친구가 반겨요</div>
-        <div class="how-card-desc">맞으면 따뜻하게 반응해요</div>
+        <div class="how-illust happy"><img src="image/red_goblin_correct.png" alt=""/></div>
+        <div class="how-card-title">맞으면 반겨요</div>
+        <div class="how-card-desc">색이 맞으면 친구가 따뜻하게 반응해요</div>
       </div>
     </div>
     <div class="how-actions">
       <button class="btn ghost" id="howSkipBtn" style="margin-right:var(--s-sm)">건너뛰기</button>
-        <button class="btn lg" id="howStartBtn">농장으로 가기</button>
+        <button class="btn lg" id="howStartBtn">시작하기</button>
     </div>
   </section>
 
   <!-- ============== 4. START ALERT ============== -->
   <section id="ready" class="screen">
+    <div class="activity-label">시각 활동</div>
     <div class="ready-panel">
       <div class="done-eyebrow">시작 준비</div>
-      <div class="ready-title">먹이 농장을 열게요</div>
+      <div class="ready-title">게임이 시작됩니다</div>
       <div class="ready-sub">친구들이 자리에 앉았어요</div>
       <div class="ready-friends" id="readyFriends" aria-hidden="true">
         <img src="image/red_goblin.png" alt=""/>
@@ -156,6 +222,7 @@
 
   <!-- ============== 5. COUNTDOWN ============== -->
   <section id="countdown" class="screen">
+    <div class="activity-label">시각 활동</div>
     <div class="count-panel">
       <div class="done-eyebrow">먹이판 준비</div>
       <div class="count-title">천천히 시작할게요</div>
@@ -166,6 +233,7 @@
 
   <!-- ============== 6. PLAY ============== -->
   <section id="play" class="screen">
+    <div class="activity-label">시각 활동</div>
     <div class="topbar">
       <div class="dots" id="dots" aria-label="진행 상황"></div>
       <div class="topbar-actions">
@@ -181,71 +249,121 @@
       <div class="item-wrap has-glow" id="itemWrap">
         <div class="item" id="item" role="button" aria-label="먹이"></div>
         <div class="item-shadow"></div>
-        <div class="item-label" id="itemLabel">키위</div>
+        <div class="item-label" id="itemLabel">사과</div>
       </div>
     </div>
   </section>
 
   <!-- ============== 7. FINISH CHECK ============== -->
   <section id="finish" class="screen">
+    <div class="activity-label">시각 활동</div>
     <div class="check-panel finish-panel soft-check-panel">
       <div class="done-eyebrow">마지막 확인</div>
       <div class="check-title">오늘 상태를 함께 확인해요</div>
-      <div class="check-sub">게임은 끝났어요. 두 가지만 골라주시면 완료돼요</div>
+      <div class="check-sub">지금 상태를 편하게 골라주세요</div>
 
-      <div class="final-check-list">
+      <div class="final-check-list finish-step on" id="finishStepOne">
         <div class="final-check-group">
           <div class="final-check-heading">
-            <span>컨디션</span>
-            <strong>지금 몸상태는 어떠세요?</strong>
+            <span>지금의 기분</span>
+            <strong>지금의 기분은 어떠세요?</strong>
           </div>
-          <div class="state-choice-row finish-choice-row" aria-label="현재 컨디션 선택">
-            <button class="state-choice" data-finish="condition" data-value="good">
+          <div class="state-choice-row finish-choice-row" aria-label="지금의 기분 선택">
+            <button class="state-choice" data-finish="mood" data-value="good">
               <strong>좋아요</strong>
-              <span>가볍게 마쳤어요</span>
             </button>
-            <button class="state-choice" data-finish="condition" data-value="normal">
-              <strong>보통이에요</strong>
-              <span>평소와 비슷해요</span>
+            <button class="state-choice" data-finish="mood" data-value="normal">
+              <strong>보통</strong>
             </button>
-            <button class="state-choice" data-finish="condition" data-value="tired">
-              <strong>피곤해요</strong>
-              <span>조금 쉬고 싶어요</span>
+            <button class="state-choice" data-finish="mood" data-value="bad">
+              <strong>나쁨</strong>
             </button>
           </div>
         </div>
 
         <div class="final-check-group">
           <div class="final-check-heading">
-            <span>수면</span>
-            <strong>어젯밤에는 얼마나 주무셨나요?</strong>
+            <span>피로감</span>
+            <strong>피로감은 어느 정도인가요?</strong>
           </div>
-          <div class="state-choice-row finish-choice-row" aria-label="수면시간 선택">
-            <button class="state-choice" data-finish="sleep" data-value="enough">
-              <strong>7시간 이상</strong>
-              <span>잘 잤어요</span>
+          <div class="state-choice-row finish-choice-row" aria-label="피로감 선택">
+            <button class="state-choice" data-finish="fatigue" data-value="fine">
+              <strong>괜찮아요</strong>
             </button>
-            <button class="state-choice" data-finish="sleep" data-value="normal">
-              <strong>5~6시간</strong>
-              <span>보통이에요</span>
+            <button class="state-choice" data-finish="fatigue" data-value="little_tired">
+              <strong>조금 피곤해요</strong>
             </button>
-            <button class="state-choice" data-finish="sleep" data-value="short">
-              <strong>5시간 미만</strong>
-              <span>부족했어요</span>
+            <button class="state-choice" data-finish="fatigue" data-value="very_tired">
+              <strong>많이 피곤해요</strong>
+            </button>
+          </div>
+        </div>
+
+        <div class="final-check-group">
+          <div class="final-check-heading">
+            <span>난이도</span>
+            <strong>오늘 게임은 어땠나요?</strong>
+          </div>
+          <div class="state-choice-row finish-choice-row" aria-label="난이도 선택">
+            <button class="state-choice" data-finish="difficulty" data-value="easy">
+              <strong>쉬웠어요</strong>
+            </button>
+            <button class="state-choice" data-finish="difficulty" data-value="just_right">
+              <strong>적당했어요</strong>
+            </button>
+            <button class="state-choice" data-finish="difficulty" data-value="hard">
+              <strong>어려웠어요</strong>
             </button>
           </div>
         </div>
       </div>
 
-      <div class="check-actions">
-        <button class="btn ghost" id="finishSkipBtn">선택 없이 완료</button>
-        <button class="btn lg" id="finishConfirmBtn">완료하기</button>
+      <div class="final-check-list finish-step" id="finishStepTwo">
+        <div class="final-check-group">
+          <div class="final-check-heading">
+            <span>도움</span>
+            <strong>도움이 필요했나요?</strong>
+          </div>
+          <div class="state-choice-row finish-choice-row two-choice-row" aria-label="도움 필요 여부 선택">
+            <button class="state-choice" data-finish="help" data-value="yes">
+              <strong>네</strong>
+            </button>
+            <button class="state-choice" data-finish="help" data-value="no">
+              <strong>아니오</strong>
+            </button>
+          </div>
+        </div>
+
+        <div class="final-check-group">
+          <div class="final-check-heading">
+            <span>다시 하기</span>
+            <strong>다시 하고 싶나요?</strong>
+          </div>
+          <div class="state-choice-row finish-choice-row two-choice-row" aria-label="다시 하고 싶은지 선택">
+            <button class="state-choice" data-finish="replay" data-value="yes">
+              <strong>네</strong>
+            </button>
+            <button class="state-choice" data-finish="replay" data-value="no">
+              <strong>아니오</strong>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="check-actions finish-actions-step on" id="finishActionsOne">
+        <button class="btn ghost" id="finishSkipBtn">건너뛰기</button>
+        <button class="btn lg" id="finishNextBtn">다음</button>
+      </div>
+      <div class="check-actions finish-actions-step" id="finishActionsTwo">
+        <button class="btn ghost" id="finishPrevBtn">이전</button>
+        <button class="btn lg" id="finishConfirmBtn">완료</button>
       </div>
     </div>
   </section>
 
   <!-- ============== 8. DONE ============== -->
   <section id="done" class="screen">
+    <div class="activity-label">시각 활동</div>
     <div class="done-hero" id="doneHero"></div>
 
     <div class="done-title-area">
@@ -265,6 +383,7 @@
 
   <!-- ============== 10. MOOD ============== -->
   <section id="mood" class="screen">
+    <div class="activity-label">시각 활동</div>
     <div class="mood-header">
       <div class="done-eyebrow">기분 확인</div>
       <div class="done-title">지금 기분은 어떠세요?</div>

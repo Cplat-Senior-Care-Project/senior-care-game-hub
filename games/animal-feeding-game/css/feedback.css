@@ -188,8 +188,8 @@ body.mode-ai #done.session-complete .done-return-note {
   50% { transform: translateX(-50%) scale(1.08); opacity: 1; }
 }
 
-@media (max-height: 500px), (max-width: 920px) {
+@container game-stage (max-height: 500px) or (max-width: 920px) {
   #done.session-complete .done-hero {
-    min-height: clamp(106px, 24vmin, 174px);
+    min-height: clamp(106px, 172.8px, 174px);
   }
 }
