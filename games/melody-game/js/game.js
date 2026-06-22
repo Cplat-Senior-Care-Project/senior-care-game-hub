@@ -42,7 +42,8 @@
       this.elements.quitButton.addEventListener("pointerup", () => this.quit());
     }
 
-    start(difficulty, runtimeConfig) {
+    start(difficulty, runtimeConfig, options) {
+      const startPaused = Boolean(options && options.startPaused);
       const runtime = runtimeConfig || (window.MelodyRuntime && window.MelodyRuntime.runtimeSnapshot ? window.MelodyRuntime.runtimeSnapshot() : { difficulty });
       const resolvedDifficulty = runtime.difficulty || difficulty || "normal";
       const config = window.MelodyRuntime && window.MelodyRuntime.resolveDifficultyConfig
@@ -57,12 +58,12 @@
         mode: runtime.mode || "standard",
         difficulty: resolvedDifficulty,
         sessionId: runtime.sessionId || `session_${Date.now()}`,
-        contentId: runtime.contentId || "kungjak_melody_drum",
-        gameKey: runtime.gameKey || "kungjak_melody_drum",
+        contentId: runtime.contentId || "cognitive_melody_game_001",
+        gameKey: runtime.gameKey || "melody_game",
         runtimeConfig: runtime,
         conditionCheck: runtime.conditionCheck || runtime.condition_check || { skipped: true },
         finishCheck: {},
-        startedAt: new Date().toISOString(),
+        startedAt: startPaused ? null : new Date().toISOString(),
         config,
         song,
         symbols,
@@ -73,26 +74,39 @@
         currentNoteIndex: 0,
         correctCount: 0,
         wrongCount: 0,
+        wrongTapCount: 0,
+        totalTouchMissCount: 0,
         missedCount: 0,
         xPresentCount: 0,
         xSuccessCount: 0,
         xFailCount: 0,
         hintTriggeredCount: 0,
         totalTrials: 0,
+        questionLogs: [],
+        pauseCount: 0,
+        interactionCount: 0,
+        firstResponseTimeMs: null,
+        abandonedAt: null,
         reactionTimes: [],
+        touchInputUsed: false,
+        externalInputUsed: false,
         consecutiveWrong: 0,
         currentPrompt: null,
         nextPrompt: null,
         nextSong: null,
         hintShownThisTrial: false,
-        paused: false,
+        paused: startPaused,
         feedbackLocked: false,
         songTransitionLocked: false,
-        ended: false
+        ended: false,
+        status: "playing",
+        exitReason: null,
+        sessionStarted: false
       };
 
-      if (window.ResultBridge) {
+      if (!startPaused && window.ResultBridge) {
         window.ResultBridge.handleSessionStart(this.state);
+        this.state.sessionStarted = true;
       }
 
       this.elements.pauseOverlay.classList.remove("is-visible");
@@ -104,6 +118,24 @@
       this.lastTick = performance.now();
       this.tickHandle = window.setInterval(this.boundTick, 100);
       this.render();
+    }
+
+    activatePreparedGame() {
+      if (!this.state || this.state.ended) {
+        return false;
+      }
+
+      if (!this.state.startedAt) {
+        this.state.startedAt = new Date().toISOString();
+      }
+
+      if (window.ResultBridge && !this.state.sessionStarted) {
+        window.ResultBridge.handleSessionStart(this.state);
+        this.state.sessionStarted = true;
+      }
+
+      this.resume();
+      return true;
     }
 
     pickSong(excludeSongId) {
@@ -561,51 +593,230 @@
       this.state.noTouchElapsed += delta;
 
       if (this.state.sessionRemaining <= 0) {
-        this.finish();
+        this.abort("time_over");
         return;
       }
 
-      if (this.state.currentPrompt && this.state.currentPrompt.isX && this.state.noTouchElapsed >= 1.5) {
+      const xHoldSeconds = Number(this.state.config.xHoldSeconds) || 1.5;
+      if (this.state.currentPrompt && this.state.currentPrompt.isX && this.state.noTouchElapsed >= xHoldSeconds) {
         this.handleXSuccess();
         return;
       }
 
-      if (this.state.currentPrompt && !this.state.currentPrompt.isX && this.state.noTouchElapsed >= 5) {
+      const hintDelayMs = Number(this.state.config.hintDelayMs) || 10000;
+      if (this.state.config.autoHintEnabled !== false && this.state.currentPrompt && !this.state.currentPrompt.isX && this.state.noTouchElapsed >= hintDelayMs / 1000) {
         this.showHint(false);
       }
 
       this.render();
     }
 
-    handlePadInput(symbolId, button) {
+    handleExternalAnswer(payload) {
+      if (!this.state || this.state.ended) {
+        return { accepted: false, reason: "game_not_ready" };
+      }
+
+      if (this.state.paused || this.state.feedbackLocked) {
+        return { accepted: false, reason: "game_not_accepting_input" };
+      }
+
+      if (this.state.runtimeConfig && this.state.runtimeConfig.externalInputEnabled === false) {
+        return { accepted: false, reason: "external_input_disabled" };
+      }
+
+      const normalized = this.normalizeExternalAnswerPayload(payload);
+      const button = this.findPadButtonForExternalAnswer(normalized.selectedAnswer);
+
+      if (!button) {
+        return {
+          accepted: false,
+          reason: "unknown_selected_answer",
+          selected_answer: normalized.selectedAnswer
+        };
+      }
+
+      this.handlePadInput(button.dataset.symbolId, button, {
+        inputType: "external",
+        externalInput: normalized
+      });
+
+      return {
+        accepted: true,
+        selected_answer: normalized.selectedAnswer,
+        selected_symbol_id: button.dataset.symbolId,
+        input_type: normalized.externalInputType || null
+      };
+    }
+
+    normalizeExternalAnswerPayload(payload) {
+      const source = payload && typeof payload === "object" ? payload : {};
+      const selectedAnswer = source.selected_answer !== undefined
+        ? source.selected_answer
+        : source.selectedAnswer !== undefined
+          ? source.selectedAnswer
+          : source.answer !== undefined
+            ? source.answer
+            : source.selected_symbol_id !== undefined
+              ? source.selected_symbol_id
+              : source.symbol_id;
+      const confidence = Number(source.confidence);
+
+      return {
+        selectedAnswer: selectedAnswer === undefined || selectedAnswer === null ? "" : String(selectedAnswer).trim(),
+        externalInputType: source.input_type || source.inputType || "external",
+        rawTranscript: source.raw_transcript || source.rawTranscript || "",
+        confidence: Number.isFinite(confidence) ? confidence : null,
+        receivedAt: new Date().toISOString()
+      };
+    }
+
+    findPadButtonForExternalAnswer(selectedAnswer) {
+      if (!selectedAnswer) {
+        return null;
+      }
+
+      const buttons = Array.from(this.elements.padArea.querySelectorAll("[data-symbol-id]"));
+      const answer = String(selectedAnswer).trim();
+      const answerNumber = Number(answer);
+
+      if (Number.isInteger(answerNumber) && answerNumber >= 1 && answerNumber <= buttons.length) {
+        return buttons[answerNumber - 1];
+      }
+
+      const normalizedAnswer = answer.toLowerCase();
+      return buttons.find((button) => {
+        const symbolId = String(button.dataset.symbolId || "").toLowerCase();
+        const label = String(button.dataset.label || "").toLowerCase();
+        return normalizedAnswer === symbolId || normalizedAnswer === label;
+      }) || null;
+    }
+
+    handlePadInput(symbolId, button, options) {
       if (!this.state || this.state.ended || this.state.paused || this.state.feedbackLocked) {
         return;
       }
 
+      const inputType = options && options.inputType === "external" ? "external" : "touch";
+      const externalInput = options && options.externalInput ? options.externalInput : null;
+      if (inputType === "external") {
+        this.state.externalInputUsed = true;
+      } else {
+        this.state.touchInputUsed = true;
+      }
+      this.recordInteraction();
+
       this.audio.ensureContext();
       this.audio.playClick();
-      button.blur();
+      if (button && typeof button.blur === "function") {
+        button.blur();
+      }
       this.state.noTouchElapsed = 0;
 
       if (this.state.currentPrompt.isX) {
-        this.handleXFail(button);
+        this.handleXFail(button, symbolId, inputType, externalInput);
         return;
       }
 
       if (symbolId === this.state.currentPrompt.id) {
-        this.handleCorrect(button);
+        this.handleCorrect(button, inputType, externalInput);
       } else {
-        this.handleWrong(button);
+        this.handleWrong(button, symbolId, inputType, externalInput);
       }
     }
 
-    handleCorrect(button) {
+    recordInteraction() {
+      if (!this.state) {
+        return;
+      }
+
+      this.state.interactionCount += 1;
+      if (this.state.firstResponseTimeMs === null) {
+        const sessionTime = Number(this.state.config && this.state.config.sessionTime) || 0;
+        const remaining = Number(this.state.sessionRemaining) || 0;
+        this.state.firstResponseTimeMs = Math.round(Math.max(0, sessionTime - remaining) * 1000);
+      }
+    }
+
+    appendQuestionLog(updates) {
+      if (!this.state || !this.state.currentPrompt) {
+        return;
+      }
+
+      const prompt = this.state.currentPrompt;
+      const questionIndex = this.state.questionLogs.length + 1;
+      const questionType = prompt.isX ? "no_go" : "tap";
+      const responseMs = Number.isFinite(updates.response_time_ms)
+        ? updates.response_time_ms
+        : Math.round(this.state.trialElapsed * 1000);
+      const correctAnswer = prompt.isX ? "x" : prompt.id || null;
+      const selectedAnswer = updates.selected_symbol_id || null;
+      const failType = updates.fail_type || null;
+      const hintUsed = Boolean(this.state.hintShownThisTrial);
+      const isCorrect = Boolean(updates.is_correct);
+
+      this.state.questionLogs.push({
+        question_id: `${this.state.sessionId || "melody-session"}_q${questionIndex}`,
+        question_index: questionIndex,
+        stage: 1,
+        question_type: questionType,
+        game_mode: "melody_play",
+        cognitive_domain: "attention_response",
+        difficulty: this.state.difficulty || null,
+        target_item: correctAnswer,
+        selected_answer: selectedAnswer,
+        correct_answer: correctAnswer,
+        is_correct: isCorrect,
+        attempt_count: 1,
+        hint_used: hintUsed,
+        hint_count: hintUsed ? 1 : 0,
+        response_time_ms: responseMs,
+        first_response_time_ms: null,
+        wrong_tap_count: isCorrect ? 0 : failType ? 1 : 0,
+        touch_miss_count: ["wrong_symbol", "x_tapped"].includes(failType) ? 1 : 0,
+        input_type: updates.input_type || null,
+        raw_log_json: {
+          prompt_type: questionType,
+          correct_symbol_id: correctAnswer,
+          selected_symbol_id: selectedAnswer,
+          fail_type: failType,
+          hint_shown: hintUsed,
+          note_index: Number.isFinite(prompt.noteIndex) ? prompt.noteIndex : null,
+          song_id: prompt.songId || (this.state.song && this.state.song.id) || null,
+          external_input_type: updates.external_input_type || null,
+          external_selected_answer: updates.external_selected_answer || null,
+          external_raw_transcript: updates.external_raw_transcript || null,
+          external_confidence: updates.external_confidence === undefined ? null : updates.external_confidence
+        }
+      });
+    }
+
+    createExternalQuestionFields(externalInput) {
+      if (!externalInput) {
+        return {};
+      }
+
+      return {
+        external_input_type: externalInput.externalInputType || null,
+        external_selected_answer: externalInput.selectedAnswer || null,
+        external_raw_transcript: externalInput.rawTranscript || null,
+        external_confidence: externalInput.confidence
+      };
+    }
+
+    handleCorrect(button, inputType, externalInput) {
       const reactionMs = Math.round(this.state.trialElapsed * 1000);
       const noteIndex = Number.isFinite(this.state.currentPrompt.noteIndex)
         ? this.state.currentPrompt.noteIndex
         : this.state.currentNoteIndex;
       const note = this.normalizeNoteEntry(this.getNoteAt(noteIndex));
 
+      this.appendQuestionLog({
+        selected_symbol_id: this.state.currentPrompt.id,
+        is_correct: true,
+        response_time_ms: reactionMs,
+        input_type: inputType || "touch",
+        ...this.createExternalQuestionFields(externalInput)
+      });
       this.state.totalTrials += 1;
       this.state.correctCount += 1;
       this.state.completedNoteCount += 1;
@@ -619,8 +830,22 @@
       this.flashPad(button, "is-correct");
       this.flashRing("success");
 
+      if (this.shouldCompleteSession()) {
+        this.finishAfterSymbolExit("completed");
+        return;
+      }
+
       if (this.shouldWaitForSymbolExitBeforeAdvance()) {
-        this.animateSymbolExit("top-left", () => this.advanceTrial());
+        this.state.feedbackLocked = true;
+        this.animateSymbolExit("top-left", () => {
+          if (!this.state || this.state.ended) {
+            return;
+          }
+
+          this.state.feedbackLocked = false;
+          this.lastTick = performance.now();
+          this.advanceTrial();
+        });
       } else {
         this.animateSymbolExit("top-left");
         this.advanceTrial();
@@ -629,6 +854,40 @@
 
     shouldWaitForSymbolExitBeforeAdvance() {
       return this.state.currentNoteIndex >= this.getActiveNotes().length;
+    }
+
+    isCareAiMode() {
+      const mode = this.state && this.state.mode;
+      return mode === "care" || mode === "ai_assisted";
+    }
+
+    shouldCompleteSongSession() {
+      return this.state.currentNoteIndex >= this.getActiveNotes().length;
+    }
+
+    shouldCompleteSession() {
+      if (this.isCareAiMode()) {
+        return this.shouldCompleteSongSession();
+      }
+
+      return false;
+    }
+
+    finishAfterSymbolExit(reason) {
+      if (!this.state || this.state.ended) {
+        return;
+      }
+
+      this.state.feedbackLocked = true;
+      this.animateSymbolExit("top-left", () => {
+        if (!this.state || this.state.ended) {
+          return;
+        }
+
+        this.state.feedbackLocked = false;
+        this.lastTick = performance.now();
+        this.finish(reason || "completed");
+      });
     }
 
     flashRing(tone) {
@@ -759,15 +1018,30 @@
       }
     }
 
-    handleWrong(button) {
+    handleWrong(button, symbolId, inputType, externalInput) {
+      this.appendQuestionLog({
+        selected_symbol_id: symbolId,
+        is_correct: false,
+        fail_type: "wrong_symbol",
+        input_type: inputType || "touch",
+        ...this.createExternalQuestionFields(externalInput)
+      });
       this.state.totalTrials += 1;
       this.state.wrongCount += 1;
+      this.state.wrongTapCount += 1;
+      this.state.totalTouchMissCount += 1;
       this.state.consecutiveWrong += 1;
       this.flashPad(button, "is-wrong");
       this.flashRing("error");
     }
 
     handleMissed() {
+      this.appendQuestionLog({
+        selected_symbol_id: null,
+        is_correct: false,
+        fail_type: "no_response",
+        input_type: null
+      });
       this.state.totalTrials += 1;
       this.state.missedCount += 1;
       this.state.consecutiveWrong = 0;
@@ -779,12 +1053,24 @@
         ? this.state.currentPrompt.noteIndex
         : this.state.currentNoteIndex;
 
+      this.appendQuestionLog({
+        selected_symbol_id: null,
+        is_correct: true,
+        response_time_ms: Math.round(this.state.noTouchElapsed * 1000),
+        input_type: null
+      });
       this.state.totalTrials += 1;
       this.state.xSuccessCount += 1;
       this.state.completedNoteCount += 1;
       this.state.currentNoteIndex = noteIndex + 1;
       this.state.consecutiveWrong = 0;
       this.flashRing("success");
+
+      if (this.shouldCompleteSession()) {
+        this.finishAfterSymbolExit("completed");
+        return;
+      }
+
       if (this.shouldWaitForSymbolExitBeforeAdvance()) {
         this.state.feedbackLocked = true;
         this.animateSymbolExit("top-left", () => {
@@ -802,10 +1088,18 @@
       }
     }
 
-    handleXFail(button) {
+    handleXFail(button, symbolId, inputType, externalInput) {
+      this.appendQuestionLog({
+        selected_symbol_id: symbolId,
+        is_correct: false,
+        fail_type: "x_tapped",
+        input_type: inputType || "touch",
+        ...this.createExternalQuestionFields(externalInput)
+      });
       this.state.totalTrials += 1;
       this.state.xFailCount += 1;
       this.state.wrongCount += 1;
+      this.state.totalTouchMissCount += 1;
       this.state.consecutiveWrong += 1;
       this.flashPad(button, "is-wrong");
       this.flashRing("error");
@@ -859,11 +1153,16 @@
     }
 
     pause(options = {}) {
-      if (!this.state || this.state.ended || this.state.feedbackLocked) {
+      const canPauseDuringSongTransition = this.state && this.state.feedbackLocked && this.state.songTransitionLocked;
+      if (!this.state || this.state.ended || this.state.feedbackLocked && !canPauseDuringSongTransition) {
         return;
       }
 
+      const wasPaused = this.state.paused;
       this.state.paused = true;
+      if (!wasPaused && options.count !== false) {
+        this.state.pauseCount += 1;
+      }
       if (options.showOverlay === false) {
         this.elements.pauseOverlay.classList.remove("is-visible");
       } else {
@@ -900,35 +1199,54 @@
     }
 
     quit() {
-      this.stopTick();
       if (this.state) {
-        const result = window.ResultManager.calculateResult(this.state);
-        result.completed = false;
-        result.ended_reason = "user_quit";
-        if (window.ResultBridge) {
-          window.ResultBridge.handleSessionAbort(this.state, "user_quit");
+        if (window.ResultBridge && typeof window.ResultBridge.handleGameExitRequested === "function") {
+          window.ResultBridge.handleGameExitRequested("user_exit", this.state);
         }
-        this.state.ended = true;
-        this.elements.pauseOverlay.classList.remove("is-visible");
-        this.elements.feedbackOverlay.className = "feedback-overlay";
-        this.onFinish(result, { submit: false });
+        this.abort("user_exit");
         return;
       }
       this.elements.pauseOverlay.classList.remove("is-visible");
+      if (window.ResultBridge) {
+        window.ResultBridge.handleGameExitRequested("user_exit");
+      }
       window.dispatchEvent(new CustomEvent("melody-drum:go-home"));
     }
 
-    finish() {
+    finish(reason) {
       if (!this.state || this.state.ended) {
         return;
       }
 
+      this.state.status = "completed";
+      this.state.exitReason = reason || "completed";
       this.state.ended = true;
       this.stopTick();
       this.elements.pauseOverlay.classList.remove("is-visible");
       this.elements.feedbackOverlay.className = "feedback-overlay";
       const result = window.ResultManager.calculateResult(this.state);
       console.log("result_detail_json", result);
+      this.onFinish(result);
+    }
+
+    abort(reason) {
+      if (!this.state || this.state.ended) {
+        return;
+      }
+
+      this.state.status = "abandoned";
+      this.state.exitReason = reason || "abandoned";
+      this.state.abandonedAt = new Date().toISOString();
+      this.state.ended = true;
+      this.stopTick();
+      this.elements.pauseOverlay.classList.remove("is-visible");
+      this.elements.feedbackOverlay.className = "feedback-overlay";
+      const result = window.ResultManager.calculateResult(this.state);
+      result.status = "abandoned";
+      result.completed = false;
+      result.exit_reason = this.state.exitReason;
+      result.ended_reason = this.state.exitReason;
+      result.abandon_reason = this.state.exitReason;
       this.onFinish(result);
     }
 

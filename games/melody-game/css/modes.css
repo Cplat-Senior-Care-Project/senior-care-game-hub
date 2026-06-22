@@ -99,6 +99,46 @@ body.mode-ai {
   --mode-accent: var(--primary);
 }
 
+body:is(.mode-care, .mode-ai) .menu-actions {
+  grid-template-columns: minmax(370px, 410px) minmax(370px, 410px);
+  width: min(860px, 92cqw);
+}
+
+body:is(.mode-care, .mode-ai) #exitGameButton {
+  min-height: clamp(122px, 16.5cqh, 160px);
+  padding: 0 clamp(30px, 5cqw, 56px);
+  font-size: 58px;
+}
+
+body:is(.mode-care, .mode-ai) #playScreen .play-topbar {
+  justify-items: center;
+}
+
+body:is(.mode-care, .mode-ai) #playScreen .progress-wrap {
+  grid-template-columns: 190px 190px;
+  width: auto;
+  margin: 0 auto !important;
+  column-gap: 28px;
+  justify-content: center;
+  justify-self: center !important;
+  place-self: center;
+  transform: translateX(-18px) !important;
+}
+
+body:is(.mode-care, .mode-ai) #playScreen .progress-track {
+  display: none !important;
+}
+
+body:is(.mode-care, .mode-ai) #playScreen .progress-label,
+body:is(.mode-care, .mode-ai) #playScreen .pause-button {
+  width: 190px;
+  min-width: 190px;
+}
+
+body:is(.mode-care, .mode-ai) #playScreen .pause-button {
+  grid-column: 2;
+}
+
 body .pause-panel .pause-main-button,
 body.mode-standard .pause-panel .pause-main-button,
 body.mode-reminder .pause-panel .pause-main-button,
@@ -125,6 +165,10 @@ body.hide-settings [data-go="settings"],
 body.hide-help [data-go="howto"],
 body.hide-replay #retryButton {
   display: none !important;
+}
+
+body.hide-timer .progress-time {
+  display: none;
 }
 
 body.hide-progress .progress-wrap,

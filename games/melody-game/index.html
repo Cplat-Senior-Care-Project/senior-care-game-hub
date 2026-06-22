@@ -19,11 +19,11 @@
       document.documentElement.style.setProperty("--game-viewport-top-gutter", String(Math.min(verticalGutter, 120)) + "px");
     })();
   </script>
-  <link rel="stylesheet" href="css/base.css?v=all-modes-standard-1">
-  <link rel="stylesheet" href="css/screens.css?v=reminder-result-button-center-1">
+  <link rel="stylesheet" href="css/base.css?v=countdown-over-play-1">
+  <link rel="stylesheet" href="css/screens.css?v=care-ai-scoped-buttons-1">
   <link rel="stylesheet" href="css/game-layout.css">
-  <link rel="stylesheet" href="css/feedback.css">
-  <link rel="stylesheet" href="css/modes.css?v=reminder-result-new-light-2">
+  <link rel="stylesheet" href="css/feedback.css?v=song-transition-pause-1">
+  <link rel="stylesheet" href="css/modes.css?v=care-ai-centered-topbar-6">
   <link rel="stylesheet" href="css/responsive.css">
   <link rel="stylesheet" href="css/accessibility.css">
 </head>
@@ -491,6 +491,7 @@
             <h2 class="result-correct-title">오늘의 결과</h2>
           </div>
           <p id="resultMessage" class="result-correct-message">정말 잘하셨어요!</p>
+          <div class="result-heart-divider" aria-hidden="true"><span>🧡</span></div>
           <p id="resultScore" class="result-score-text"><span id="resultScoreNumber" class="result-score-number">100</span><span class="result-score-unit">점</span></p>
         </div>
         <span id="resultPlayTime" class="sr-only">00:00</span>
@@ -550,13 +551,14 @@
     </div>
   </div>
 
-  <script src="js/core-config.js?v=all-modes-standard-1"></script>
+  <script src="js/app-bridge.js"></script>
+  <script src="js/core-config.js?v=external-answer-1"></script>
   <script src="js/audio.js?v=all-modes-standard-1"></script>
-  <script src="js/audio-display.js"></script>
-  <script src="js/result.js?v=reminder-result-new-light-2"></script>
-  <script src="js/result-bridge.js"></script>
-  <script src="js/game.js?v=all-modes-standard-1"></script>
-  <script src="js/screen-flow.js?v=all-modes-standard-1"></script>
-  <script src="js/main.js"></script>
+  <script src="js/audio-display.js?v=web-no-fullscreen-1"></script>
+  <script src="js/result.js?v=no-target-note-count-1"></script>
+  <script src="js/result-bridge.js?v=no-target-note-count-1"></script>
+  <script src="js/game.js?v=external-answer-1"></script>
+  <script src="js/screen-flow.js?v=embedded-no-direct-hub-nav-1"></script>
+  <script src="js/main.js?v=external-answer-1"></script>
 </body>
 </html>

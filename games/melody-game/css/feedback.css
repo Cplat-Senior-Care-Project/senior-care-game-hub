@@ -43,6 +43,7 @@
   background: transparent;
   backdrop-filter: none;
   text-shadow: none;
+  pointer-events: none;
 }
 
 .song-transition-panel {

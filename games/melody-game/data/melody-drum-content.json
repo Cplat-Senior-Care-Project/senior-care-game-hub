@@ -1,5 +1,6 @@
 {
-    "game_key":  "kungjak_melody_drum",
+    "game_key":  "melody_game",
+    "content_id":  "cognitive_melody_game_001",
     "title":  "Kungjak Melody Drum",
     "supported_modes":  [
                             "standard",

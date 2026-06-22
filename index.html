@@ -509,10 +509,10 @@
           <p class="card-copy">들려준 딩동 소리를 기억하고 같은 순서로 건반을 눌러 보는 음악 기억 활동입니다.</p>
         </div>
         <div class="mode-grid" aria-label="딩동 멜로디 연주하기 모드">
-          <a class="mode-link standard" href="games/melody-game/index.html?mode=standard">&#54364;&#51456; &#47784;&#46300;</a>
-          <a class="mode-link reminder" href="games/melody-game/index.html?mode=reminder">&#50508;&#47548; &#47784;&#46300;</a>
-          <a class="mode-link care" href="games/melody-game/index.html?mode=care">&#52992;&#50612; &#47784;&#46300;</a>
-          <a class="mode-link ai_assisted" href="games/melody-game/index.html?mode=ai_assisted">AI &#50672;&#46041; &#47784;&#46300;</a>
+          <a class="mode-link standard" href="games/melody-game/index.html?mode=standard&content_id=cognitive_melody_game_001&game_key=melody_game" data-game-key="melody_game" data-mode="standard">&#54364;&#51456; &#47784;&#46300;</a>
+          <a class="mode-link reminder" href="games/melody-game/index.html?mode=reminder&content_id=cognitive_melody_game_001&game_key=melody_game" data-game-key="melody_game" data-mode="reminder">&#50508;&#47548; &#47784;&#46300;</a>
+          <a class="mode-link care" href="games/melody-game/index.html?mode=care&content_id=cognitive_melody_game_001&game_key=melody_game" data-game-key="melody_game" data-mode="care">&#52992;&#50612; &#47784;&#46300;</a>
+          <a class="mode-link ai_assisted" href="games/melody-game/index.html?mode=ai_assisted&content_id=cognitive_melody_game_001&game_key=melody_game" data-game-key="melody_game" data-mode="ai_assisted">AI &#50672;&#46041; &#47784;&#46300;</a>
         </div>
       </article>
 
@@ -872,7 +872,7 @@
         renderEventLog();
 
         if (message.type === "RETURN_TO_APP") {
-          completeRunReturn();
+          runMeta.textContent = "복귀 요청을 수신했습니다. 게임 화면은 결과 확인을 위해 유지됩니다.";
         }
       });
 

@@ -15,7 +15,13 @@
     window.dispatchEvent(new CustomEvent("melody-drum:host-message", { detail: message }));
   }
 
+  function isNativeMobileHost() {
+    return Boolean(window.ReactNativeWebView && typeof window.ReactNativeWebView.postMessage === "function");
+  }
+
   async function requestWebFullscreen() {
+    if (!isNativeMobileHost()) return false;
+
     const runtime = window.MelodyRuntime && window.MelodyRuntime.runtime;
     if (!runtime || !runtime.requestFullscreen) return false;
 
@@ -48,27 +54,8 @@
   }
 
   async function requestDisplay(source) {
-    const runtime = window.MelodyRuntime && window.MelodyRuntime.runtimeSnapshot
-      ? window.MelodyRuntime.runtimeSnapshot()
-      : {};
-
-    if (runtime.nativeDisplayRequest !== false) {
-      postHostMessage("DISPLAY_REQUEST", {
-        source: source || "runtime",
-        mode: runtime.mode || "standard",
-        orientation: runtime.orientationLock || "landscape",
-        fullscreen: runtime.requestFullscreen !== false
-      });
-    }
-
-    const fullscreen = await requestWebFullscreen();
-    const orientation = await lockOrientation();
-
-    postHostMessage("DISPLAY_RESULT", {
-      source: source || "runtime",
-      fullscreen,
-      orientation
-    });
+    await requestWebFullscreen();
+    await lockOrientation();
   }
 
   function returnToHost(reason) {

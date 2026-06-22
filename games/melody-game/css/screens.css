@@ -676,7 +676,7 @@ h3 {
   box-shadow:
     inset 0 3px 0 rgba(255, 255, 244, 0.42),
     0 6px 12px rgba(47, 65, 21, 0.22);
-  font-size: 42px;
+  font-size: 35px;
   font-weight: 1000;
   line-height: 1;
 }
@@ -2021,16 +2021,19 @@ h3 {
   place-items: center;
   width: 680px;
   max-width: calc(100% - 48px);
-  min-height: 312px;
+  min-height: 344px;
   margin-top: 42px;
-  padding: 72px 44px 34px;
+  padding: 72px 44px 66px;
   border: 7px solid #f4c21f;
-  border-radius: 16px;
-  background: #fff1cf;
+  border-radius: 32px;
+  background: #fff6df;
   color: #3e2617;
   text-align: center;
   isolation: isolate;
   overflow: visible;
+  box-shadow:
+    inset 0 0 0 3px #fff5c8,
+    inset 0 0 0 7px rgba(245, 194, 31, 0.34);
 }
 
 .result-celebration {
@@ -2081,9 +2084,13 @@ h3 {
   font-size: 38px;
   font-weight: 1000;
   line-height: 1;
-  -webkit-text-stroke: 0;
-  paint-order: normal;
-  text-shadow: none;
+  -webkit-text-stroke: 1.5px #1f140d;
+  paint-order: stroke fill;
+  text-shadow:
+    0 1px 0 #1f140d,
+    1px 0 0 #1f140d,
+    0 -1px 0 #1f140d,
+    -1px 0 0 #1f140d;
   transform: translateY(-5px);
 }
 
@@ -2095,6 +2102,7 @@ h3 {
   font-size: 42px;
   font-weight: 1000;
   line-height: 1;
+  transform: translateY(-12px);
 }
 
 .result-correct-message::before {
@@ -2106,31 +2114,85 @@ h3 {
   transform: translateY(-20px);
 }
 
+.result-heart-divider {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 28px minmax(0, 1fr);
+  align-items: center;
+  justify-content: center;
+  column-gap: 14px;
+  width: min(500px, 88%);
+  height: 28px;
+  margin: -2px 0 -6px;
+  color: #f07a2f;
+  font-size: 24px;
+  line-height: 1;
+}
+
+.result-heart-divider::before,
+.result-heart-divider::after {
+  min-width: 0;
+  border-top: 4px dotted #d9a21a;
+  content: "";
+}
+
+.result-heart-divider::before {
+  grid-column: 1;
+}
+
+.result-heart-divider::after {
+  grid-column: 3;
+}
+
+.result-heart-divider span {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  grid-column: 2;
+  width: 28px;
+  height: 28px;
+  filter: drop-shadow(0 2px 0 rgba(118, 72, 20, 0.14));
+  transform: translateX(-3px);
+}
+
 .result-score-text {
   position: relative;
   z-index: 2;
-  display: inline-flex;
+  display: grid;
+  grid-template-columns: 72px max-content max-content 72px;
   align-items: baseline;
   justify-content: center;
+  column-gap: 8px;
   margin: 0;
   color: #a64f1f;
-  font-size: 60px;
+  font-size: 84px;
   font-weight: 1000;
   line-height: 0.96;
   text-shadow: 0 2px 0 rgba(255, 246, 223, 0.72);
+  transform: translateY(34px);
 }
 
 .result-score-number {
-  font-size: 70px;
+  grid-column: 2;
+  font-size: 98px;
+  transform: translateY(-8px);
+}
+
+.result-score-unit {
+  grid-column: 3;
+  transform: translateY(-8px);
 }
 
 .result-score-text::before,
 .result-score-text::after {
-  flex: 0 0 auto;
+  grid-row: 1;
   align-self: center;
+  justify-self: center;
   width: 20px;
   height: 82px;
-  margin: 0 20px;
+  margin: 0;
   background-repeat: no-repeat;
   background-size:
     62% 16%,
@@ -2146,6 +2208,7 @@ h3 {
 }
 
 .result-score-text::before {
+  grid-column: 1;
   background-image:
     linear-gradient(35deg, transparent 0 38%, #ffd83d 38% 62%, transparent 62% 100%),
     linear-gradient(0deg, transparent 0 38%, #ff9a8a 38% 62%, transparent 62% 100%),
@@ -2154,6 +2217,7 @@ h3 {
 }
 
 .result-score-text::after {
+  grid-column: 4;
   background-image:
     linear-gradient(35deg, transparent 0 38%, #ff9a8a 38% 62%, transparent 62% 100%),
     linear-gradient(0deg, transparent 0 38%, #ffd83d 38% 62%, transparent 62% 100%),
@@ -2244,7 +2308,7 @@ body.mode-reminder #resultScreen .reminder-result-card {
   padding: 28px clamp(26px, 4vw, 42px) 30px;
   border: 3px solid #cda964;
   border-radius: 34px;
-  background: rgba(255, 252, 238, 0.95);
+  background: rgba(255, 255, 248, 0.98);
   box-shadow:
     0 18px 42px rgba(92, 58, 23, 0.2),
     inset 0 0 0 1px rgba(255, 255, 255, 0.62);
@@ -2285,7 +2349,7 @@ body.mode-reminder #resultScreen .reminder-result-score-panel {
   border: 3px solid #f0c661;
   border-radius: 24px;
   background:
-    linear-gradient(180deg, rgba(255, 252, 239, 0.86), rgba(255, 243, 208, 0.86));
+    linear-gradient(180deg, rgba(255, 255, 250, 0.96), rgba(255, 250, 235, 0.94));
   box-shadow:
     inset 0 0 0 2px rgba(255, 255, 255, 0.54),
     0 8px 18px rgba(93, 57, 21, 0.12);
@@ -2351,7 +2415,7 @@ body.mode-reminder #resultScreen .reminder-result-rate {
   gap: 24px;
   border: 3px solid #a9bd80;
   border-radius: 24px;
-  background: rgba(255, 255, 247, 0.78);
+  background: rgba(255, 255, 252, 0.94);
   color: #2f1a0b;
   font-size: 40px;
   font-weight: 1000;
@@ -2382,7 +2446,7 @@ body.mode-reminder #resultScreen .reminder-result-detail {
   padding: 0 26px;
   border: 2px solid #e8c997;
   border-radius: 16px;
-  background: rgba(255, 252, 239, 0.72);
+  background: rgba(255, 255, 250, 0.92);
   color: #2f1a0b;
   font-size: 50px;
   font-weight: 1000;
@@ -2508,19 +2572,20 @@ body.mode-reminder #resultScreen .reminder-result-emoji {
 
 body.mode-reminder #resultScreen .reminder-result-eyebrow {
   display: block;
-  width: max-content;
-  max-width: none;
+  width: 100%;
+  max-width: 100%;
   margin: 0 0 12px;
   color: #5f351a;
   font-size: 60px;
   font-weight: 1000;
   line-height: 1;
+  text-align: center;
   white-space: nowrap;
   word-break: keep-all;
 }
 
 body.mode-reminder #resultScreen .reminder-result-card h2 {
-  width: auto;
+  width: 100%;
   margin: 0;
   padding-bottom: 0;
   border-bottom: 0;
@@ -2528,6 +2593,7 @@ body.mode-reminder #resultScreen .reminder-result-card h2 {
   font-size: 72px;
   font-weight: 1000;
   line-height: 1.08;
+  text-align: center;
   white-space: normal;
   word-break: keep-all;
   text-shadow: none;
@@ -2535,13 +2601,14 @@ body.mode-reminder #resultScreen .reminder-result-card h2 {
 
 body.mode-reminder #resultScreen .reminder-result-message {
   display: block;
-  width: max-content;
-  max-width: calc(var(--stage-width, 1280px) - 120px);
+  width: 100%;
+  max-width: 100%;
   margin: 18px auto 28px;
   color: #5f351a;
   font-size: 44px;
   font-weight: 1000;
   line-height: 1.2;
+  text-align: center;
   white-space: nowrap;
   word-break: keep-all;
 }
@@ -2552,7 +2619,7 @@ body.mode-reminder #resultScreen .result-actions {
   justify-content: center;
   width: auto;
   gap: 18px;
-  margin-top: 0;
+  margin-top: -18px;
   padding-top: 0;
 }
 
@@ -2590,6 +2657,161 @@ body.mode-reminder #resultScreen #hostReturnButton {
 
 body.mode-reminder #resultScreen #hostReturnButton:active,
 body.mode-reminder #resultScreen #hostReturnButton.is-pressed {
+  box-shadow:
+    0 3px 9px rgba(28, 74, 151, 0.24),
+    0 0 0 1px #153f91,
+    inset 0 0 0 1px #153f91,
+    inset 0 2px 0 rgba(255, 255, 244, 0.34),
+    inset 0 -3px 0 rgba(16, 55, 130, 0.3);
+}
+
+body:is(.mode-care, .mode-ai, [data-mode="care"], [data-mode="ai_assisted"]) #resultScreen {
+  align-content: center;
+  align-items: center;
+  justify-items: center;
+  overflow: hidden;
+  padding-top: calc(22px + var(--safe-top));
+  padding-bottom: calc(22px + var(--safe-bottom));
+}
+
+body:is(.mode-care, .mode-ai, [data-mode="care"], [data-mode="ai_assisted"]) #resultScreen .result-summary-card {
+  display: none;
+}
+
+body:is(.mode-care, .mode-ai, [data-mode="care"], [data-mode="ai_assisted"]) #resultScreen .reminder-result-content {
+  box-sizing: border-box;
+  display: grid;
+  justify-items: center;
+  align-content: center;
+  position: relative;
+  width: min(940px, 100%);
+  max-width: calc(1280px - var(--safe-left) - var(--safe-right) - 16px);
+  max-height: 100%;
+  gap: 0;
+  padding: 36px 64px;
+  color: #5f351a;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  overflow-y: auto;
+  scrollbar-width: none;
+  text-align: center;
+}
+
+body:is(.mode-care, .mode-ai, [data-mode="care"], [data-mode="ai_assisted"]) #resultScreen .reminder-result-content::-webkit-scrollbar {
+  display: none;
+}
+
+body:is(.mode-care, .mode-ai, [data-mode="care"], [data-mode="ai_assisted"]) #resultScreen .reminder-result-card {
+  display: contents;
+}
+
+body:is(.mode-care, .mode-ai, [data-mode="care"], [data-mode="ai_assisted"]) #resultScreen .reminder-result-record {
+  display: none;
+}
+
+body:is(.mode-care, .mode-ai, [data-mode="care"], [data-mode="ai_assisted"]) #resultScreen .reminder-result-emoji {
+  display: grid;
+  place-items: center;
+  width: auto;
+  height: auto;
+  margin: 0 auto 16px;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+  font-family: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif;
+  font-size: 108px;
+  line-height: 1;
+}
+
+body:is(.mode-care, .mode-ai, [data-mode="care"], [data-mode="ai_assisted"]) #resultScreen .reminder-result-eyebrow {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  margin: 0 0 12px;
+  color: #5f351a;
+  font-size: 60px;
+  font-weight: 1000;
+  line-height: 1;
+  text-align: center;
+  white-space: nowrap;
+  word-break: keep-all;
+}
+
+body:is(.mode-care, .mode-ai, [data-mode="care"], [data-mode="ai_assisted"]) #resultScreen .reminder-result-card h2 {
+  width: 100%;
+  margin: 0;
+  padding-bottom: 0;
+  border-bottom: 0;
+  color: var(--brown-dark, #5f351a);
+  font-size: 72px;
+  font-weight: 1000;
+  line-height: 1.08;
+  text-align: center;
+  white-space: normal;
+  word-break: keep-all;
+  text-shadow: none;
+}
+
+body:is(.mode-care, .mode-ai, [data-mode="care"], [data-mode="ai_assisted"]) #resultScreen .reminder-result-message {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  margin: 18px auto 28px;
+  color: #5f351a;
+  font-size: 44px;
+  font-weight: 1000;
+  line-height: 1.2;
+  text-align: center;
+  white-space: nowrap;
+  word-break: keep-all;
+}
+
+body:is(.mode-care, .mode-ai, [data-mode="care"], [data-mode="ai_assisted"]) #resultScreen .result-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  width: auto;
+  gap: 18px;
+  margin-top: -18px;
+  padding-top: 0;
+}
+
+body:is(.mode-care, .mode-ai, [data-mode="care"], [data-mode="ai_assisted"]) #resultScreen #homeButton {
+  display: none;
+}
+
+body:is(.mode-care, .mode-ai, [data-mode="care"], [data-mode="ai_assisted"]) #resultScreen #hostReturnButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: min(860px, calc(100% - 32px)) !important;
+  min-width: 0;
+  min-height: 108px;
+  padding: 0 58px 4px;
+  border: 3px solid #1f5fbf;
+  border-radius: 999px;
+  color: #fff;
+  background:
+    linear-gradient(180deg, #4f8df2, #2467d1 58%, #174ca8),
+    #2467d1;
+  box-shadow:
+    0 8px 18px rgba(28, 74, 151, 0.28),
+    0 0 0 1px #153f91,
+    inset 0 0 0 1px #153f91,
+    inset 0 4px 0 rgba(255, 255, 244, 0.36),
+    inset 0 -6px 0 rgba(16, 55, 130, 0.34);
+  font-size: 50px;
+  font-weight: 1000;
+  line-height: 1;
+  text-align: center;
+  text-shadow: 0 2px 0 rgba(20, 49, 110, 0.5);
+  white-space: nowrap;
+}
+
+body:is(.mode-care, .mode-ai, [data-mode="care"], [data-mode="ai_assisted"]) #resultScreen #hostReturnButton:active,
+body:is(.mode-care, .mode-ai, [data-mode="care"], [data-mode="ai_assisted"]) #resultScreen #hostReturnButton.is-pressed {
   box-shadow:
     0 3px 9px rgba(28, 74, 151, 0.24),
     0 0 0 1px #153f91,

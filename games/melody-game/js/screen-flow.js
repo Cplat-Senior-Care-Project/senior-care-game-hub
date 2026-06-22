@@ -83,6 +83,7 @@
       this.countdownFrameHandle = null;
       this.countdownActive = false;
       this.pendingCountdownRuntime = null;
+      this.resultHubReturnHandle = null;
     }
 
     init() {
@@ -116,9 +117,7 @@
       });
 
       this.startGameButton && this.startGameButton.addEventListener("pointerup", () => {
-        this.audio.playClick();
-        this.requestDisplayFromGesture("home_start");
-        this.showScreen("difficulty");
+        this.handleStartGameAction();
       });
       this.homeScreen && this.homeScreen.addEventListener("pointerup", (event) => this.handleHomeBackgroundPress(event));
       this.difficultyStartButton && this.difficultyStartButton.addEventListener("pointerup", () => this.beginGame());
@@ -238,6 +237,9 @@
 
     showScreen(name) {
       document.body.classList.remove("is-howto-over-play");
+      if (name !== "result") {
+        this.clearResultHubReturn();
+      }
       if (name === "howto") {
         this.showHowtoPage(1);
       }
@@ -250,6 +252,11 @@
     }
 
     handleScreenNavigation(target) {
+      if (target === "difficulty" && !this.shouldShowDifficultySelect()) {
+        this.beginGame();
+        return;
+      }
+
       if (target === "howto") {
         if (this.isScreenActive("play")) {
           this.howtoReturnScreen = "play";
@@ -270,6 +277,11 @@
 
       this.howtoReturnScreen = "home";
       this.showScreen(target);
+    }
+
+    shouldShowDifficultySelect() {
+      const runtime = window.MelodyRuntime && window.MelodyRuntime.runtime ? window.MelodyRuntime.runtime : {};
+      return Boolean(runtime.showDifficultySelect);
     }
 
     isScreenActive(name) {
@@ -570,12 +582,13 @@
       const shouldSubmit = !options || options.submit !== false;
       this.pendingResult = result || this.pendingResult || window.__LAST_GAME_RESULT__ || null;
       this.pendingResultOptions = { submit: shouldSubmit };
+      const resultStatus = this.pendingResult && this.pendingResult.status || "completed";
 
       if (this.audio && typeof this.audio.stopBackgroundMusic === "function") {
         this.audio.stopBackgroundMusic();
       }
 
-      if (!this.shouldShowFinishCheck() || this.finishCheckShown) {
+      if (resultStatus !== "completed" || !this.shouldShowFinishCheck() || this.finishCheckShown) {
         this.markFinishCheckSkipped();
         this.completePendingResult();
         return;
@@ -598,12 +611,29 @@
       this.closeFinishCheck();
       window.__LAST_GAME_RESULT__ = result;
       if (result && shouldSubmit && window.ResultBridge) {
-        window.ResultBridge.handleSessionComplete(result);
+        this.submitResultToHost(result);
       }
       window.ResultManager.renderResult(result || {});
       this.showScreen("result");
+      this.scheduleResultHubReturn(result);
       this.pendingResult = null;
       this.pendingResultOptions = null;
+    }
+
+    submitResultToHost(result) {
+      const status = result.status || "completed";
+
+      if (status === "error" && typeof window.ResultBridge.handleGameError === "function") {
+        window.ResultBridge.handleGameError(result, result);
+        return;
+      }
+
+      if (status === "abandoned" && typeof window.ResultBridge.handleSessionAbort === "function") {
+        window.ResultBridge.handleSessionAbort(result, result.exit_reason || result.ended_reason || "abandoned");
+        return;
+      }
+
+      window.ResultBridge.handleSessionComplete(result);
     }
 
     startLoading() {
@@ -619,10 +649,11 @@
             this.openConditionCheck(runtime.autoStart ? "autoStart" : "home");
             return;
           }
-          this.showScreen("home");
           if (runtime.autoStart) {
-            window.setTimeout(() => this.beginGame(), 180);
+            this.beginGame();
+            return;
           }
+          this.showScreen("home");
         }, 260);
       };
 
@@ -695,6 +726,9 @@
       this.clearGameCountdown();
       this.pendingCountdownRuntime = nextRuntime;
       this.showScreen("play");
+      if (this.game && typeof this.game.start === "function") {
+        this.game.start(nextRuntime.difficulty || this.selectedDifficulty, nextRuntime, { startPaused: true });
+      }
 
       if (!this.gameCountdown || !this.gameCountdownTimer || !this.gameCountdownNumber) {
         this.startGameAfterCountdown(this.pendingCountdownRuntime);
@@ -795,7 +829,22 @@
       this.selectedDifficulty = resolvedRuntime.difficulty || this.selectedDifficulty;
       this.selectDifficulty(this.selectedDifficulty, false);
       this.showScreen("play");
+      if (this.game && typeof this.game.activatePreparedGame === "function" && this.game.activatePreparedGame()) {
+        return;
+      }
       this.game.start(this.selectedDifficulty, resolvedRuntime);
+    }
+
+    handleStartGameAction() {
+      this.requestDisplayFromGesture("home_start");
+
+      if (this.shouldShowDifficultySelect()) {
+        this.audio.playClick();
+        this.showScreen("difficulty");
+        return;
+      }
+
+      this.beginGame();
     }
 
     handleHomeAction() {
@@ -805,15 +854,77 @@
 
     handleHostReturnAction() {
       this.audio.playClick();
+      const runtime = window.MelodyRuntime && window.MelodyRuntime.runtimeSnapshot
+        ? window.MelodyRuntime.runtimeSnapshot()
+        : {};
+      const mode = (window.__LAST_GAME_RESULT__ && window.__LAST_GAME_RESULT__.mode) || runtime.mode;
+      if (window.ResultBridge && typeof window.ResultBridge.handleGameExitRequested === "function") {
+        window.ResultBridge.handleGameExitRequested("user_complete", runtime);
+      }
+      if (this.shouldReturnResultToHub(mode)) {
+        this.returnToHub("user_complete");
+        return;
+      }
       if (window.ResultBridge) {
         window.ResultBridge.returnToHost("user_complete");
       }
     }
 
+    shouldReturnResultToHub(mode) {
+      return ["reminder", "care", "ai_assisted"].includes(mode);
+    }
+
+    isEmbeddedInHost() {
+      return window.parent && window.parent !== window;
+    }
+
+    scheduleResultHubReturn(result) {
+      const runtime = window.MelodyRuntime && window.MelodyRuntime.runtimeSnapshot
+        ? window.MelodyRuntime.runtimeSnapshot()
+        : {};
+      const mode = (result && result.mode) || runtime.mode;
+
+      this.clearResultHubReturn();
+      if (!this.shouldReturnResultToHub(mode)) {
+        return;
+      }
+
+      this.resultHubReturnHandle = window.setTimeout(() => {
+        this.resultHubReturnHandle = null;
+        this.returnToHub("auto_complete");
+      }, 3000);
+    }
+
+    clearResultHubReturn() {
+      if (!this.resultHubReturnHandle) {
+        return;
+      }
+
+      window.clearTimeout(this.resultHubReturnHandle);
+      this.resultHubReturnHandle = null;
+    }
+
+    returnToHub(reason) {
+      this.clearResultHubReturn();
+      if (window.ResultBridge) {
+        window.ResultBridge.returnToHost(reason || "user_complete");
+      }
+      if (this.isEmbeddedInHost()) {
+        return;
+      }
+      window.location.href = new URL("../../index.html", window.location.href).href;
+    }
+
     handleExitAction() {
       this.audio.playClick();
+      if (window.ResultBridge && typeof window.ResultBridge.handleGameExitRequested === "function") {
+        window.ResultBridge.handleGameExitRequested("user_exit");
+      }
       if (window.ResultBridge) {
         window.ResultBridge.returnToHost("user_exit");
+      }
+      if (this.isEmbeddedInHost()) {
+        return;
       }
       window.location.href = new URL("../../index.html", window.location.href).href;
     }
@@ -874,6 +985,7 @@
         && activeScreen !== "play"
         && activeScreen !== "countdown"
         && activeScreen !== "loading"
+        && activeScreen !== "result"
         && !this.countdownActive
         && (!this.backgroundSoundToggle || this.backgroundSoundToggle.checked);
 
@@ -1012,8 +1124,10 @@
       this.progressWrap.style.transform = "none";
 
       if (this.pauseButton) {
+        const runtime = window.MelodyRuntime && window.MelodyRuntime.runtime ? window.MelodyRuntime.runtime : {};
+        const isCompactProgressMode = runtime.mode === "care" || runtime.mode === "ai_assisted";
         this.pauseButton.style.justifySelf = "stretch";
-        this.pauseButton.style.gridColumn = "3";
+        this.pauseButton.style.gridColumn = isCompactProgressMode ? "2" : "3";
       }
 
       this.playCenter.style.gridRow = "2";

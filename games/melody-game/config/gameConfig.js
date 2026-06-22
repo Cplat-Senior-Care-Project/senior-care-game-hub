@@ -8,8 +8,7 @@
       symbolCount: 2,
       previewEnabled: true,
       xPatternEnabled: false,
-      sessionTime: 60,
-      targetNoteCount: 8
+      sessionTime: 60
     },
     normal: {
       label: "\ubcf4\ud1b5",
@@ -17,8 +16,7 @@
       symbolCount: 3,
       previewEnabled: true,
       xPatternEnabled: false,
-      sessionTime: 60,
-      targetNoteCount: 12
+      sessionTime: 60
     },
     hard: {
       label: "\uc5b4\ub824\uc6c0",
@@ -26,8 +24,7 @@
       symbolCount: 4,
       previewEnabled: true,
       xPatternEnabled: true,
-      sessionTime: 60,
-      targetNoteCount: 16
+      sessionTime: 60
     }
   };
 
