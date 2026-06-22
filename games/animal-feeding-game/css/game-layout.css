@@ -5,7 +5,7 @@
 
 /* ===== 4. PLAY (4-corner board) ===== */
 #play { gap: var(--s-sm); padding: var(--s-sm) var(--s-md); }
-#play.hide-progress .dots,
+#play.hide-progress .progress-status,
 #play.hide-help #helpBtn {
   display: none;
 }
@@ -25,29 +25,73 @@ body.mode-ai #play {
   gap: var(--s-sm);
   z-index: 2; position: relative;
 }
-.dots {
-  display: flex; gap: 6px; align-items: center;
-  padding: 8px 14px; background: var(--paper);
-  border: 1.5px solid var(--line); border-radius: 999px;
-  box-shadow: var(--sh-card);
+.status-cluster {
+  display: inline-flex;
+  align-items: center;
+  gap: 0;
+  min-width: 0;
   flex: 0 0 auto;
 }
-.dots i {
-  width: 10px; height: 10px; border-radius: 50%;
-  background: #E4ECDF; transition: all .2s; display: block;
+.status-label {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  position: absolute;
+  top: 50%;
+  z-index: 2;
+  padding: 0;
+  color: #24451F;
+  font-size: 22px;
+  font-weight: 900;
+  line-height: 1.05;
+  white-space: nowrap;
+  pointer-events: none;
+  text-shadow:
+    0 1px 0 rgba(255, 255, 255, .95),
+    0 0 6px rgba(255, 255, 255, .95),
+    0 0 1px rgba(29, 51, 25, .35);
+  left: 50%;
+  transform: translate(-50%, -50%);
 }
-.dots i.done { background: var(--sage); }
-.dots i.cur  {
-  width: 14px; height: 14px; background: var(--amber);
-  box-shadow: 0 0 0 4px rgba(194,138,78,.18);
+.progress-status {
+  flex: 0 1 270px;
+  width: min(26vw, 270px);
+  max-width: 270px;
+}
+.timer-status {
+  display: none;
+  flex: 0 1 280px;
+  width: min(24vw, 280px);
+  max-width: 280px;
+  margin: 0 auto 0 var(--s-xs);
+}
+#play.show-timer .timer-status {
+  display: inline-flex;
+}
+.timer-status .status-label {
+  color: #213A1E;
+}
+.dots {
+  display: flex; align-items: center;
+  position: relative;
+  width: 100%;
+  min-width: 190px;
+  height: 44px;
+  padding: 6px;
+  background: rgba(255, 255, 255, .88);
+  border: 1.5px solid var(--line); border-radius: 999px;
+  box-shadow: var(--sh-card);
+  flex: 1 1 auto;
+  overflow: hidden;
 }
 .timer-gauge {
   display: none;
+  position: relative;
   align-items: center;
-  flex: 1 1 320px;
-  max-width: 320px;
-  height: 30px;
-  margin: 0 auto 0 var(--s-xs);
+  flex: 1 1 auto;
+  min-width: 170px;
+  height: 44px;
+  margin: 0;
   padding: 5px;
   border-radius: 999px;
   background: rgba(255, 255, 255, .88);
@@ -58,12 +102,15 @@ body.mode-ai #play {
 #play.show-timer .timer-gauge {
   display: flex;
 }
-#play.hide-progress.show-timer .timer-gauge {
-  max-width: 380px;
+#play.hide-progress.show-timer .timer-status {
+  flex-basis: 440px;
+  width: min(42vw, 440px);
+  max-width: 440px;
   margin-left: 0;
   margin-right: auto;
 }
-.timer-gauge > span {
+.progress-gauge-fill,
+.timer-gauge > #timerGaugeFill {
   display: block;
   width: 100%;
   height: 100%;
@@ -71,14 +118,18 @@ body.mode-ai #play {
   transform: scaleX(1);
   transform-origin: left center;
   transition: transform .24s linear, background .18s ease;
-  background: linear-gradient(90deg, #6A9A55, #D9B454);
+  background: linear-gradient(180deg, #FFE781 0%, #F4C43D 100%);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, .42);
 }
-.timer-gauge.is-warning > span {
-  background: linear-gradient(90deg, #D9B454, #C28A4E);
+.progress-gauge-fill {
+  position: relative;
+  z-index: 1;
 }
-.timer-gauge.is-critical > span {
-  background: linear-gradient(90deg, #C28A4E, #B86A4E);
+.timer-gauge.is-warning > #timerGaugeFill {
+  background: linear-gradient(180deg, #FFE781 0%, #F4C43D 100%);
+}
+.timer-gauge.is-critical > #timerGaugeFill {
+  background: linear-gradient(180deg, #FFE781 0%, #F4C43D 100%);
 }
 .topbar-actions { display: flex; gap: var(--s-xs); flex: 0 0 auto; }
 

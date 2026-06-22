@@ -321,14 +321,14 @@ function buildBoard() {
 
 function renderDots() {
   const dots = document.getElementById("dots");
-  dots.innerHTML = "";
-  for (let i = 0; i < state.plannedRounds; i++) {
-    const d = document.createElement("i");
-    if (i < state._idx) d.classList.add("done", "leaf");
-    else if (i === state._idx) d.classList.add("cur", "sprout");
-    else d.classList.add("seed");
-    dots.appendChild(d);
-  }
+  const fill = document.getElementById("progressGaugeFill");
+  if (!dots || !fill) return;
+
+  const total = Math.max(1, Number(state?.plannedRounds || 0));
+  const current = Math.min(total, Math.max(1, Number(state?._idx || 0) + 1));
+  dots.setAttribute("aria-valuemax", String(total));
+  dots.setAttribute("aria-valuenow", String(current));
+  fill.style.transform = `scaleX(${current / total})`;
 }
 
 function updateEnergy(targetId) {

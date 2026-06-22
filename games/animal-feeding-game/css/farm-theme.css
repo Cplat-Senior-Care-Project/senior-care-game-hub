@@ -1071,6 +1071,22 @@ body.force-landscape-css.portrait-viewport .rotate-guide {
   width: auto;
 }
 
+#play.show-timer > .activity-label {
+  left: calc(50% + clamp(58px, 7vw, 92px));
+}
+
+body.mode-standard .board.animals-2.has-bin .item-wrap,
+body.mode-reminder .board.animals-2.has-bin .item-wrap {
+  top: 18% !important;
+}
+
+@container game-stage (max-height: 500px) or (max-width: 920px) {
+  body.mode-standard .board.animals-2.has-bin .item-wrap,
+  body.mode-reminder .board.animals-2.has-bin .item-wrap {
+    top: 8% !important;
+  }
+}
+
 @container game-stage (max-height: 500px) or (max-width: 920px) {
   #finish {
     justify-content: flex-start !important;
@@ -1400,7 +1416,7 @@ body.force-landscape-css.portrait-viewport .rotate-guide {
   }
 }
 
-/* Fixed 1280x720 stage: draw the farm as one stretched image, never as cropped patches. */
+/* Fixed stage: stretch the single original background to fill the screen. */
 #loading,
 #ready,
 #countdown,

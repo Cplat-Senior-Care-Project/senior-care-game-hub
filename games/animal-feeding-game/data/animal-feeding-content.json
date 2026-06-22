@@ -149,6 +149,13 @@
                       "image":  "image/green_apple.png"
                   },
                   {
+                      "id":  "patjuk",
+                      "label":  "팥죽",
+                      "type":  "trash",
+                      "target":  "bin",
+                      "image":  "image/patjuk.png"
+                  },
+                  {
                       "id":  "paper",
                       "label":  "종이",
                       "type":  "trash",

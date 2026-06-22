@@ -112,6 +112,7 @@ const FOODS = [
   { id:"pineapple",          label:"파인애플",      img:"image/pineapple.png",          type:"food",  target:"panda" },
   { id:"yellow_bell_pepper", label:"노란 파프리카", img:"image/yellow_bell_pepper.png", type:"food",  target:"panda" },
   { id:"yellow_banana",      label:"바나나",        img:"image/yellow_banana.png",      type:"food",  target:"panda" },
+  { id:"patjuk",             label:"팥죽",          img:"image/patjuk.png",             type:"trash", target:"bin" },
   { id:"paper",              label:"종이",          img:"image/paper.png",              type:"trash", target:"bin" },
   { id:"bone",               label:"생선가시",      img:"image/bone.png",               type:"trash", target:"bin" },
 ];
