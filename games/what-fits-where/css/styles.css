@@ -10582,3 +10582,46 @@ body[data-screen="screen-difficulty"] #screen-difficulty::after {
     font-size: clamp(34px, 8cqw, 44px);
   }
 }
+
+/* Keep answer feedback and item choice labels as large as the other games. */
+#screen-play .fb-msg,
+#screen-play .choices-wrap>.fb-area.has-feedback .fb-msg:not(:empty),
+#screen-play .play[data-mode="guess_situation"] .fb-msg {
+  min-block-size: clamp(54px, 7.4cqh, 68px);
+  padding: clamp(8px, 1.2cqh, 12px) clamp(22px, 2.8cqw, 34px);
+  font-size: clamp(38px, 5.2cqh, 48px);
+}
+
+#screen-play .choice:not(.sit) .n {
+  font-size: clamp(52px, 6.4cqh, 68px);
+}
+
+@container stage (max-width:760px), stage (max-height:560px) {
+
+  #screen-play .fb-msg,
+  #screen-play .choices-wrap>.fb-area.has-feedback .fb-msg:not(:empty),
+  #screen-play .play[data-mode="guess_situation"] .fb-msg {
+    min-block-size: clamp(44px, 10cqw, 56px);
+    padding: clamp(6px, 1.6cqw, 9px) clamp(16px, 4cqw, 24px);
+    font-size: clamp(28px, 7.2cqw, 38px);
+  }
+
+  #screen-play .choice:not(.sit) .n {
+    font-size: clamp(28px, 7.4cqw, 40px);
+  }
+}
+
+@container stage (orientation:landscape) and (max-height:520px) {
+
+  #screen-play .fb-msg,
+  #screen-play .choices-wrap>.fb-area.has-feedback .fb-msg:not(:empty),
+  #screen-play .play[data-mode="guess_situation"] .fb-msg {
+    min-block-size: clamp(36px, 9.2cqh, 46px);
+    padding: clamp(4px, 1.2cqh, 7px) clamp(14px, 2.6cqw, 22px);
+    font-size: clamp(24px, 6.4cqh, 32px);
+  }
+
+  #screen-play .choice:not(.sit) .n {
+    font-size: clamp(28px, 8.8cqh, 40px);
+  }
+}

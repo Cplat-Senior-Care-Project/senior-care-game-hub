@@ -8,7 +8,7 @@
 | 상황 | `junk_shop_sale` | 고물상 방문 | `docs/situation-templates-draft.json` |
 | 상황 | `garden_planting` | 밭에 씨앗 심기 | `docs/situation-templates-draft.json` |
 | 상황 | `dog_feeding` | 강아지 밥주기 | `docs/situation-templates-draft.json` |
-| 상황 | `school_delivery` | 학교 준비물 전달 | `docs/situation-templates-draft.json` |
+| 상황 | `school_delivery` | 학교 준비물 챙기기 | `docs/situation-templates-draft.json` |
 | 상황 | `bank_visit` | 은행 방문 | `docs/situation-templates-draft.json` |
 | 상황 | `post_office_mail` | 우체국에서 우편물 보내기 | `docs/situation-templates-draft.json` |
 | 상황 | `bus_terminal_trip` | 터미널에서 버스 타기 | `docs/situation-templates-draft.json` |
