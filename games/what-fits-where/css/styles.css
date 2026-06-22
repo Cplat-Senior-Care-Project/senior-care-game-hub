@@ -10625,3 +10625,173 @@ body[data-screen="screen-difficulty"] #screen-difficulty::after {
     font-size: clamp(28px, 8.8cqh, 40px);
   }
 }
+
+/* Requested play-screen balance: larger status controls, slightly shorter item choices. */
+#screen-play .topbar {
+  min-height: clamp(56px, 7.4cqh, 78px);
+  gap: clamp(8px, 1.15cqw, 14px);
+}
+
+#screen-play .timer-wrap {
+  --timer-gauge-height: clamp(22px, 3.5cqh, 34px);
+  width: clamp(270px, 27cqw, 370px);
+  min-height: clamp(46px, 6.2cqh, 62px);
+  padding: clamp(7px, 1cqh, 10px) clamp(16px, 1.7cqw, 22px);
+  gap: clamp(10px, 1.2cqw, 14px);
+}
+
+#screen-play .timer {
+  height: auto;
+  min-height: calc(var(--timer-gauge-height) + 6px);
+  min-width: clamp(108px, 9cqw, 132px);
+  font-size: clamp(22px, 3cqh, 30px);
+  line-height: 1.12;
+}
+
+#screen-play .play-label {
+  max-width: min(100%, 430px);
+  min-height: clamp(44px, 5.8cqh, 60px);
+  padding: clamp(6px, .85cqh, 10px) clamp(20px, 2.5cqw, 32px);
+  font-size: clamp(28px, 3.75cqh, 40px);
+  line-height: 1.06;
+  white-space: normal;
+  text-wrap: balance;
+  word-break: keep-all;
+}
+
+#screen-play #p-qnum {
+  min-height: clamp(42px, 5.6cqh, 56px);
+  padding: clamp(5px, .75cqh, 9px) clamp(14px, 1.6cqw, 22px);
+  font-size: clamp(28px, 3.8cqh, 40px);
+  line-height: 1.04;
+}
+
+#screen-play .icon-btn {
+  min-height: clamp(42px, 5.6cqh, 56px);
+  padding: clamp(5px, .75cqh, 9px) clamp(14px, 1.6cqw, 22px);
+  font-size: clamp(27px, 3.6cqh, 38px);
+  line-height: 1.04;
+}
+
+#screen-play .play:not([data-mode="guess_situation"]):not(.has-feedback) .choices-wrap {
+  align-self: start;
+  width: 100%;
+  height: calc(100% - clamp(10px, 1.7cqh, 18px));
+  min-height: 0;
+}
+
+@container stage (max-width:760px), stage (max-height:560px) {
+  #screen-play .topbar {
+    grid-template-columns: minmax(0, 1fr) auto !important;
+    grid-template-areas:
+      "timer actions"
+      "label pills" !important;
+    gap: clamp(6px, 1.5cqw, 9px);
+    padding: clamp(6px, 1.6cqw, 9px);
+    overflow: visible;
+  }
+
+  #screen-play .timer-wrap {
+    --timer-gauge-height: clamp(18px, 4.7cqw, 26px);
+    width: clamp(176px, 48cqw, 286px);
+    min-height: clamp(38px, 9.4cqw, 50px);
+    padding: clamp(5px, 1.3cqw, 7px) clamp(10px, 2.5cqw, 14px);
+    gap: clamp(6px, 1.5cqw, 10px);
+  }
+
+  #screen-play .timer {
+    height: auto;
+    min-height: calc(var(--timer-gauge-height) + 6px);
+    min-width: clamp(84px, 20cqw, 112px);
+    font-size: clamp(17px, 4.5cqw, 23px);
+    line-height: 1.12;
+  }
+
+  #screen-play .play-label {
+    justify-self: start;
+    max-width: min(100%, clamp(190px, 54cqw, 300px));
+    min-height: clamp(36px, 8.5cqw, 48px);
+    margin: 0;
+    padding: clamp(4px, 1.1cqw, 6px) clamp(11px, 2.7cqw, 16px);
+    font-size: clamp(18px, 4.8cqw, 26px);
+  }
+
+  #screen-play #p-qnum {
+    min-height: clamp(36px, 8.4cqw, 48px);
+    padding: clamp(4px, 1cqw, 6px) clamp(9px, 2.2cqw, 13px);
+    font-size: clamp(18px, 4.8cqw, 25px);
+  }
+
+  #screen-play .topbar .actions {
+    gap: clamp(4px, 1.1cqw, 7px);
+  }
+
+  #screen-play .icon-btn {
+    min-height: clamp(38px, 8.8cqw, 50px);
+    padding: clamp(4px, 1cqw, 6px) clamp(9px, 2.2cqw, 13px);
+    font-size: clamp(18px, 4.8cqw, 25px);
+  }
+
+  #screen-play .play:not([data-mode="guess_situation"]):not(.has-feedback) .choices-wrap {
+    height: calc(100% - clamp(8px, 2cqw, 14px));
+  }
+}
+
+@container stage (orientation:portrait) and (max-width:430px) {
+  #screen-play .topbar {
+    grid-template-columns: minmax(0, 1fr) auto !important;
+    grid-template-areas:
+      "timer timer"
+      "label actions"
+      "pills actions" !important;
+  }
+
+  #screen-play .timer-wrap {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  #screen-play .play-label {
+    max-width: min(100%, clamp(156px, 48cqw, 210px));
+    font-size: clamp(17px, 4.8cqw, 22px);
+  }
+
+  #screen-play #p-qnum,
+  #screen-play .icon-btn {
+    font-size: clamp(17px, 4.7cqw, 22px);
+  }
+}
+
+/* Keep answer choices visually steady during touch/click feedback. */
+#screen-play .choice {
+  transition: box-shadow .16s ease, background .16s ease, border-color .16s ease, filter .16s ease;
+}
+
+#screen-play .choice:hover,
+#screen-play .choice:active,
+#screen-play .choice.picked,
+#screen-play .choice.removed-state {
+  transform: none;
+}
+
+#screen-play .choice:not(.sit):hover,
+#screen-play .choice:not(.sit):active {
+  box-shadow: var(--shadow);
+}
+
+#screen-play .choice:active {
+  filter: brightness(.985);
+}
+
+#screen-play .play:not([data-mode="guess_situation"]) .choices-wrap {
+  align-self: start;
+  width: 100%;
+  height: calc(100% - clamp(10px, 1.7cqh, 18px));
+  min-height: 0;
+}
+
+@container stage (max-width:760px), stage (max-height:560px) {
+  #screen-play .play:not([data-mode="guess_situation"]) .choices-wrap {
+    height: calc(100% - clamp(8px, 2cqw, 14px));
+  }
+}
