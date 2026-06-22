@@ -290,6 +290,10 @@
       }
     }
 
+    isBackgroundPlaying() {
+      return Boolean(this.backgroundAudio && !this.backgroundAudio.paused);
+    }
+
     getBackgroundAudio() {
       if (this.backgroundAudio) {
         return this.backgroundAudio;

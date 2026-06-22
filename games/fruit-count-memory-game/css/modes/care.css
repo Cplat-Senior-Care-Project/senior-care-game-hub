@@ -417,7 +417,9 @@ html[data-mode="care"] .hint-area {
 }
 
 html[data-mode="care"] .result-actions #result-home-button {
-  display: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   min-height: 116px;
   padding-block: 24px;
   border-color: #fde9a5;

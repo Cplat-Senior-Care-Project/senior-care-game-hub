@@ -102,6 +102,18 @@
     vegetable: "채소",
     meat: "생선/고기"
   });
+  const FIRST_HINT_CANDIDATES = Object.freeze([
+    { itemIds: ["apple"], message: "둥글고 빨간 과일이에요." },
+    { itemIds: ["banana"], message: "껍질을 까서 먹는 길쭉한 과일이에요." },
+    { itemIds: ["orange"], message: "껍질을 까서 먹는 둥근 과일이에요." },
+    { itemIds: ["watermelon"], message: "겉은 초록색이고 속은 빨간 과일이에요." },
+    { itemIds: ["carrot"], message: "길쭉한 채소예요." },
+    { itemIds: ["vegetable"], message: "잎이 많은 채소예요." },
+    { itemIds: ["fish"], message: "구워 먹거나 반찬으로 먹는 생선이에요." },
+    { itemIds: ["meat"], message: "구워 먹거나 반찬으로 먹는 고기예요." },
+    { itemIds: ["bread"], message: "아침이나 간식으로 먹기 좋은 빵이에요." },
+    { itemIds: ["cheese"], message: "빵과 함께 먹기 좋은 물건이에요." }
+  ]);
 
   const DEFAULT_DIFFICULTIES = Object.freeze({
     easy: { key: "easy", label: "쉬움", memoryItemCount: 1, answerChoiceCount: 2, revealMs: 3000 },
@@ -1658,6 +1670,10 @@
     return Array.from(els.playArea.querySelectorAll(".choice-card")).find((button) => button.dataset.itemId === itemId) || null;
   }
 
+  function isLastQuestion() {
+    return state.questionIndex + 1 >= getTotalQuestions();
+  }
+
   function markChoiceCardSelected(itemId, sourceElement) {
     const card = sourceElement || getChoiceCardByItemId(itemId);
     if (!card) return;
@@ -1717,6 +1733,23 @@
   function getRemainingTargetItems(question) {
     if (!question) return [];
     return question.targetItems.filter((item) => !state.selectedIds.includes(item.id));
+  }
+
+  function getFirstHintMessage(question, remainingItems) {
+    if (!question || !remainingItems.length) return "정답 물건의 특징을 떠올려보는 힌트예요.";
+    const remainingTargetIds = new Set(remainingItems.map((item) => item.id));
+    const selectableDistractorIds = new Set(
+      question.choiceItems
+        .filter((item) => !state.selectedIds.includes(item.id) && !remainingTargetIds.has(item.id))
+        .map((item) => item.id)
+    );
+    const hint = FIRST_HINT_CANDIDATES.find((candidate) => {
+      const hintItemIds = new Set(candidate.itemIds);
+      const matchesRemainingTarget = remainingItems.some((item) => hintItemIds.has(item.id));
+      const matchesSelectableDistractor = Array.from(selectableDistractorIds).some((id) => hintItemIds.has(id));
+      return matchesRemainingTarget && !matchesSelectableDistractor;
+    });
+    return hint ? hint.message : "정답 물건의 특징을 떠올려보는 힌트예요.";
   }
 
   function updateHintButtonState() {
@@ -1934,6 +1967,10 @@
         updateChoiceHints();
         if (questionCompleted) {
           clearTimer("autoHint");
+          if (isLastQuestion()) {
+            completeQuestion(true);
+            return;
+          }
           renderCorrectFeedback();
           playVoiceGuide(getFeedbackVoiceGuideType(true), { delayMs: VOICE_GUIDE_FEEDBACK_DELAY_MS });
           schedulePhaseTimer(() => completeQuestion(true), CORRECT_FEEDBACK_TIME);
@@ -1949,6 +1986,10 @@
     clearTimer("autoHint");
     if (wrongAttemptCount >= 3) {
       playSound("wrong");
+      if (isLastQuestion()) {
+        completeQuestion(false);
+        return;
+      }
       renderFinalWrongFeedback();
       playVoiceGuide(getRetryVoiceGuideType(wrongAttemptCount), { delayMs: VOICE_GUIDE_FEEDBACK_DELAY_MS });
       schedulePhaseTimer(() => completeQuestion(false), FINAL_WRONG_FEEDBACK_TIME);
@@ -1996,7 +2037,7 @@
     state.questionLogs.push(questionLog);
     if (isCorrect) state.correctCount += 1; else state.wrongCount += 1;
     updateHud();
-    if (state.questionIndex + 1 >= getTotalQuestions()) { schedulePhaseTimer(() => finishGame("completed", null), 700); return; }
+    if (isLastQuestion()) { schedulePhaseTimer(() => finishGame("completed", null), 700); return; }
     state.questionIndex += 1;
     schedulePhaseTimer(beginQuestion, 900);
   }
@@ -2017,8 +2058,7 @@
     updateHintButtonState();
 
     if (nextHintLevel === 1) {
-      const categoryLabels = Array.from(new Set(remainingItems.map((item) => ITEM_CATEGORY_LABELS[item.category] || "물건")));
-      const message = `${categoryLabels.join(", ")}입니다`;
+      const message = getFirstHintMessage(state.question, remainingItems);
       showFeedback(message, "hint", 3000);
       return;
     }

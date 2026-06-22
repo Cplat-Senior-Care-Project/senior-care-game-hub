@@ -83,7 +83,8 @@ body {
   touch-action: manipulation;
 }
 
-body[data-active-screen="play"] {
+body[data-active-screen="play"],
+body[data-active-screen="result"] {
   background: #f8e9c8;
 }
 

@@ -32,6 +32,8 @@
       this.state = null;
       this.lastTick = 0;
       this.boundTick = this.tick.bind(this);
+      this.renderedCurrentPromptKey = "";
+      this.renderedNextPromptKey = "";
 
       this.elements.pauseButton.addEventListener("pointerup", () => this.pause());
       this.elements.resumeButton.addEventListener("pointerup", () => this.resume());
@@ -49,6 +51,7 @@
       const symbols = window.SYMBOL_CONFIG.slice(0, config.symbolCount);
 
       this.stopTick();
+      this.resetRenderedPromptKeys();
       this.state = {
         mode: runtime.mode || "standard",
         difficulty: resolvedDifficulty,
@@ -110,6 +113,11 @@
     renderStaticInfo() {
       const config = this.state.config;
       this.elements.previewCard.classList.toggle("is-hidden", !config.previewEnabled);
+    }
+
+    resetRenderedPromptKeys() {
+      this.renderedCurrentPromptKey = "";
+      this.renderedNextPromptKey = "";
     }
 
     renderPads() {
@@ -671,20 +679,11 @@
     }
 
     handleWrong(button) {
-      const noteIndex = Number.isFinite(this.state.currentPrompt.noteIndex)
-        ? this.state.currentPrompt.noteIndex
-        : this.state.currentNoteIndex;
-      const previousPrompt = this.state.currentPrompt;
-
       this.state.totalTrials += 1;
       this.state.wrongCount += 1;
-      this.state.currentNoteIndex = noteIndex;
-      this.state.nextPrompt = this.generateAlternatePrompt(noteIndex, previousPrompt);
       this.state.consecutiveWrong += 1;
       this.flashPad(button, "is-wrong");
       this.flashRing("error");
-      this.animateSymbolExit("bottom-left");
-      this.advanceTrial();
     }
 
     handleMissed() {
@@ -710,20 +709,12 @@
     }
 
     handleXFail(button) {
-      const noteIndex = Number.isFinite(this.state.currentPrompt.noteIndex)
-        ? this.state.currentPrompt.noteIndex
-        : this.state.currentNoteIndex;
-
       this.state.totalTrials += 1;
       this.state.xFailCount += 1;
       this.state.wrongCount += 1;
-      this.state.currentNoteIndex = noteIndex + 1;
       this.state.consecutiveWrong += 1;
       this.flashPad(button, "is-wrong");
       this.flashRing("error");
-      this.animateSymbolExit("bottom-left");
-      this.advanceTrial();
-      this.render();
     }
 
     showFeedback(message, tone, duration, after) {
@@ -845,6 +836,7 @@
       }
 
       this.clearPreviewAnimation();
+      this.resetRenderedPromptKeys();
       this.clearCorrectAnimation();
       window.clearTimeout(this.successGlowHandle);
       this.successGlowHandle = null;
@@ -869,16 +861,42 @@
       this.elements.progressFill.style.setProperty("--progress-clip", `${(1 - progressRate) * 100}%`);
 
       if (this.state.currentPrompt) {
+        const currentPromptKey = this.getPromptRenderKey(this.state.currentPrompt);
+
         this.elements.promptMessage.textContent = "";
-        this.elements.currentSymbol.innerHTML = this.getSymbolHtml(this.state.currentPrompt);
-        this.elements.currentSymbol.setAttribute("aria-label", this.state.currentPrompt.label);
+        if (this.renderedCurrentPromptKey !== currentPromptKey) {
+          this.elements.currentSymbol.innerHTML = this.getSymbolHtml(this.state.currentPrompt);
+          this.elements.currentSymbol.setAttribute("aria-label", this.state.currentPrompt.label);
+          this.renderedCurrentPromptKey = currentPromptKey;
+        }
       }
 
       if (this.state.config.previewEnabled && this.state.nextPrompt) {
-        this.elements.nextSymbol.innerHTML = this.getSymbolHtml(this.state.nextPrompt);
+        const nextPromptKey = this.getPromptRenderKey(this.state.nextPrompt);
+
+        if (this.renderedNextPromptKey !== nextPromptKey) {
+          this.elements.nextSymbol.innerHTML = this.getSymbolHtml(this.state.nextPrompt);
+          this.renderedNextPromptKey = nextPromptKey;
+        }
       } else {
-        this.elements.nextSymbol.innerHTML = "";
+        if (this.renderedNextPromptKey !== "") {
+          this.elements.nextSymbol.innerHTML = "";
+          this.renderedNextPromptKey = "";
+        }
       }
+    }
+
+    getPromptRenderKey(prompt) {
+      if (!prompt) {
+        return "";
+      }
+
+      return [
+        prompt.id || "",
+        prompt.label || "",
+        prompt.isX ? "x" : "symbol",
+        Number.isFinite(prompt.noteIndex) ? prompt.noteIndex : ""
+      ].join("|");
     }
   }
 

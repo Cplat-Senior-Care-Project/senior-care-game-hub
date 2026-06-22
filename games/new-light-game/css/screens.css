@@ -2743,13 +2743,40 @@ body .result-actions .game-button {
   font-size: 50px;
 }
 
-body .result-actions #result-home-button {
-  min-width: 420px;
-  border: 3px solid #ffb3a3;
-  color: #fffdf3;
+body:is([data-mode="reminder"], [data-mode="care"], [data-mode="ai_assisted"]) .result-actions #resultHomeButton {
+  display: inline-grid;
+  place-items: center;
+  width: 700px;
+  min-width: 0;
+  min-height: 108px;
+  padding: 0 34px;
+  border: 3px solid #3ba9cb;
+  border-radius: 999px;
+  color: #fff;
   background:
-    linear-gradient(315deg, rgba(126, 29, 29, 0.24) 0%, rgba(207, 62, 52, 0.08) 48%, rgba(255, 151, 128, 0.24) 100%),
-    #d95145;
+    linear-gradient(315deg, rgba(19, 114, 148, 0.24) 0%, rgba(82, 190, 222, 0.12) 46%, rgba(210, 246, 255, 0.36) 100%),
+    #64c9e8;
+  box-shadow:
+    0 8px 18px rgba(29, 111, 140, 0.28),
+    0 0 0 1px #217f9e,
+    inset 0 0 0 1px #217f9e,
+    inset 0 4px 0 rgba(255, 255, 244, 0.48),
+    inset 0 -6px 0 rgba(23, 105, 134, 0.34);
+  font-size: 50px;
+  font-weight: 1000;
+  line-height: 1;
+  text-shadow: none;
+  white-space: nowrap;
+}
+
+body:is([data-mode="reminder"], [data-mode="care"], [data-mode="ai_assisted"]) .result-actions #resultHomeButton:active,
+body:is([data-mode="reminder"], [data-mode="care"], [data-mode="ai_assisted"]) .result-actions #resultHomeButton.is-pressed {
+  box-shadow:
+    0 3px 9px rgba(29, 111, 140, 0.24),
+    0 0 0 1px #217f9e,
+    inset 0 0 0 1px #217f9e,
+    inset 0 2px 0 rgba(255, 255, 244, 0.34),
+    inset 0 -3px 0 rgba(23, 105, 134, 0.3);
 }
 body .modal-layer {
   position: absolute;
@@ -3007,6 +3034,12 @@ body .game-stage > .screen.is-active.result-screen .result-actions .game-button 
   font-size: 38px;
   line-height: 1;
   white-space: nowrap;
+}
+
+body:is([data-mode="reminder"], [data-mode="care"], [data-mode="ai_assisted"]) .game-stage > .screen.is-active.result-screen .result-actions #resultHomeButton {
+  width: 700px !important;
+  min-width: 700px;
+  font-size: 50px !important;
 }
 
 body:is([data-mode="standard"], [data-mode="reminder"]) #post-condition-modal .post-condition-page[data-post-condition-page="0"] .post-condition-question {
@@ -3396,12 +3429,22 @@ body:is([data-mode="standard"], [data-mode="reminder"]) .game-stage > .screen.is
   font-size: 50px;
 }
 
-body:is([data-mode="standard"], [data-mode="reminder"]) .game-stage > .screen.is-active.result-screen .result-actions {
+body[data-mode="standard"] .game-stage > .screen.is-active.result-screen .result-actions {
   width: min(980px, 100%);
   display: grid;
   grid-template-columns: 440px 460px;
   justify-content: center;
   gap: 56px;
+  margin-top: auto;
+  padding-top: 18px;
+}
+
+body[data-mode="reminder"] .game-stage > .screen.is-active.result-screen .result-actions {
+  width: min(1180px, 100%);
+  display: grid;
+  grid-template-columns: 440px 700px;
+  justify-content: center;
+  gap: 32px;
   margin-top: auto;
   padding-top: 18px;
 }
@@ -3435,7 +3478,7 @@ body:is([data-mode="standard"], [data-mode="reminder"]) .game-stage > .screen.is
   text-shadow: 0 2px 0 rgba(255, 246, 204, 0.72);
 }
 
-body:is([data-mode="standard"], [data-mode="reminder"]) .game-stage > .screen.is-active.result-screen .result-actions #resultHomeButton {
+body[data-mode="standard"] .game-stage > .screen.is-active.result-screen .result-actions #resultHomeButton {
   min-width: 0;
   min-height: 116px;
   width: 460px !important;
@@ -3455,4 +3498,12 @@ body:is([data-mode="standard"], [data-mode="reminder"]) .game-stage > .screen.is
   text-shadow:
     0 2px 0 rgba(56, 69, 32, 0.72),
     0 0 4px rgba(56, 69, 32, 0.42);
+}
+
+body[data-mode="reminder"] .game-stage > .screen.is-active.result-screen .result-actions #resultHomeButton {
+  min-width: 0;
+  min-height: 116px;
+  width: 700px !important;
+  margin-top: 0;
+  font-size: 50px;
 }

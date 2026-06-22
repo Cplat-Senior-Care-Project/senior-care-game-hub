@@ -32,8 +32,7 @@ body:is([data-mode="reminder"], [data-mode="care"], [data-mode="ai_assisted"]) .
 }
 
 body:is([data-mode="reminder"], [data-mode="care"], [data-mode="ai_assisted"]) .game-stage > .screen.is-active.result-screen .standard-result-record,
-body:is([data-mode="reminder"], [data-mode="care"], [data-mode="ai_assisted"]) .game-stage > .screen.is-active.result-screen .result-actions #resultStartButton,
-body:is([data-mode="reminder"], [data-mode="care"], [data-mode="ai_assisted"]) .game-stage > .screen.is-active.result-screen .result-actions #resultHomeButton {
+body:is([data-mode="reminder"], [data-mode="care"], [data-mode="ai_assisted"]) .game-stage > .screen.is-active.result-screen .result-actions #resultStartButton {
   display: none;
 }
 

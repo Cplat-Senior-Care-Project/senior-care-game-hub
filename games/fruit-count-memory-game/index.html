@@ -608,8 +608,10 @@
         mode = "ai_assisted";
       }
       var assetVersion = mode === "care" || mode === "ai_assisted"
-        ? "care-ai-hide-tutorial-legacy-20260619"
-        : "care-standard-pause-20260608";
+        ? "care-ai-result-home-20260622"
+        : mode === "reminder"
+          ? "reminder-result-home-20260622"
+          : "care-standard-pause-20260608";
       window.__FRUIT_COUNT_GAME_MODE__ = mode;
       window.__FRUIT_COUNT_MODE_ASSETS__ = {
         css: "css/modes/" + mode + ".css",

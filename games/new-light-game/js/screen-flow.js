@@ -28,6 +28,7 @@
   let conditionData = runtime.modeConfig.showConditionCheck ? {} : { skipped: true };
   let tutorialReturnScreen = "start";
   let orientationAutoPauseActive = false;
+  let orientationMusicPauseActive = false;
   let orientationVoicePauseActive = false;
   let startCountdownFrame = null;
   let hubMirrorFallbackActive = false;
@@ -328,6 +329,10 @@
 
   function syncOrientationPause(isPortrait) {
     if (isPortrait) {
+      if (!orientationMusicPauseActive && audio.isBackgroundPlaying()) {
+        orientationMusicPauseActive = true;
+        audio.pauseBackground();
+      }
       if (!orientationVoicePauseActive) {
         orientationVoicePauseActive = audio.pauseActiveVoice();
       }
@@ -341,6 +346,13 @@
     if (orientationVoicePauseActive) {
       orientationVoicePauseActive = false;
       audio.resumeActiveVoice();
+    }
+
+    if (orientationMusicPauseActive) {
+      orientationMusicPauseActive = false;
+      if (settings.music && !document.hidden) {
+        audio.playBackground({ fadeIn: true });
+      }
     }
 
     if (!orientationAutoPauseActive) {
