@@ -33,11 +33,15 @@ function doneCopy(completed) {
   };
 }
 
+function isQuestionCorrect(r) {
+  return !!r && !r.answerRevealed && r.selectedTargetId === r.correctTargetId;
+}
+
 function doneStatsHtml() {
   if (runtime.mode !== "standard" || !runtime.showScore) return "";
   const total = Math.max(state._results.length || state.completedRounds || 0, 0);
-  const wrong = state._results.filter(r => (r.wrongDropCount || 0) > 0).length;
-  const correct = Math.max(total - wrong, 0);
+  const correct = state._results.filter(isQuestionCorrect).length;
+  const wrong = Math.max(total - correct, 0);
   const accuracy = total ? Math.round((correct / total) * 100) : 0;
   return `
     <div class="stat score-stat"><b>${correct}</b><span>정답 문항수</span></div>
@@ -242,8 +246,10 @@ function toQuestionLog(r) {
     prompt_type: "image",
     correct_answer: r.correctTargetId,
     selected_answer: r.selectedTargetId,
-    is_correct: r.selectedTargetId === r.correctTargetId,
+    is_correct: isQuestionCorrect(r),
     attempt_count: r.attempts,
+    answer_revealed: !!r.answerRevealed,
+    forced_advance_reason: r.forcedAdvanceReason || null,
     hint_used: !!r.hintUsed,
     hint_count: r.hintUsed ? 1 : 0,
     replay_count: 0,
@@ -307,7 +313,8 @@ function toCommonSessionLog(payload) {
   const rs = state._results;
   const process = payload.process || aggregate(rs);
   const totalQuestions = state.plannedRounds;
-  const wrongCount = rs.reduce((sum, r) => sum + (r.wrongDropCount || 0), 0);
+  const correctCount = rs.filter(isQuestionCorrect).length;
+  const wrongCount = Math.max(0, rs.length - correctCount);
   const questionLogs = rs.map(toQuestionLog);
   const sessionSummary = {
     session_id: state.sessionId,
@@ -323,7 +330,7 @@ function toCommonSessionLog(payload) {
     timed_out: !!state.timedOut,
     total_questions: totalQuestions,
     completed_questions: state.completedRounds,
-    correct_count: state.correctCount,
+    correct_count: correctCount,
     wrong_count: wrongCount,
     hint_count: rs.filter(r => r.hintUsed).length,
     retry_count: rs.reduce((sum, r) => sum + Math.max(0, (r.attempts || 1) - 1), 0),

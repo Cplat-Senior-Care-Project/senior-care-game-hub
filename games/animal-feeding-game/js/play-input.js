@@ -2,6 +2,8 @@
    6. QUESTION LIFECYCLE
    =========================================================== */
 let cur = null;
+const MAX_WRONG_ATTEMPTS = 3;
+const ANSWER_REVEAL_DELAY_MS = 1600;
 
 function nextQuestion() {
   if (!state || state._status !== "running") return;
@@ -18,8 +20,9 @@ function nextQuestion() {
     responseTimeMs: 0, firstReactionMs: 0,
     wrongDropCount: 0, dragFailCount: 0, targetChangeCount: 0,
     inputType: null,
+    answerRevealed: false, forcedAdvanceReason: null,
     _t0: performance.now(),
-    _firstReacted: false, _picked: null,
+    _firstReacted: false, _picked: null, _locked: false,
   };
   const it = document.getElementById("item");
   const wrap = document.getElementById("itemWrap");
@@ -262,8 +265,25 @@ function snapBack() {
   document.querySelectorAll(".spot, .bin").forEach(s => s.classList.remove("target"));
 }
 
+function showCorrectAnswer() {
+  if (!cur) return;
+  const targetId = cur.correctTargetId;
+  const correctEl = document.querySelector(`.spot[data-target="${targetId}"], .bin[data-target="${targetId}"]`);
+  if (!correctEl) return;
+
+  correctEl.classList.add("hint", "soft-guide", "good", `react-${targetId}`);
+  const correctImg = ANIMALS[targetId]?.correctImg;
+  const pic = correctEl.querySelector(".pic");
+  if (pic && correctImg) pic.style.backgroundImage = `url('${assetUrl(correctImg)}')`;
+  const bub = correctEl.querySelector(".bubble");
+  if (bub) bub.textContent = "정답";
+  document.querySelectorAll(".spot, .bin").forEach(s => {
+    if (s !== correctEl) s.classList.add("dim");
+  });
+}
+
 function resolve(targetId, spotEl, inputType = "touch") {
-  if (!cur || !state || state._status !== "running" || state._paused) return;
+  if (!cur || !state || state._status !== "running" || state._paused || cur._locked) return;
   state._interactionCount++;
   cur.attempts++;
   cur.inputType = inputType;
@@ -273,6 +293,7 @@ function resolve(targetId, spotEl, inputType = "touch") {
   document.getElementById("itemWrap").classList.remove("has-glow");
 
   if (targetId === cur.correctTargetId) {
+    cur._locked = true;
     document.getElementById("board")?.classList.remove("answer-warn");
     document.getElementById("board")?.classList.add("answer-good");
     cur.selectedTargetId = targetId;
@@ -303,11 +324,25 @@ function resolve(targetId, spotEl, inputType = "touch") {
   } else {
     document.getElementById("board")?.classList.remove("answer-good");
     document.getElementById("board")?.classList.add("answer-warn");
+    cur.selectedTargetId = targetId;
     cur.wrongDropCount++;
     spotEl.classList.add("bad");
     dingSoft();
     setTimeout(() => spotEl.classList.remove("bad"), 600);
     snapBack();
+    if (cur.wrongDropCount >= MAX_WRONG_ATTEMPTS) {
+      cur._locked = true;
+      cur.answerRevealed = true;
+      cur.forcedAdvanceReason = "max_wrong_attempts";
+      cur.responseTimeMs = Math.round(performance.now() - cur._t0);
+      showCorrectAnswer();
+      const targetLabel = ANIMALS[cur.correctTargetId]?.label || "반짝이는 곳";
+      const msg = `정답은 ${targetLabel}이에요. 다음 문제로 넘어갈게요.`;
+      setPrompt(msg, "warn");
+      playVoiceGuide("hint", msg);
+      finishQuestion(ANSWER_REVEAL_DELAY_MS);
+      return;
+    }
     if (runtime.hintEnabled && runtime.autoHintEnabled && cur.attempts >= 2 && !cur.hintUsed) {
       cur.hintUsed = true;
       const h = document.querySelector(`.spot[data-target="${cur.correctTargetId}"], .bin[data-target="${cur.correctTargetId}"]`);
@@ -325,8 +360,8 @@ function resolve(targetId, spotEl, inputType = "touch") {
   }
 }
 
-function finishQuestion() {
-  const { _t0, _firstReacted, _picked, ...result } = cur;
+function finishQuestion(nextDelayMs = 1100) {
+  const { _t0, _firstReacted, _picked, _locked, ...result } = cur;
   result.questionIndex = state._idx + 1;
   state._results.push(result);
   state.completedRounds++;
@@ -335,7 +370,7 @@ function finishQuestion() {
   setTimeout(() => {
     clearSpotStates();
     nextQuestion();
-  }, 1100);
+  }, nextDelayMs);
 }
 
 /* ===========================================================

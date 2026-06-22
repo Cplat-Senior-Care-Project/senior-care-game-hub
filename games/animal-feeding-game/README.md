@@ -156,7 +156,7 @@ http://127.0.0.1:8000/index.html?mode=ai_assisted
 ## 4. URL Config 예시
 
 ```text
-http://127.0.0.1:8000/index.html?mode=care&difficulty=easy&question_count=10&animal_count=2&trash_count=0&show_progress=false&show_help=false&use_drag=true&auto_start=false
+http://127.0.0.1:8000/index.html?mode=care&difficulty=easy&question_count=5&animal_count=2&trash_count=0&show_progress=false&show_help=false&use_drag=true&auto_start=false
 ```
 
 URL query로 전달 가능한 주요 값:
@@ -197,7 +197,7 @@ URL query로 전달 가능한 주요 값:
 동물 랜덤 규칙:
 
 - 세션 시작 시 필요한 동물 수만큼 `빨간 도깨비`, `초록 도깨비`, `하얀 도깨비`, `노란 도깨비` 중에서 랜덤 선택합니다.
-- 한 세션이 시작되면 선택된 동물은 10문항 동안 고정됩니다.
+- 한 세션이 시작되면 선택된 동물은 세션 문항 수 동안 고정됩니다.
 - 문항 중에는 동물 구성이 바뀌지 않습니다.
 - 앱이 `target_animals`를 전달하면 해당 동물을 우선 사용합니다.
 
@@ -220,7 +220,7 @@ URL query로 전달 가능한 주요 값:
       "show_help": false,
       "show_how_to_play": false,
       "show_finish_check": false,
-      "question_count": 10,
+      "question_count": 5,
       "animal_count": 2,
       "target_animals": ["tiger", "panda"],
       "trash_count": 0,
@@ -290,7 +290,7 @@ URL query로 전달 가능한 주요 값:
 | 상태/제어 참고 | `READY`, `DISPLAY_REQUEST`, `CONFIG_APPLIED`, `RETURN_TO_APP`, `ERROR` | 앱 화면 전환, 오류 처리, QA 확인에 사용 |
 | 저장 비권장 | `LOADING_PROGRESS`, `DISPLAY_APPLIED`, `QUESTION_START`, `AUDIO_APPLIED`, `SESSION_PAUSE`, `SESSION_RESUME`, `HELP_USED` | 일반적으로 UI 상태 또는 과정 참고용 |
  
-10문항 기준으로 앱 저장은 최종 이벤트 1건에 전체 문항 결과가 포함되는 구조입니다. 최종 이벤트 payload의 `result_detail_json`에는 세션 요약, 문항별 로그, 원본 results, 과정 통계, 보상 참고값, 컨디션/수면 체크값이 함께 들어갑니다. 실시간 분석이 필요하지 않다면 `QUESTION_RESULT`는 진행 표시 또는 QA 확인용으로만 사용할 수 있습니다.
+문항 수와 관계없이 앱 저장은 최종 이벤트 1건에 전체 문항 결과가 포함되는 구조입니다. 최종 이벤트 payload의 `result_detail_json`에는 세션 요약, 문항별 로그, 원본 results, 과정 통계, 보상 참고값, 컨디션/수면 체크값이 함께 들어갑니다. 실시간 분석이 필요하지 않다면 `QUESTION_RESULT`는 진행 표시 또는 QA 확인용으로만 사용할 수 있습니다.
 
 앱은 `SESSION_COMPLETE` / `SESSION_ABORT` payload를 그대로 결과 수집 API로 전달할 수 있습니다. 제출본에는 연동 초안 검수를 위한 `../결과수집서버`가 포함되어 있으며, 중복 저장 방지는 `session_id` 기준으로 처리합니다.
 
@@ -435,7 +435,7 @@ QUESTION_START → QUESTION_RESULT ... → CONDITION_CHECK → FINISH_CHECK → 
 - 보상/성장 처리 자체는 게임 내부가 아니라 앱에서 처리합니다.
 - 표준 모드는 게임 완료 후 컨디션 상태와 수면시간 체크를 기본 표시합니다. 알림/케어/AI 모드는 기본 숨김이며, 앱 config에서 `show_finish_check=true`를 전달한 경우에만 표시합니다.
 - 사용자가 답변이 부담스러울 경우 `선택 없이 완료`로 넘어갈 수 있습니다.
-- 기본 문항 수는 모드/난이도와 관계없이 10문항입니다. 앱 config가 `question_count`를 주면 해당 값을 우선합니다.
+- 기본 문항 수는 표준/알림 모드 10문항, 케어/AI 모드 5문항입니다. 앱 config가 `question_count`를 주면 해당 값을 우선합니다.
 - 표준/알림 모드의 쉬움도 기본 정리 문항 1개를 포함합니다. 케어/AI 모드는 기본적으로 정리 문항을 제외합니다.
 - 모드 키는 앱 연동 실수를 줄이기 위해 일부 별칭을 허용합니다. `mode=ai`, `mode=ai_assist`, `mode=ai_assistant`는 `ai_assisted`로, `mode=alarm`, `mode=alert`는 `reminder`로 처리됩니다.
 - 알림/케어/AI 모드는 앱 config가 우선합니다.

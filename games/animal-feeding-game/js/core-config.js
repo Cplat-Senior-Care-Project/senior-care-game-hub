@@ -217,7 +217,7 @@ function normalizeRuntimeConfig(input) {
     return fallback;
   };
   const trashCount = Number(read("trashCount", "trash_count", isSimplifiedMode ? 0 : -1));
-  const defaultQuestionCount = 10;
+  const defaultQuestionCount = isSimplifiedMode ? 5 : 10;
   const choiceCount = Number(read("choiceCount", "choice_count", isSimplifiedMode ? 2 : 0)) || 0;
   const animalCountFallback = choiceCount
     ? Math.max(2, choiceCount - (trashCount > 0 ? 1 : 0))
