@@ -62,7 +62,8 @@
     ["show_condition_check", "show_finish_check", "show_settings", "show_how_to_play", "show_timer", "show_score",
       "show_difficulty_select", "show_pause", "show_hint", "show_question_counter",
       "background_music_enabled", "sound_effect_enabled", "voice_guide_enabled",
-      "auto_start", "auto_return_to_hub"].forEach(key => {
+      "auto_start", "auto_return_to_hub", "fullscreen_on_start", "auto_fullscreen",
+      "lock_orientation", "orientation_lock", "landscape_only"].forEach(key => {
       if (!params.has(key)) return;
       const value = params.get(key);
       config[key] = value === "true" || value === "1" || value === "yes";
@@ -85,7 +86,8 @@
     ["show_condition_check", "show_finish_check", "show_settings", "show_how_to_play", "show_timer", "show_score",
       "show_difficulty_select", "show_pause", "show_hint", "show_question_counter",
       "background_music_enabled", "sound_effect_enabled", "voice_guide_enabled",
-      "auto_start", "auto_return_to_hub"].forEach(key => {
+      "auto_start", "auto_return_to_hub", "fullscreen_on_start", "auto_fullscreen",
+      "lock_orientation", "orientation_lock", "landscape_only"].forEach(key => {
       if (typeof normalized[key] === "string") {
         normalized[key] = normalized[key] === "true" || normalized[key] === "1" || normalized[key] === "yes";
       }
@@ -209,6 +211,7 @@ const DEFAULT_CONFIG = {
   soft_feedback:false,
   show_condition_check:true, show_finish_check:true, default_mood:null, default_sleep_hours:null,
   auto_start:false, auto_return_to_hub:false, auto_return_delay_ms:3000, play_source:"manual",
+  fullscreen_on_start:true, auto_fullscreen:true, lock_orientation:true, orientation_lock:true, landscape_only:true,
   time_limit_sec:180, content_id:"content_what_fits_where", game_key:window.GAME_KEY || "what_fits_where", game_version:window.GAME_VERSION || "1.0.0",
 };
 

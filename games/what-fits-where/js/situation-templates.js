@@ -7,9 +7,9 @@ window.SITUATION_TEMPLATE_DATA = {
       "id": "hospital_visit",
       "situationName": "병원 방문",
       "questionPatterns": [
-        "병원에 갈 때 필요한 물건을 골라주세요.",
-        "진료를 받으러 가려고 해요. 무엇을 챙기면 좋을까요?",
-        "병원에 가기 전 준비물을 확인해 주세요."
+        "병원 진료를 받으러 가려고 해요. 챙겨야 할 물건을 골라주세요.",
+        "접수와 진료에 필요한 준비물은 무엇일까요?",
+        "병원 방문 전 준비물을 확인해 주세요."
       ],
       "requiredPool": [
         "진료카드",
@@ -30,8 +30,8 @@ window.SITUATION_TEMPLATE_DATA = {
       "id": "pharmacy_pickup",
       "situationName": "약국에서 약 받기",
       "questionPatterns": [
-        "약국에 가서 약을 받으려고 해요. 필요한 물건을 골라주세요.",
-        "처방받은 약을 찾으러 갈 때 무엇을 챙기면 좋을까요?",
+        "약국에서 처방약을 받으려고 해요. 챙길 물건을 골라주세요.",
+        "약을 찾으러 갈 때 필요한 준비물은 무엇일까요?",
         "약국 방문 전에 준비물을 확인해 주세요."
       ],
       "requiredPool": [
@@ -54,9 +54,9 @@ window.SITUATION_TEMPLATE_DATA = {
       "id": "church_service",
       "situationName": "교회 예배",
       "questionPatterns": [
-        "교회 예배에 가려고 해요. 필요한 물건을 골라주세요.",
-        "버스를 타고 교회에 갈 때 무엇을 챙기면 좋을까요?",
-        "예배를 보러 가기 전 준비물을 확인해 주세요."
+        "교회 예배에 가려고 해요. 챙길 물건을 골라주세요.",
+        "예배를 보러 갈 때 필요한 준비물은 무엇일까요?",
+        "교회에 가기 전 준비물을 확인해 주세요."
       ],
       "requiredPool": [
         "성경",
@@ -77,8 +77,8 @@ window.SITUATION_TEMPLATE_DATA = {
       "id": "junk_shop_sale",
       "situationName": "고물상 방문",
       "questionPatterns": [
-        "고물상에 물건을 팔러 가려고 해요. 필요한 물건을 골라주세요.",
-        "빈병과 고철을 고물상에 가져갈 때 무엇을 챙기면 좋을까요?",
+        "고물상에 빈병과 고철을 팔러 가려고 해요. 챙길 물건을 골라주세요.",
+        "무거운 물건을 옮겨 팔 때 필요한 준비물은 무엇일까요?",
         "고물상에 가기 전 준비물을 확인해 주세요."
       ],
       "requiredPool": [
@@ -102,8 +102,8 @@ window.SITUATION_TEMPLATE_DATA = {
       "situationName": "밭에 씨앗 심기",
       "questionPatterns": [
         "텃밭에 씨앗을 심으러 가려고 해요. 필요한 물건을 골라주세요.",
-        "텃밭에 씨앗을 심으러 갈 때 무엇을 챙기면 좋을까요?",
-        "씨앗을 심기 전 준비물을 확인해 주세요."
+        "씨앗을 심고 물을 줄 때 무엇을 준비하면 좋을까요?",
+        "텃밭에 가기 전 준비물을 확인해 주세요."
       ],
       "requiredPool": [
         "씨앗",
@@ -125,9 +125,9 @@ window.SITUATION_TEMPLATE_DATA = {
       "id": "dog_feeding",
       "situationName": "강아지 밥주기",
       "questionPatterns": [
-        "강아지에게 밥을 주려고 해요. 필요한 물건을 골라주세요.",
-        "강아지 밥을 챙길 때 무엇을 준비하면 좋을까요?",
-        "강아지를 돌보기 전 준비물을 확인해 주세요."
+        "강아지 밥과 물을 챙겨주려고 해요. 필요한 물건을 골라주세요.",
+        "강아지를 돌볼 때 무엇을 준비하면 좋을까요?",
+        "강아지 밥주기 전 준비물을 확인해 주세요."
       ],
       "requiredPool": [
         "사료",
@@ -148,8 +148,8 @@ window.SITUATION_TEMPLATE_DATA = {
       "id": "school_delivery",
       "situationName": "학교 준비물 전달",
       "questionPatterns": [
-        "학교에 준비물을 가져다주려고 해요. 필요한 물건을 골라주세요.",
-        "손주 학교에 물건을 전달할 때 무엇을 챙기면 좋을까요?",
+        "학교에 준비물을 가져다주려고 해요. 챙길 물건을 골라주세요.",
+        "손주 학교에 물건을 전달할 때 필요한 준비물은 무엇일까요?",
         "학교에 가기 전 준비물을 확인해 주세요."
       ],
       "requiredPool": [
@@ -171,8 +171,8 @@ window.SITUATION_TEMPLATE_DATA = {
       "id": "bank_visit",
       "situationName": "은행 방문",
       "questionPatterns": [
-        "은행에 가려고 해요. 필요한 물건을 골라주세요.",
-        "통장 업무를 보러 갈 때 무엇을 챙기면 좋을까요?",
+        "은행 업무를 보러 가려고 해요. 챙길 물건을 골라주세요.",
+        "통장 업무를 볼 때 필요한 준비물은 무엇일까요?",
         "은행에 가기 전 준비물을 확인해 주세요."
       ],
       "requiredPool": [
@@ -195,8 +195,8 @@ window.SITUATION_TEMPLATE_DATA = {
       "id": "post_office_mail",
       "situationName": "우체국에서 우편물 보내기",
       "questionPatterns": [
-        "우체국에서 우편물을 보내려고 해요. 필요한 물건을 골라주세요.",
-        "우편물을 부치러 갈 때 무엇을 챙기면 좋을까요?",
+        "우체국에서 우편물을 보내려고 해요. 챙길 물건을 골라주세요.",
+        "우편물을 부치러 갈 때 필요한 준비물은 무엇일까요?",
         "우체국에 가기 전 준비물을 확인해 주세요."
       ],
       "requiredPool": [
@@ -218,8 +218,8 @@ window.SITUATION_TEMPLATE_DATA = {
       "id": "bus_terminal_trip",
       "situationName": "터미널에서 버스 타기",
       "questionPatterns": [
-        "터미널에서 버스를 타려고 해요. 필요한 물건을 골라주세요.",
-        "먼 곳으로 버스를 타고 갈 때 무엇을 챙기면 좋을까요?",
+        "터미널에서 버스를 타고 이동하려고 해요. 챙길 물건을 골라주세요.",
+        "먼 곳으로 버스를 타고 갈 때 필요한 준비물은 무엇일까요?",
         "터미널에 가기 전 준비물을 확인해 주세요."
       ],
       "requiredPool": [
@@ -240,8 +240,8 @@ window.SITUATION_TEMPLATE_DATA = {
       "id": "market_grocery",
       "situationName": "시장 장보기",
       "questionPatterns": [
-        "시장에 장을 보러 가려고 해요. 필요한 물건을 골라주세요.",
-        "장을 보러 갈 때 무엇을 챙기면 좋을까요?",
+        "시장에 장을 보러 가려고 해요. 챙길 물건을 골라주세요.",
+        "장을 보고 물건을 담아 올 때 필요한 준비물은 무엇일까요?",
         "시장에 가기 전 준비물을 확인해 주세요."
       ],
       "requiredPool": [
@@ -263,8 +263,8 @@ window.SITUATION_TEMPLATE_DATA = {
       "id": "rainy_day_outing",
       "situationName": "비 오는 날 외출",
       "questionPatterns": [
-        "비 오는 날 밖에 나가려고 해요. 필요한 물건을 골라주세요.",
-        "비가 올 때 외출하려면 무엇을 챙기면 좋을까요?",
+        "비 오는 날 밖에 나가려고 해요. 챙길 물건을 골라주세요.",
+        "비를 맞지 않으려면 무엇을 준비하면 좋을까요?",
         "비 오는 날 외출 전 준비물을 확인해 주세요."
       ],
       "requiredPool": [
@@ -286,8 +286,8 @@ window.SITUATION_TEMPLATE_DATA = {
       "id": "winter_outing",
       "situationName": "겨울 외출",
       "questionPatterns": [
-        "추운 겨울에 외출하려고 해요. 필요한 물건을 골라주세요.",
-        "추운 날 밖에 나갈 때 무엇을 챙기면 좋을까요?",
+        "추운 겨울에 외출하려고 해요. 챙길 물건을 골라주세요.",
+        "몸을 따뜻하게 하고 나가려면 무엇을 준비하면 좋을까요?",
         "겨울 외출 전 준비물을 확인해 주세요."
       ],
       "requiredPool": [
@@ -309,8 +309,8 @@ window.SITUATION_TEMPLATE_DATA = {
       "id": "summer_heat",
       "situationName": "여름 더위 대비",
       "questionPatterns": [
-        "더운 여름에 밖에 나가려고 해요. 필요한 물건을 골라주세요.",
-        "햇빛이 강한 날 외출할 때 무엇을 챙기면 좋을까요?",
+        "더운 여름에 밖에 나가려고 해요. 챙길 물건을 골라주세요.",
+        "햇빛이 강한 날 외출할 때 필요한 준비물은 무엇일까요?",
         "여름 외출 전 준비물을 확인해 주세요."
       ],
       "requiredPool": [
@@ -332,8 +332,8 @@ window.SITUATION_TEMPLATE_DATA = {
       "id": "neighborhood_walk",
       "situationName": "동네 산책",
       "questionPatterns": [
-        "동네를 산책하려고 해요. 필요한 물건을 골라주세요.",
-        "가볍게 걸으러 나갈 때 무엇을 챙기면 좋을까요?",
+        "동네를 산책하려고 해요. 챙길 물건을 골라주세요.",
+        "가볍게 걸으러 나갈 때 필요한 준비물은 무엇일까요?",
         "산책 전 준비물을 확인해 주세요."
       ],
       "requiredPool": [
@@ -355,8 +355,8 @@ window.SITUATION_TEMPLATE_DATA = {
       "id": "mountain_hiking",
       "situationName": "등산 가기",
       "questionPatterns": [
-        "산에 오르려고 해요. 필요한 물건을 골라주세요.",
-        "등산을 갈 때 무엇을 챙기면 좋을까요?",
+        "산에 오르려고 해요. 챙길 물건을 골라주세요.",
+        "등산길에 필요한 준비물은 무엇일까요?",
         "산에 가기 전 준비물을 확인해 주세요."
       ],
       "requiredPool": [
@@ -379,9 +379,9 @@ window.SITUATION_TEMPLATE_DATA = {
       "id": "bath_shower",
       "situationName": "목욕과 샤워",
       "questionPatterns": [
-        "목욕을 하려고 해요. 필요한 물건을 골라주세요.",
+        "목욕이나 샤워를 하려고 해요. 필요한 물건을 골라주세요.",
         "몸을 씻을 때 무엇을 준비하면 좋을까요?",
-        "샤워 전 준비물을 확인해 주세요."
+        "씻기 전 준비물을 확인해 주세요."
       ],
       "requiredPool": [
         "비누",
@@ -404,7 +404,7 @@ window.SITUATION_TEMPLATE_DATA = {
       "questionPatterns": [
         "이를 닦으려고 해요. 필요한 물건을 골라주세요.",
         "양치할 때 무엇을 준비하면 좋을까요?",
-        "이를 닦기 전 준비물을 확인해 주세요."
+        "양치하기 전 준비물을 확인해 주세요."
       ],
       "requiredPool": [
         "칫솔",
@@ -425,8 +425,8 @@ window.SITUATION_TEMPLATE_DATA = {
       "id": "bedtime_prepare",
       "situationName": "잠자리 준비",
       "questionPatterns": [
-        "잠을 자려고 해요. 필요한 물건을 골라주세요.",
-        "잠자리에 들기 전 무엇을 챙기면 좋을까요?",
+        "잠들기 전 필요한 물건을 머리맡에 챙기려고 해요. 골라주세요.",
+        "편하게 잠자리에 들려면 무엇을 준비하면 좋을까요?",
         "잠자리 준비물을 확인해 주세요."
       ],
       "requiredPool": [
@@ -448,9 +448,9 @@ window.SITUATION_TEMPLATE_DATA = {
       "id": "meal_table",
       "situationName": "밥상 차리기",
       "questionPatterns": [
-        "밥상을 차리려고 해요. 필요한 물건을 골라주세요.",
-        "식사할 때 무엇을 준비하면 좋을까요?",
-        "밥 먹기 전 준비물을 확인해 주세요."
+        "식사할 밥상을 차리려고 해요. 필요한 물건을 골라주세요.",
+        "밥을 먹을 때 무엇을 준비하면 좋을까요?",
+        "식사 전 준비물을 확인해 주세요."
       ],
       "requiredPool": [
         "밥그릇",
@@ -472,7 +472,7 @@ window.SITUATION_TEMPLATE_DATA = {
       "situationName": "라면 끓이기",
       "questionPatterns": [
         "라면을 끓이려고 해요. 필요한 물건을 골라주세요.",
-        "라면을 만들 때 무엇을 준비하면 좋을까요?",
+        "라면을 만들고 먹을 때 무엇을 준비하면 좋을까요?",
         "라면 끓이기 전 준비물을 확인해 주세요."
       ],
       "requiredPool": [
@@ -494,8 +494,8 @@ window.SITUATION_TEMPLATE_DATA = {
       "id": "coffee_prepare",
       "situationName": "커피 타기",
       "questionPatterns": [
-        "커피를 타서 마시려고 해요. 필요한 물건을 골라주세요.",
-        "따뜻한 커피를 준비할 때 무엇이 필요할까요?",
+        "따뜻한 커피를 타서 마시려고 해요. 필요한 물건을 골라주세요.",
+        "커피를 준비할 때 무엇이 필요할까요?",
         "커피를 타기 전 준비물을 확인해 주세요."
       ],
       "requiredPool": [
@@ -517,7 +517,7 @@ window.SITUATION_TEMPLATE_DATA = {
       "id": "dish_washing",
       "situationName": "설거지하기",
       "questionPatterns": [
-        "설거지를 하려고 해요. 필요한 물건을 골라주세요.",
+        "식사 후 설거지를 하려고 해요. 필요한 물건을 골라주세요.",
         "그릇을 씻을 때 무엇을 준비하면 좋을까요?",
         "설거지 전 준비물을 확인해 주세요."
       ],
@@ -563,8 +563,8 @@ window.SITUATION_TEMPLATE_DATA = {
       "id": "trash_takeout",
       "situationName": "쓰레기 버리기",
       "questionPatterns": [
-        "쓰레기를 버리려고 해요. 필요한 물건을 골라주세요.",
-        "분리수거를 하러 갈 때 무엇을 챙기면 좋을까요?",
+        "쓰레기를 정리하고 버리려고 해요. 필요한 물건을 골라주세요.",
+        "분리수거를 하러 갈 때 무엇을 준비하면 좋을까요?",
         "쓰레기를 버리기 전 준비물을 확인해 주세요."
       ],
       "requiredPool": [
@@ -587,7 +587,7 @@ window.SITUATION_TEMPLATE_DATA = {
       "situationName": "빨래하기",
       "questionPatterns": [
         "빨래를 하려고 해요. 필요한 물건을 골라주세요.",
-        "옷을 세탁할 때 무엇을 준비하면 좋을까요?",
+        "옷을 세탁하고 널 때 무엇을 준비하면 좋을까요?",
         "빨래 전 준비물을 확인해 주세요."
       ],
       "requiredPool": [
@@ -609,8 +609,8 @@ window.SITUATION_TEMPLATE_DATA = {
       "id": "community_center_class",
       "situationName": "복지관 프로그램",
       "questionPatterns": [
-        "복지관 프로그램에 참여하려고 해요. 필요한 물건을 골라주세요.",
-        "수업을 들으러 복지관에 갈 때 무엇을 챙기면 좋을까요?",
+        "복지관 프로그램에 참여하려고 해요. 챙길 물건을 골라주세요.",
+        "수업을 들으러 복지관에 갈 때 필요한 준비물은 무엇일까요?",
         "복지관에 가기 전 준비물을 확인해 주세요."
       ],
       "requiredPool": [
@@ -633,8 +633,8 @@ window.SITUATION_TEMPLATE_DATA = {
       "id": "library_visit",
       "situationName": "도서관 방문",
       "questionPatterns": [
-        "도서관에 가려고 해요. 필요한 물건을 골라주세요.",
-        "책을 빌리러 갈 때 무엇을 챙기면 좋을까요?",
+        "도서관에 책을 빌리거나 반납하러 가려고 해요. 챙길 물건을 골라주세요.",
+        "도서관을 이용할 때 필요한 준비물은 무엇일까요?",
         "도서관 방문 전 준비물을 확인해 주세요."
       ],
       "requiredPool": [
@@ -656,8 +656,8 @@ window.SITUATION_TEMPLATE_DATA = {
       "id": "hair_salon",
       "situationName": "미용실 방문",
       "questionPatterns": [
-        "미용실에 가려고 해요. 필요한 물건을 골라주세요.",
-        "머리를 자르러 갈 때 무엇을 챙기면 좋을까요?",
+        "미용실에 가서 머리를 손질하려고 해요. 챙길 물건을 골라주세요.",
+        "머리를 자르거나 손질할 때 필요한 준비물은 무엇일까요?",
         "미용실 방문 전 준비물을 확인해 주세요."
       ],
       "requiredPool": [
@@ -679,8 +679,8 @@ window.SITUATION_TEMPLATE_DATA = {
       "id": "exercise_class",
       "situationName": "운동 교실",
       "questionPatterns": [
-        "운동 교실에 가려고 해요. 필요한 물건을 골라주세요.",
-        "체조 수업에 참여할 때 무엇을 챙기면 좋을까요?",
+        "운동 교실에 참여하려고 해요. 챙길 물건을 골라주세요.",
+        "체조 수업에 참여할 때 필요한 준비물은 무엇일까요?",
         "운동하러 가기 전 준비물을 확인해 주세요."
       ],
       "requiredPool": [
@@ -702,8 +702,8 @@ window.SITUATION_TEMPLATE_DATA = {
       "id": "swimming_pool",
       "situationName": "수영장 가기",
       "questionPatterns": [
-        "수영장에 가려고 해요. 필요한 물건을 골라주세요.",
-        "물놀이를 하러 갈 때 무엇을 챙기면 좋을까요?",
+        "수영장에 가려고 해요. 챙길 물건을 골라주세요.",
+        "물놀이를 하러 갈 때 필요한 준비물은 무엇일까요?",
         "수영장에 가기 전 준비물을 확인해 주세요."
       ],
       "requiredPool": [
@@ -725,8 +725,8 @@ window.SITUATION_TEMPLATE_DATA = {
       "id": "picnic_lunch",
       "situationName": "소풍 가기",
       "questionPatterns": [
-        "소풍을 가려고 해요. 필요한 물건을 골라주세요.",
-        "밖에서 점심을 먹을 때 무엇을 챙기면 좋을까요?",
+        "소풍을 가려고 해요. 챙길 물건을 골라주세요.",
+        "밖에서 점심을 먹을 때 필요한 준비물은 무엇일까요?",
         "소풍 전 준비물을 확인해 주세요."
       ],
       "requiredPool": [
@@ -748,8 +748,8 @@ window.SITUATION_TEMPLATE_DATA = {
       "id": "beach_trip",
       "situationName": "바닷가 물놀이",
       "questionPatterns": [
-        "바닷가에 물놀이를 가려고 해요. 필요한 물건을 골라주세요.",
-        "해변에 갈 때 무엇을 챙기면 좋을까요?",
+        "바닷가에 물놀이를 가려고 해요. 챙길 물건을 골라주세요.",
+        "해변에서 시간을 보낼 때 필요한 준비물은 무엇일까요?",
         "바닷가에 가기 전 준비물을 확인해 주세요."
       ],
       "requiredPool": [
@@ -771,7 +771,7 @@ window.SITUATION_TEMPLATE_DATA = {
       "id": "power_outage",
       "situationName": "정전 대비",
       "questionPatterns": [
-        "정전이 되었을 때 필요한 물건을 골라주세요.",
+        "정전이 되었을 때 쓸 수 있는 물건을 골라주세요.",
         "불이 꺼져 어두울 때 무엇을 준비하면 좋을까요?",
         "정전에 대비할 준비물을 확인해 주세요."
       ],
@@ -794,8 +794,8 @@ window.SITUATION_TEMPLATE_DATA = {
       "id": "fire_safety",
       "situationName": "화재 안전 확인",
       "questionPatterns": [
-        "불이 났을 때 필요한 물건을 골라주세요.",
-        "화재가 의심될 때 무엇을 준비하면 좋을까요?",
+        "집 안 화재 안전을 점검하려고 해요. 가까이에 두면 좋은 물건을 골라주세요.",
+        "연기나 불이 보일 때 안전하게 알리고 대처하려면 무엇이 필요할까요?",
         "화재 안전을 위해 준비물을 확인해 주세요."
       ],
       "requiredPool": [
@@ -817,8 +817,8 @@ window.SITUATION_TEMPLATE_DATA = {
       "id": "medicine_schedule",
       "situationName": "약 챙기기",
       "questionPatterns": [
-        "먹어야 할 약을 챙기려고 해요. 필요한 물건을 골라주세요.",
-        "정해진 시간에 약을 먹을 때 무엇을 준비하면 좋을까요?",
+        "정해진 시간에 먹을 약을 챙기려고 해요. 필요한 물건을 골라주세요.",
+        "약을 먹을 때 함께 준비하면 좋은 물건은 무엇일까요?",
         "약을 챙기기 전 준비물을 확인해 주세요."
       ],
       "requiredPool": [
@@ -840,8 +840,8 @@ window.SITUATION_TEMPLATE_DATA = {
       "id": "cash_delivery",
       "situationName": "현금 전달하기",
       "questionPatterns": [
-        "현금을 전달하러 가려고 해요. 필요한 물건을 골라주세요.",
-        "돈을 전해주려고 합니다. 필요한 물건을 고르세요.",
+        "가족에게 현금을 전해주러 가려고 해요. 챙길 물건을 골라주세요.",
+        "현금을 전해주러 집을 나서기 전 무엇을 챙기면 좋을까요?",
         "현금 전달 전 준비물을 확인해 주세요."
       ],
       "requiredPool": [
@@ -862,8 +862,8 @@ window.SITUATION_TEMPLATE_DATA = {
       "id": "rice_sale_trip",
       "situationName": "쌀 팔러 가기",
       "questionPatterns": [
-        "수확한 쌀을 팔러 가려고 해요. 필요한 물건을 골라주세요.",
-        "쌀을 가지고 이동할 때 무엇을 챙기면 좋을까요?",
+        "수확한 쌀을 팔러 가려고 해요. 챙길 물건을 골라주세요.",
+        "쌀을 팔러 나설 때 어떤 준비물이 필요할까요?",
         "쌀을 팔러 가기 전 준비물을 확인해 주세요."
       ],
       "requiredPool": [
@@ -885,9 +885,9 @@ window.SITUATION_TEMPLATE_DATA = {
       "id": "plant_watering",
       "situationName": "화분 물주기",
       "questionPatterns": [
-        "물을 주어야 할 물건을 골라주세요.",
-        "물을 줄 대상이 되는 물건을 골라주세요.",
-        "물을 주어야 할 물건을 확인해 주세요."
+        "화분에 물을 주려고 해요. 물을 줄 대상을 골라주세요.",
+        "여러 물건 중 물을 주어야 하는 것은 무엇일까요?",
+        "화분을 돌보기 전 물 줄 대상을 확인해 주세요."
       ],
       "requiredPool": [
         "화분"
@@ -904,8 +904,8 @@ window.SITUATION_TEMPLATE_DATA = {
       "id": "pan_cooking",
       "situationName": "프라이팬 요리",
       "questionPatterns": [
-        "프라이팬으로 음식을 만들려고 해요. 필요한 물건을 골라주세요.",
-        "달걀 요리를 할 때 무엇을 준비하면 좋을까요?",
+        "프라이팬으로 달걀 요리를 하고 정리하려고 해요. 필요한 물건을 골라주세요.",
+        "프라이팬 요리를 할 때 무엇을 준비하면 좋을까요?",
         "요리 전 준비물을 확인해 주세요."
       ],
       "requiredPool": [
@@ -927,8 +927,8 @@ window.SITUATION_TEMPLATE_DATA = {
       "id": "parcel_pickup",
       "situationName": "택배 찾기",
       "questionPatterns": [
-        "택배를 찾으러 가려고 해요. 필요한 물건을 골라주세요.",
-        "맡겨진 택배를 받을 때 무엇을 챙기면 좋을까요?",
+        "택배를 찾으러 가려고 해요. 챙길 물건을 골라주세요.",
+        "맡겨진 택배를 받을 때 필요한 준비물은 무엇일까요?",
         "택배를 찾기 전 준비물을 확인해 주세요."
       ],
       "requiredPool": [
@@ -949,8 +949,8 @@ window.SITUATION_TEMPLATE_DATA = {
       "id": "family_phone_call",
       "situationName": "가족에게 전화하기",
       "questionPatterns": [
-        "가족에게 전화를 하려고 해요. 필요한 물건을 골라주세요.",
-        "영상통화를 할 때 무엇을 준비하면 좋을까요?",
+        "가족과 전화나 영상통화를 하려고 해요. 필요한 물건을 골라주세요.",
+        "통화를 편하게 하려면 무엇을 준비하면 좋을까요?",
         "전화하기 전 준비물을 확인해 주세요."
       ],
       "requiredPool": [
@@ -972,8 +972,8 @@ window.SITUATION_TEMPLATE_DATA = {
       "id": "music_walk",
       "situationName": "음악 들으며 걷기",
       "questionPatterns": [
-        "음악을 들으며 산책하려고 해요. 필요한 물건을 골라주세요.",
-        "걷기 운동을 하며 음악을 들을 때 무엇을 챙기면 좋을까요?",
+        "음악을 들으며 산책하려고 해요. 챙길 물건을 골라주세요.",
+        "걸으며 음악을 들을 때 필요한 준비물은 무엇일까요?",
         "음악 산책 전 준비물을 확인해 주세요."
       ],
       "requiredPool": [
@@ -995,8 +995,8 @@ window.SITUATION_TEMPLATE_DATA = {
       "id": "bible_study",
       "situationName": "성경 공부 모임",
       "questionPatterns": [
-        "성경 공부 모임에 가려고 해요. 필요한 물건을 골라주세요.",
-        "교회 모임에서 공부할 때 무엇을 챙기면 좋을까요?",
+        "성경 공부 모임에 가려고 해요. 챙길 물건을 골라주세요.",
+        "교회 모임에서 공부할 때 필요한 준비물은 무엇일까요?",
         "성경 공부 전 준비물을 확인해 주세요."
       ],
       "requiredPool": [
@@ -1018,9 +1018,9 @@ window.SITUATION_TEMPLATE_DATA = {
       "id": "friend_visit",
       "situationName": "친구 집 방문",
       "questionPatterns": [
-        "친구를 만나러 외출할 때 연락과 이동에 필요한 물건을 골라주세요.",
-        "친구를 만나러 갈 때 휴대폰과 교통카드 같은 준비물을 챙겨주세요.",
-        "친구를 만나러 가기 전 연락과 이동 준비물을 확인해 주세요."
+        "친구 집에 방문하려고 해요. 연락과 이동에 필요한 물건을 골라주세요.",
+        "친구를 만나러 갈 때 무엇을 챙기면 좋을까요?",
+        "친구를 만나러 가기 전 준비물을 확인해 주세요."
       ],
       "requiredPool": [
         "휴대폰",
@@ -1039,8 +1039,8 @@ window.SITUATION_TEMPLATE_DATA = {
       "id": "health_checkup",
       "situationName": "건강검진",
       "questionPatterns": [
-        "건강검진을 받으러 가려고 해요. 필요한 물건을 골라주세요.",
-        "검진센터에 갈 때 무엇을 챙기면 좋을까요?",
+        "건강검진을 받으러 가려고 해요. 챙길 물건을 골라주세요.",
+        "검진센터에 갈 때 필요한 준비물은 무엇일까요?",
         "건강검진 전 준비물을 확인해 주세요."
       ],
       "requiredPool": [
@@ -1062,8 +1062,8 @@ window.SITUATION_TEMPLATE_DATA = {
       "id": "park_exercise",
       "situationName": "공원 운동기구 이용",
       "questionPatterns": [
-        "공원 운동기구를 이용하려고 해요. 필요한 물건을 골라주세요.",
-        "공원에서 가볍게 운동할 때 무엇을 챙기면 좋을까요?",
+        "공원 운동기구를 이용하려고 해요. 챙길 물건을 골라주세요.",
+        "공원에서 가볍게 운동할 때 필요한 준비물은 무엇일까요?",
         "공원 운동 전 준비물을 확인해 주세요."
       ],
       "requiredPool": [
@@ -1085,8 +1085,8 @@ window.SITUATION_TEMPLATE_DATA = {
       "id": "community_office_document",
       "situationName": "주민센터 서류 발급",
       "questionPatterns": [
-        "주민센터에서 서류를 발급받으려고 해요. 필요한 물건을 골라주세요.",
-        "동사무소에 서류를 받으러 갈 때 무엇을 챙기면 좋을까요?",
+        "주민센터에서 서류를 발급받으려고 해요. 챙길 물건을 골라주세요.",
+        "서류를 받으러 주민센터에 갈 때 필요한 준비물은 무엇일까요?",
         "주민센터 방문 전 준비물을 확인해 주세요."
       ],
       "requiredPool": [
@@ -1108,8 +1108,8 @@ window.SITUATION_TEMPLATE_DATA = {
       "id": "glasses_shop",
       "situationName": "안경점 방문",
       "questionPatterns": [
-        "안경점에 가려고 해요. 필요한 물건을 골라주세요.",
-        "안경을 맞추거나 고칠 때 무엇을 챙기면 좋을까요?",
+        "안경점에 가서 안경을 맞추거나 고치려고 해요. 챙길 물건을 골라주세요.",
+        "안경점에 갈 때 필요한 준비물은 무엇일까요?",
         "안경점 방문 전 준비물을 확인해 주세요."
       ],
       "requiredPool": [
@@ -1131,8 +1131,8 @@ window.SITUATION_TEMPLATE_DATA = {
       "id": "flower_market",
       "situationName": "꽃시장 방문",
       "questionPatterns": [
-        "꽃시장에 가려고 해요. 필요한 물건을 골라주세요.",
-        "화분이나 꽃을 사러 갈 때 무엇을 챙기면 좋을까요?",
+        "꽃시장에서 화분을 사 오려고 해요. 필요한 물건을 골라주세요.",
+        "화분이나 꽃을 사러 갈 때 무엇을 준비하면 좋을까요?",
         "꽃시장에 가기 전 준비물을 확인해 주세요."
       ],
       "requiredPool": [

@@ -43,6 +43,7 @@ const state = {
   endedByUser: false, timeOver: false,
   timerId: null, timerLeft: 0, paused: false,
   advanceTimer: null, autoHintTimer: null, feedbackTimer: null, feedbackToken: 0,
+  orientationGuardActive: false, orientationGuardWasPaused: false,
   lastResult: null,
 };
 state.conditionData = null;
@@ -293,6 +294,7 @@ function applyAppConfig() {
   }
   state.appMode = appMode;
   state.appConfig = cfg;
+  checkOrientationGuard();
 }
 
 /* ===== SETTINGS MODAL ===== */
@@ -443,6 +445,76 @@ function installAutoViewportMode() {
   });
 }
 
+function isLandscapeGuardEnabled() {
+  const cfg = getAppConfig();
+  return cfg.landscape_only !== false &&
+    cfg.lock_orientation !== false &&
+    cfg.orientation_lock !== false;
+}
+
+function getViewportSize() {
+  const viewport = window.visualViewport;
+  return {
+    width: viewport ? viewport.width : window.innerWidth,
+    height: viewport ? viewport.height : window.innerHeight,
+  };
+}
+
+function isPortraitViewport() {
+  const size = getViewportSize();
+  return size.height > size.width;
+}
+
+function setOrientationGuardVisible(visible) {
+  const guard = $("orientation-guard");
+  if (!guard) return;
+  if (visible === state.orientationGuardActive) return;
+
+  state.orientationGuardActive = visible;
+  guard.classList.toggle("is-hidden", !visible);
+  guard.setAttribute("aria-hidden", visible ? "false" : "true");
+  document.body.classList.toggle("orientation-guard-active", visible);
+  $("stage-viewport")?.setAttribute("aria-hidden", visible ? "true" : "false");
+
+  if (visible) {
+    state.orientationGuardWasPaused = state.paused;
+    setPaused(true);
+    if (typeof pauseManagedAudio === "function") pauseManagedAudio();
+    if (state.current && !state.orientationGuardWasPaused) {
+      sendGameEvent("GAME_PAUSED", { source: "orientation_guard", session_id: getSessionId() });
+    }
+    return;
+  }
+
+  const wasPausedBeforeGuard = state.orientationGuardWasPaused;
+  state.orientationGuardWasPaused = false;
+  if (!wasPausedBeforeGuard) setPaused(false);
+  if (!state.paused && typeof applySoundSettings === "function") applySoundSettings();
+  if (state.current && !state.paused) {
+    sendGameEvent("GAME_RESUMED", { source: "orientation_guard", session_id: getSessionId() });
+  }
+  enterFullscreenAndLockLandscape("orientation_guard_resume");
+}
+
+function checkOrientationGuard() {
+  const shouldBlock = isLandscapeGuardEnabled() && isPortraitViewport();
+  setOrientationGuardVisible(shouldBlock);
+}
+
+function installOrientationGuard() {
+  checkOrientationGuard();
+  const scheduleCheck = () => {
+    refreshViewportScaleSoon();
+    window.setTimeout(checkOrientationGuard, 60);
+  };
+  window.addEventListener("resize", scheduleCheck);
+  window.addEventListener("orientationchange", scheduleCheck);
+  if (window.visualViewport) {
+    window.visualViewport.addEventListener("resize", scheduleCheck);
+    window.visualViewport.addEventListener("scroll", scheduleCheck);
+  }
+}
+
 function refreshFullscreenToggle() {
   const btn = $("btn-fullscreen");
   if (!btn) return;
@@ -524,7 +596,11 @@ function sendGameEvent(type, payload = {}) {
   try {
     if (window.ReactNativeWebView && window.ReactNativeWebView.postMessage) {
       window.ReactNativeWebView.postMessage(JSON.stringify(message));
-    } else {
+    }
+    if (window.parent && window.parent !== window && window.parent.postMessage) {
+      window.parent.postMessage(message, "*");
+    }
+    if (!window.ReactNativeWebView && (!window.parent || window.parent === window)) {
       console.log("Game Event:", message);
     }
   } catch (e) { console.warn("sendGameEvent error", e); }
@@ -551,7 +627,8 @@ function normalizeIncomingConfig(payload) {
   ["show_condition_check", "show_finish_check", "show_settings", "show_how_to_play", "show_timer", "show_score",
     "show_difficulty_select", "show_pause", "show_hint", "show_question_counter",
     "background_music_enabled", "sound_effect_enabled", "voice_guide_enabled",
-    "auto_start", "auto_return_to_hub"].forEach(key => {
+    "auto_start", "auto_return_to_hub", "fullscreen_on_start", "auto_fullscreen",
+    "lock_orientation", "orientation_lock", "landscape_only"].forEach(key => {
       if (typeof source[key] === "string") {
         source[key] = source[key] === "true" || source[key] === "1" || source[key] === "yes";
       }
@@ -652,6 +729,10 @@ function handleHostMessage(event) {
       sendGameEvent("GAME_PAUSED", { source: "postMessage" });
       break;
     case "RESUME_GAME":
+      if (state.orientationGuardActive) {
+        sendGameEvent("GAME_RESUME_DEFERRED", { source: "postMessage", reason: "orientation_guard" });
+        break;
+      }
       setPaused(false);
       sendGameEvent("GAME_RESUMED", { source: "postMessage" });
       break;
@@ -735,6 +816,7 @@ function runLoading(done) {
 }
 window.addEventListener("DOMContentLoaded", () => {
   installAutoViewportMode();
+  installOrientationGuard();
   const templateReady = loadSituationTemplates();
   runLoading(() => { templateReady.finally(() => { maybeShowConditionCheck(); }); });
 });
@@ -878,8 +960,10 @@ document.addEventListener("visibilitychange", () => {
     }
   } else if (_pausedByVisibility) {
     _pausedByVisibility = false;
-    setPaused(false);
-    sendGameEvent("GAME_RESUMED", { source: "visibilitychange", session_id: getSessionId() });
+    if (!state.orientationGuardActive) {
+      setPaused(false);
+      sendGameEvent("GAME_RESUMED", { source: "visibilitychange", session_id: getSessionId() });
+    }
   }
 });
 window.addEventListener("error", e => {
@@ -895,6 +979,7 @@ function runCountdown(onDone) {
   numEl.textContent = n;
   modal.classList.add("active");
   const tick = setInterval(() => {
+    if (state.orientationGuardActive || document.hidden) return;
     n--;
     if (n <= 0) {
       clearInterval(tick);
@@ -1569,6 +1654,9 @@ function startGame() {
     startGlobalTimer();
     sendGameEvent("GAME_STARTED", {
       session_id: getSessionId(),
+      content_id: getContentIdForResult(),
+      game_key: getGameKeyForResult(),
+      game_version: getGameVersionForResult(),
       mode: state.mode,
       game_mode: state.mode,
       app_mode: getAppMode(),
@@ -1602,9 +1690,45 @@ function switchScreen(id) {
   playVoice(SCREEN_VOICE[id]);
 }
 
-function clearAdvance() { if (state.advanceTimer) { clearTimeout(state.advanceTimer); state.advanceTimer = null; } }
-function clearAutoHint() { if (state.autoHintTimer) { clearTimeout(state.autoHintTimer); state.autoHintTimer = null; } }
-function clearFeedbackTimer() { if (state.feedbackTimer) { clearTimeout(state.feedbackTimer); state.feedbackTimer = null; } }
+function schedulePausableTimeout(callback, delay) {
+  let remaining = Math.max(0, Number(delay) || 0);
+  let lastTick = Date.now();
+  let timeoutId = null;
+  let cancelled = false;
+
+  const step = () => {
+    if (cancelled) return;
+    const now = Date.now();
+    if (!state.paused) remaining -= now - lastTick;
+    lastTick = now;
+    if (remaining <= 0) {
+      cancelled = true;
+      callback();
+      return;
+    }
+    timeoutId = window.setTimeout(step, Math.min(remaining, 120));
+  };
+
+  timeoutId = window.setTimeout(step, Math.min(remaining, 120));
+  return {
+    cancel() {
+      cancelled = true;
+      if (timeoutId) clearTimeout(timeoutId);
+    },
+  };
+}
+
+function clearScheduledHandle(key) {
+  const handle = state[key];
+  if (!handle) return;
+  if (typeof handle.cancel === "function") handle.cancel();
+  else clearTimeout(handle);
+  state[key] = null;
+}
+
+function clearAdvance() { clearScheduledHandle("advanceTimer"); }
+function clearAutoHint() { clearScheduledHandle("autoHintTimer"); }
+function clearFeedbackTimer() { clearScheduledHandle("feedbackTimer"); }
 function clearScheduledTransitions() {
   clearAdvance();
   clearAutoHint();
@@ -1698,7 +1822,7 @@ function showFeedback(text, kind, duration = 1200) {
   el.className = "fb-msg " + kind;
   setFeedbackVisible(true);
   if (duration > 0) {
-    state.feedbackTimer = setTimeout(() => {
+    state.feedbackTimer = schedulePausableTimeout(() => {
       if (state.feedbackToken !== token) return;
       clearFeedbackTimer();
       state.feedbackToken++;
@@ -1727,14 +1851,10 @@ function scheduleAutoHint() {
     state.autoHintTimer = null;
     const cur = state.current;
     if (!cur || cur.q !== question || state.qIndex !== questionIndex || cur.revealed) return;
-    if (state.paused) {
-      state.autoHintTimer = setTimeout(showIfReady, 250);
-      return;
-    }
     if (isHintModalOpen()) return;
     openHintModal("auto");
   };
-  state.autoHintTimer = setTimeout(showIfReady, AUTO_HINT_DELAY_MS);
+  state.autoHintTimer = schedulePausableTimeout(showIfReady, AUTO_HINT_DELAY_MS);
 }
 
 function updateHintButton() {
@@ -1855,7 +1975,7 @@ function closeHintModal(keepPaused) {
     box.className = "fb-msg";
   }
   if (closedHintPanel) setFeedbackVisible(false);
-  if (wasOpen && !keepPaused && !state.hintWasPaused) setPaused(false);
+  if (wasOpen && !keepPaused && !state.hintWasPaused && !state.orientationGuardActive) setPaused(false);
   state.hintWasPaused = false;
   updateHintButton();
 }
@@ -1958,7 +2078,7 @@ function finishQuestion(success, delay) {
   if (success) { state.correct++; state.stageStats[q.stage - 1].c++; }
   else { state.wrong++; state.stageStats[q.stage - 1].w++; }
   updateHintButton();
-  state.advanceTimer = setTimeout(() => { state.qIndex++; renderQuestion(); }, delay || 1200);
+  state.advanceTimer = schedulePausableTimeout(() => { state.qIndex++; renderQuestion(); }, delay || 1200);
 }
 
 function revealAndAdvance() {
@@ -1974,7 +2094,7 @@ function revealAndAdvance() {
   const explain = $("reveal-explain");
   getGameMode(state.mode).renderReveal(q, content, explain);
   modal.classList.add("active");
-  state.advanceTimer = setTimeout(() => {
+  state.advanceTimer = schedulePausableTimeout(() => {
     modal.classList.remove("active");
     state.qIndex++; renderQuestion();
   }, 3000);
@@ -2030,6 +2150,7 @@ $("btn-pause").addEventListener("click", () => {
 });
 $("resume-button").addEventListener("click", () => {
   $("pause-modal").classList.add("is-hidden");
+  if (state.orientationGuardActive) return;
   setPaused(false);
 });
 $("pause-restart-button").addEventListener("click", () => {
