@@ -22,6 +22,12 @@
 
   function buildCommonPayload(result, completed) {
     const runtime = runtimeSnapshot();
+    const conditionCheck = result.condition_check
+      || (result.condition && result.condition.before)
+      || null;
+    const finishCheck = result.finish_check
+      || (result.condition && result.condition.after)
+      || null;
     const detail = {
       session: {
         session_id: result.session_id || runtime.sessionId || null,
@@ -34,6 +40,10 @@
         completed
       },
       performance: result,
+      process_data_json: {
+        condition_data: result.condition_check_skipped ? null : conditionCheck,
+        post_game_condition_data: result.finish_check_skipped ? null : finishCheck
+      },
       config_snapshot: result.config_snapshot || runtime.configSnapshot || runtime
     };
 
@@ -49,6 +59,10 @@
       wrong_count: result.wrong_count || 0,
       score: result.success_rate || 0,
       progress_rate: result.progress_rate || 0,
+      condition_check: conditionCheck,
+      finish_check: finishCheck,
+      condition_check_skipped: Boolean(result.condition_check_skipped),
+      finish_check_skipped: Boolean(result.finish_check_skipped),
       result_detail_json: detail
     };
   }

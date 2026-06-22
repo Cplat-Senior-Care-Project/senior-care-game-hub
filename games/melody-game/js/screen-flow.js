@@ -38,7 +38,51 @@
       this.playCenter = this.playScreen ? this.playScreen.querySelector(".play-center") : null;
       this.padArea = document.getElementById("padArea");
       this.pauseButton = document.getElementById("pauseButton");
+      this.gameCountdown = document.getElementById("game-countdown");
+      this.gameCountdownMessage = document.getElementById("game-countdown-message");
+      this.gameCountdownTimer = document.querySelector(".game-countdown-timer");
+      this.gameCountdownNumber = document.getElementById("game-countdown-number");
+      this.conditionSleepHours = [4, 5, 6, 7, 8, 9, 10, 11, 12];
+      this.conditionSleepDragStepPx = 42;
+      this.conditionElements = {
+        moodButtons: Array.from(document.querySelectorAll(".condition-mood-button")),
+        sleepDial: document.querySelector(".condition-sleep-dial"),
+        sleepRows: document.getElementById("conditionSleepRows"),
+        sleepUpButton: document.getElementById("sleepUp"),
+        sleepDownButton: document.getElementById("sleepDown"),
+        skipButton: document.getElementById("conditionSkip"),
+        confirmButton: document.getElementById("conditionSubmit")
+      };
+      this.postConditionModal = document.getElementById("post-condition-modal");
+      this.finishNextButton = document.getElementById("finishNext");
+      this.finishBackButton = document.getElementById("finishBack");
+      this.finishSubmitButton = document.getElementById("finishSubmit");
+      this.finishSkipButton = document.getElementById("finishSkip");
       this.selectedDifficulty = (window.MelodyRuntime && window.MelodyRuntime.runtime.difficulty) || "normal";
+      this.loadingComplete = false;
+      this.orientationAutoPauseActive = false;
+      this.orientationMusicPauseActive = false;
+      this.conditionData = { skipped: true };
+      this.conditionNextAction = "home";
+      this.conditionCheckHandled = false;
+      this.conditionState = {
+        mood: "good",
+        sleepIndex: 3,
+        sleepDrag: {
+          pointerId: null,
+          lastStepY: 0
+        }
+      };
+      this.pendingResult = null;
+      this.pendingResultOptions = null;
+      this.finishCheckPage = 0;
+      this.finishCheckShown = false;
+      this.countdownIntroDuration = 2000;
+      this.countdownDuration = 3000;
+      this.countdownIntroHandle = null;
+      this.countdownFrameHandle = null;
+      this.countdownActive = false;
+      this.pendingCountdownRuntime = null;
     }
 
     init() {
@@ -90,6 +134,54 @@
         this.audio.playClick();
         this.showHowtoPage(1);
       });
+      this.conditionElements.moodButtons.forEach((button) => {
+        button.addEventListener("pointerup", () => {
+          this.audio.playClick();
+          this.selectConditionMood(button);
+        });
+      });
+      this.conditionElements.sleepUpButton && this.conditionElements.sleepUpButton.addEventListener("pointerup", () => {
+        this.audio.playClick();
+        this.changeConditionSleep(1);
+      });
+      this.conditionElements.sleepDownButton && this.conditionElements.sleepDownButton.addEventListener("pointerup", () => {
+        this.audio.playClick();
+        this.changeConditionSleep(-1);
+      });
+      this.conditionElements.sleepDial && this.conditionElements.sleepDial.addEventListener("pointerdown", (event) => this.startConditionSleepDrag(event));
+      this.conditionElements.sleepDial && this.conditionElements.sleepDial.addEventListener("pointermove", (event) => this.dragConditionSleep(event));
+      this.conditionElements.sleepDial && this.conditionElements.sleepDial.addEventListener("pointerup", (event) => this.endConditionSleepDrag(event));
+      this.conditionElements.sleepDial && this.conditionElements.sleepDial.addEventListener("pointercancel", (event) => this.endConditionSleepDrag(event));
+      this.conditionElements.confirmButton && this.conditionElements.confirmButton.addEventListener("pointerup", () => {
+        this.audio.playClick();
+        this.submitCondition(false);
+      });
+      this.conditionElements.skipButton && this.conditionElements.skipButton.addEventListener("pointerup", () => {
+        this.audio.playClick();
+        this.submitCondition(true);
+      });
+      document.querySelectorAll(".post-condition-option").forEach((button) => {
+        button.addEventListener("pointerup", () => {
+          this.audio.playClick();
+          this.selectPostConditionOption(button);
+        });
+      });
+      this.finishNextButton && this.finishNextButton.addEventListener("pointerup", () => {
+        this.audio.playClick();
+        this.updateFinishCheckPage(1);
+      });
+      this.finishBackButton && this.finishBackButton.addEventListener("pointerup", () => {
+        this.audio.playClick();
+        this.updateFinishCheckPage(0);
+      });
+      this.finishSubmitButton && this.finishSubmitButton.addEventListener("pointerup", () => {
+        this.audio.playClick();
+        this.submitFinishCheck();
+      });
+      this.finishSkipButton && this.finishSkipButton.addEventListener("pointerup", () => {
+        this.audio.playClick();
+        this.skipFinishCheck();
+      });
 
       this.backgroundSoundToggle && this.backgroundSoundToggle.addEventListener("change", () => this.applySettings());
       this.soundToggle && this.soundToggle.addEventListener("change", () => this.applySettings());
@@ -99,6 +191,9 @@
       this.pauseVoiceGuideButton && this.pauseVoiceGuideButton.addEventListener("pointerup", () => this.togglePauseSoundSetting(this.voiceGuideToggle));
       window.addEventListener("resize", () => this.updateScaleVariable());
       window.addEventListener("orientationchange", () => this.updateScaleVariable());
+      window.addEventListener("pointerdown", () => this.syncBackgroundMusic(), { passive: true });
+      window.addEventListener("touchstart", () => this.syncBackgroundMusic(), { passive: true });
+      window.addEventListener("pointerup", () => this.syncBackgroundMusic());
       if (window.visualViewport) {
         window.visualViewport.addEventListener("resize", () => this.updateScaleVariable());
       }
@@ -151,6 +246,7 @@
         screen.classList.toggle("is-active", screen.dataset.screen === name);
       });
       this.applyPlayStatusLayout();
+      this.syncBackgroundMusic();
     }
 
     handleScreenNavigation(target) {
@@ -189,6 +285,7 @@
         screen.classList.toggle("is-active", screenName === "play" || screenName === "howto");
       });
       this.applyPlayStatusLayout();
+      this.syncBackgroundMusic();
     }
 
     closeHowtoOverPlay() {
@@ -201,6 +298,7 @@
         this.playScreen.classList.add("is-active");
       }
       this.applyPlayStatusLayout();
+      this.syncBackgroundMusic();
     }
 
     prepareHowtoPages() {
@@ -250,6 +348,264 @@
       }
     }
 
+    shouldShowConditionCheck() {
+      const runtime = window.MelodyRuntime && window.MelodyRuntime.runtime ? window.MelodyRuntime.runtime : {};
+      return Boolean(runtime.showConditionCheck);
+    }
+
+    shouldShowFinishCheck() {
+      const runtime = window.MelodyRuntime && window.MelodyRuntime.runtime ? window.MelodyRuntime.runtime : {};
+      return Boolean(runtime.showFinishCheck);
+    }
+
+    createGameRuntime() {
+      const conditionCheck = this.shouldShowConditionCheck() ? this.conditionData : { skipped: true };
+      const runtime = {
+        ...window.MelodyRuntime.runtimeSnapshot(),
+        conditionCheck,
+        condition_check: conditionCheck
+      };
+      this.selectedDifficulty = runtime.difficulty || this.selectedDifficulty;
+      this.selectDifficulty(this.selectedDifficulty, false);
+      return runtime;
+    }
+
+    sleepIndexAt(offset) {
+      const length = this.conditionSleepHours.length;
+      return (this.conditionState.sleepIndex + offset + length) % length;
+    }
+
+    selectedConditionSleepHours() {
+      return this.conditionSleepHours[this.conditionState.sleepIndex];
+    }
+
+    renderConditionSleepDial() {
+      const sleepRows = this.conditionElements.sleepRows;
+      if (!sleepRows) {
+        return;
+      }
+
+      sleepRows.replaceChildren();
+      [-1, 0, 1].forEach((offset) => {
+        const row = document.createElement("span");
+        const number = document.createElement("span");
+        const unit = document.createElement("span");
+
+        row.className = offset === 0 ? "condition-sleep-row is-selected" : "condition-sleep-row is-muted";
+        number.className = "condition-sleep-number";
+        number.textContent = String(this.conditionSleepHours[this.sleepIndexAt(offset)]);
+        unit.className = "condition-sleep-unit";
+        unit.textContent = "시간";
+        row.append(number, unit);
+        sleepRows.appendChild(row);
+      });
+    }
+
+    changeConditionSleep(delta) {
+      const length = this.conditionSleepHours.length;
+      this.conditionState.sleepIndex = (this.conditionState.sleepIndex + delta + length) % length;
+      this.renderConditionSleepDial();
+    }
+
+    startConditionSleepDrag(event) {
+      if (!this.conditionElements.sleepDial || event.button > 0) {
+        return;
+      }
+
+      event.preventDefault();
+      this.conditionState.sleepDrag.pointerId = event.pointerId;
+      this.conditionState.sleepDrag.lastStepY = event.clientY;
+      this.conditionElements.sleepDial.classList.add("is-dragging");
+
+      if (typeof this.conditionElements.sleepDial.setPointerCapture === "function") {
+        this.conditionElements.sleepDial.setPointerCapture(event.pointerId);
+      }
+    }
+
+    dragConditionSleep(event) {
+      const dragState = this.conditionState.sleepDrag;
+      if (dragState.pointerId !== event.pointerId) {
+        return;
+      }
+
+      event.preventDefault();
+      const deltaY = event.clientY - dragState.lastStepY;
+      const steps = Math.trunc(Math.abs(deltaY) / this.conditionSleepDragStepPx);
+
+      if (steps < 1) {
+        return;
+      }
+
+      const direction = deltaY > 0 ? -1 : 1;
+      dragState.lastStepY += direction * -steps * this.conditionSleepDragStepPx;
+      this.changeConditionSleep(direction * steps);
+    }
+
+    endConditionSleepDrag(event) {
+      const sleepDial = this.conditionElements.sleepDial;
+      if (this.conditionState.sleepDrag.pointerId !== event.pointerId) {
+        return;
+      }
+
+      if (
+        sleepDial
+        && typeof sleepDial.releasePointerCapture === "function"
+        && sleepDial.hasPointerCapture(event.pointerId)
+      ) {
+        sleepDial.releasePointerCapture(event.pointerId);
+      }
+
+      this.conditionState.sleepDrag.pointerId = null;
+      this.conditionState.sleepDrag.lastStepY = 0;
+
+      if (sleepDial) {
+        sleepDial.classList.remove("is-dragging");
+      }
+    }
+
+    selectConditionMood(button) {
+      this.conditionState.mood = button.dataset.mood || "good";
+      this.conditionElements.moodButtons.forEach((moodButton) => {
+        const isSelected = moodButton === button;
+        moodButton.classList.toggle("is-selected", isSelected);
+        moodButton.setAttribute("aria-pressed", String(isSelected));
+      });
+    }
+
+    openConditionCheck(nextAction) {
+      this.conditionNextAction = nextAction || "home";
+      this.renderConditionSleepDial();
+      this.showScreen("condition");
+    }
+
+    submitCondition(skip) {
+      this.conditionCheckHandled = true;
+      this.conditionData = skip
+        ? { skipped: true }
+        : {
+            moodBefore: this.conditionState.mood,
+            sleepHours: this.selectedConditionSleepHours(),
+            skipped: false
+          };
+
+      if (this.conditionNextAction === "autoStart") {
+        this.beginGame();
+        return;
+      }
+
+      this.showScreen("home");
+    }
+
+    collectPostConditionChoices() {
+      const finishData = {};
+      document.querySelectorAll(".post-condition-option.is-selected").forEach((button) => {
+        finishData[button.dataset.postField] = button.dataset.postValue;
+      });
+      return finishData;
+    }
+
+    updateFinishCheckPage(pageIndex) {
+      this.finishCheckPage = Math.max(0, Math.min(1, pageIndex));
+      document.querySelectorAll("[data-post-condition-page]").forEach((page) => {
+        page.hidden = Number(page.dataset.postConditionPage) !== this.finishCheckPage;
+      });
+      document.querySelectorAll(".post-condition-dot").forEach((dot, index) => {
+        dot.classList.toggle("is-active", index === this.finishCheckPage);
+      });
+    }
+
+    selectPostConditionOption(button) {
+      const field = button.dataset.postField;
+      document.querySelectorAll(`.post-condition-option[data-post-field="${field}"]`).forEach((option) => {
+        const isSelected = option === button;
+        option.classList.toggle("is-selected", isSelected);
+        option.setAttribute("aria-pressed", String(isSelected));
+      });
+    }
+
+    closeFinishCheck() {
+      document.body.classList.remove("is-finish-check-visible");
+      if (this.postConditionModal) {
+        this.postConditionModal.classList.add("is-hidden");
+      }
+    }
+
+    markFinishCheckSkipped() {
+      if (!this.pendingResult) {
+        return;
+      }
+
+      this.pendingResult.finish_check = { skipped: true };
+      this.pendingResult.finish_check_skipped = true;
+      if (this.pendingResult.condition) {
+        this.pendingResult.condition.after = null;
+      }
+      window.__LAST_GAME_RESULT__ = this.pendingResult;
+    }
+
+    submitFinishCheck() {
+      const finishData = this.collectPostConditionChoices();
+      if (this.pendingResult) {
+        this.pendingResult.finish_check = finishData;
+        this.pendingResult.finish_check_skipped = false;
+        this.pendingResult.moodAfter = finishData.moodAfter;
+        this.pendingResult.fatigue = finishData.fatigue;
+        this.pendingResult.perceivedDifficulty = finishData.perceivedDifficulty;
+        this.pendingResult.neededHelp = finishData.neededHelp;
+        this.pendingResult.replayIntent = finishData.replayIntent;
+        if (this.pendingResult.condition) {
+          this.pendingResult.condition.after = finishData;
+        }
+        window.__LAST_GAME_RESULT__ = this.pendingResult;
+      }
+      this.completePendingResult();
+    }
+
+    skipFinishCheck() {
+      this.markFinishCheckSkipped();
+      this.completePendingResult();
+    }
+
+    handleGameFinish(result, options) {
+      const shouldSubmit = !options || options.submit !== false;
+      this.pendingResult = result || this.pendingResult || window.__LAST_GAME_RESULT__ || null;
+      this.pendingResultOptions = { submit: shouldSubmit };
+
+      if (this.audio && typeof this.audio.stopBackgroundMusic === "function") {
+        this.audio.stopBackgroundMusic();
+      }
+
+      if (!this.shouldShowFinishCheck() || this.finishCheckShown) {
+        this.markFinishCheckSkipped();
+        this.completePendingResult();
+        return;
+      }
+
+      this.finishCheckShown = true;
+      this.updateFinishCheckPage(0);
+      document.body.classList.add("is-finish-check-visible");
+      if (this.postConditionModal) {
+        this.postConditionModal.classList.remove("is-hidden");
+      }
+      this.syncBackgroundMusic();
+    }
+
+    completePendingResult() {
+      const result = this.pendingResult;
+      const options = this.pendingResultOptions || {};
+      const shouldSubmit = options.submit !== false;
+
+      this.closeFinishCheck();
+      window.__LAST_GAME_RESULT__ = result;
+      if (result && shouldSubmit && window.ResultBridge) {
+        window.ResultBridge.handleSessionComplete(result);
+      }
+      window.ResultManager.renderResult(result || {});
+      this.showScreen("result");
+      this.pendingResult = null;
+      this.pendingResultOptions = null;
+    }
+
     startLoading() {
       const duration = 1800;
       const startedAt = window.performance ? window.performance.now() : Date.now();
@@ -257,8 +613,13 @@
 
       const completeLoading = () => {
         window.setTimeout(() => {
-          this.showScreen("home");
+          this.loadingComplete = true;
           const runtime = window.MelodyRuntime.runtime;
+          if (this.shouldShowConditionCheck() && !this.conditionCheckHandled) {
+            this.openConditionCheck(runtime.autoStart ? "autoStart" : "home");
+            return;
+          }
+          this.showScreen("home");
           if (runtime.autoStart) {
             window.setTimeout(() => this.beginGame(), 180);
           }
@@ -303,16 +664,138 @@
     }
 
     beginGame() {
-      const runtime = window.MelodyRuntime.runtimeSnapshot();
-      this.selectedDifficulty = runtime.difficulty || this.selectedDifficulty;
-      this.selectDifficulty(this.selectedDifficulty, false);
+      if (this.countdownActive) {
+        return;
+      }
+
+      const runtime = this.createGameRuntime();
       this.audio.ensureContext();
       this.audio.playClick();
       if (window.DisplayBridge) {
         window.DisplayBridge.requestDisplay("game_start");
       }
+      this.startGameCountdown(runtime);
+    }
+
+    restartGame(difficulty) {
+      if (difficulty) {
+        this.selectedDifficulty = difficulty;
+        if (window.MelodyRuntime) {
+          window.MelodyRuntime.applyRuntimeConfig({ difficulty });
+        }
+        this.selectDifficulty(difficulty, false);
+      }
+
+      this.beginGame();
+    }
+
+    startGameCountdown(runtime) {
+      const nextRuntime = runtime || this.createGameRuntime();
+      this.closeFinishCheck();
+      this.clearGameCountdown();
+      this.pendingCountdownRuntime = nextRuntime;
       this.showScreen("play");
-      this.game.start(this.selectedDifficulty, runtime);
+
+      if (!this.gameCountdown || !this.gameCountdownTimer || !this.gameCountdownNumber) {
+        this.startGameAfterCountdown(this.pendingCountdownRuntime);
+        return;
+      }
+
+      this.countdownActive = true;
+      this.gameCountdown.classList.remove("is-hidden");
+      this.gameCountdown.classList.add("is-intro");
+      this.gameCountdown.setAttribute("aria-hidden", "false");
+      this.gameCountdownNumber.textContent = "3";
+      this.gameCountdownTimer.style.setProperty("--countdown-angle", "0deg");
+      if (this.gameCountdownMessage) {
+        this.gameCountdownMessage.textContent = "게임이 곧 시작돼요!";
+      }
+      this.syncBackgroundMusic();
+
+      this.countdownIntroHandle = window.setTimeout(() => {
+        this.countdownIntroHandle = null;
+        this.beginCountdownNumbers();
+      }, this.countdownIntroDuration);
+    }
+
+    beginCountdownNumbers() {
+      if (!this.countdownActive || !this.gameCountdown || !this.gameCountdownTimer || !this.gameCountdownNumber) {
+        return;
+      }
+
+      this.gameCountdown.classList.remove("is-intro");
+      let startedAt = performance.now();
+      let lastDisplaySeconds = null;
+
+      const updateCountdown = (timestamp) => {
+        if (!this.countdownActive) {
+          return;
+        }
+
+        const now = typeof timestamp === "number" ? timestamp : performance.now();
+        const elapsed = Math.max(0, now - startedAt);
+        const remaining = Math.max(0, this.countdownDuration - elapsed);
+        const displaySeconds = Math.max(1, Math.ceil(remaining / 1000));
+        const secondProgress = (elapsed % 1000) / 1000;
+        const angle = secondProgress * 360;
+
+        this.gameCountdownNumber.textContent = String(displaySeconds);
+        this.gameCountdownTimer.style.setProperty("--countdown-angle", `${angle}deg`);
+
+        if (displaySeconds !== lastDisplaySeconds && remaining > 0) {
+          lastDisplaySeconds = displaySeconds;
+          if (this.audio && typeof this.audio.playCountdownTick === "function") {
+            this.audio.playCountdownTick();
+          }
+        }
+
+        if (remaining <= 0) {
+          const runtime = this.pendingCountdownRuntime;
+          this.gameCountdownTimer.style.setProperty("--countdown-angle", "360deg");
+          this.clearGameCountdown();
+          this.startGameAfterCountdown(runtime);
+          return;
+        }
+
+        this.countdownFrameHandle = window.requestAnimationFrame(updateCountdown);
+      };
+
+      this.countdownFrameHandle = window.requestAnimationFrame((timestamp) => {
+        startedAt = typeof timestamp === "number" ? timestamp : performance.now();
+        updateCountdown(startedAt);
+      });
+    }
+
+    clearGameCountdown() {
+      if (this.countdownIntroHandle) {
+        window.clearTimeout(this.countdownIntroHandle);
+        this.countdownIntroHandle = null;
+      }
+
+      if (this.countdownFrameHandle) {
+        window.cancelAnimationFrame(this.countdownFrameHandle);
+        this.countdownFrameHandle = null;
+      }
+
+      this.countdownActive = false;
+      this.pendingCountdownRuntime = null;
+      if (this.gameCountdown) {
+        this.gameCountdown.classList.add("is-hidden");
+        this.gameCountdown.classList.remove("is-intro");
+        this.gameCountdown.setAttribute("aria-hidden", "true");
+      }
+      if (this.gameCountdownTimer) {
+        this.gameCountdownTimer.style.setProperty("--countdown-angle", "0deg");
+      }
+    }
+
+    startGameAfterCountdown(runtime) {
+      const resolvedRuntime = runtime || this.createGameRuntime();
+      this.pendingCountdownRuntime = null;
+      this.selectedDifficulty = resolvedRuntime.difficulty || this.selectedDifficulty;
+      this.selectDifficulty(this.selectedDifficulty, false);
+      this.showScreen("play");
+      this.game.start(this.selectedDifficulty, resolvedRuntime);
     }
 
     handleHomeAction() {
@@ -357,6 +840,7 @@
 
     applySettings() {
       if (this.soundToggle) this.audio.setEnabled(this.soundToggle.checked);
+      if (this.backgroundSoundToggle) this.audio.setBackgroundEnabled(this.backgroundSoundToggle.checked);
       if (this.backgroundSoundLabel && this.backgroundSoundToggle) {
         this.backgroundSoundLabel.textContent = this.backgroundSoundToggle.checked ? "배경음 켬" : "배경음 끔";
       }
@@ -372,6 +856,79 @@
       this.updatePauseSoundButton(this.pauseBackgroundSoundButton, this.backgroundSoundToggle && this.backgroundSoundToggle.checked);
       this.updatePauseSoundButton(this.pauseSoundButton, this.soundToggle && this.soundToggle.checked);
       this.updatePauseSoundButton(this.pauseVoiceGuideButton, this.voiceGuideToggle && this.voiceGuideToggle.checked);
+      this.syncBackgroundMusic();
+    }
+
+    syncBackgroundMusic() {
+      if (!this.audio || typeof this.audio.startBackgroundMusic !== "function") {
+        return;
+      }
+
+      if (document.body.classList.contains("is-portrait")) {
+        this.audio.stopBackgroundMusic();
+        return;
+      }
+
+      const activeScreen = document.body.dataset.activeScreen;
+      const shouldPlay = this.loadingComplete
+        && activeScreen !== "play"
+        && activeScreen !== "countdown"
+        && activeScreen !== "loading"
+        && !this.countdownActive
+        && (!this.backgroundSoundToggle || this.backgroundSoundToggle.checked);
+
+      if (shouldPlay) {
+        this.audio.startBackgroundMusic();
+      } else {
+        this.audio.stopBackgroundMusic();
+      }
+    }
+
+    isPortraitViewport(viewportWidth, viewportHeight) {
+      const width = Number(viewportWidth) || window.innerWidth || document.documentElement.clientWidth || 1280;
+      const height = Number(viewportHeight) || window.innerHeight || document.documentElement.clientHeight || 720;
+      return height > width;
+    }
+
+    canPauseForOrientationGuard() {
+      return document.body.dataset.activeScreen === "play"
+        && this.game
+        && this.game.state
+        && !this.game.state.ended
+        && !this.game.state.paused;
+    }
+
+    syncOrientationPause(isPortrait) {
+      if (isPortrait) {
+        const isBackgroundPlaying = this.audio
+          && typeof this.audio.isBackgroundPlaying === "function"
+          && this.audio.isBackgroundPlaying();
+
+        if (!this.orientationMusicPauseActive && isBackgroundPlaying) {
+          this.orientationMusicPauseActive = true;
+          this.audio.stopBackgroundMusic();
+        }
+
+        if (!this.orientationAutoPauseActive && this.canPauseForOrientationGuard()) {
+          this.orientationAutoPauseActive = true;
+          this.game.pause({ showOverlay: false });
+        }
+        return;
+      }
+
+      if (this.orientationMusicPauseActive) {
+        this.orientationMusicPauseActive = false;
+        if (!document.hidden && (!this.backgroundSoundToggle || this.backgroundSoundToggle.checked)) {
+          this.audio.startBackgroundMusic();
+        }
+      }
+
+      if (!this.orientationAutoPauseActive) {
+        return;
+      }
+
+      this.orientationAutoPauseActive = false;
+      this.game.resume();
     }
 
     togglePauseSoundSetting(toggle) {
@@ -407,11 +964,18 @@
       const scale = Math.max(0.01, Math.min(viewportWidth / stageWidth, viewportHeight / stageHeight));
       const horizontalGutter = Math.max(0, (viewportWidth - (stageWidth * scale)) / (2 * scale));
       const verticalGutter = Math.max(0, (viewportHeight - (stageHeight * scale)) / (2 * scale));
+      const isPortrait = this.isPortraitViewport(viewportWidth, viewportHeight);
 
       document.documentElement.style.setProperty("--game-scale", String(scale));
       document.documentElement.style.setProperty("--game-viewport-right-gutter", `${horizontalGutter}px`);
       document.documentElement.style.setProperty("--game-viewport-top-gutter", `${Math.min(verticalGutter, 120)}px`);
-      document.body.classList.toggle("portrait-viewport", viewportWidth < viewportHeight);
+      document.body.classList.toggle("portrait-viewport", isPortrait);
+      document.body.classList.toggle("is-portrait", isPortrait);
+      const orientationNotice = document.getElementById("orientationNotice");
+      if (orientationNotice) {
+        orientationNotice.setAttribute("aria-hidden", isPortrait ? "false" : "true");
+      }
+      this.syncOrientationPause(isPortrait);
       this.applyPlayStatusLayout(viewportWidth, viewportHeight);
     }
 

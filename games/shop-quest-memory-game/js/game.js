@@ -109,8 +109,8 @@
     { itemIds: ["watermelon"], message: "겉은 초록색이고 속은 빨간 과일이에요." },
     { itemIds: ["carrot"], message: "길쭉한 채소예요." },
     { itemIds: ["vegetable"], message: "잎이 많은 채소예요." },
-    { itemIds: ["fish"], message: "구워 먹거나 반찬으로 먹는 생선이에요." },
-    { itemIds: ["meat"], message: "구워 먹거나 반찬으로 먹는 고기예요." },
+    { itemIds: ["fish"], message: "바다와 어울리는 먹거리예요." },
+    { itemIds: ["meat"], message: "불고기나 스테이크로 먹는 재료예요." },
     { itemIds: ["bread"], message: "아침이나 간식으로 먹기 좋은 빵이에요." },
     { itemIds: ["cheese"], message: "빵과 함께 먹기 좋은 물건이에요." }
   ]);

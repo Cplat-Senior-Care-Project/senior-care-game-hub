@@ -28,6 +28,17 @@
       this.audioCache = new Map();
       this.missingAudioFiles = new Set();
       this.audioSupported = typeof fetch === "function";
+      this.backgroundEnabled = true;
+      this.backgroundAudio = null;
+      this.backgroundFadeHandle = null;
+      this.backgroundPlaying = false;
+      this.backgroundVolume = 0.48;
+      this.backgroundPlayToken = 0;
+      this.clapAudio = null;
+    }
+
+    isBackgroundPlaying() {
+      return Boolean(this.backgroundPlaying);
     }
 
     setEnabled(enabled) {
@@ -43,8 +54,10 @@
       return /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent || "");
     }
 
-    ensureContext() {
-      if (!this.enabled) {
+    ensureContext(options) {
+      const allowWhenEffectsDisabled = options && options.allowWhenEffectsDisabled;
+
+      if (!this.enabled && !allowWhenEffectsDisabled) {
         return null;
       }
 
@@ -64,13 +77,141 @@
       return this.context;
     }
 
+    setBackgroundEnabled(enabled) {
+      this.backgroundEnabled = Boolean(enabled);
+      if (!this.backgroundEnabled) {
+        this.stopBackgroundMusic();
+      }
+    }
+
+    startBackgroundMusic() {
+      if (!this.backgroundEnabled) {
+        return;
+      }
+
+      const backgroundAudio = this.getBackgroundAudio();
+
+      if (this.backgroundPlaying) {
+        this.playBackgroundElement(backgroundAudio);
+        return;
+      }
+
+      const playToken = ++this.backgroundPlayToken;
+      window.clearInterval(this.backgroundFadeHandle);
+      backgroundAudio.volume = 0;
+      this.backgroundPlaying = true;
+      this.playBackgroundElement(backgroundAudio);
+      this.fadeBackgroundVolume(this.backgroundVolume, 600, playToken);
+    }
+
+    stopBackgroundMusic() {
+      this.backgroundPlayToken += 1;
+      window.clearInterval(this.backgroundFadeHandle);
+
+      if (!this.backgroundAudio) {
+        this.backgroundPlaying = false;
+        return;
+      }
+
+      const backgroundAudio = this.backgroundAudio;
+      this.backgroundPlaying = false;
+      this.fadeBackgroundVolume(0, 180, this.backgroundPlayToken, () => {
+        backgroundAudio.pause();
+      });
+    }
+
+    getBackgroundAudio() {
+      if (!this.backgroundAudio) {
+        const backgroundAudio = new Audio("assets/audio/background.wav");
+        backgroundAudio.loop = true;
+        backgroundAudio.preload = "auto";
+        backgroundAudio.volume = 0;
+        backgroundAudio.addEventListener("ended", () => {
+          if (this.backgroundPlaying) {
+            backgroundAudio.currentTime = 0;
+            this.playBackgroundElement(backgroundAudio);
+          }
+        });
+        this.backgroundAudio = backgroundAudio;
+      }
+
+      return this.backgroundAudio;
+    }
+
+    playBackgroundElement(backgroundAudio) {
+      const playResult = backgroundAudio.play();
+      if (playResult && typeof playResult.catch === "function") {
+        playResult.catch(() => {
+          this.backgroundPlaying = false;
+        });
+      }
+    }
+
+    fadeBackgroundVolume(targetVolume, duration, token, after) {
+      const backgroundAudio = this.backgroundAudio;
+      if (!backgroundAudio) {
+        return;
+      }
+
+      const startVolume = backgroundAudio.volume;
+      const startedAt = performance.now();
+
+      window.clearInterval(this.backgroundFadeHandle);
+      this.backgroundFadeHandle = window.setInterval(() => {
+        if (token !== this.backgroundPlayToken) {
+          window.clearInterval(this.backgroundFadeHandle);
+          return;
+        }
+
+        const progress = Math.min(1, (performance.now() - startedAt) / duration);
+        backgroundAudio.volume = startVolume + (targetVolume - startVolume) * progress;
+
+        if (progress >= 1) {
+          window.clearInterval(this.backgroundFadeHandle);
+          this.backgroundFadeHandle = null;
+          if (typeof after === "function") {
+            after();
+          }
+        }
+      }, 30);
+    }
+
     playClick() {
       this.playTone(220, 0.04, "sine", 0.18);
+    }
+
+    playCountdownTick() {
+      this.playTone(660, 0.07, "sine", 0.16);
     }
 
     playSuccess() {
       this.playTone(523.25, 0.09, "sine", 0.2);
       setTimeout(() => this.playTone(659.25, 0.1, "sine", 0.18), 70);
+    }
+
+    playClap() {
+      if (!this.enabled || this.volume <= 0) {
+        return;
+      }
+
+      const clapAudio = this.getClapAudio();
+      clapAudio.volume = Math.min(1, this.volume * 0.9);
+      clapAudio.currentTime = 0;
+
+      const playResult = clapAudio.play();
+      if (playResult && typeof playResult.catch === "function") {
+        playResult.catch(() => {});
+      }
+    }
+
+    getClapAudio() {
+      if (!this.clapAudio) {
+        const clapAudio = new Audio("assets/audio/clap.wav");
+        clapAudio.preload = "auto";
+        this.clapAudio = clapAudio;
+      }
+
+      return this.clapAudio;
     }
 
     playNote(noteName, noteIndex) {

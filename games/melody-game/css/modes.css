@@ -4,11 +4,20 @@ body.mode-standard {
 }
 
 body.mode-standard[data-active-screen="home"] .app,
-body.mode-standard .screen-home {
+body.mode-reminder[data-active-screen="home"] .app,
+body.mode-care[data-active-screen="home"] .app,
+body.mode-ai[data-active-screen="home"] .app,
+body.mode-standard .screen-home,
+body.mode-reminder .screen-home,
+body.mode-care .screen-home,
+body.mode-ai .screen-home {
   overflow: visible;
 }
 
-body.mode-standard .settings-gear-button {
+body.mode-standard .settings-gear-button,
+body.mode-reminder .settings-gear-button,
+body.mode-care .settings-gear-button,
+body.mode-ai .settings-gear-button {
   position: absolute;
   top: calc(-14px - var(--game-viewport-top-gutter, 0px));
   right: calc(-18px - var(--game-viewport-right-gutter, 0px));
@@ -37,11 +46,20 @@ body.mode-standard .settings-gear-button {
 }
 
 body.mode-standard .settings-gear-button:active,
-body.mode-standard .settings-gear-button.is-pressed {
+body.mode-standard .settings-gear-button.is-pressed,
+body.mode-reminder .settings-gear-button:active,
+body.mode-reminder .settings-gear-button.is-pressed,
+body.mode-care .settings-gear-button:active,
+body.mode-care .settings-gear-button.is-pressed,
+body.mode-ai .settings-gear-button:active,
+body.mode-ai .settings-gear-button.is-pressed {
   transform: translateY(3px) scale(0.98);
 }
 
-body.mode-standard .settings-gear-button .settings-gear {
+body.mode-standard .settings-gear-button .settings-gear,
+body.mode-reminder .settings-gear-button .settings-gear,
+body.mode-care .settings-gear-button .settings-gear,
+body.mode-ai .settings-gear-button .settings-gear {
   display: grid;
   width: 58px;
   height: 58px;
@@ -49,13 +67,19 @@ body.mode-standard .settings-gear-button .settings-gear {
   line-height: 1;
 }
 
-body.mode-standard .settings-gear-button .settings-gear svg {
+body.mode-standard .settings-gear-button .settings-gear svg,
+body.mode-reminder .settings-gear-button .settings-gear svg,
+body.mode-care .settings-gear-button .settings-gear svg,
+body.mode-ai .settings-gear-button .settings-gear svg {
   display: block;
   width: 58px;
   height: 58px;
 }
 
-body.mode-standard .settings-gear-button .settings-gear svg * {
+body.mode-standard .settings-gear-button .settings-gear svg *,
+body.mode-reminder .settings-gear-button .settings-gear svg *,
+body.mode-care .settings-gear-button .settings-gear svg *,
+body.mode-ai .settings-gear-button .settings-gear svg * {
   fill: none;
   stroke: currentColor;
   stroke-width: 2.8;
@@ -64,38 +88,15 @@ body.mode-standard .settings-gear-button .settings-gear svg * {
 }
 
 body.mode-reminder {
-  --mode-accent: #2878d7;
+  --mode-accent: var(--primary);
 }
 
 body.mode-care {
-  --mode-accent: #28b46a;
+  --mode-accent: var(--primary);
 }
 
 body.mode-ai {
-  --mode-accent: #8e59d7;
-}
-body.mode-reminder .app {
-  --pad: clamp(128px, 28cqmin, 238px);
-  --symbol-main: clamp(118px, 30cqmin, 232px);
-}
-
-body.mode-care .app,
-body.mode-ai .app {
-  --pad: clamp(148px, 33cqmin, 276px);
-  --symbol-main: clamp(140px, 35cqmin, 270px);
-}
-
-body.mode-reminder .brand-badge,
-body.mode-care .brand-badge,
-body.mode-ai .brand-badge {
-  background: color-mix(in srgb, var(--mode-accent) 14%, #ffffff);
-  color: var(--ink);
-}
-
-body.mode-reminder .primary-button,
-body.mode-care .primary-button,
-body.mode-ai .primary-button {
-  background: linear-gradient(180deg, color-mix(in srgb, var(--mode-accent) 78%, #ffffff), var(--mode-accent));
+  --mode-accent: var(--primary);
 }
 
 body .pause-panel .pause-main-button,
@@ -131,41 +132,6 @@ body.hide-score .result-item:nth-child(4) {
   display: none;
 }
 
-body.mode-reminder .menu-actions,
-body.mode-care .menu-actions,
-body.mode-ai .menu-actions {
-  grid-template-columns: minmax(220px, 420px);
-  justify-content: center;
-}
-
-body.mode-reminder .screen-home,
-body.mode-care .screen-home,
-body.mode-ai .screen-home {
-  justify-content: center;
-}
-
-body.mode-reminder .play-topbar,
-body.mode-care .play-topbar,
-body.mode-ai .play-topbar {
-  grid-template-columns: 1fr;
-}
-
 body.hide-progress .play-topbar {
   grid-template-columns: 1fr;
-}
-
-body.mode-care .prompt-message,
-body.mode-ai .prompt-message {
-  font-size: clamp(24px, 4.8cqmin, 40px);
-}
-
-body.mode-care .pad-area,
-body.mode-ai .pad-area {
-  gap: clamp(8px, 3cqmin, 30px);
-}
-
-body.mode-reminder .result-actions,
-body.mode-care .result-actions,
-body.mode-ai .result-actions {
-  grid-template-columns: repeat(2, minmax(260px, 1fr));
 }

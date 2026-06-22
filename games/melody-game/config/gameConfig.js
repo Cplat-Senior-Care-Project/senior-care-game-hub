@@ -8,7 +8,7 @@
       symbolCount: 2,
       previewEnabled: true,
       xPatternEnabled: false,
-      sessionTime: 120,
+      sessionTime: 60,
       targetNoteCount: 8
     },
     normal: {
@@ -17,7 +17,7 @@
       symbolCount: 3,
       previewEnabled: true,
       xPatternEnabled: false,
-      sessionTime: 120,
+      sessionTime: 60,
       targetNoteCount: 12
     },
     hard: {
@@ -26,7 +26,7 @@
       symbolCount: 4,
       previewEnabled: true,
       xPatternEnabled: true,
-      sessionTime: 120,
+      sessionTime: 60,
       targetNoteCount: 16
     }
   };

@@ -12,27 +12,34 @@
                                            "difficulty":  "normal",
                                            "auto_start":  false,
                                            "show_difficulty_select":  true,
+                                           "show_condition_check":  true,
+                                           "show_finish_check":  true,
                                            "allow_replay":  true
                                        },
                           "reminder":  {
                                            "difficulty":  "normal",
-                                           "auto_start":  true,
-                                           "auto_return_ms":  2500,
-                                           "allow_replay":  false
+                                           "auto_start":  false,
+                                           "show_difficulty_select":  true,
+                                           "show_condition_check":  true,
+                                           "show_finish_check":  true,
+                                           "auto_return_ms":  0,
+                                           "allow_replay":  true
                                        },
                           "care":  {
-                                       "difficulty":  "easy",
-                                       "auto_start":  true,
-                                       "session_time":  120,
-                                       "target_note_count":  8,
-                                       "allow_replay":  false
+                                       "difficulty":  "normal",
+                                       "auto_start":  false,
+                                       "show_difficulty_select":  true,
+                                       "show_condition_check":  true,
+                                       "show_finish_check":  true,
+                                       "allow_replay":  true
                                    },
                           "ai_assisted":  {
-                                              "difficulty":  "easy",
-                                              "auto_start":  true,
-                                              "session_time":  120,
-                                              "target_note_count":  8,
-                                              "allow_replay":  false
+                                              "difficulty":  "normal",
+                                              "auto_start":  false,
+                                              "show_difficulty_select":  true,
+                                              "show_condition_check":  true,
+                                              "show_finish_check":  true,
+                                              "allow_replay":  true
                                           }
                       }
 }

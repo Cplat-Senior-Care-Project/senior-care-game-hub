@@ -19,18 +19,21 @@
       document.documentElement.style.setProperty("--game-viewport-top-gutter", String(Math.min(verticalGutter, 120)) + "px");
     })();
   </script>
-  <link rel="stylesheet" href="css/base.css">
-  <link rel="stylesheet" href="css/screens.css">
+  <link rel="stylesheet" href="css/base.css?v=all-modes-standard-1">
+  <link rel="stylesheet" href="css/screens.css?v=reminder-result-button-center-1">
   <link rel="stylesheet" href="css/game-layout.css">
   <link rel="stylesheet" href="css/feedback.css">
-  <link rel="stylesheet" href="css/modes.css">
+  <link rel="stylesheet" href="css/modes.css?v=reminder-result-new-light-2">
   <link rel="stylesheet" href="css/responsive.css">
   <link rel="stylesheet" href="css/accessibility.css">
 </head>
 <body>
-  <div id="orientationNotice" class="orientation-notice" aria-live="polite">
-    <div class="rotate-icon" aria-hidden="true"></div>
-    <p>이 게임은 가로 화면에 최적화되어 있어요.<br>기기를 가로로 돌려주세요.</p>
+  <div id="orientationNotice" class="orientation-notice portrait-lock" role="status" aria-live="polite" aria-hidden="true">
+    <div class="orientation-card portrait-lock-card">
+      <div class="orientation-phone" aria-hidden="true"></div>
+      <strong>기기를<br />가로로<br />돌려주세요</strong>
+      <span>이 게임은<br />가로 화면에<br />맞춰져 있어요.</span>
+    </div>
   </div>
 
   <main id="app" class="app" aria-label="딩동 멜로디 연주하기 게임">
@@ -42,6 +45,54 @@
           <div id="loadingFill" class="loading-fill"></div>
         </div>
         <div id="loadingPercent" class="loading-percent">0%</div>
+      </div>
+    </section>
+
+    <section id="conditionScreen" class="screen condition-screen" data-screen="condition" aria-labelledby="conditionTitle">
+      <div class="condition-card">
+        <h2 id="conditionTitle" class="condition-title">
+          <span class="condition-title-icon" aria-hidden="true">&#128221;</span>
+          <span class="condition-title-text">오늘 컨디션 체크</span>
+          <span class="condition-title-icon" aria-hidden="true">&#9989;</span>
+        </h2>
+
+        <div class="condition-layout">
+          <section class="condition-panel condition-mood-panel" aria-labelledby="conditionMoodTitle">
+            <h3 id="conditionMoodTitle" class="condition-section-title">오늘의 기분</h3>
+            <div class="condition-mood-options" data-choice-group="moodBefore" role="group" aria-label="오늘의 기분 선택">
+              <button type="button" class="choice-button condition-mood-button is-selected" data-value="good" data-mood="good" aria-pressed="true">
+                <span class="condition-mood-face" aria-hidden="true">&#128518;</span>
+                <span>좋음</span>
+              </button>
+              <button type="button" class="choice-button condition-mood-button" data-value="normal" data-mood="normal" aria-pressed="false">
+                <span class="condition-mood-face" aria-hidden="true">&#128528;</span>
+                <span>보통</span>
+              </button>
+              <button type="button" class="choice-button condition-mood-button" data-value="bad" data-mood="bad" aria-pressed="false">
+                <span class="condition-mood-face" aria-hidden="true">&#128545;</span>
+                <span>나쁨</span>
+              </button>
+            </div>
+          </section>
+
+          <section class="condition-panel condition-sleep-panel" aria-labelledby="conditionSleepTitle">
+            <h3 id="conditionSleepTitle" class="condition-section-title">수면 시간</h3>
+            <div class="condition-sleep-control">
+              <div class="condition-sleep-dial" aria-live="polite">
+                <div class="condition-sleep-rows" id="conditionSleepRows"></div>
+              </div>
+              <div class="condition-sleep-arrows">
+                <button id="sleepUp" class="condition-sleep-arrow" type="button" aria-label="수면 시간 늘리기">&#9650;</button>
+                <button id="sleepDown" class="condition-sleep-arrow" type="button" aria-label="수면 시간 줄이기">&#9660;</button>
+              </div>
+            </div>
+          </section>
+        </div>
+
+        <div class="condition-actions">
+          <button class="condition-skip-button" type="button" id="conditionSkip">건너뛰기</button>
+          <button class="condition-confirm-button" type="button" id="conditionSubmit">확인</button>
+        </div>
       </div>
     </section>
 
@@ -124,7 +175,7 @@
       <p class="howto-attention-text">화면에 표시를 잘 봐주세요!</p>
       <div class="howto-play-preview" aria-hidden="true">
         <div class="howto-preview-topbar">
-          <span>02:00</span>
+          <span>01:00</span>
           <i></i>
         </div>
         <div class="howto-preview-stage">
@@ -257,7 +308,7 @@
           <span class="progress-label">집중 판단 활동</span>
           <div class="progress-track" aria-label="남은 시간">
             <div id="progressFill" class="progress-fill"></div>
-            <span id="timeText" class="progress-time">02:00</span>
+            <span id="timeText" class="progress-time">01:00</span>
           </div>
           <button id="pauseButton" class="pause-button" type="button">일시정지</button>
         </div>
@@ -336,38 +387,148 @@
       </div>
     </section>
 
-    <section id="resultScreen" class="screen" data-screen="result">
-      <div class="result-simple-card">
-        <div class="memory-card memory-ribbon-card result-ribbon-card">
-          <svg class="memory-ribbon-svg" viewBox="0 0 1120 180" aria-hidden="true" focusable="false">
-            <defs>
-              <linearGradient id="memoryRibbonFill" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stop-color="#ff9b31" />
-                <stop offset="100%" stop-color="#ff6412" />
-              </linearGradient>
-              <linearGradient id="memoryRibbonFold" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stop-color="#f47b18" />
-                <stop offset="100%" stop-color="#c84c08" />
-              </linearGradient>
-            </defs>
-            <g class="memory-ribbon-shadow">
-              <path d="M70 70 L180 64 L180 122 L70 128 L105 96 Z" />
-              <path d="M1050 70 L940 64 L940 122 L1050 128 L1015 96 Z" />
-              <path d="M175 40 H945 Q970 40 970 65 V115 Q970 140 945 140 H175 Q150 140 150 115 V65 Q150 40 175 40 Z" />
-            </g>
-            <path class="memory-ribbon-tail" d="M70 70 L180 64 L180 122 L70 128 L105 96 Z" />
-            <path class="memory-ribbon-tail" d="M1050 70 L940 64 L940 122 L1050 128 L1015 96 Z" />
-            <path class="memory-ribbon-fold" d="M180 122 L255 140 L180 140 Z" />
-            <path class="memory-ribbon-fold" d="M940 122 L865 140 L940 140 Z" />
-            <rect class="memory-ribbon-main" x="150" y="40" width="820" height="100" rx="24" />
-            <rect class="memory-ribbon-highlight" x="167" y="57" width="786" height="66" rx="18" />
-          </svg>
-          <p class="guide-text memory-ribbon-text">오늘의 결과</p>
+    <div id="post-condition-modal" class="modal-layer is-hidden" role="dialog" aria-modal="true" aria-labelledby="finishCheckTitle">
+      <div class="modal-card condition-card post-condition-card">
+        <h2 id="finishCheckTitle" class="condition-title post-condition-title">
+          <span class="condition-title-icon" aria-hidden="true">&#128221;</span>
+          <span class="condition-title-text">마무리 체크</span>
+          <span class="condition-title-icon" aria-hidden="true">&#9989;</span>
+        </h2>
+        <div class="post-condition-progress" aria-hidden="true">
+          <span class="post-condition-dot is-active"></span>
+          <span class="post-condition-dot"></span>
         </div>
-        <div class="result-content-group">
-          <span class="result-simple-label">성공률</span>
-          <strong id="resultSuccessRate">0%</strong>
-          <p id="resultMessage">끝까지 집중했어요!</p>
+        <div class="post-condition-page" data-post-condition-page="0">
+          <section class="post-condition-question" aria-labelledby="post-condition-mood-title">
+            <h3 id="post-condition-mood-title" class="post-condition-question-title"><span>1</span>지금 기분은 어떠세요?</h3>
+            <div class="post-condition-options" role="group" aria-label="game after mood">
+              <button class="post-condition-option is-selected" type="button" data-post-field="moodAfter" data-post-value="good" aria-pressed="true"><span class="post-condition-face" aria-hidden="true">&#128522;</span><span>좋아요</span></button>
+              <button class="post-condition-option" type="button" data-post-field="moodAfter" data-post-value="normal" aria-pressed="false"><span class="post-condition-face" aria-hidden="true">&#128528;</span><span>보통이에요</span></button>
+              <button class="post-condition-option" type="button" data-post-field="moodAfter" data-post-value="hard" aria-pressed="false"><span class="post-condition-face" aria-hidden="true">&#128532;</span><span>안 좋아요</span></button>
+            </div>
+          </section>
+          <section class="post-condition-question" aria-labelledby="post-condition-fatigue-title">
+            <h3 id="post-condition-fatigue-title" class="post-condition-question-title"><span>2</span>피로감은 어느 정도인가요?</h3>
+            <div class="post-condition-options" role="group" aria-label="game after fatigue">
+              <button class="post-condition-option is-selected" type="button" data-post-field="fatigue" data-post-value="low" aria-pressed="true"><span class="post-condition-face" aria-hidden="true">&#128578;</span><span>괜찮아요</span></button>
+              <button class="post-condition-option" type="button" data-post-field="fatigue" data-post-value="medium" aria-pressed="false"><span class="post-condition-face" aria-hidden="true">&#128531;</span><span>조금 피곤해요</span></button>
+              <button class="post-condition-option" type="button" data-post-field="fatigue" data-post-value="high" aria-pressed="false"><span class="post-condition-face" aria-hidden="true">&#128553;</span><span>많이 피곤해요</span></button>
+            </div>
+          </section>
+          <div class="condition-actions post-condition-actions">
+            <button id="finishSkip" class="game-button condition-skip-button post-condition-action-button" type="button">건너뛰기</button>
+            <button id="finishNext" class="game-button condition-confirm-button post-condition-action-button" type="button">다음</button>
+          </div>
+        </div>
+        <div class="post-condition-page" data-post-condition-page="1" hidden>
+          <section class="post-condition-question" aria-labelledby="post-condition-difficulty-title">
+            <h3 id="post-condition-difficulty-title" class="post-condition-question-title"><span>3</span>체감 난이도는 어땠나요?</h3>
+            <div class="post-condition-options" role="group" aria-label="perceived difficulty">
+              <button class="post-condition-option" type="button" data-post-field="perceivedDifficulty" data-post-value="easy" aria-pressed="false"><span class="post-condition-face" aria-hidden="true">&#128516;</span><span>쉬웠어요</span></button>
+              <button class="post-condition-option is-selected" type="button" data-post-field="perceivedDifficulty" data-post-value="justRight" aria-pressed="true"><span class="post-condition-face" aria-hidden="true">&#128578;</span><span>적당했어요</span></button>
+              <button class="post-condition-option" type="button" data-post-field="perceivedDifficulty" data-post-value="hard" aria-pressed="false"><span class="post-condition-face" aria-hidden="true">&#128560;</span><span>어려웠어요</span></button>
+            </div>
+          </section>
+          <section class="post-condition-question" aria-labelledby="post-condition-help-title">
+            <h3 id="post-condition-help-title" class="post-condition-question-title"><span>4</span>도움이 필요했나요?</h3>
+            <div class="post-condition-options" role="group" aria-label="needed help">
+              <button class="post-condition-option" type="button" data-post-field="neededHelp" data-post-value="some" aria-pressed="false"><span class="post-condition-face" aria-hidden="true">&#9995;</span><span>네</span></button>
+              <button class="post-condition-option is-selected" type="button" data-post-field="neededHelp" data-post-value="none" aria-pressed="true"><span class="post-condition-face" aria-hidden="true">&#128170;</span><span>아니요</span></button>
+            </div>
+          </section>
+          <section class="post-condition-question" aria-labelledby="post-condition-replay-title">
+            <h3 id="post-condition-replay-title" class="post-condition-question-title"><span>5</span>다시 하고 싶나요?</h3>
+            <div class="post-condition-options" role="group" aria-label="replay intent">
+              <button class="post-condition-option is-selected" type="button" data-post-field="replayIntent" data-post-value="yes" aria-pressed="true"><span class="post-condition-face" aria-hidden="true">&#11088;</span><span>네</span></button>
+              <button class="post-condition-option" type="button" data-post-field="replayIntent" data-post-value="no" aria-pressed="false"><span class="post-condition-face" aria-hidden="true">&#128075;</span><span>아니요</span></button>
+            </div>
+          </section>
+          <div class="condition-actions post-condition-actions">
+            <button id="finishBack" class="game-button secondary-button post-condition-action-button" type="button">이전</button>
+            <button id="finishSubmit" class="game-button condition-confirm-button post-condition-action-button" type="button">확인</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <section id="resultScreen" class="screen" data-screen="result">
+      <div class="result-summary-card">
+        <div class="result-celebration" role="status" aria-live="polite">
+          <div class="result-correct-box">
+            <svg class="result-correct-box-svg" width="1600" height="900" viewBox="0 225 1600 410" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
+              <defs>
+                <linearGradient id="resultRibbonGrad" x1="800" y1="255" x2="800" y2="585" gradientUnits="userSpaceOnUse">
+                  <stop offset="0" stop-color="#ff9a7f"/>
+                  <stop offset="0.48" stop-color="#ff735f"/>
+                  <stop offset="1" stop-color="#f04a3b"/>
+                </linearGradient>
+                <linearGradient id="resultRibbonSideGrad" x1="800" y1="360" x2="800" y2="635" gradientUnits="userSpaceOnUse">
+                  <stop offset="0" stop-color="#ff9278"/>
+                  <stop offset="0.55" stop-color="#ff6654"/>
+                  <stop offset="1" stop-color="#e64032"/>
+                </linearGradient>
+                <linearGradient id="resultRibbonTopHighlight" x1="800" y1="250" x2="800" y2="340" gradientUnits="userSpaceOnUse">
+                  <stop offset="0" stop-color="#ffc0ab" stop-opacity="0.75"/>
+                  <stop offset="1" stop-color="#ffffff" stop-opacity="0"/>
+                </linearGradient>
+                <filter id="resultRibbonSoftShadow" x="-10%" y="-20%" width="120%" height="150%">
+                  <feDropShadow dx="0" dy="14" stdDeviation="12" flood-color="#c83225" flood-opacity="0.28"/>
+                </filter>
+                <filter id="resultRibbonInnerShade" x="-10%" y="-10%" width="120%" height="130%">
+                  <feGaussianBlur stdDeviation="7"/>
+                </filter>
+              </defs>
+              <path d="M151 384 C136 386 129 404 138 416 L195 492 L162 588 C157 604 170 619 187 616 C257 603 326 591 396 585 C408 584 417 575 417 563 L402 396 C401 383 391 374 378 375 C303 377 226 371 151 384Z" fill="url(#resultRibbonSideGrad)" filter="url(#resultRibbonSoftShadow)"/>
+              <path d="M1449 384 C1464 386 1471 404 1462 416 L1405 492 L1438 588 C1443 604 1430 619 1413 616 C1343 603 1274 591 1204 585 C1192 584 1183 575 1183 563 L1198 396 C1199 383 1209 374 1222 375 C1297 377 1374 371 1449 384Z" fill="url(#resultRibbonSideGrad)" filter="url(#resultRibbonSoftShadow)"/>
+              <path d="M242 563 C305 550 363 547 417 563 L417 585 C344 588 273 599 187 616 C248 594 256 579 242 563Z" fill="#cf2f25" opacity="0.45" filter="url(#resultRibbonInnerShade)"/>
+              <path d="M1358 563 C1295 550 1237 547 1183 563 L1183 585 C1256 588 1327 599 1413 616 C1352 594 1344 579 1358 563Z" fill="#cf2f25" opacity="0.45" filter="url(#resultRibbonInnerShade)"/>
+              <path d="M260 309 C614 239 986 239 1340 309 C1355 312 1366 326 1364 342 L1314 548 C1311 564 1297 576 1281 576 C963 535 637 535 319 576 C303 576 289 564 286 548 L236 342 C234 326 245 312 260 309Z" fill="url(#resultRibbonGrad)" filter="url(#resultRibbonSoftShadow)"/>
+              <path d="M267 320 C617 253 983 253 1333 320 C1342 322 1348 329 1347 338 L1338 374 C983 314 617 314 262 374 L253 338 C252 329 258 322 267 320Z" fill="url(#resultRibbonTopHighlight)"/>
+              <ellipse cx="800" cy="396" rx="520" ry="130" fill="#ff8d73" opacity="0.24" filter="url(#resultRibbonInnerShade)"/>
+              <path d="M286 548 C626 511 974 511 1314 548 L1307 573 C970 533 630 533 293 573Z" fill="#d93127" opacity="0.35" filter="url(#resultRibbonInnerShade)"/>
+              <path d="M260 309 C614 239 986 239 1340 309 C1355 312 1366 326 1364 342 L1314 548 C1311 564 1297 576 1281 576 C963 535 637 535 319 576 C303 576 289 564 286 548 L236 342 C234 326 245 312 260 309Z" fill="none" stroke="#ff9b85" stroke-width="4" opacity="0.55"/>
+            </svg>
+            <h2 class="result-correct-title">오늘의 결과</h2>
+          </div>
+          <p id="resultMessage" class="result-correct-message">정말 잘하셨어요!</p>
+          <p id="resultScore" class="result-score-text"><span id="resultScoreNumber" class="result-score-number">100</span><span class="result-score-unit">점</span></p>
+        </div>
+        <span id="resultPlayTime" class="sr-only">00:00</span>
+        <span id="resultCorrectSummary" class="sr-only">0/0</span>
+        <span id="resultGrade" class="sr-only">A</span>
+        <span id="resultSuccessRate" class="sr-only">0%</span>
+      </div>
+      <div class="reminder-result-content" aria-live="polite">
+        <div id="reminderResultEmoji" class="reminder-result-emoji" aria-hidden="true">&#129303;</div>
+        <p class="reminder-result-eyebrow">오늘 기억활동 정말 잘하셨어요!</p>
+        <div class="reminder-result-card">
+          <h2 id="reminderResultTitle">오늘의 기억 활동</h2>
+          <p id="reminderResultMessage" class="reminder-result-message">천천히 집중해주신 것만으로도 참 좋습니다.</p>
+          <p id="reminderResultNotice" class="sr-only" aria-live="polite"></p>
+          <div class="reminder-result-record" aria-live="polite">
+            <div class="reminder-result-score-panel">
+              <span class="reminder-result-trophy" aria-hidden="true">&#127942;</span>
+              <p class="reminder-result-score">
+                <strong id="reminderResultCorrect" class="reminder-result-correct">0</strong>
+                <span class="reminder-result-score-divider">/</span>
+                <strong id="reminderResultTotal" class="reminder-result-total">0</strong>
+                <span class="reminder-result-answer-label">정답</span>
+              </p>
+              <p class="reminder-result-rate"><span>성공률</span><strong id="reminderResultRate">0%</strong></p>
+            </div>
+            <div class="reminder-result-details">
+              <p class="reminder-result-detail reminder-result-hint">
+                <span class="reminder-result-detail-icon" aria-hidden="true">?</span>
+                <span>도움 표시</span>
+                <strong id="reminderResultHintCount">0회</strong>
+              </p>
+              <p class="reminder-result-detail reminder-result-compare">
+                <span class="reminder-result-detail-icon" aria-hidden="true">♥</span>
+                <span>기록</span>
+                <strong id="reminderResultCompare">오늘 첫 기록을 남겼어요</strong>
+              </p>
+            </div>
+          </div>
         </div>
       </div>
       <div class="result-actions">
@@ -378,13 +539,24 @@
   </main>
   <script src="config/gameConfig.js"></script>
   <script src="assets/data/melodyData.js"></script>
-  <script src="js/core-config.js"></script>
-  <script src="js/audio.js"></script>
+  <div id="game-countdown" class="game-countdown-layer is-hidden" aria-live="polite" aria-hidden="true">
+    <div class="game-countdown-stage">
+      <p id="game-countdown-message" class="game-countdown-message">게임이 곧 시작돼요!</p>
+      <div class="game-countdown-timer" style="--countdown-angle: 0deg;">
+        <div class="game-countdown-face">
+          <strong id="game-countdown-number">3</strong>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/core-config.js?v=all-modes-standard-1"></script>
+  <script src="js/audio.js?v=all-modes-standard-1"></script>
   <script src="js/audio-display.js"></script>
-  <script src="js/result.js"></script>
+  <script src="js/result.js?v=reminder-result-new-light-2"></script>
   <script src="js/result-bridge.js"></script>
-  <script src="js/game.js"></script>
-  <script src="js/screen-flow.js"></script>
+  <script src="js/game.js?v=all-modes-standard-1"></script>
+  <script src="js/screen-flow.js?v=all-modes-standard-1"></script>
   <script src="js/main.js"></script>
 </body>
 </html>

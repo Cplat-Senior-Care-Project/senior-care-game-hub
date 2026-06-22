@@ -1,11 +1,21 @@
 /* Responsive behavior: keep a fixed 1280x720 stage and scale the whole app. */
+body.is-portrait .orientation-notice {
+  display: grid;
+}
+
+body.is-portrait .app {
+  visibility: hidden;
+  pointer-events: none;
+}
+
 @media (orientation: portrait) {
-  .orientation-notice {
+  body:not(.is-portrait) .orientation-notice {
     display: grid;
   }
 
-  .app {
+  body:not(.is-portrait) .app {
     visibility: hidden;
+    pointer-events: none;
   }
 }
 

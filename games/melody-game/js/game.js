@@ -5,6 +5,7 @@
     constructor(options) {
       this.audio = options.audio;
       this.onFinish = options.onFinish;
+      this.onRestart = options.onRestart;
       this.elements = {
         timeText: document.getElementById("timeText"),
         progressFill: document.getElementById("progressFill"),
@@ -59,6 +60,8 @@
         contentId: runtime.contentId || "kungjak_melody_drum",
         gameKey: runtime.gameKey || "kungjak_melody_drum",
         runtimeConfig: runtime,
+        conditionCheck: runtime.conditionCheck || runtime.condition_check || { skipped: true },
+        finishCheck: {},
         startedAt: new Date().toISOString(),
         config,
         song,
@@ -84,6 +87,7 @@
         hintShownThisTrial: false,
         paused: false,
         feedbackLocked: false,
+        songTransitionLocked: false,
         ended: false
       };
 
@@ -211,17 +215,64 @@
       const notes = this.getActiveNotes();
 
       if (this.state.currentNoteIndex < notes.length) {
-        return;
+        return false;
       }
 
-      const previousSongId = this.state.song && this.state.song.id;
-      this.state.song = this.state.nextSong || this.pickSong(previousSongId);
-      this.state.currentNoteIndex = 0;
-      this.state.nextSong = null;
-
-      if (this.state.nextPrompt && this.state.nextPrompt.songId !== this.state.song.id) {
-        this.state.nextPrompt = null;
+      if (this.state.songTransitionLocked) {
+        return true;
       }
+
+      this.state.songTransitionLocked = true;
+      this.showSongTransition(() => {
+        if (!this.state || this.state.ended) {
+          return;
+        }
+
+        const previousSongId = this.state.song && this.state.song.id;
+        this.state.song = this.state.nextSong || this.pickSong(previousSongId);
+        this.state.currentNoteIndex = 0;
+        this.state.nextSong = null;
+        this.state.songTransitionLocked = false;
+
+        if (this.state.nextPrompt && this.state.nextPrompt.songId !== this.state.song.id) {
+          this.state.nextPrompt = null;
+        }
+
+        this.advanceTrial();
+      });
+
+      return true;
+    }
+
+    showSongTransition(after) {
+      const overlay = this.elements.feedbackOverlay;
+      const emoji = document.createElement("div");
+      const title = document.createElement("strong");
+      const message = document.createElement("p");
+      const panel = document.createElement("div");
+
+      emoji.className = "song-transition-emoji";
+      emoji.setAttribute("aria-hidden", "true");
+      emoji.textContent = "😊";
+      title.textContent = "정말 잘하셨어요!";
+      message.textContent = "다음 곡으로 넘어갈게요!";
+      panel.className = "song-transition-panel";
+      panel.append(emoji, title, message);
+
+      this.state.feedbackLocked = true;
+      overlay.replaceChildren(panel);
+      overlay.className = "feedback-overlay is-visible is-song-transition";
+      this.audio.playClap();
+
+      window.setTimeout(() => {
+        overlay.className = "feedback-overlay";
+        overlay.replaceChildren();
+        this.state.feedbackLocked = false;
+        this.lastTick = performance.now();
+        if (typeof after === "function" && !this.state.ended) {
+          after();
+        }
+      }, 5000);
     }
 
     isRestNote(noteEntry) {
@@ -350,14 +401,18 @@
         return;
       }
 
-      this.syncSongForCurrentIndex();
+      if (this.syncSongForCurrentIndex()) {
+        return;
+      }
 
       const shouldAnimateFromPreview = Boolean(this.state.currentPrompt && this.state.config.previewEnabled);
       const previewRect = shouldAnimateFromPreview && this.elements.nextSymbol
         ? this.elements.nextSymbol.getBoundingClientRect()
         : null;
       this.state.currentPrompt = this.state.nextPrompt || this.generatePrompt(this.state.currentNoteIndex);
-      this.state.nextPrompt = this.generatePrompt(this.state.currentNoteIndex + 1);
+      this.state.nextPrompt = this.shouldHoldNextPreviewForFinalX(this.state.currentPrompt)
+        ? null
+        : this.generatePrompt(this.state.currentNoteIndex + 1);
       this.state.trialElapsed = 0;
       this.state.noTouchElapsed = 0;
       this.state.hintShownThisTrial = false;
@@ -371,6 +426,15 @@
       if (shouldAnimateFromPreview && previewRect) {
         this.animatePreviewAdvance(previewRect, this.state.currentPrompt);
       }
+    }
+
+    shouldHoldNextPreviewForFinalX(prompt) {
+      if (!this.state || !prompt || !prompt.isX || prompt.songId !== (this.state.song && this.state.song.id)) {
+        return false;
+      }
+
+      const notes = this.getActiveNotes();
+      return Number.isFinite(prompt.noteIndex) && prompt.noteIndex >= notes.length - 1;
     }
 
     animatePreviewAdvance(previewRect, incomingPrompt) {
@@ -555,8 +619,16 @@
       this.flashPad(button, "is-correct");
       this.flashRing("success");
 
-      this.animateSymbolExit("top-left");
-      this.advanceTrial();
+      if (this.shouldWaitForSymbolExitBeforeAdvance()) {
+        this.animateSymbolExit("top-left", () => this.advanceTrial());
+      } else {
+        this.animateSymbolExit("top-left");
+        this.advanceTrial();
+      }
+    }
+
+    shouldWaitForSymbolExitBeforeAdvance() {
+      return this.state.currentNoteIndex >= this.getActiveNotes().length;
     }
 
     flashRing(tone) {
@@ -576,15 +648,21 @@
       }, 520);
     }
 
-    animateSymbolExit(direction) {
+    animateSymbolExit(direction, after) {
       const currentSymbol = this.elements.currentSymbol;
 
       if (!currentSymbol || !this.state || !this.state.currentPrompt) {
+        if (typeof after === "function") {
+          after();
+        }
         return;
       }
 
       const currentRect = currentSymbol.getBoundingClientRect();
       if (currentRect.width <= 0 || currentRect.height <= 0) {
+        if (typeof after === "function") {
+          after();
+        }
         return;
       }
 
@@ -627,6 +705,9 @@
         }
         flightSymbol.remove();
         this.correctAnimationHandle = null;
+        if (typeof after === "function") {
+          after();
+        }
       };
 
       const flightAnimation = typeof flightSymbol.animate === "function" ? flightSymbol.animate([
@@ -704,8 +785,21 @@
       this.state.currentNoteIndex = noteIndex + 1;
       this.state.consecutiveWrong = 0;
       this.flashRing("success");
-      this.animateSymbolExit("top-left");
-      this.advanceTrial();
+      if (this.shouldWaitForSymbolExitBeforeAdvance()) {
+        this.state.feedbackLocked = true;
+        this.animateSymbolExit("top-left", () => {
+          if (!this.state || this.state.ended) {
+            return;
+          }
+
+          this.state.feedbackLocked = false;
+          this.lastTick = performance.now();
+          this.advanceTrial();
+        });
+      } else {
+        this.animateSymbolExit("top-left");
+        this.advanceTrial();
+      }
     }
 
     handleXFail(button) {
@@ -764,13 +858,17 @@
       window.setTimeout(() => button.classList.remove(className), delay);
     }
 
-    pause() {
+    pause(options = {}) {
       if (!this.state || this.state.ended || this.state.feedbackLocked) {
         return;
       }
 
       this.state.paused = true;
-      this.elements.pauseOverlay.classList.add("is-visible");
+      if (options.showOverlay === false) {
+        this.elements.pauseOverlay.classList.remove("is-visible");
+      } else {
+        this.elements.pauseOverlay.classList.add("is-visible");
+      }
     }
 
     resume() {
@@ -789,11 +887,16 @@
       }
 
       const difficulty = this.state.difficulty;
-      const runtimeConfig = this.state.runtimeConfig;
       this.stopTick();
       this.elements.pauseOverlay.classList.remove("is-visible");
       this.elements.feedbackOverlay.className = "feedback-overlay";
-      this.start(difficulty, runtimeConfig);
+
+      if (typeof this.onRestart === "function") {
+        this.onRestart(difficulty);
+        return;
+      }
+
+      this.start(difficulty, this.state.runtimeConfig);
     }
 
     quit() {
