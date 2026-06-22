@@ -102,13 +102,19 @@ function finishSession(completed, reason = "user_quit", error = null) {
   if (!state) return;
   if (state._status !== "running") return;
   state.endedAt = new Date().toISOString();
-  state.durationMs = Math.round(performance.now() - state._t0);
+  state.durationMs = Math.round(
+    typeof getSessionActiveElapsedMs === "function"
+      ? getSessionActiveElapsedMs()
+      : performance.now() - state._t0
+  );
   state.completed = !!completed;
   state.aborted = !completed;
   state._status = error ? "error" : (completed ? "completed" : "abandoned");
   state._abandonReason = completed ? null : reason;
+  state.timedOut = state.timedOut || reason === "time_limit";
   state._errorCode = error?.code || null;
   state._errorMessage = error?.message || null;
+  if (typeof stopSessionTimer === "function") stopSessionTimer();
   try { speechSynthesis.cancel(); } catch(_) {}
   if (typeof stopVoiceGuide === "function") stopVoiceGuide();
 
@@ -313,6 +319,8 @@ function toCommonSessionLog(payload) {
     started_at: state.startedAt,
     ended_at: state.endedAt,
     duration_ms: state.durationMs,
+    time_limit_ms: state.timeLimitMs || 0,
+    timed_out: !!state.timedOut,
     total_questions: totalQuestions,
     completed_questions: state.completedRounds,
     correct_count: state.correctCount,
@@ -541,6 +549,7 @@ function pauseSession(reason = "unknown") {
   state._paused = true;
   document.body.classList.add("paused");
   state._pauseCount++;
+  if (typeof pauseSessionTimer === "function") pauseSessionTimer();
   try { speechSynthesis.cancel(); } catch(_) {}
   if (typeof stopVoiceGuide === "function") stopVoiceGuide();
   RN({ type:"SESSION_PAUSE", payload:{ session_id: state.sessionId, reason } });
@@ -550,6 +559,7 @@ function resumeSession(reason = "unknown") {
   if (!state || state._status !== "running" || !state._paused) return;
   state._paused = false;
   document.body.classList.remove("paused");
+  if (typeof resumeSessionTimer === "function") resumeSessionTimer();
   RN({ type:"SESSION_RESUME", payload:{ session_id: state.sessionId, reason } });
 }
 

@@ -171,15 +171,78 @@ item.addEventListener("pointercancel", () => {
   snapBack();
 });
 
+function rectFromDomRect(r) {
+  return { left: r.left, top: r.top, right: r.right, bottom: r.bottom, width: r.width, height: r.height };
+}
+
+function insetRect(r, xRatio, yRatio) {
+  const dx = r.width * xRatio;
+  const dy = r.height * yRatio;
+  return {
+    left: r.left + dx,
+    top: r.top + dy,
+    right: r.right - dx,
+    bottom: r.bottom - dy,
+    width: Math.max(0, r.width - dx * 2),
+    height: Math.max(0, r.height - dy * 2),
+  };
+}
+
+function expandRect(r, xRatio, yRatio) {
+  const dx = r.width * xRatio;
+  const dy = r.height * yRatio;
+  return {
+    left: r.left - dx,
+    top: r.top - dy,
+    right: r.right + dx,
+    bottom: r.bottom + dy,
+    width: r.width + dx * 2,
+    height: r.height + dy * 2,
+  };
+}
+
+function overlapArea(a, b) {
+  const x = Math.max(0, Math.min(a.right, b.right) - Math.max(a.left, b.left));
+  const y = Math.max(0, Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top));
+  return x * y;
+}
+
+function targetHitRect(el) {
+  const pic = el.querySelector(".pic");
+  const source = el.classList.contains("spot") && pic ? pic : el;
+  const r = rectFromDomRect(source.getBoundingClientRect());
+  return expandRect(r, el.classList.contains("spot") ? 0.12 : 0.04, el.classList.contains("spot") ? 0.08 : 0.04);
+}
+
+function spotFromItemOverlap() {
+  if (!drag) return null;
+  const itemRect = insetRect(rectFromDomRect(item.getBoundingClientRect()), 0.18, 0.16);
+  let best = null;
+  let bestArea = 0;
+  document.querySelectorAll(".spot, .bin").forEach(el => {
+    const area = overlapArea(itemRect, targetHitRect(el));
+    if (area > bestArea) {
+      best = el;
+      bestArea = area;
+    }
+  });
+  return best;
+}
+
 function spotAt(x, y) {
+  const overlapped = spotFromItemOverlap();
+  if (overlapped) return overlapped;
+
   const els = document.elementsFromPoint(x, y);
-  const direct = els.find(el => el.classList && (el.classList.contains("spot") || el.classList.contains("bin")));
+  const direct = els
+    .map(el => el.closest?.(".spot, .bin"))
+    .find(Boolean);
   if (direct) return direct;
 
   let nearest = null;
   let nearestDistance = Infinity;
   document.querySelectorAll(".spot, .bin").forEach(el => {
-    const r = el.getBoundingClientRect();
+    const r = targetHitRect(el);
     const cx = r.left + r.width / 2;
     const cy = r.top + r.height / 2;
     const dx = x - cx;

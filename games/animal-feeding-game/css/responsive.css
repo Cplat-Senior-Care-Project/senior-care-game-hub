@@ -195,6 +195,19 @@ body.reduced * {
     box-shadow: 0 0 0 3px rgba(194, 138, 78, .18);
   }
 
+  .timer-gauge {
+    flex-basis: 220px;
+    max-width: 280px;
+    height: 24px;
+    margin-inline: 6px;
+    padding: 4px;
+  }
+
+  #play.hide-progress.show-timer .timer-gauge {
+    max-width: 320px;
+    margin-left: 0;
+  }
+
   .prompt-wrap {
     min-height: 42px;
     margin-top: -2px;

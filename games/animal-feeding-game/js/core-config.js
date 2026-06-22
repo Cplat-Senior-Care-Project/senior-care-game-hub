@@ -39,6 +39,7 @@ function uid() {
 const VERSION = "2.0.0";
 const GAME_ID = "animal_feeding";
 const DEFAULT_CONTENT_ID = "cognitive_animal_feeding_001";
+const DEFAULT_TIME_LIMIT_MS = 3 * 60 * 1000;
 
 function assetUrl(src) {
   return src;
@@ -187,6 +188,7 @@ function normalizeRuntimeConfig(input) {
   const mode = modeAliases[rawMode] || rawMode;
   const isCareLike = mode === "care" || mode === "reminder" || mode === "ai_assisted";
   const isSimplifiedMode = mode === "care" || mode === "ai_assisted";
+  const showProgressDefault = mode === "standard" || mode === "reminder";
   const hasStandardStartScreen = mode === "standard" || isSimplifiedMode;
   const useDragDefault = ["standard", "reminder", "care", "ai_assisted"].includes(mode);
   const autoStartDefault = mode === "reminder";
@@ -232,6 +234,13 @@ function normalizeRuntimeConfig(input) {
   const autoReturnMs = mode === "standard"
     ? configuredAutoReturnMs
     : (configuredAutoReturnMs > 0 ? configuredAutoReturnMs : autoReturnDefaultMs);
+  const timerVisibleByMode = mode === "standard" || mode === "reminder";
+  const configuredTimeLimitMs = Number(read("timeLimitMs", "time_limit_ms", 0)) || 0;
+  const configuredTimeLimitSeconds = Number(read("timeLimitSeconds", "time_limit_seconds", 0)) || 0;
+  const timeLimitMs = Math.max(
+    0,
+    Math.round(configuredTimeLimitMs || (configuredTimeLimitSeconds * 1000) || DEFAULT_TIME_LIMIT_MS)
+  );
 
   return {
     sessionId: p.session_id || p.sessionId || null,
@@ -239,14 +248,15 @@ function normalizeRuntimeConfig(input) {
     gameKey: p.game_key || p.gameKey || GAME_ID,
     mode,
     difficulty: isSimplifiedMode ? "easy" : (p.difficulty || (mode === "reminder" ? "normal" : selectedDiff)),
-    showTimer: !!read("showTimer", "show_timer", false),
+    showTimer: timerVisibleByMode && !!read("showTimer", "show_timer", timerVisibleByMode),
+    timeLimitMs,
     showScore: !!read("showScore", "show_score", mode === "standard"),
     showDifficultySelect: mode === "standard" && !!read("showDifficultySelect", "show_difficulty_select", !isCareLike),
     showSettings: !!read("showSettings", "show_settings", true),
     showHelp: !!read("showHelp", "show_help", true),
     showHowToPlay: !isSimplifiedMode && !!read("showHowToPlay", "show_how_to_play", !isCareLike),
     showFinishCheck: !!read("showFinishCheck", "show_finish_check", mode === "standard"),
-    showProgress: !!read("showProgress", "show_progress", !isCareLike),
+    showProgress: !!read("showProgress", "show_progress", showProgressDefault),
     allowReplay: !!read("allowReplay", "allow_replay", mode === "standard"),
     autoStart: !!read("autoStart", "auto_start", autoStartDefault) && mode === "reminder",
     autoReturnMs,
@@ -314,8 +324,11 @@ function applyRuntimeConfig(next) {
 function updateModeUi() {
   document.getElementById("start")?.classList.toggle("hide-difficulty", !runtime.showDifficultySelect);
   document.getElementById("start")?.classList.toggle("hide-settings", !runtime.showSettings);
-  document.getElementById("play")?.classList.toggle("hide-progress", !runtime.showProgress);
-  document.getElementById("play")?.classList.toggle("hide-help", !runtime.showHelp);
+  const play = document.getElementById("play");
+  play?.classList.toggle("hide-progress", !runtime.showProgress);
+  play?.classList.toggle("hide-help", !runtime.showHelp);
+  play?.classList.toggle("show-timer", false);
+  if (typeof updateSessionTimerGauge === "function") updateSessionTimerGauge();
   document.getElementById("playSettingsWrap")?.classList.toggle("hidden", !runtime.showSettings);
   document.getElementById("playSettingsPanel")?.classList.remove("open");
   document.getElementById("playSettingsBtn")?.setAttribute("aria-expanded", "false");
@@ -351,7 +364,7 @@ function readUrlConfig() {
   const readBool = (key) => {
     if (q.has(key)) config[key] = q.get(key) === "true";
   };
-  ["question_count", "animal_count", "choice_count", "trash_count", "auto_return_ms"].forEach(readNumber);
+  ["question_count", "animal_count", "choice_count", "trash_count", "auto_return_ms", "time_limit_ms", "time_limit_seconds"].forEach(readNumber);
   ["return_url", "hub_url", "auto_return_url", "home_url", "exit_url"].forEach(key => {
     if (q.has(key)) config[key] = q.get(key);
   });

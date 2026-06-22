@@ -1,6 +1,8 @@
 /* ===========================================================
    4. SESSION + QUEUE
    =========================================================== */
+let sessionTimerInterval = null;
+
 function shuffleItems(items) {
   const shuffled = items.slice();
   for (let i = shuffled.length - 1; i > 0; i--) {
@@ -107,7 +109,7 @@ function prepareSessionPreview(diff) {
 }
 
 function sessionPayload() {
-  const { _t0, _queue, _idx, _results, _animals, _trashCount, _energy, _foodPerAnimal, ...r } = state;
+  const { _t0, _queue, _idx, _results, _animals, _trashCount, _energy, _foodPerAnimal, _timer, ...r } = state;
   return {
     ...r,
     total_questions: r.plannedRounds,
@@ -116,6 +118,97 @@ function sessionPayload() {
     trash_count: _trashCount,
     choice_count: _animals.length + (_trashCount > 0 ? 1 : 0),
   };
+}
+
+function shouldDisplaySessionTimer() {
+  return !!(
+    state &&
+    state._status === "running" &&
+    runtime.showTimer &&
+    runtime.timeLimitMs > 0 &&
+    (runtime.mode === "standard" || runtime.mode === "reminder")
+  );
+}
+
+function getSessionActiveElapsedMs(now = performance.now()) {
+  if (!state) return 0;
+  if (!state._timer) return Math.max(0, now - state._t0);
+  const pausedNow = state._timer.pauseStartedAt ? now - state._timer.pauseStartedAt : 0;
+  return Math.max(0, now - state._timer.startedAt - state._timer.pausedMs - pausedNow);
+}
+
+function updateSessionTimerGauge() {
+  const play = document.getElementById("play");
+  const gauge = document.getElementById("timerGauge");
+  const fill = document.getElementById("timerGaugeFill");
+  const limit = Math.max(0, Number(state?._timer?.timeLimitMs || runtime.timeLimitMs || DEFAULT_TIME_LIMIT_MS) || 0);
+  const elapsed = state ? getSessionActiveElapsedMs() : 0;
+  const remaining = limit > 0 ? Math.max(0, limit - elapsed) : 0;
+  const ratio = limit > 0 ? remaining / limit : 0;
+  const visible = shouldDisplaySessionTimer();
+
+  play?.classList.toggle("show-timer", visible);
+  if (fill) fill.style.transform = `scaleX(${ratio})`;
+  if (gauge) {
+    gauge.setAttribute("aria-valuemax", String(Math.ceil(limit / 1000)));
+    gauge.setAttribute("aria-valuenow", String(Math.ceil(remaining / 1000)));
+    gauge.classList.toggle("is-warning", remaining <= 30000 && remaining > 10000);
+    gauge.classList.toggle("is-critical", remaining <= 10000);
+  }
+  return remaining;
+}
+
+function stopSessionTimer() {
+  if (sessionTimerInterval) {
+    clearInterval(sessionTimerInterval);
+    sessionTimerInterval = null;
+  }
+  updateSessionTimerGauge();
+}
+
+function tickSessionTimer() {
+  if (!state || state._status !== "running") {
+    stopSessionTimer();
+    return;
+  }
+  const remaining = updateSessionTimerGauge();
+  if (state._paused) return;
+  if (remaining <= 0 && state._timer && !state._timer.timedOut) {
+    state._timer.timedOut = true;
+    state.timedOut = true;
+    finishSession(false, "time_limit");
+  }
+}
+
+function startSessionTimer() {
+  stopSessionTimer();
+  if (!state) return;
+  const timeLimitMs = Math.max(0, Number(state.timeLimitMs || runtime.timeLimitMs || DEFAULT_TIME_LIMIT_MS) || 0);
+  state.timeLimitMs = timeLimitMs;
+  state._timer = {
+    timeLimitMs,
+    startedAt: performance.now(),
+    pausedMs: 0,
+    pauseStartedAt: null,
+    timedOut: false,
+  };
+  updateSessionTimerGauge();
+  if (timeLimitMs > 0) {
+    sessionTimerInterval = setInterval(tickSessionTimer, 250);
+  }
+}
+
+function pauseSessionTimer() {
+  if (!state?._timer || state._timer.pauseStartedAt) return;
+  state._timer.pauseStartedAt = performance.now();
+  updateSessionTimerGauge();
+}
+
+function resumeSessionTimer() {
+  if (!state?._timer || !state._timer.pauseStartedAt) return;
+  state._timer.pausedMs += performance.now() - state._timer.pauseStartedAt;
+  state._timer.pauseStartedAt = null;
+  updateSessionTimerGauge();
 }
 
 function startSession(diff) {
@@ -138,6 +231,8 @@ function startSession(diff) {
     startedAt: new Date().toISOString(),
     endedAt: null,
     durationMs: 0,
+    timeLimitMs: Math.max(0, Number(runtime.timeLimitMs || DEFAULT_TIME_LIMIT_MS) || 0),
+    timedOut: false,
     completed: false,
     aborted: false,
     plannedRounds: d.rounds,
@@ -164,6 +259,7 @@ function startSession(diff) {
   renderDots();
   nextQuestion();
   show("play");
+  startSessionTimer();
 }
 
 /* ===========================================================
