@@ -40,14 +40,40 @@
    ├─ cleanup-zone.png
    ├─ feed-tray.png
    ├─ nameplate.png
-   ├─ tiger.png
-   ├─ monkey.png
-   ├─ squirrel.png
-   ├─ panda.png
+   ├─ game-title.png
+   ├─ red_goblin.png
+   ├─ red_goblin_correct.png
+   ├─ green_goblin.png
+   ├─ green_goblin_correct.png
+   ├─ white_goblin.png
+   ├─ white_goblin_correct.png
+   ├─ yellow_goblin.png
+   ├─ yellow_goblin_correct.png
+   ├─ mystery_goblin.png
+   ├─ tomato.png
+   ├─ cherry.png
+   ├─ apple.png
+   ├─ red_chili_pepper.png
+   ├─ red_bell_pepper.png
+   ├─ strawberry.png
    ├─ kiwi.png
    ├─ green_grape.png
    ├─ pea_pod.png
    ├─ broccoli.png
+   ├─ cucumber.png
+   ├─ green_apple.png
+   ├─ garlic.png
+   ├─ onion.png
+   ├─ pear.png
+   ├─ peach.png
+   ├─ mushroom.png
+   ├─ radish.png
+   ├─ corn.png
+   ├─ lemon.png
+   ├─ mango.png
+   ├─ pineapple.png
+   ├─ yellow_bell_pepper.png
+   ├─ yellow_banana.png
    ├─ paper.png
    ├─ bone.png
    └─ bin.png
@@ -340,8 +366,8 @@ QUESTION_START → QUESTION_RESULT ... → CONDITION_CHECK → FINISH_CHECK → 
       "image_src": "image/green_grape.png"
     },
     "choices": [
-      { "answer_id": "tiger", "label": "빨간 도깨비", "type": "animal", "image_src": "image/tiger.png" },
-      { "answer_id": "monkey", "label": "초록 도깨비", "type": "animal", "image_src": "image/monkey.png" },
+      { "answer_id": "tiger", "label": "빨간 도깨비", "type": "animal", "image_src": "image/red_goblin.png" },
+      { "answer_id": "monkey", "label": "초록 도깨비", "type": "animal", "image_src": "image/green_goblin.png" },
       { "answer_id": "bin", "label": "휴지통", "type": "cleanup", "image_src": "image/bin.png" }
     ],
     "correct_answer": "monkey",

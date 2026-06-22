@@ -1777,3 +1777,61 @@ body.force-landscape-css.portrait-viewport .rotate-guide {
     font-size: 15px;
   }
 }
+
+/* Unified sizing for main action buttons, excluding top controls/chips. */
+.start-actions,
+.precheck-actions,
+#how .how-actions,
+#finish .check-actions,
+.done-actions,
+.sheet-actions {
+  align-items: center;
+  justify-content: center;
+}
+
+.start-actions .btn,
+.precheck-actions .btn,
+#how .how-actions .btn,
+#finish .check-actions .btn,
+.done-actions .btn,
+.sheet-actions .btn,
+#mood > .btn {
+  flex: 0 0 auto !important;
+  width: clamp(220px, 18.75vw, 240px) !important;
+  min-width: clamp(220px, 18.75vw, 240px) !important;
+  max-width: clamp(220px, 18.75vw, 240px) !important;
+  height: clamp(56px, 6.2vw, 66px) !important;
+  min-height: clamp(56px, 6.2vw, 66px) !important;
+  padding: 8px 14px 10px !important;
+  border-radius: 16px !important;
+  font-size: clamp(18px, 1.6vw, 21px) !important;
+  font-weight: 900;
+  line-height: 1.08;
+  text-align: center;
+  white-space: normal;
+  word-break: keep-all;
+  overflow-wrap: normal;
+}
+
+#howSkipBtn {
+  margin-right: 0 !important;
+}
+
+@container game-stage (max-height: 500px) or (max-width: 920px) {
+  .start-actions .btn,
+  .precheck-actions .btn,
+  #how .how-actions .btn,
+  #finish .check-actions .btn,
+  .done-actions .btn,
+  .sheet-actions .btn,
+  #mood > .btn {
+    flex-basis: auto !important;
+    width: clamp(190px, 23vw, 220px) !important;
+    min-width: clamp(190px, 23vw, 220px) !important;
+    max-width: clamp(190px, 23vw, 220px) !important;
+    height: clamp(50px, 7vw, 58px) !important;
+    min-height: clamp(50px, 7vw, 58px) !important;
+    padding: 7px 12px 9px !important;
+    font-size: clamp(16px, 2vw, 19px) !important;
+  }
+}
