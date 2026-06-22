@@ -37,6 +37,13 @@ function setStartStage(stage) {
   const difficultyReady = stage === "difficulty";
   start.classList.toggle("precheck-pending", !difficultyReady);
   start.classList.toggle("difficulty-ready", difficultyReady);
+
+  const startBtn = document.getElementById("startBtn");
+  if (startBtn) {
+    startBtn.textContent = difficultyReady || !runtime.showDifficultySelect
+      ? "시작하기"
+      : "난이도 선택하기";
+  }
 }
 
 function getInitialStartStage() {
@@ -48,9 +55,8 @@ function getInitialStartStage() {
 function showStartIntro(resetCheck = false) {
   resetDifficultyStartState(true);
   if (resetCheck) {
-    preGameCheck = { mood: "normal", sleepHours: 8, skipped: false, completed: false };
+    resetPreGameCheckState();
     startDifficultyUnlocked = !runtime.showDifficultySelect;
-    resetPrecheckUi();
   }
   const stage = getInitialStartStage();
   setStartStage(stage);
@@ -66,6 +72,25 @@ function showDifficultySelection() {
   setStartStage("difficulty");
   show("start");
   setTimeout(() => playVoiceGuide("selectDifficulty", "난이도를 선택해주세요."), 80);
+}
+
+function resetPreGameCheckState() {
+  preGameCheck = { mood: "normal", sleepHours: 8, skipped: false, completed: false };
+  resetPrecheckUi();
+}
+
+function shouldStartWithPrecheck() {
+  const standardStart = typeof shouldUseStandardStartScreen === "function" && shouldUseStandardStartScreen();
+  return standardStart && runtime.showDifficultySelect && !runtime.autoStart;
+}
+
+function showEntryPrecheck(resetCheck = false) {
+  resetDifficultyStartState(true);
+  if (resetCheck) {
+    resetPreGameCheckState();
+    startDifficultyUnlocked = !runtime.showDifficultySelect;
+  }
+  showPrecheck();
 }
 
 function showPrecheck() {
@@ -133,6 +158,7 @@ function loading(){
         RN({ type:"READY", payload:{ version: VERSION } });
         emitDisplayRequest("ready");
         if (runtime.autoStart) maybeAutoStart();
+        else if (shouldStartWithPrecheck()) showEntryPrecheck(true);
         else showStartIntro(true);
       }, 400);
     }
@@ -199,7 +225,7 @@ document.querySelectorAll(".diff").forEach(b => {
 
     if (!startDifficultyUnlocked && runtime.showDifficultySelect) {
       resetDifficultyStartState();
-      showPrecheck();
+      showEntryPrecheck();
       return;
     }
 
@@ -214,7 +240,8 @@ document.querySelectorAll(".diff").forEach(b => {
 
 document.getElementById("startBtn").addEventListener("click", () => {
   if (!startDifficultyUnlocked && runtime.showDifficultySelect) {
-    showPrecheck();
+    if (preGameCheck?.completed) showDifficultySelection();
+    else showEntryPrecheck();
     return;
   }
   enterGameDisplay("start_button");
@@ -284,7 +311,8 @@ document.getElementById("howStartBtn").addEventListener("click", () => {
   enterGameDisplay("how_start_button");
   localStorage.setItem("af_seen_how", "1");
   if (!startDifficultyUnlocked && runtime.showDifficultySelect) {
-    showPrecheck();
+    if (preGameCheck?.completed) showDifficultySelection();
+    else showEntryPrecheck();
     return;
   }
   beginIntroFlow(pendingDiff || selectedDiff);
@@ -339,7 +367,7 @@ function submitPrecheck(skipped = false) {
     sleep_hours: skipped ? null : preGameCheck.sleepHours,
   };
   RN({ type:"CONDITION_CHECK", payload: preGameCheck });
-  showDifficultySelection();
+  showStartIntro(false);
 }
 
 document.getElementById("precheckNextBtn")?.addEventListener("click", () => submitPrecheck(false));
