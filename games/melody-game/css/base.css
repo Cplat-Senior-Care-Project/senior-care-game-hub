@@ -7,6 +7,7 @@
   --stage-width: 1280px;
   --stage-height: 720px;
   --game-scale: 1;
+  --game-viewport-side-gutter: 0px;
   --game-viewport-right-gutter: 0px;
   --game-viewport-top-gutter: 0px;
 

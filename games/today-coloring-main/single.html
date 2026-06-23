@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="ko"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>오늘의 색칠</title>
+<meta name="application-name" content="오늘의 색칠">
+<meta name="theme-color" content="#FAF8F5">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="오늘의 색칠">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="manifest" href="manifest.webmanifest?v=5">
+<link rel="icon" sizes="512x512" href="assets/icons/app-icon.png">
+<link rel="apple-touch-icon" sizes="180x180" href="assets/icons/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/styles.css?v=166">
+<link rel="stylesheet" href="css/screens/single/base.css?v=1">
+</head>
+<body>
+<div id="root"></div>
+<script>
+  (function() {
+    window.COLORING_APP_NO_AUTO_MOUNT = true;
+    var params = new URLSearchParams(window.location.search || "");
+    if ((params.get('mode') || '').toLowerCase() === 'standard') {
+      var target = new URL('index.html', window.location.href);
+      target.search = params.toString();
+      window.COLORING_SINGLE_REDIRECTING = true;
+      window.location.replace(target.href);
+      return;
+    }
+
+    if (!('serviceWorker' in navigator) || location.protocol === 'file:') return;
+    window.addEventListener('load', function() {
+      navigator.serviceWorker.register('./sw.js?v=204').catch(function() {});
+    });
+  })();
+</script>
+<script src="js/vendor/react.production.min.js"></script>
+<script src="js/vendor/react-dom.production.min.js"></script>
+<script src="js/data/artworks.js?v=37"></script>
+<script src="js/data/palette.js?v=3"></script>
+<script src="js/utils/storage.js?v=27"></script>
+<script src="js/utils/paint.js?v=43"></script>
+<script src="js/utils/assets.js?v=17"></script>
+<script src="js/utils/save-image.js?v=1"></script>
+<script src="js/ui/components.js?v=17"></script>
+<script src="js/app.js?v=101"></script>
+<script src="js/data/modes.js?v=2"></script>
+<script src="js/single-app.js?v=4"></script>
+</body>
+</html>

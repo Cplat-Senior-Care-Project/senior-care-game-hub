@@ -597,7 +597,7 @@
         return;
       }
 
-      const xHoldSeconds = Number(this.state.config.xHoldSeconds) || 1.5;
+      const xHoldSeconds = Number(this.state.config.xHoldSeconds) || 2;
       if (this.state.currentPrompt && this.state.currentPrompt.isX && this.state.noTouchElapsed >= xHoldSeconds) {
         this.handleXSuccess();
         return;
@@ -1290,6 +1290,7 @@
           this.elements.currentSymbol.setAttribute("aria-label", this.state.currentPrompt.label);
           this.renderedCurrentPromptKey = currentPromptKey;
         }
+        this.updateSymbolInstruction();
       }
 
       if (this.state.config.previewEnabled && this.state.nextPrompt) {
@@ -1305,6 +1306,70 @@
           this.renderedNextPromptKey = "";
         }
       }
+    }
+
+    updateSymbolInstruction() {
+      if (!this.elements.currentSymbol || !this.state || !this.state.currentPrompt) {
+        return;
+      }
+
+      const mode = this.state.mode || (this.state.runtimeConfig && this.state.runtimeConfig.mode) || "standard";
+      const isStandardInstructionMode = mode === "standard" || mode === "reminder";
+      const isCareAiInstructionMode = mode === "care" || mode === "ai_assisted";
+      const shouldShowWaitInstruction = Boolean(isStandardInstructionMode
+        && this.state.difficulty === "hard"
+        && this.state.currentPrompt.isX);
+
+      let instruction = this.elements.currentSymbol.querySelector(".symbol-instruction");
+      this.elements.currentSymbol.classList.toggle("is-x-waiting", shouldShowWaitInstruction);
+
+      if (!instruction) {
+        instruction = document.createElement("span");
+        instruction.className = "symbol-instruction";
+        instruction.setAttribute("aria-hidden", "true");
+        this.elements.currentSymbol.appendChild(instruction);
+      }
+
+      if (isCareAiInstructionMode && !this.state.currentPrompt.isX) {
+        const careAiMessage = this.getCareAiInstructionMessage(this.state.currentPrompt);
+        if (instruction.textContent !== careAiMessage) {
+          instruction.textContent = careAiMessage;
+        }
+        return;
+      }
+
+      const defaultMessage = "같은 모양 버튼을 눌러주세요!";
+      if (shouldShowWaitInstruction) {
+        const holdSeconds = Number(this.state.config && this.state.config.xHoldSeconds) || 2;
+        const remainingSeconds = Math.max(1, Math.ceil(holdSeconds - this.state.noTouchElapsed));
+        const timeText = `${remainingSeconds}초`;
+        const message = `누르지 말고 기다리세요! ${timeText}`;
+        if (instruction.textContent !== message) {
+          instruction.replaceChildren(
+            document.createTextNode("누르지 말고 기다리세요!\u00a0"),
+            Object.assign(document.createElement("span"), {
+              className: "symbol-instruction-time",
+              textContent: timeText
+            })
+          );
+        }
+        return;
+      }
+
+      if (instruction.textContent !== defaultMessage) {
+        instruction.textContent = defaultMessage;
+      }
+    }
+
+    getCareAiInstructionMessage(prompt) {
+      const promptLabels = {
+        triangle: "빨간색 세모",
+        square: "파랑색 네모",
+        circle: "초록색 원",
+        star: "노란색 별"
+      };
+      const promptLabel = promptLabels[prompt.id] || prompt.label || prompt.shortLabel || "같은 모양";
+      return `${promptLabel} 버튼을 눌러볼까요?`;
     }
 
     getPromptRenderKey(prompt) {

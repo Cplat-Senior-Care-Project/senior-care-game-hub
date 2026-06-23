@@ -75,7 +75,7 @@
       symbol_count: snapshotNumber(0, config.symbolCount, runtime.symbolCount),
       preview_enabled: snapshotBoolean(true, config.previewEnabled, runtime.previewEnabled),
       x_pattern_enabled: snapshotBoolean(false, config.xPatternEnabled, runtime.xPatternEnabled),
-      x_hold_seconds: snapshotNumber(1.5, config.xHoldSeconds, runtime.xHoldSeconds),
+      x_hold_seconds: snapshotNumber(2, config.xHoldSeconds, runtime.xHoldSeconds),
       input_modes_enabled: snapshotArray(inputModesEnabled || runtime.inputModesEnabled, ["touch", "external"]),
       external_input_enabled: snapshotBoolean(true, runtime.externalInputEnabled, config.externalInputEnabled)
     };

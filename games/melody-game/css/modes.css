@@ -112,17 +112,20 @@ body:is(.mode-care, .mode-ai) #exitGameButton {
 
 body:is(.mode-care, .mode-ai) #playScreen .play-topbar {
   justify-items: center;
+  min-height: 72px;
+  transform: none !important;
 }
 
 body:is(.mode-care, .mode-ai) #playScreen .progress-wrap {
-  grid-template-columns: 190px 190px;
+  grid-template-columns: 230px 230px;
   width: auto;
+  min-height: 64px;
   margin: 0 auto !important;
   column-gap: 28px;
   justify-content: center;
   justify-self: center !important;
   place-self: center;
-  transform: translateX(-18px) !important;
+  transform: none !important;
 }
 
 body:is(.mode-care, .mode-ai) #playScreen .progress-track {
@@ -131,8 +134,11 @@ body:is(.mode-care, .mode-ai) #playScreen .progress-track {
 
 body:is(.mode-care, .mode-ai) #playScreen .progress-label,
 body:is(.mode-care, .mode-ai) #playScreen .pause-button {
-  width: 190px;
-  min-width: 190px;
+  display: grid;
+  place-items: center;
+  width: 230px;
+  min-width: 230px;
+  height: 56px;
 }
 
 body:is(.mode-care, .mode-ai) #playScreen .pause-button {
@@ -171,9 +177,32 @@ body.hide-timer .progress-time {
   display: none;
 }
 
-body.hide-progress .progress-wrap,
 body.hide-score .result-item:nth-child(4) {
   display: none;
+}
+
+body.hide-progress #playScreen .progress-wrap {
+  display: grid;
+  grid-template-columns: 215px 215px;
+  width: auto;
+  min-height: 64px;
+  column-gap: 28px;
+  justify-content: center;
+  justify-self: center !important;
+  place-self: center;
+  transform: none !important;
+}
+
+body.hide-progress #playScreen .progress-track {
+  display: none !important;
+}
+
+body.hide-progress #playScreen .pause-button {
+  grid-column: 2;
+}
+
+body.hide-progress:is(.mode-care, .mode-ai) #playScreen .progress-wrap {
+  grid-template-columns: 230px 230px;
 }
 
 body.hide-progress .play-topbar {

@@ -1,0 +1,34 @@
+/* ── 카테고리 ── */
+.cat {
+  font-size:calc(15px * var(--fs)); font-weight:800;
+  transition:transform 0.15s ease, background-color 0.15s, color 0.15s; }
+.cat:active { transform:scale(0.95); }
+[data-theme="warm"] .cat--on { background:var(--accent); border-color:var(--accent); color:#fff; }
+
+.prompt { font-size:calc(17px * var(--fs)); }
+
+/* ── 카드 그리드 ── */
+.home, .gallery { overflow-y:auto; }
+.cardgrid { display:grid; grid-template-columns:repeat(auto-fill, minmax(160px,1fr));
+  max-width:860px; width:100%; margin:0 auto; }
+.artcard { display:flex; flex-direction:column; text-align:left; }
+.artcard__thumb { position:relative; overflow:hidden;
+  transition:transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s, border-color 0.2s; }
+.artcard:hover .artcard__thumb { transform:translateY(-5px) scale(1.02); box-shadow:var(--shadow-lg); border-color:rgba(74, 56, 30, 0.15); }
+.artcard:active .artcard__thumb { transform:scale(.97); }
+.artcard__body { display:flex; flex-direction:column; }
+.artcard__label { letter-spacing:0; }
+.artcard__hint { font-weight:800; }
+.artcard__date { padding-left:4px; margin-top:-4px; }
+
+/* ── 빈 갤러리 ── */
+.empty { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:10px; padding:30px; text-align:center; }
+.empty__art { width:180px; opacity:.45; }
+.empty__title { font-size:calc(21px * var(--fs)); font-weight:800; margin-top:6px; }
+.empty__sub { font-size:calc(15px * var(--fs)); color:var(--ink-soft); line-height:1.6; margin-bottom:8px; }
+
+/* ── 큰 버튼 ── */
+.bigbtn { display:inline-flex; align-items:center; justify-content:center; gap:10px;
+  padding:16px 28px; border-radius:20px; font-size:calc(18px * var(--fs)); font-weight:800;
+  box-shadow:var(--shadow); transition:transform 0.15s ease, box-shadow 0.15s; }
+.bigbtn:active { transform:scale(0.96); }

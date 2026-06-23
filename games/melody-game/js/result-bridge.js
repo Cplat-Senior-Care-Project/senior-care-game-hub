@@ -209,7 +209,7 @@
       symbol_count: numberValue(pickResultOrRuntime(config, safeRuntime, "symbol_count", "symbolCount", 0)),
       preview_enabled: booleanValue(pickResultOrRuntime(config, safeRuntime, "preview_enabled", "previewEnabled", true), true),
       x_pattern_enabled: booleanValue(pickResultOrRuntime(config, safeRuntime, "x_pattern_enabled", "xPatternEnabled", false), false),
-      x_hold_seconds: numberValue(pickResultOrRuntime(config, safeRuntime, "x_hold_seconds", "xHoldSeconds", 1.5)),
+      x_hold_seconds: numberValue(pickResultOrRuntime(config, safeRuntime, "x_hold_seconds", "xHoldSeconds", 2)),
       input_modes_enabled: arrayValue(pickResultOrRuntime(config, safeRuntime, "input_modes_enabled", "inputModesEnabled", ["touch", "external"]), ["touch", "external"]),
       external_input_enabled: booleanValue(pickResultOrRuntime(config, safeRuntime, "external_input_enabled", "externalInputEnabled", true), true)
     };

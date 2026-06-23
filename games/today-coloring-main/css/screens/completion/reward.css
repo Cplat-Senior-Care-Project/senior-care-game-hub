@@ -1,0 +1,93 @@
+/* Completion final pass: make the finished picture feel like the reward */
+.completion {
+  align-items:center;
+  overflow-y:auto;
+  position:relative;
+  justify-content:center;
+  padding:18px 16px max(18px, env(safe-area-inset-bottom));
+}
+
+.completion__inner {
+  width:100%;
+  min-height:calc(100dvh - 36px);
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:12px;
+  z-index:2;
+  margin:auto;
+  padding:10px 0 0;
+}
+
+.completion__eyebrow {
+  min-height:36px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:4px;
+  padding:5px 13px;
+  border-radius:999px;
+  background:rgba(45,149,140,.12);
+  color:#176B64;
+  font-size:14px;
+}
+
+.completion__title {
+  max-width:330px;
+  font-size:34px;
+}
+
+.completion__sub {
+  max-width:320px;
+  margin-bottom:4px;
+  text-align:center;
+  font-size:16px;
+  font-weight:800;
+}
+
+.completion__frame {
+  width:min(76vw, 350px, 42vh);
+  flex:0 0 auto;
+  overflow:hidden;
+}
+
+.completion__frame canvas {
+  padding:7px;
+}
+
+.completion__btns {
+  width:100%;
+  display:flex;
+  flex-direction:column;
+  max-width:352px;
+  gap:10px;
+  margin-top:2px;
+}
+
+.completion__btns > .bigbtn {
+  min-height:62px;
+  border-radius:22px;
+}
+
+.completion__row {
+  display:grid;
+  grid-template-columns:repeat(2, minmax(0, 1fr));
+  gap:12px;
+}
+
+.completion__row .bigbtn {
+  min-height:54px;
+  font-size:15px;
+  border-radius:20px;
+}
+
+.confetti span {
+  opacity:.78;
+}
+
+@media (max-height: 700px) {
+  .completion__sub {
+    margin-bottom:0;
+  }
+}
