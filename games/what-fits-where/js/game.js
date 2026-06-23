@@ -1301,15 +1301,37 @@ function normalizePackQuestion(q, rule) {
 function normalizePackPromptText(text, answerCount) {
   if (!text) return text;
   const countText = `${answerCount}개`;
-  return text
+  return String(text)
+    .replace(/(.+?[.!?])\s*골라주세요\.?$/g, `$1 필요한 물건 ${countText}를 골라주세요.`)
+    .replace(/여러 물건 중 물을 주어야 하는 것은 무엇일까요\?/g, `물을 주어야 할 대상을 생각해 보세요. 물을 주어야 할 물건 ${countText}를 골라주세요.`)
+    .replace(/(.+?) 필요한 (개인 )?(물건|준비물)은 무엇일까요\?/g, `$1 필요한 물건을 생각해 보세요. 필요한 물건 ${countText}를 골라주세요.`)
+    .replace(/(.+?) 무엇을 (챙기면|준비하면) 좋을까요\?/g, `$1 필요한 물건을 생각해 보세요. 필요한 물건 ${countText}를 골라주세요.`)
+    .replace(/(.+?) 무엇이 필요할까요\?/g, `$1 필요한 물건을 생각해 보세요. 필요한 물건 ${countText}를 골라주세요.`)
+    .replace(/(.+?) 어떤 (도구와 물건|준비물)이 필요할까요\?/g, `$1 필요한 물건을 생각해 보세요. 필요한 물건 ${countText}를 골라주세요.`)
+    .replace(/(.+?) (?:함께 )?(챙기면|준비하면) 좋은 (것|물건)은 무엇일까요\?/g, `$1 필요한 물건을 생각해 보세요. 필요한 물건 ${countText}를 골라주세요.`)
+    .replace(/물을 주어야 하는 것은 무엇일까요\?/g, `물을 주어야 할 물건 ${countText}를 골라주세요.`)
+    .replace(/무엇을 (챙기면|준비하면) 좋을까요\?/g, `필요한 물건 ${countText}를 골라주세요.`)
+    .replace(/무엇이 필요할까요\?/g, `필요한 물건 ${countText}를 골라주세요.`)
+    .replace(/필요한 (개인 )?(물건|준비물)은 무엇일까요\?/g, `필요한 물건 ${countText}를 골라주세요.`)
+    .replace(/(챙기면|준비하면) 좋은 (것|물건)은 무엇일까요\?/g, `필요한 물건 ${countText}를 골라주세요.`)
+    .replace(/필요한 물건을 확인해 주세요\.?/g, `필요한 물건 ${countText}를 골라주세요.`)
+    .replace(/필요한 준비물을 확인해 주세요\.?/g, `필요한 물건 ${countText}를 골라주세요.`)
+    .replace(/준비물을 확인해 주세요\.?/g, `필요한 물건 ${countText}를 골라주세요.`)
+    .replace(/대비할 물건을 확인해 주세요\.?/g, `필요한 물건 ${countText}를 골라주세요.`)
+    .replace(/물 줄 대상을 확인해 주세요\.?/g, `물을 줄 대상이 되는 물건 ${countText}를 골라주세요.`)
+    .replace(/챙길 물건을/g, `필요한 물건 ${countText}를`)
+    .replace(/챙겨야 할 물건을/g, `필요한 물건 ${countText}를`)
+    .replace(/준비해야 할 물건을/g, `필요한 물건 ${countText}를`)
+    .replace(/가까이에 두면 좋은 물건을/g, `필요한 물건 ${countText}를`)
+    .replace(/물을 줄 대상을/g, `물을 줄 대상이 되는 물건 ${countText}를`)
     .replace(/물을 주어야 할 물건을/g, `물을 주어야 할 물건 ${countText}를`)
     .replace(/물을 줄 대상이 되는 물건을/g, `물을 줄 대상이 되는 물건 ${countText}를`)
     .replace(/필요한 [두세네] 가지를/g, `필요한 물건 ${countText}를`)
-    .replace(/필요한 물건을/g, `필요한 물건 ${countText}를`)
+    .replace(/필요한 물건을(?=\s*골라주세요)/g, `필요한 물건 ${countText}를`)
     .replace(/[두세네] 가지를/g, `${countText}를`)
     .replace(/\d+개를/g, `${countText}를`)
-    .replace(/필요한 것을/g, `필요한 물건 ${countText}를`)
-    .replace(/어울리지 않는 것을/g, `어울리지 않는 물건 ${countText}를`)
+    .replace(/필요한 것을(?=\s*골라주세요)/g, `필요한 물건 ${countText}를`)
+    .replace(/어울리지 않는 것을(?=\s*골라주세요)/g, `어울리지 않는 물건 ${countText}를`)
     .replace(/무엇을 (챙기면|준비하면) 좋을까요\?/g, `필요한 물건 ${countText}를 골라주세요.`)
     .replace(/빼주세요|빼세요/g, "골라주세요");
 }
@@ -1317,9 +1339,11 @@ function normalizePackPromptText(text, answerCount) {
 function formatPromptDisplayText(text) {
   return String(text || "")
     .replace(/,\s*이렇게 물건 (\d+)개를 골라주세요\.$/, "\n필요한 물건 $1개를 골라주세요.")
-    .replace(/\s+(필요한 물건 \d+개를 골라주세요\.)$/, "\n$1")
-    .replace(/\s+(물을 주어야 할 물건 \d+개를 골라주세요\.)$/, "\n$1")
-    .replace(/\s+(물을 줄 대상이 되는 물건 \d+개를 골라주세요\.)$/, "\n$1");
+    .replace(/^(.+[.!?])\s+[^.!?\n]*?((?:필요한|어울리지 않는|물을 주어야 할|물을 줄 대상이 되는) 물건 \d+개를 골라주세요\.?)$/, "$1\n$2")
+    .replace(/\s+(필요한 물건 \d+개를 골라주세요\.?)$/, "\n$1")
+    .replace(/\s+(물을 주어야 할 물건 \d+개를 골라주세요\.?)$/, "\n$1")
+    .replace(/\s+(물을 줄 대상이 되는 물건 \d+개를 골라주세요\.?)$/, "\n$1")
+    .replace(/\s+(어울리지 않는 물건 \d+개를 골라주세요\.?)$/, "\n$1");
 }
 
 function appendPromptLine(el, source, highlightSituation) {
@@ -1370,7 +1394,7 @@ function renderPromptText(el, text) {
   lines.forEach(line => {
     const lineEl = document.createElement("span");
     lineEl.className = "prompt-line";
-    const isActionLine = /골라주세요\.$/.test(line);
+    const isActionLine = /골라주세요\.?$/.test(line);
     if (isActionLine) lineEl.classList.add("prompt-line-action");
     appendPromptLine(lineEl, line, !isActionLine);
     el.appendChild(lineEl);
@@ -1409,7 +1433,7 @@ function takePackTemplate(pool, used, minAnswers) {
 
 function getPackTemplatePrompt(tpl, answerCount) {
   const patterns = Array.isArray(tpl.questionPatterns) ? tpl.questionPatterns : [];
-  const preferredPatterns = patterns.filter(text => /필요한 물건|무엇을|물을 주어야 할 물건|물을 줄 대상/.test(text || ""));
+  const preferredPatterns = patterns.filter(text => /골라주세요|무엇을|무엇이|무엇일까요|필요할까요|물을 주어야 할 물건|물을 줄 대상/.test(text || ""));
   const source = (preferredPatterns.length ? pick(preferredPatterns, 1)[0] : patterns[0])
     || tpl.sit
     || `${tpl.situationName || "생활 상황"}에 필요한 물건을 골라주세요.`;
@@ -1427,6 +1451,12 @@ function normalizeSituationNeedClause(text) {
     .replace(/\s*무엇을.*$/g, "")
     .replace(/\s*무엇이.*$/g, "")
     .replace(/\s*필요한 물건.*$/g, "")
+    .replace(/\s*필요한 준비물.*$/g, "")
+    .replace(/\s*챙길 물건.*$/g, "")
+    .replace(/\s*챙겨야 할 물건.*$/g, "")
+    .replace(/\s*준비해야 할 물건.*$/g, "")
+    .replace(/\s*가까이에 두면 좋은 물건.*$/g, "")
+    .replace(/\s*물을 줄 대상.*$/g, "")
     .replace(/\s*준비물을 확인해 주세요\.?$/g, "")
     .replace(/\s*준비물을 확인해 주세요$/g, "")
     .trim();
@@ -1463,16 +1493,35 @@ function getSituationNeedClause(tpl) {
 function getSituationPromptClause(tpl) {
   if (!tpl) return "생활";
   const patterns = Array.isArray(tpl.questionPatterns) ? tpl.questionPatterns : [];
-  const source = patterns.find(text => /무엇을|무엇이/.test(text || ""))
-    || patterns[0]
+  const source = patterns[0]
+    || patterns.find(text => /무엇을|무엇이/.test(text || ""))
     || tpl.sit
     || tpl.situationName
     || "생활";
-  const clause = normalizeSituationNeedClause(source)
-    .replace(/\s*필요한 물건$/g, "")
+  const clause = normalizeSituationPromptClause(source)
     .trim();
   if (/골라주세요/.test(clause)) return tpl.situationName || "생활";
   return clause || tpl.situationName || "생활";
+}
+
+function normalizeSituationPromptClause(text) {
+  let directClause = String(text || "")
+    .replace(/\s*필요한 물건을 골라주세요\.?$/g, "")
+    .replace(/\s*챙길 물건을 골라주세요\.?$/g, "")
+    .replace(/\s*챙겨야 할 물건을 골라주세요\.?$/g, "")
+    .replace(/\s*준비해야 할 물건을 골라주세요\.?$/g, "")
+    .replace(/\s*가까이에 두면 좋은 물건을 골라주세요\.?$/g, "")
+    .replace(/\s*물을 줄 대상을 골라주세요\.?$/g, "")
+    .replace(/\s*골라주세요\.?$/g, "")
+    .replace(/\s*준비물을 확인해 주세요\.?$/g, "")
+    .trim();
+  if (directClause && !/[.!?]$/.test(directClause) && /[.!?]/.test(directClause)) {
+    directClause = (directClause.match(/^.*[.!?]/) || [directClause])[0].trim();
+  }
+  if (directClause && !/무엇을|무엇이|무엇일까요/.test(directClause)) return directClause;
+  return normalizeSituationNeedClause(text)
+    .replace(/\s*필요한 물건$/g, "")
+    .trim();
 }
 
 function buildRegulatedPackQuestion(templates, idx, rule) {

@@ -14,6 +14,11 @@
   --farm-sign-low: #E7B965;
   --farm-sign-border: rgba(111, 72, 44, .34);
   --farm-sign-text: #382817;
+  --farm-css-plate-bg: linear-gradient(180deg, rgba(255,248,226,.94), rgba(246,236,210,.90));
+  --farm-css-plate-border: rgba(212, 150, 58, .82);
+  --farm-css-plate-shadow:
+    inset 0 0 0 2px rgba(255,255,255,.70),
+    0 5px 12px rgba(59, 38, 16, .16);
   --pen-floor: #D9EFC8;
   --pen-floor-low: #9FC57F;
   --pen-wall: #F3DCA8;
@@ -101,7 +106,7 @@ body.mode-ai {
   padding: 8px clamp(24px, 28.8px, 42px) 12px;
   border: 0;
   border-radius: 0;
-  background: url("../image/nameplate.png") center / 100% 100% no-repeat;
+  background: var(--farm-css-plate-bg);
   color: #3A2412;
   font-weight: 820;
   line-height: 1.12;
@@ -261,7 +266,7 @@ body.mode-ai #play .bin::before {
   z-index: 0;
   border: 0;
   border-radius: 24px;
-  background: url("../image/animal-pen.png") center bottom / contain no-repeat;
+  background: var(--spot-base-image, url("../image/animal-pen.png")) center bottom / contain no-repeat;
   box-shadow: none;
 }
 
@@ -311,7 +316,7 @@ body.mode-ai .board .bin .name {
   padding: 7px 18px 9px;
   border: 0;
   border-radius: 0;
-  background: url("../image/nameplate.png") center / 100% 100% no-repeat;
+  background: var(--farm-css-plate-bg);
   color: #3A2412;
   font-size: clamp(18px, 17.64px, 25px);
   font-weight: 900;
@@ -409,7 +414,7 @@ body.mode-ai .board .bin .name {
   padding: 7px 20px 10px;
   border: 0;
   border-radius: 0;
-  background: url("../image/nameplate.png") center / 100% 100% no-repeat;
+  background: var(--farm-css-plate-bg);
   color: #3A2412;
   font-size: clamp(19px, 19.08px, 28px);
   font-weight: 900;
@@ -599,7 +604,7 @@ body.mode-reminder .board.animals-4.has-bin .bin.target {
     padding: 5px 11px 7px;
     border: 0;
     border-radius: 0;
-    background: url("../image/nameplate.png") center / 100% 100% no-repeat;
+    background: var(--farm-css-plate-bg);
     font-size: clamp(15px, 23.04px, 20px);
     line-height: 1;
   }
@@ -1849,5 +1854,337 @@ body.mode-reminder .board.animals-2.has-bin .item-wrap {
     min-height: clamp(50px, 7vw, 58px) !important;
     padding: 7px 12px 9px !important;
     font-size: clamp(16px, 2vw, 19px) !important;
+  }
+}
+
+/* How-to screen: larger guide cards and CSS-only guide badge. */
+#how {
+  gap: clamp(10px, 1.6vh, 16px);
+  padding-top: calc(var(--safe-t) + clamp(34px, 5vh, 48px));
+  padding-bottom: max(14px, var(--safe-b));
+}
+
+#how .how-header {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  justify-items: center;
+  gap: clamp(5px, 1vh, 8px);
+  margin-top: clamp(4px, 1.5vh, 12px);
+}
+
+#how .how-eyebrow {
+  min-height: clamp(30px, 4.4vh, 38px);
+  padding: 4px clamp(20px, 2.5vw, 30px) 6px;
+  margin-bottom: 0;
+  background: rgba(255, 248, 226, .88) !important;
+  border: 2px solid rgba(212, 150, 58, .82);
+  border-radius: 999px;
+  color: #4A2A12;
+  font-size: clamp(12px, 1.25vw, 16px);
+  box-shadow:
+    inset 0 0 0 2px rgba(255,255,255,.70),
+    0 5px 12px rgba(59, 38, 16, .16);
+}
+
+#how .how-title {
+  color: #fff;
+  font-size: clamp(34px, 5.4vh, 48px);
+  line-height: 1.02;
+  text-shadow:
+    0 3px 7px rgba(17, 37, 52, .62),
+    0 0 14px rgba(35, 68, 92, .35);
+}
+
+#how .how-grid {
+  width: min(1080px, calc(100% - 112px));
+  height: clamp(420px, 58vh, 430px);
+  gap: clamp(14px, 1.6vw, 20px);
+  align-items: stretch;
+}
+
+#how .how-card {
+  height: 100%;
+  min-height: 0;
+  padding: clamp(18px, 2.4vh, 26px) clamp(16px, 2vw, 24px);
+  grid-template-rows: clamp(40px, 5.7vh, 48px) minmax(164px, 1fr) auto auto;
+  gap: clamp(8px, 1.4vh, 14px);
+  border-radius: 8px;
+  background: rgba(249,252,255,.92);
+  border: 2px solid rgba(236,247,250,.88);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.84),
+    0 18px 34px rgba(28, 47, 65, .20);
+}
+
+#how .how-num {
+  width: clamp(40px, 5.5vh, 48px);
+  height: clamp(40px, 5.5vh, 48px);
+  font-size: clamp(23px, 3.2vh, 29px);
+}
+
+#how .how-illust {
+  height: clamp(160px, 26vh, 210px);
+  max-height: clamp(160px, 26vh, 210px);
+  overflow: visible;
+}
+
+#how .how-illust > img {
+  max-width: min(80%, 178px);
+  max-height: 100%;
+}
+
+#how .how-illust.glow::before {
+  width: clamp(156px, 24vh, 198px);
+  height: clamp(156px, 24vh, 198px);
+}
+
+#how .how-illust.highlight::before {
+  width: clamp(166px, 25vh, 208px);
+  height: clamp(166px, 25vh, 208px);
+}
+
+#how .how-card-title {
+  color: #3A2412;
+  font-size: clamp(25px, 3.5vh, 32px);
+  line-height: 1.08;
+}
+
+#how .how-card-desc {
+  color: #5F482D;
+  font-size: clamp(17px, 2.4vh, 22px);
+  line-height: 1.18;
+  justify-self: stretch;
+  text-align: left;
+}
+
+#how .how-actions {
+  gap: clamp(12px, 1.4vw, 18px);
+}
+
+@container game-stage (max-height: 500px) or (max-width: 920px) {
+  #how {
+    gap: 6px;
+    padding-top: calc(var(--safe-t) + 28px);
+    padding-bottom: max(8px, var(--safe-b));
+  }
+
+  #how .how-header {
+    gap: 3px;
+    margin-top: 0;
+  }
+
+  #how .how-eyebrow {
+    min-height: 24px;
+    padding: 2px 16px 4px;
+    font-size: 11px;
+  }
+
+  #how .how-title {
+    font-size: clamp(25px, 7vh, 34px);
+  }
+
+  #how .how-grid {
+    width: min(900px, calc(100% - 24px));
+    height: clamp(248px, 60vh, 336px);
+    gap: 10px;
+  }
+
+  #how .how-card {
+    padding: 16px 12px;
+    grid-template-rows: 38px minmax(104px, 1fr) auto auto;
+    gap: 8px;
+  }
+
+  #how .how-num {
+    width: 38px;
+    height: 38px;
+    font-size: 23px;
+  }
+
+  #how .how-illust {
+    height: clamp(108px, 25vh, 148px);
+    max-height: clamp(108px, 25vh, 148px);
+  }
+
+  #how .how-illust > img {
+    max-width: min(76%, 132px);
+  }
+
+  #how .how-card-title {
+    font-size: clamp(22px, 5.1vh, 30px);
+  }
+
+  #how .how-card-desc {
+    font-size: clamp(14px, 3.4vh, 20px);
+  }
+}
+
+@container game-stage (max-height: 380px) {
+  #how .how-grid {
+    height: 230px;
+  }
+
+  #how .how-card {
+    padding: 10px;
+    grid-template-rows: 28px minmax(70px, 1fr) auto auto;
+    gap: 4px;
+  }
+
+  #how .how-num {
+    width: 28px;
+    height: 28px;
+    font-size: 17px;
+  }
+
+  #how .how-illust {
+    height: 78px;
+    max-height: 78px;
+  }
+
+  #how .how-card-title {
+    font-size: 18px;
+  }
+
+  #how .how-card-desc {
+    font-size: 12px;
+  }
+}
+
+/* CSS-only label plates: keep the old layout, remove the bitmap nameplate look. */
+.loading-title,
+.start-brand,
+.count-number,
+.sleep-value strong,
+.done-eyebrow,
+.done-friend-name,
+#how .how-eyebrow,
+#play .prompt:not(.good):not(.warn):not(.dark),
+#play .spot .name,
+body.mode-care .board .spot .name,
+body.mode-ai .board .spot .name,
+#play .item-label {
+  box-sizing: border-box;
+  background: var(--farm-css-plate-bg) !important;
+  border: 2px solid var(--farm-css-plate-border) !important;
+  border-radius: 999px !important;
+  box-shadow: var(--farm-css-plate-shadow) !important;
+  color: var(--farm-sign-text);
+  text-shadow: 0 1px 0 rgba(255,255,255,.72);
+}
+
+/* Start screen placement and requested readability/spacing refinements. */
+#start.precheck-pending.screen.on {
+  grid-template-rows: minmax(50px, auto) auto auto;
+  align-content: start;
+  gap: clamp(8px, 1.5vh, 16px);
+  padding-bottom: max(10px, var(--safe-b));
+}
+
+#start.precheck-pending .start-title-area {
+  grid-row: 2;
+  margin-top: clamp(2px, 1.2vh, 12px);
+}
+
+#start.precheck-pending .start-title-image {
+  width: min(620px, calc(100% - 360px));
+}
+
+#start.precheck-pending .start-flow-area {
+  grid-row: 3;
+  width: min(900px, calc(100% - 240px));
+  transform: translateY(clamp(-58px, -7vh, -40px));
+}
+
+#start.precheck-pending .start-actions {
+  margin-top: 0;
+  gap: clamp(14px, 1.4vw, 20px);
+}
+
+#start.precheck-pending #startBtn {
+  color: #fff;
+}
+
+#start.precheck-pending .hero {
+  display: none;
+}
+
+#start.difficulty-ready .diff-label {
+  color: #fff;
+  text-shadow:
+    0 3px 7px rgba(17, 37, 52, .68),
+    0 0 14px rgba(35, 68, 92, .42);
+}
+
+#start.difficulty-ready .diff[data-diff="hard"] .diff-icons {
+  justify-content: center;
+  gap: clamp(6px, .75vw, 10px);
+}
+
+#start.difficulty-ready .diff[data-diff="hard"] .diff-icons img {
+  width: clamp(54px, 5.2vw, 68px);
+}
+
+#start.difficulty-ready .diff[data-diff="hard"] .diff-icons img + img {
+  margin-left: 0;
+}
+
+#play .spot.target::before,
+#play .bin.target::before,
+#play .spot.hint::before,
+#play .bin.hint::before,
+#play .spot.soft-guide::before,
+#play .bin.soft-guide::before,
+#play .spot.good::before,
+#play .bin.good::before,
+#play .spot.bad::before,
+#play .bin.bad::before {
+  box-shadow: none !important;
+}
+
+#play .spot.dim,
+#play .bin.dim {
+  opacity: 1;
+}
+
+#play .spot.dim .pic,
+#play .spot.dim .name,
+#play .bin.dim .pic,
+#play .bin.dim .name {
+  opacity: .48;
+}
+
+#play .board::before,
+#play .board::after {
+  content: none !important;
+  display: none !important;
+}
+
+@container game-stage (max-height: 500px) or (max-width: 920px) {
+  #start.precheck-pending.screen.on {
+    grid-template-rows: 38px auto auto;
+    gap: 6px;
+    padding-bottom: max(6px, var(--safe-b));
+  }
+
+  #start.precheck-pending .start-title-area {
+    margin-top: 0;
+  }
+
+  #start.precheck-pending .start-title-image {
+    width: min(520px, calc(100% - 260px));
+  }
+
+  #start.precheck-pending .start-flow-area {
+    width: min(760px, calc(100% - 120px));
+    transform: translateY(-32px);
+  }
+
+  #start.difficulty-ready .diff[data-diff="hard"] .diff-icons {
+    gap: 6px;
+  }
+
+  #start.difficulty-ready .diff[data-diff="hard"] .diff-icons img {
+    width: clamp(38px, 6vw, 48px);
   }
 }

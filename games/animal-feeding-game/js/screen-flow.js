@@ -40,9 +40,7 @@ function setStartStage(stage) {
 
   const startBtn = document.getElementById("startBtn");
   if (startBtn) {
-    startBtn.textContent = difficultyReady || !runtime.showDifficultySelect
-      ? "시작하기"
-      : "난이도 선택하기";
+    startBtn.textContent = "시작하기";
   }
 }
 
@@ -64,6 +62,15 @@ function showStartIntro(resetCheck = false) {
   if (stage === "difficulty") {
     setTimeout(() => playVoiceGuide("selectDifficulty", "난이도를 선택해주세요."), 80);
   }
+}
+
+function showInitialStartScreen() {
+  pendingDiff = null;
+  resetDifficultyStartState(true);
+  resetPreGameCheckState();
+  startDifficultyUnlocked = !runtime.showDifficultySelect;
+  setStartStage("intro");
+  show("start");
 }
 
 function showDifficultySelection() {
@@ -116,6 +123,7 @@ function loading(){
   const all = [
     ...Object.values(ANIMALS).map(a => a.img),
     ...Object.values(ANIMALS).map(a => a.correctImg).filter(Boolean),
+    ...Object.values(ANIMALS).map(a => a.baseImg).filter(Boolean),
     ...FOODS.map(f => f.img),
   ];
   let loaded = 0;
@@ -318,12 +326,7 @@ document.getElementById("howStartBtn").addEventListener("click", () => {
   beginIntroFlow(pendingDiff || selectedDiff);
 });
 document.getElementById("howSkipBtn").addEventListener("click", () => {
-  localStorage.setItem("af_seen_how", "1");
-  if (pendingDiff) {
-    beginIntroFlow(pendingDiff || selectedDiff);
-    return;
-  }
-  showStartIntro();
+  showInitialStartScreen();
 });
 
 /* ===========================================================

@@ -68,14 +68,12 @@
    ├─ peach.png
    ├─ mushroom.png
    ├─ radish.png
+   ├─ chamoe.png
    ├─ corn.png
-   ├─ lemon.png
-   ├─ mango.png
    ├─ pineapple.png
    ├─ yellow_bell_pepper.png
    ├─ yellow_banana.png
-   ├─ paper.png
-   ├─ bone.png
+   ├─ talisman.png
    └─ bin.png
 ```
 

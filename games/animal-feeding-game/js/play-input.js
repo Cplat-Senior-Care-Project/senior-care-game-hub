@@ -4,18 +4,95 @@
 let cur = null;
 const MAX_WRONG_ATTEMPTS = 3;
 const ANSWER_REVEAL_DELAY_MS = 1600;
+const NO_TARGET_ID = "no_target";
+const NO_TARGET_LABEL = "아무에게도 주지 않음";
+const NO_TARGET_AUTO_CORRECT_MS = 2000;
+let noTargetAutoCorrectTimer = null;
+
+function isNoTargetQuestion() {
+  return !!cur && cur.itemType === "trash" && cur.correctTargetId === NO_TARGET_ID;
+}
+
+function clearNoTargetAutoCorrect() {
+  if (noTargetAutoCorrectTimer) {
+    clearTimeout(noTargetAutoCorrectTimer);
+    noTargetAutoCorrectTimer = null;
+  }
+  clearNoTargetWaitGauge();
+}
+
+function clearNoTargetWaitGauge() {
+  const wrap = document.getElementById("itemWrap");
+  const gauge = document.getElementById("itemWaitGauge");
+  const fill = document.getElementById("itemWaitGaugeFill");
+  wrap?.classList.remove("waiting-auto-correct");
+  if (fill) {
+    fill.style.animation = "none";
+    fill.style.transform = "scaleX(0)";
+    void fill.offsetWidth;
+    fill.style.animation = "";
+  }
+  gauge?.setAttribute("aria-valuenow", "0");
+}
+
+function startNoTargetWaitGauge() {
+  const wrap = document.getElementById("itemWrap");
+  const gauge = document.getElementById("itemWaitGauge");
+  const fill = document.getElementById("itemWaitGaugeFill");
+  if (!wrap || !gauge || !fill) return;
+  clearNoTargetWaitGauge();
+  wrap.style.setProperty("--item-wait-duration", `${NO_TARGET_AUTO_CORRECT_MS}ms`);
+  gauge.setAttribute("aria-valuemax", String(Math.ceil(NO_TARGET_AUTO_CORRECT_MS / 1000)));
+  gauge.setAttribute("aria-valuetext", "정답 처리 대기 중");
+  wrap.classList.add("waiting-auto-correct");
+}
+
+function scheduleNoTargetAutoCorrect() {
+  clearNoTargetAutoCorrect();
+  if (!isNoTargetQuestion() || cur._locked) return;
+  noTargetAutoCorrectTimer = setTimeout(autoCorrectNoTargetQuestion, NO_TARGET_AUTO_CORRECT_MS);
+  startNoTargetWaitGauge();
+}
+
+function autoCorrectNoTargetQuestion() {
+  noTargetAutoCorrectTimer = null;
+  clearNoTargetWaitGauge();
+  if (!isNoTargetQuestion() || !state || state._status !== "running" || cur._locked) return;
+  if (state._paused) {
+    scheduleNoTargetAutoCorrect();
+    return;
+  }
+
+  cur._locked = true;
+  cur.selectedTargetId = NO_TARGET_ID;
+  if (!cur.externalAnswer) cur.inputType = "idle";
+  else cur.inputType = cur.inputType || "idle";
+  cur.responseTimeMs = Math.round(performance.now() - cur._t0);
+  document.getElementById("board")?.classList.remove("answer-warn");
+  document.getElementById("board")?.classList.add("answer-good");
+  clearTargetHighlights();
+  document.querySelectorAll(".spot").forEach(s => s.classList.add("dim"));
+  document.getElementById("itemWrap").classList.add("item-delivered");
+  dingHappy();
+  setPrompt("좋아요. 아무에게도 주지 않고 잘 두었어요.", "good");
+  playVoiceGuide("wellDone", "좋아요. 아무에게도 주지 않고 잘 두었어요.");
+  state.correctCount++;
+  finishQuestion();
+}
 
 function nextQuestion() {
   if (!state || state._status !== "running") return;
   if (state._idx >= state.plannedRounds) { finishSession(true); return; }
+  clearNoTargetAutoCorrect();
   document.getElementById("board")?.classList.remove("answer-good", "answer-warn");
   const item = state._queue[state._idx];
+  const noTarget = item.type === "trash";
   cur = {
     questionId: uid(),
-    questionType: item.type === "trash" ? "sort_trash" : "feed_animal",
+    questionType: noTarget ? "leave_item" : "feed_animal",
     cognitiveDomain: item.type === "trash" ? "selective_attention" : "semantic_memory",
     itemId: item.id, itemLabel: item.label, itemType: item.type,
-    correctTargetId: item.target, selectedTargetId: null,
+    correctTargetId: noTarget ? NO_TARGET_ID : item.target, selectedTargetId: null,
     attempts: 0, hintUsed: false,
     responseTimeMs: 0, firstReactionMs: 0,
     wrongDropCount: 0, dragFailCount: 0, targetChangeCount: 0,
@@ -35,11 +112,12 @@ function nextQuestion() {
   document.getElementById("itemLabel").textContent = item.label;
   clearSpotStates();
   renderDots();
-  const promptText = item.type === "trash" ? "어디에 정리할까요?" : "누구에게 줄까요?";
+  const promptText = item.type === "trash" ? "아무에게도 주지 말고 그대로 두세요." : "누구에게 줄까요?";
   setPrompt(promptText, item.type === "trash" ? "dark" : null);
   if (item.type === "trash") playVoiceGuide("whereToCleanup", promptText);
   else playVoiceGuide("whoToFeed", promptText);
   RN({ type:"QUESTION_START", payload: toQuestionStartPayload(cur, item) });
+  if (noTarget) scheduleNoTargetAutoCorrect();
 }
 
 function setPrompt(t, kind) {
@@ -58,6 +136,10 @@ function clearSpotStates() {
     const pic = s.querySelector(".pic");
     if (pic && normalImg) pic.style.backgroundImage = `url('${assetUrl(normalImg)}')`;
   });
+}
+
+function clearTargetHighlights() {
+  document.querySelectorAll(".spot, .bin").forEach(s => s.classList.remove("target"));
 }
 
 function resetItemPos() {
@@ -106,6 +188,7 @@ item.addEventListener("click", e => {
   if (state?._paused) return;
   if (item.classList.contains("dragging")) return;
   markFirstReaction();
+  if (isNoTargetQuestion()) scheduleNoTargetAutoCorrect();
   const picked = !item.classList.contains("picked");
   item.classList.toggle("picked", picked);
   document.querySelectorAll(".spot, .bin").forEach(s => s.classList.toggle("target", picked));
@@ -140,6 +223,7 @@ let drag = null;
 item.addEventListener("pointerdown", e => {
   if (state?._paused) return;
   if (!runtime.useDrag) return;
+  if (isNoTargetQuestion()) clearNoTargetAutoCorrect();
   item.setPointerCapture(e.pointerId);
   const r = item.getBoundingClientRect();
   drag = { x:e.clientX, y:e.clientY, ox:r.left, oy:r.top, w:r.width, h:r.height, moved:false };
@@ -163,15 +247,23 @@ item.addEventListener("pointerup", e => {
   item.classList.remove("dragging");
   const target = spotAt(e.clientX, e.clientY);
   drag = null;
-  if (!moved) return;
+  if (!moved) {
+    if (isNoTargetQuestion()) scheduleNoTargetAutoCorrect();
+    return;
+  }
   if (target) resolve(target.dataset.target, target, "drag");
-  else { cur.dragFailCount++; snapBack(); }
+  else {
+    cur.dragFailCount++;
+    snapBack();
+    if (isNoTargetQuestion()) scheduleNoTargetAutoCorrect();
+  }
 });
 
 item.addEventListener("pointercancel", () => {
   drag = null;
   item.classList.remove("dragging");
   snapBack();
+  if (isNoTargetQuestion()) scheduleNoTargetAutoCorrect();
 });
 
 function rectFromDomRect(r) {
@@ -262,7 +354,7 @@ function spotAt(x, y) {
 
 function snapBack() {
   item.style.left = ""; item.style.top = ""; item.style.transform = "";
-  document.querySelectorAll(".spot, .bin").forEach(s => s.classList.remove("target"));
+  clearTargetHighlights();
 }
 
 function showCorrectAnswer() {
@@ -284,6 +376,7 @@ function showCorrectAnswer() {
 
 function resolve(targetId, spotEl, inputType = "touch") {
   if (!cur || !state || state._status !== "running" || state._paused || cur._locked) return;
+  clearNoTargetAutoCorrect();
   state._interactionCount++;
   cur.attempts++;
   cur.inputType = inputType;
@@ -296,6 +389,7 @@ function resolve(targetId, spotEl, inputType = "touch") {
     cur._locked = true;
     document.getElementById("board")?.classList.remove("answer-warn");
     document.getElementById("board")?.classList.add("answer-good");
+    clearTargetHighlights();
     cur.selectedTargetId = targetId;
     cur.responseTimeMs = Math.round(performance.now() - cur._t0);
     spotEl.classList.add("good", `react-${targetId}`);
@@ -330,6 +424,13 @@ function resolve(targetId, spotEl, inputType = "touch") {
     dingSoft();
     setTimeout(() => spotEl.classList.remove("bad"), 600);
     snapBack();
+    if (isNoTargetQuestion()) {
+      const msg = "아무에게도 주지 말고 그대로 두세요.";
+      setPrompt(msg, "warn");
+      playVoiceGuide("tryAgain", msg);
+      scheduleNoTargetAutoCorrect();
+      return;
+    }
     if (cur.wrongDropCount >= MAX_WRONG_ATTEMPTS) {
       cur._locked = true;
       cur.answerRevealed = true;
@@ -361,6 +462,7 @@ function resolve(targetId, spotEl, inputType = "touch") {
 }
 
 function finishQuestion(nextDelayMs = 1100) {
+  clearNoTargetAutoCorrect();
   const { _t0, _firstReacted, _picked, _locked, ...result } = cur;
   result.questionIndex = state._idx + 1;
   state._results.push(result);
