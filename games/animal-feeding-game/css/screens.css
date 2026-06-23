@@ -18,11 +18,15 @@
   content: "";
   position: absolute;
   left: 50%;
-  bottom: 7%;
-  width: clamp(260px, 259.2px, 420px);
-  height: clamp(118px, 129.6px, 190px);
+  bottom: 7.6%;
+  width: clamp(380px, 38vw, 620px);
+  height: clamp(76px, 88px, 132px);
   transform: translateX(-50%);
-  background: url("../image/animal-pen.png") center bottom / contain no-repeat;
+  background:
+    url("../image/red_goblin_base.png") 0% 100% / 24% auto no-repeat,
+    url("../image/green_goblin_base.png") 33.333% 100% / 24% auto no-repeat,
+    url("../image/white_goblin_base.png") 66.667% 100% / 24% auto no-repeat,
+    url("../image/yellow_goblin_base.png") 100% 100% / 24% auto no-repeat;
   filter: drop-shadow(0 18px 18px rgba(65,72,46,.14));
   pointer-events: none;
 }
@@ -31,19 +35,22 @@
   content: "";
   position: absolute;
   left: 50%;
-  bottom: 12.5%;
-  width: clamp(148px, 158.4px, 248px);
-  height: clamp(78px, 86.4px, 138px);
+  bottom: 11.7%;
+  width: clamp(380px, 38vw, 620px);
+  height: clamp(92px, 10vw, 140px);
   transform: translateX(-50%);
   background:
-    url("../image/red_goblin.png") left bottom / 46% auto no-repeat,
-    url("../image/green_goblin.png") right bottom / 46% auto no-repeat;
+    url("../image/red_goblin.png") 2.5% 100% / 20% auto no-repeat,
+    url("../image/green_goblin.png") 34.2% 100% / 20% auto no-repeat,
+    url("../image/white_goblin.png") 65.8% 100% / 20% auto no-repeat,
+    url("../image/yellow_goblin.png") 97.5% 100% / 20% auto no-repeat;
   opacity: .96;
   filter: drop-shadow(0 16px 18px rgba(52,64,43,.16));
   pointer-events: none;
 }
 
 .sun-pulse {
+  display: none;
   width: clamp(70px, 79.2px, 108px); height: clamp(70px, 79.2px, 108px);
   border-radius: 50%;
   position: relative;
@@ -65,7 +72,7 @@
   align-items: center;
   justify-content: center;
   padding: 7px 26px 11px;
-  background: url("../image/nameplate.png") center / 100% 100% no-repeat;
+  background: var(--farm-css-plate-bg);
   font-size: clamp(24px, 26.64px, 36px);
   font-weight: 900;
   letter-spacing: 0;
@@ -78,7 +85,10 @@
   z-index: 1;
   font-size: var(--t-md);
   font-weight: 750;
-  color: #45633E;
+  color: #fff;
+  text-shadow:
+    0 2px 6px rgba(17, 37, 52, .62),
+    0 0 14px rgba(17, 37, 52, .34);
 }
 
 .bar {
@@ -92,7 +102,7 @@
 }
 .bar > span {
   display: block; height: 100%; width: 0%;
-  background: linear-gradient(90deg, var(--amber), var(--sage));
+  background: var(--sage);
   border-radius: 999px; transition: width .25s;
 }
 
@@ -101,7 +111,7 @@
   z-index: 1;
   font-size: var(--t-sm);
   font-weight: 800;
-  color: #5B744F;
+  color: #fff;
   letter-spacing: 0;
 }
 
@@ -327,7 +337,7 @@
   display: grid;
   place-items: center;
   padding: 8px 28px 13px;
-  background: url("../image/nameplate.png") center / 100% 100% no-repeat;
+  background: var(--farm-css-plate-bg);
   color: #3A2412;
   font-size: clamp(48px, 72px, 78px);
   font-weight: 950;
@@ -561,7 +571,7 @@
   display: flex; align-items: center; gap: var(--s-xs);
   min-height: 38px;
   padding: 5px 16px 7px;
-  background: url("../image/nameplate.png") center / 100% 100% no-repeat;
+  background: var(--farm-css-plate-bg);
   font-size: var(--t-sm);
   color: #3A2412;
   font-weight: 900;
@@ -866,7 +876,7 @@ body.mode-ai .settings-icon {
   justify-content: center;
   min-height: 30px;
   padding: 4px 18px 7px;
-  background: url("../image/nameplate.png") center / 100% 100% no-repeat;
+  background: var(--farm-css-plate-bg);
   font-size: var(--t-xs);
   color: #4A2A12;
   font-weight: 900;
@@ -1124,7 +1134,7 @@ body.mode-ai .settings-icon {
   align-items: center;
   justify-content: center;
   padding: 8px 24px 12px;
-  background: url("../image/nameplate.png") center / 100% 100% no-repeat;
+  background: var(--farm-css-plate-bg);
   color: #3A2412;
   font-size: clamp(30px, 38.88px, 48px);
   font-weight: 950;

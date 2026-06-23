@@ -37,6 +37,11 @@ function isQuestionCorrect(r) {
   return !!r && !r.answerRevealed && r.selectedTargetId === r.correctTargetId;
 }
 
+function answerLabel(answerId) {
+  if (typeof NO_TARGET_ID !== "undefined" && answerId === NO_TARGET_ID) return NO_TARGET_LABEL;
+  return ANIMALS[answerId]?.label || null;
+}
+
 function doneStatsHtml() {
   if (runtime.mode !== "standard" || !runtime.showScore) return "";
   const total = Math.max(state._results.length || state.completedRounds || 0, 0);
@@ -131,6 +136,7 @@ function finishSession(completed, reason = "user_quit", error = null) {
     const friend = document.createElement("div");
     friend.className = `done-friend done-${a}`;
     friend.dataset.target = a;
+    if (ANIMALS[a]?.baseImg) friend.style.setProperty("--done-base-image", `url("${new URL(assetUrl(ANIMALS[a].baseImg), window.location.href).href}")`);
     friend.dataset.reaction = completed ? (DONE_REACTIONS[a] || "좋아요") : "쉬어가요";
     const i = new Image();
     i.src = assetUrl(ANIMALS[a].img); i.alt = ANIMALS[a].label;
@@ -263,8 +269,8 @@ function toQuestionLog(r) {
     item_id: r.itemId,
     item_label: r.itemLabel,
     item_type: r.itemType,
-    correct_answer_label: ANIMALS[r.correctTargetId]?.label || null,
-    selected_answer_label: ANIMALS[r.selectedTargetId]?.label || null,
+    correct_answer_label: answerLabel(r.correctTargetId),
+    selected_answer_label: answerLabel(r.selectedTargetId),
   };
 }
 
@@ -275,12 +281,12 @@ function toQuestionStartPayload(q, item) {
     type: "animal",
     image_src: ANIMALS[id].img,
   }));
-  if (state._trashCount > 0) {
+  if (item.type === "trash") {
     choices.push({
-      answer_id: "bin",
-      label: ANIMALS.bin.label,
-      type: "cleanup",
-      image_src: ANIMALS.bin.img,
+      answer_id: NO_TARGET_ID,
+      label: NO_TARGET_LABEL,
+      type: "idle",
+      image_src: null,
     });
   }
   return {
@@ -294,7 +300,7 @@ function toQuestionStartPayload(q, item) {
     total_questions: state.plannedRounds,
     question_type: q.questionType,
     cognitive_domain: q.cognitiveDomain,
-    prompt_text: item.type === "trash" ? "어디에 정리할까요?" : "누구에게 줄까요?",
+    prompt_text: item.type === "trash" ? "아무에게도 주지 말고 그대로 두세요." : "누구에게 줄까요?",
     prompt_type: "image",
     item: {
       item_id: item.id,
@@ -303,9 +309,11 @@ function toQuestionStartPayload(q, item) {
       image_src: item.img,
     },
     choices,
-    correct_answer: item.target,
-    correct_answer_label: ANIMALS[item.target]?.label || null,
-    input_modes_enabled: runtime.useDrag ? ["touch", "drag", "external"] : ["touch", "external"],
+    correct_answer: q.correctTargetId,
+    correct_answer_label: answerLabel(q.correctTargetId),
+    input_modes_enabled: item.type === "trash"
+      ? ["idle", ...(runtime.useDrag ? ["touch", "drag", "external"] : ["touch", "external"])]
+      : (runtime.useDrag ? ["touch", "drag", "external"] : ["touch", "external"]),
   };
 }
 
@@ -369,7 +377,7 @@ function toCommonSessionLog(payload) {
       condition_check: null,
       abandon: abandonInfo,
       animal_count: state._animals.length,
-      choice_count: state._animals.length + (state._trashCount > 0 ? 1 : 0),
+      choice_count: state._animals.length,
       target_animals: state._animals,
       item_count: rs.length,
       trash_count: state._trashCount,
@@ -408,13 +416,34 @@ document.querySelectorAll("[data-finish]").forEach(btn => {
     const key = btn.dataset.finish;
     finishCheck[key] = btn.dataset.value;
     document.querySelectorAll(`[data-finish="${key}"]`).forEach(x => x.classList.toggle("selected", x === btn));
+    updateFinishActionState();
   });
 });
+
+const FINISH_STEP_ONE_KEYS = ["mood", "fatigue", "difficulty"];
+const FINISH_STEP_TWO_KEYS = ["help", "replay"];
+
+function isFinishStepComplete(step) {
+  const keys = step === 2 ? FINISH_STEP_TWO_KEYS : FINISH_STEP_ONE_KEYS;
+  return keys.every(key => !!finishCheck[key]);
+}
+
+function setButtonDisabled(btn, disabled) {
+  if (!btn) return;
+  btn.disabled = disabled;
+  btn.setAttribute("aria-disabled", String(disabled));
+}
+
+function updateFinishActionState() {
+  setButtonDisabled(document.getElementById("finishNextBtn"), !isFinishStepComplete(1));
+  setButtonDisabled(document.getElementById("finishConfirmBtn"), !isFinishStepComplete(2));
+}
 
 function resetFinishCheck() {
   finishCheck = { mood: null, fatigue: null, difficulty: null, help: null, replay: null };
   document.querySelectorAll("[data-finish]").forEach(x => x.classList.remove("selected"));
   showFinishStep(1);
+  updateFinishActionState();
 }
 
 function showFinishStep(step) {
@@ -423,6 +452,7 @@ function showFinishStep(step) {
   document.getElementById("finishStepTwo")?.classList.toggle("on", isSecond);
   document.getElementById("finishActionsOne")?.classList.toggle("on", !isSecond);
   document.getElementById("finishActionsTwo")?.classList.toggle("on", isSecond);
+  updateFinishActionState();
 }
 
 function finishCheckPayload(skipped = false) {
@@ -512,6 +542,7 @@ function submitFinishCheck(skipped = false) {
 }
 
 document.getElementById("finishNextBtn")?.addEventListener("click", () => {
+  if (!isFinishStepComplete(1)) return;
   showFinishStep(2);
   setTimeout(() => playVoiceGuide("finishExtraInfo", "추가로 이것만 더 알려주세요."), 80);
 });
@@ -520,6 +551,7 @@ document.getElementById("finishPrevBtn")?.addEventListener("click", () => {
   setTimeout(() => playVoiceGuide("finishCurrentState", "지금의 상태를 알려주세요."), 80);
 });
 document.getElementById("finishConfirmBtn")?.addEventListener("click", () => {
+  if (!isFinishStepComplete(2)) return;
   submitFinishCheck(false);
 });
 document.getElementById("finishSkipBtn")?.addEventListener("click", () => {
@@ -554,6 +586,7 @@ document.addEventListener("message", e => receiveNativeMessage(e.data));
 function pauseSession(reason = "unknown") {
   if (!state || state._status !== "running" || state._paused) return;
   state._paused = true;
+  if (typeof clearNoTargetAutoCorrect === "function") clearNoTargetAutoCorrect();
   document.body.classList.add("paused");
   state._pauseCount++;
   if (typeof pauseSessionTimer === "function") pauseSessionTimer();
@@ -567,6 +600,7 @@ function resumeSession(reason = "unknown") {
   state._paused = false;
   document.body.classList.remove("paused");
   if (typeof resumeSessionTimer === "function") resumeSessionTimer();
+  if (typeof scheduleNoTargetAutoCorrect === "function") scheduleNoTargetAutoCorrect();
   RN({ type:"SESSION_RESUME", payload:{ session_id: state.sessionId, reason } });
 }
 
@@ -592,6 +626,17 @@ function applyAudioCommand(payload) {
 function handleExternalAnswer(payload) {
   if (!cur) return;
   const raw = String(payload.selected_answer || payload.selectedAnswer || "").trim();
+  const noTargetAliases = ["no_target", "none", "idle", "wait", "아무에게도 주지 않음"];
+  if (typeof NO_TARGET_ID !== "undefined" && noTargetAliases.includes(raw)) {
+    cur.externalAnswer = {
+      inputType: payload.input_type || payload.inputType || "external",
+      rawTranscript: payload.raw_transcript || payload.rawTranscript || null,
+      confidence: payload.confidence ?? null,
+    };
+    cur.inputType = cur.externalAnswer.inputType;
+    autoCorrectNoTargetQuestion();
+    return;
+  }
   const aliasTargetId = raw === "쓰레기통" || raw === "휴지통" ? "bin" : null;
   const target = Object.values(ANIMALS).find(a => a.id === raw || a.label === raw);
   const targetId = aliasTargetId || (target ? target.id : raw);

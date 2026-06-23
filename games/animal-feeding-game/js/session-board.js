@@ -12,10 +12,20 @@ function shuffleItems(items) {
   return shuffled;
 }
 
+const HARD_ONLY_TRASH_ITEM_IDS = new Set(["patjuk", "talisman"]);
+
+function trashItemsForDifficulty(diff) {
+  return FOODS.filter(f =>
+    f.type === "trash" &&
+    (diff === "hard" || !HARD_ONLY_TRASH_ITEM_IDS.has(f.id))
+  );
+}
+
 function buildQueue(d) {
   const foodItems  = FOODS.filter(f => f.type === "food"  && d.animals.includes(f.target));
-  const trashItems = FOODS.filter(f => f.type === "trash");
-  const nFood = d.rounds - d.trash;
+  const trashItems = trashItemsForDifficulty(d.difficulty);
+  const trashCount = trashItems.length ? d.trash : 0;
+  const nFood = d.rounds - trashCount;
 
   const qs = [];
   const usedFoodIds = new Set();
@@ -40,9 +50,9 @@ function buildQueue(d) {
     qs.push(next);
   }
 
-  for (let i = 0; i < d.trash; i++) {
+  for (let i = 0; i < trashCount; i++) {
     const trash = trashItems[i % trashItems.length];
-    const desired = Math.round(((i + 1) * d.rounds) / (d.trash + 1));
+    const desired = Math.round(((i + 1) * d.rounds) / (trashCount + 1));
     const min = Math.min(2, qs.length);
     const max = Math.max(min, qs.length - 1);
     const at = Math.max(min, Math.min(max, desired - 1));
@@ -80,10 +90,14 @@ function sessionSettings(diff) {
   const animals = pickSessionAnimals(effectiveCount, fixedTargets);
   const rounds = runtime.questionCount || base.rounds;
   const trash = runtime.trashCount >= 0 ? runtime.trashCount : base.trash;
+  const normalizedRounds = Math.max(1, rounds);
+  const eligibleTrashItems = trashItemsForDifficulty(diff);
+  const normalizedTrash = eligibleTrashItems.length ? trash : 0;
   return {
+    difficulty: diff,
     animals,
-    rounds: Math.max(1, rounds),
-    trash: Math.max(0, Math.min(trash, Math.max(0, rounds - 1))),
+    rounds: normalizedRounds,
+    trash: Math.max(0, Math.min(normalizedTrash, Math.max(0, normalizedRounds - 1))),
   };
 }
 
@@ -116,7 +130,7 @@ function sessionPayload() {
     animal_count: _animals.length,
     target_animals: _animals,
     trash_count: _trashCount,
-    choice_count: _animals.length + (_trashCount > 0 ? 1 : 0),
+    choice_count: _animals.length,
   };
 }
 
@@ -244,7 +258,7 @@ function startSession(diff) {
     _queue: buildQueue(d),
     _idx: 0,
     _results: [],
-    _energy: Object.fromEntries([...d.animals, "bin"].map(a => [a, 0])),
+    _energy: Object.fromEntries(d.animals.map(a => [a, 0])),
     _interactionCount: 0,
     _pauseCount: 0,
     _helpOpenCount: 0,
@@ -272,7 +286,7 @@ function buildBoard() {
   const existingBin = board.querySelector(".bin");
   if (existingBin) existingBin.remove();
   board.classList.remove("animals-2", "animals-3", "animals-4", "has-bin", "no-bin");
-  board.classList.add(`animals-${state._animals.length}`, state._trashCount > 0 ? "has-bin" : "no-bin");
+  board.classList.add(`animals-${state._animals.length}`, "no-bin");
 
   const positions = SLOT_POS[state._animals.length];
   // expected fills per animal for energy bar
@@ -284,6 +298,7 @@ function buildBoard() {
     const el = document.createElement("div");
     el.className = "spot " + positions[i];
     el.dataset.target = a;
+    if (A.baseImg) el.style.setProperty("--spot-base-image", `url("${new URL(assetUrl(A.baseImg), window.location.href).href}")`);
     el.setAttribute("role", "button");
     el.setAttribute("tabindex", "0");
     el.setAttribute("aria-label", `${A.label} 선택`);
@@ -302,21 +317,6 @@ function buildBoard() {
     `;
     board.appendChild(el);
   });
-
-  if (state._trashCount > 0) {
-    const bin = document.createElement("div");
-    bin.className = "bin";
-    bin.dataset.target = "bin";
-    bin.setAttribute("role", "button");
-    bin.setAttribute("tabindex", "0");
-    bin.setAttribute("aria-label", `${ANIMALS.bin.label} 선택`);
-    bin.innerHTML = `
-      <div class="zone-kicker">정리 구역</div>
-      <div class="pic" style="background-image:url('${assetUrl(ANIMALS.bin.img)}')"></div>
-      <div class="name">${ANIMALS.bin.label}</div>
-    `;
-    board.appendChild(bin);
-  }
 }
 
 function renderDots() {
