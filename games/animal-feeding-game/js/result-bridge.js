@@ -27,7 +27,7 @@ function doneCopy(completed) {
   }
   return {
     title: runtime.softFeedback ? "오늘도 잘 참여해주셨어요" : "오늘 활동을 마쳤어요",
-    sub: runtime.softFeedback ? "천천히 끝까지 함께해 주셨어요" : "농장 친구들과 잘 함께했어요",
+    sub: runtime.softFeedback ? "천천히 끝까지 함께해 주셨어요" : "도깨비 친구들과 잘 함께했어요",
     note: "",
     badge: "활동 완료",
   };
@@ -116,6 +116,7 @@ function finishSession(completed, reason = "user_quit", error = null) {
       ? getSessionActiveElapsedMs()
       : performance.now() - state._t0
   );
+  clearPauseUiState({ resetState: true });
   state.completed = !!completed;
   state.aborted = !completed;
   state._status = error ? "error" : (completed ? "completed" : "abandoned");

@@ -21,6 +21,36 @@ function trashItemsForDifficulty(diff) {
   );
 }
 
+function randomTrashSlots(totalRounds, trashCount) {
+  const total = Math.max(0, totalRounds);
+  const count = Math.max(0, Math.min(trashCount, total));
+  if (!count) return new Set();
+
+  const preferredSlots = Array.from(
+    { length: Math.max(0, total - 2) },
+    (_, i) => i + 1
+  );
+  const fallbackSlots = Array.from({ length: total }, (_, i) => i);
+  const slots = preferredSlots.length >= count ? preferredSlots : fallbackSlots;
+  const selected = [];
+
+  shuffleItems(slots).forEach(slot => {
+    if (selected.length >= count) return;
+    if (selected.some(existing => Math.abs(existing - slot) <= 1)) return;
+    selected.push(slot);
+  });
+
+  if (selected.length < count) {
+    shuffleItems(slots)
+      .filter(slot => !selected.includes(slot))
+      .forEach(slot => {
+        if (selected.length < count) selected.push(slot);
+      });
+  }
+
+  return new Set(selected);
+}
+
 function buildQueue(d) {
   const foodItems  = FOODS.filter(f => f.type === "food"  && d.animals.includes(f.target));
   const trashItems = trashItemsForDifficulty(d.difficulty);
@@ -50,13 +80,23 @@ function buildQueue(d) {
     qs.push(next);
   }
 
-  for (let i = 0; i < trashCount; i++) {
-    const trash = trashItems[i % trashItems.length];
-    const desired = Math.round(((i + 1) * d.rounds) / (trashCount + 1));
-    const min = Math.min(2, qs.length);
-    const max = Math.max(min, qs.length - 1);
-    const at = Math.max(min, Math.min(max, desired - 1));
-    qs.splice(at, 0, trash);
+  if (trashCount > 0) {
+    const trashQueue = shuffleItems(Array.from(
+      { length: trashCount },
+      (_, i) => trashItems[i % trashItems.length]
+    ));
+    const trashSlots = randomTrashSlots(d.rounds, trashCount);
+    const merged = [];
+    let foodIndex = 0;
+    let trashIndex = 0;
+
+    for (let i = 0; i < d.rounds; i++) {
+      if (trashSlots.has(i)) merged.push(trashQueue[trashIndex++]);
+      else merged.push(qs[foodIndex++]);
+    }
+
+    qs.length = 0;
+    qs.push(...merged.filter(Boolean));
   }
 
   // Avoid consecutive same target, especially trash-to-trash.
@@ -226,6 +266,7 @@ function resumeSessionTimer() {
 }
 
 function startSession(diff) {
+  clearPauseUiState({ resetState: true });
   const prepared = pendingSessionSettings && pendingSessionSettings.diff === diff
     ? pendingSessionSettings.settings
     : null;

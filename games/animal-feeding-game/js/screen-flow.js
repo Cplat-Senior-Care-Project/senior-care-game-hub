@@ -344,6 +344,7 @@ function beginActivityIntro() {
 }
 
 function beginIntroFlow(diff) {
+  clearPauseUiState({ resetState: true });
   pendingDiff = diff || selectedDiff;
   if (typeof prepareSessionPreview === "function") prepareSessionPreview(pendingDiff);
   show("ready");

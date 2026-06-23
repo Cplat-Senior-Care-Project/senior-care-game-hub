@@ -10,6 +10,7 @@ const VOICE_GUIDES = {
   sessionComplete: "audio/voice/session-complete.mp3",
   enoughForToday: "audio/voice/enough-for-today.mp3",
   hint: "audio/voice/hint.mp3",
+  nextQuestion: "audio/voice/next-question.mp3",
   takingABreak: "audio/voice/taking-a-break.mp3",
   finishCurrentState: "audio/voice/finish-current-state.mp3",
   finishExtraInfo: "audio/voice/finish-extra-info.mp3",

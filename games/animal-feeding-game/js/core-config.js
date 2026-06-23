@@ -162,6 +162,12 @@ let countdownTimer = null;
 let pendingCompletionMessage = null;
 let pendingAutoReturnMs = 0;
 
+function clearPauseUiState({ resetState = false } = {}) {
+  document.body.classList.remove("paused");
+  document.getElementById("quitModal")?.classList.remove("on");
+  if (resetState && state) state._paused = false;
+}
+
 function normalizeRuntimeConfig(input) {
   const p = input || {};
   const rawMode = p.mode || "standard";

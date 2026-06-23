@@ -898,6 +898,38 @@ body.mode-ai .board.no-bin .spot.target {
   transform: scale(1.04) !important;
 }
 
+body.mode-standard .board.animals-4.no-bin .spot.tl,
+body.mode-reminder .board.animals-4.no-bin .spot.tl {
+  left: 4% !important;
+  right: auto !important;
+  top: 1% !important;
+  bottom: auto !important;
+}
+
+body.mode-standard .board.animals-4.no-bin .spot.tr,
+body.mode-reminder .board.animals-4.no-bin .spot.tr {
+  left: auto !important;
+  right: 4% !important;
+  top: 1% !important;
+  bottom: auto !important;
+}
+
+body.mode-standard .board.animals-4.no-bin .spot.bl,
+body.mode-reminder .board.animals-4.no-bin .spot.bl {
+  left: 4% !important;
+  right: auto !important;
+  top: auto !important;
+  bottom: 7% !important;
+}
+
+body.mode-standard .board.animals-4.no-bin .spot.br,
+body.mode-reminder .board.animals-4.no-bin .spot.br {
+  left: auto !important;
+  right: 4% !important;
+  top: auto !important;
+  bottom: 7% !important;
+}
+
 @container game-stage (max-height: 500px) or (max-width: 920px) {
   body.mode-standard .board.has-bin .item-wrap,
   body.mode-reminder .board.has-bin .item-wrap {
