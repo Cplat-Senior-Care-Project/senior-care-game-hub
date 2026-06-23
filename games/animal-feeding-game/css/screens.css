@@ -115,6 +115,156 @@
   letter-spacing: 0;
 }
 
+#loading.start-screen {
+  align-items: center;
+  justify-content: center;
+  padding: calc(var(--safe-t) + var(--s-xl))
+           calc(var(--safe-r) + var(--s-xl))
+           calc(var(--safe-b) + var(--s-xl))
+           calc(var(--safe-l) + var(--s-xl));
+}
+
+#loading.start-screen::before,
+#loading.start-screen::after {
+  content: none;
+  display: none;
+}
+
+#loading > .sun-pulse,
+#loading > .loading-title,
+#loading > .loading-sub,
+#loading > .bar,
+#loading > .loading-pct {
+  display: none;
+}
+
+#loading .brand-block {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  justify-items: center;
+  align-content: center;
+  grid-template-rows: auto auto auto;
+  row-gap: 0;
+  width: min(100%, 920px);
+  transform: translateY(clamp(-52px, -6.5vh, -32px));
+}
+
+#loading .start-title-image {
+  position: relative;
+  top: -10px;
+  width: min(620px, 78%);
+  max-width: 100%;
+  height: auto;
+  object-fit: contain;
+}
+
+.start-loading-message {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin: clamp(-84px, -9vh, -64px) 0 clamp(22px, 3vh, 34px);
+  color: #ffffff;
+  font-size: 60px;
+  font-weight: 500;
+  -webkit-text-stroke: 0.8px rgba(0, 0, 0, 0.72);
+  paint-order: stroke fill;
+  line-height: 1.08;
+  text-align: center;
+  word-break: keep-all;
+  text-shadow: none;
+}
+
+.start-loading {
+  position: relative;
+  display: inline-grid;
+  grid-template-columns: minmax(0, 1fr) 132px;
+  align-items: center;
+  gap: clamp(18px, 2.3vw, 30px);
+  width: min(100%, 820px);
+  min-height: clamp(74px, 9.4vh, 104px);
+  margin: 0 0 clamp(22px, 32.4px, 44px);
+  border: 5px solid rgba(42, 82, 58, 0.78);
+  border-radius: 999px;
+  padding-block: clamp(12px, 1.7vh, 20px);
+  padding-inline: clamp(24px, 4.3vw, 48px) clamp(26px, 4.7vw, 56px);
+  background:
+    linear-gradient(180deg, rgba(232, 246, 198, 0.96), rgba(183, 218, 140, 0.94)),
+    radial-gradient(circle at 50% 0%, rgba(255, 255, 255, 0.58), rgba(255, 255, 255, 0) 54%);
+  box-shadow:
+    0 15px 24px rgba(15, 42, 38, 0.22),
+    inset 0 0 0 2px rgba(255, 255, 244, 0.36),
+    inset 0 3px 0 rgba(255, 255, 244, 0.62),
+    inset 0 -5px 0 rgba(78, 128, 64, 0.34);
+}
+
+.start-loading-track {
+  position: relative;
+  height: clamp(34px, 4.8vh, 44px);
+  overflow: hidden;
+  border: 3px solid rgba(38, 76, 58, 0.48);
+  border-radius: 999px;
+  background: linear-gradient(180deg, rgba(236, 250, 221, 0.94), rgba(156, 190, 128, 0.82));
+  box-shadow:
+    inset 0 3px 6px rgba(23, 54, 42, 0.16),
+    inset 0 0 0 2px rgba(255, 255, 244, 0.34);
+}
+
+.start-loading-fill {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 0%;
+  overflow: hidden;
+  border-radius: inherit;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 244, 0.28), rgba(255, 255, 244, 0) 48%),
+    repeating-linear-gradient(
+      -42deg,
+      rgba(255, 255, 255, 0.14) 0 16px,
+      rgba(255, 255, 255, 0) 16px 32px
+    ),
+    linear-gradient(90deg, #c9ee73, #7fcb46 56%, #3f9d58);
+  box-shadow:
+    inset 0 3px 0 rgba(255, 255, 244, 0.38),
+    inset 0 -5px 0 rgba(28, 93, 63, 0.22);
+  transition: width 120ms linear;
+}
+
+.start-loading-fill::after {
+  content: "";
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: clamp(38px, 6vw, 74px);
+  border-radius: 999px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 244, 0.46), rgba(255, 255, 244, 0) 46%),
+    linear-gradient(90deg, #f2ff9b, #cde94e);
+  box-shadow:
+    inset 0 2px 0 rgba(255, 255, 244, 0.46),
+    inset 0 -4px 0 rgba(64, 122, 33, 0.22);
+}
+
+.start-loading-text {
+  width: 132px;
+  min-width: 132px;
+  color: #24422f;
+  font-size: clamp(34px, 4.7vh, 46px);
+  font-weight: 1000;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  text-align: right;
+  text-shadow: 0 2px 0 rgba(255, 255, 244, 0.5);
+}
+
+.start-screen.is-loaded .start-loading,
+.start-screen.is-loaded .start-loading-message {
+  display: none;
+}
+
 .activity-label {
   position: absolute;
   top: calc(var(--safe-t) + clamp(8px, 8.64px, 14px));

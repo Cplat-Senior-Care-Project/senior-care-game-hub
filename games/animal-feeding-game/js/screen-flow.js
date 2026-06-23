@@ -1,9 +1,14 @@
 /* ---------- Screen routing ---------- */
 const SCREENS = ["loading", "start", "precheck", "how", "ready", "countdown", "play", "finish", "done", "mood", "error"];
 let difficultyStartTimer = null;
+const CONDITION_SLEEP_HOURS = [4, 5, 6, 7, 8, 9, 10, 11, 12];
+const CONDITION_SLEEP_DRAG_STEP_PX = 42;
+const precheckSleepDrag = { pointerId: null, lastStepY: 0 };
+let precheckSleepIndex = 3;
 
 function show(id) {
   SCREENS.forEach(s => document.getElementById(s).classList.toggle("on", s === id));
+  SCREENS.forEach(s => document.body.classList.toggle(`screen-${s}`, s === id));
 }
 
 function resetDifficultyStartState(clearSelection = false) {
@@ -40,7 +45,8 @@ function setStartStage(stage) {
 
   const startBtn = document.getElementById("startBtn");
   if (startBtn) {
-    startBtn.textContent = "시작하기";
+    const label = startBtn.querySelector("span") || startBtn;
+    label.textContent = "게임 시작";
   }
 }
 
@@ -82,7 +88,7 @@ function showDifficultySelection() {
 }
 
 function resetPreGameCheckState() {
-  preGameCheck = { mood: "normal", sleepHours: 8, skipped: false, completed: false };
+  preGameCheck = { mood: "good", sleepHours: CONDITION_SLEEP_HOURS[precheckSleepIndex], skipped: false, completed: false };
   resetPrecheckUi();
 }
 
@@ -118,8 +124,9 @@ function preloadImage(src) {
    1. LOADING — preload images then move to start
    =========================================================== */
 function loading(){
-  const bar = document.getElementById("bar");
-  const pct = document.getElementById("pct");
+  const loadingScreen = document.getElementById("loading");
+  const bar = document.getElementById("start-loading-fill") || document.getElementById("bar");
+  const pct = document.getElementById("start-loading-text") || document.getElementById("pct");
   const all = [
     ...Object.values(ANIMALS).map(a => a.img),
     ...Object.values(ANIMALS).map(a => a.correctImg).filter(Boolean),
@@ -137,40 +144,73 @@ function loading(){
     RN({ type:"LOADING_PROGRESS", payload:{ progress: rounded } });
   }
   emitLoadingProgress(0);
+  loadingScreen?.classList.add("is-loading");
+  loadingScreen?.classList.remove("is-loaded");
   all.forEach(src => {
     preloadImage(src).then(ok => {
       loaded++;
       if (!ok) assetErrors++;
     });
   });
-  let p = 0;
-  const t = setInterval(() => {
-    const real = (loaded / total) * 100;
-    p = Math.min(100, Math.max(p + 6, Math.min(p + 16, real)));
-    bar.style.width = p + "%";
-    pct.textContent = Math.round(p) + "%";
-    emitLoadingProgress(p);
-    if (p >= 100 && loaded >= total) {
-      clearInterval(t);
-      setTimeout(() => {
-        assetsReady = true;
-        if (assetErrors) {
-          fatalError = reportError({
-            code:"asset_load_failed",
-            message:`${assetErrors} assets failed to load`,
-            recoverable:true,
-            phase:"loading",
-          }, { showScreen:true });
-          return;
-        }
-        RN({ type:"READY", payload:{ version: VERSION } });
-        emitDisplayRequest("ready");
-        if (runtime.autoStart) maybeAutoStart();
-        else if (shouldStartWithPrecheck()) showEntryPrecheck(true);
-        else showStartIntro(true);
-      }, 400);
+
+  const duration = 1800;
+  let activeElapsed = 0;
+  let lastFrameAt = performance.now();
+  let completed = false;
+
+  function setLoadingProgress(progress) {
+    const percent = Math.max(0, Math.min(100, Math.round(progress)));
+    if (bar) bar.style.width = `${percent}%`;
+    if (pct) pct.textContent = `${percent}%`;
+    emitLoadingProgress(percent);
+  }
+
+  function finishLoading() {
+    if (completed) return;
+    completed = true;
+    setLoadingProgress(100);
+    setTimeout(() => {
+      loadingScreen?.classList.remove("is-loading");
+      loadingScreen?.classList.add("is-loaded");
+      assetsReady = true;
+      if (assetErrors) {
+        fatalError = reportError({
+          code:"asset_load_failed",
+          message:`${assetErrors} assets failed to load`,
+          recoverable:true,
+          phase:"loading",
+        }, { showScreen:true });
+        return;
+      }
+      RN({ type:"READY", payload:{ version: VERSION } });
+      emitDisplayRequest("ready");
+      if (runtime.autoStart) maybeAutoStart();
+      else if (shouldStartWithPrecheck()) showEntryPrecheck(true);
+      else showStartIntro(true);
+    }, 260);
+  }
+
+  function update(now) {
+    const totalAssets = Math.max(1, total);
+    activeElapsed += Math.max(0, now - lastFrameAt);
+    lastFrameAt = now;
+
+    const timeProgress = Math.min(1, activeElapsed / duration);
+    const easedProgress = 1 - Math.pow(1 - timeProgress, 3);
+    const assetsProgress = Math.min(1, loaded / totalAssets);
+    const progress = Math.min(easedProgress, assetsProgress < 1 ? 0.99 : 1);
+
+    setLoadingProgress(progress * 100);
+
+    if (timeProgress >= 1 && loaded >= total) {
+      finishLoading();
+      return;
     }
-  }, 160);
+
+    window.requestAnimationFrame(update);
+  }
+
+  window.requestAnimationFrame(update);
 }
 
 loading();
@@ -198,24 +238,32 @@ settingsMenus.forEach(({ button, panel }) => {
   });
   panel.addEventListener("click", e => e.stopPropagation());
 });
-document.addEventListener("click", () => {
-  closeSettingsMenus();
+document.querySelectorAll("[data-settings-close]").forEach(button => {
+  button.addEventListener("click", () => closeSettingsMenus());
 });
-["sfxToggle", "playSfxToggle"].forEach(id => document.getElementById(id)?.addEventListener("click", () => {
-  sfxOn = !sfxOn;
-  updateAudioControls();
-}));
-["bgmToggle", "playBgmToggle"].forEach(id => document.getElementById(id)?.addEventListener("click", () => {
-  bgmOn = !bgmOn;
-  updateAudioControls();
-}));
-["voiceBtn", "playVoiceBtn"].forEach(id => document.getElementById(id)?.addEventListener("click", e => {
+function bindSettingsToggle(ids, apply) {
+  ids.forEach(id => {
+    const control = document.getElementById(id);
+    if (!control) return;
+    const eventName = control.matches?.("input.setting-toggle") ? "change" : "click";
+    control.addEventListener(eventName, () => {
+      apply(control.matches?.("input.setting-toggle") ? control.checked : undefined);
+      updateAudioControls();
+    });
+  });
+}
+bindSettingsToggle(["sfxToggle", "playSfxToggle"], checked => {
+  sfxOn = typeof checked === "boolean" ? checked : !sfxOn;
+});
+bindSettingsToggle(["bgmToggle", "playBgmToggle"], checked => {
+  bgmOn = typeof checked === "boolean" ? checked : !bgmOn;
+});
+bindSettingsToggle(["voiceBtn", "playVoiceBtn"], checked => {
   if (!voiceAvailable) return;
-  voiceOn = !voiceOn;
-  updateAudioControls();
-}));
+  voiceOn = typeof checked === "boolean" ? checked : !voiceOn;
+});
 updateAudioControls();
-document.getElementById("fontBtn").addEventListener("click", e => {
+document.getElementById("fontBtn")?.addEventListener("click", e => {
   document.body.classList.toggle("large");
   const on = document.body.classList.contains("large");
   e.currentTarget.textContent = on ? "글씨 보통" : "글씨 크게";
@@ -254,6 +302,13 @@ document.getElementById("startBtn").addEventListener("click", () => {
   }
   enterGameDisplay("start_button");
   beginStandardStartFlow();
+});
+
+document.getElementById("difficultyCloseBtn")?.addEventListener("click", () => {
+  resetDifficultyStartState(true);
+  startDifficultyUnlocked = false;
+  setStartStage("intro");
+  show("start");
 });
 
 document.getElementById("howAgainBtn")?.addEventListener("click", () => show("how"));
@@ -332,35 +387,126 @@ document.getElementById("howSkipBtn").addEventListener("click", () => {
 /* ===========================================================
    3b. PRE CHECK
    =========================================================== */
-function updateSleepValue() {
-  const range = document.getElementById("preSleepRange");
-  const value = document.getElementById("preSleepValue");
-  if (!range || !value) return;
-  preGameCheck.sleepHours = Number(range.value) || 8;
-  value.textContent = `${preGameCheck.sleepHours}시간`;
+function precheckSleepIndexAt(offset) {
+  const length = CONDITION_SLEEP_HOURS.length;
+  return (precheckSleepIndex + offset + length) % length;
+}
+
+function renderPrecheckSleepDial() {
+  const rows = document.getElementById("conditionSleepRows");
+  if (!rows) return;
+
+  rows.replaceChildren();
+  [-1, 0, 1].forEach(offset => {
+    const row = document.createElement("span");
+    const number = document.createElement("span");
+    const unit = document.createElement("span");
+
+    row.className = offset === 0 ? "condition-sleep-row is-selected" : "condition-sleep-row is-muted";
+    number.className = "condition-sleep-number";
+    number.textContent = String(CONDITION_SLEEP_HOURS[precheckSleepIndexAt(offset)]);
+    unit.className = "condition-sleep-unit";
+    unit.textContent = "시간";
+    row.append(number, unit);
+    rows.appendChild(row);
+  });
+}
+
+function selectedPrecheckSleepHours() {
+  return CONDITION_SLEEP_HOURS[precheckSleepIndex];
+}
+
+function changePrecheckSleep(delta) {
+  const length = CONDITION_SLEEP_HOURS.length;
+  precheckSleepIndex = (precheckSleepIndex + delta + length) % length;
+  preGameCheck.sleepHours = selectedPrecheckSleepHours();
+  renderPrecheckSleepDial();
+}
+
+function startPrecheckSleepDrag(event) {
+  const dial = document.querySelector(".condition-sleep-dial");
+  if (!dial || event.button > 0) return;
+
+  event.preventDefault();
+  precheckSleepDrag.pointerId = event.pointerId;
+  precheckSleepDrag.lastStepY = event.clientY;
+  dial.classList.add("is-dragging");
+
+  if (typeof dial.setPointerCapture === "function") {
+    dial.setPointerCapture(event.pointerId);
+  }
+}
+
+function dragPrecheckSleep(event) {
+  if (precheckSleepDrag.pointerId !== event.pointerId) return;
+
+  event.preventDefault();
+  const deltaY = event.clientY - precheckSleepDrag.lastStepY;
+  const steps = Math.trunc(Math.abs(deltaY) / CONDITION_SLEEP_DRAG_STEP_PX);
+
+  if (steps < 1) return;
+
+  const direction = deltaY > 0 ? -1 : 1;
+  precheckSleepDrag.lastStepY += direction * -steps * CONDITION_SLEEP_DRAG_STEP_PX;
+  changePrecheckSleep(direction * steps);
+}
+
+function endPrecheckSleepDrag(event) {
+  if (precheckSleepDrag.pointerId !== event.pointerId) return;
+
+  const dial = document.querySelector(".condition-sleep-dial");
+  if (
+    dial &&
+    typeof dial.releasePointerCapture === "function" &&
+    dial.hasPointerCapture(event.pointerId)
+  ) {
+    dial.releasePointerCapture(event.pointerId);
+  }
+
+  precheckSleepDrag.pointerId = null;
+  precheckSleepDrag.lastStepY = 0;
+  dial?.classList.remove("is-dragging");
+}
+
+function selectPrecheckMood(button) {
+  preGameCheck.mood = button.dataset.mood || button.dataset.preMood || "good";
+  document.querySelectorAll(".condition-mood-button").forEach(moodButton => {
+    const isSelected = moodButton === button;
+    moodButton.classList.toggle("is-selected", isSelected);
+    moodButton.classList.toggle("selected", isSelected);
+    moodButton.setAttribute("aria-pressed", isSelected ? "true" : "false");
+  });
 }
 
 function resetPrecheckUi() {
-  document.querySelectorAll("[data-pre-mood]").forEach(btn => {
-    btn.classList.toggle("selected", btn.dataset.preMood === "normal");
+  precheckSleepIndex = 3;
+  preGameCheck.mood = "good";
+  preGameCheck.sleepHours = selectedPrecheckSleepHours();
+  document.querySelectorAll(".condition-mood-button").forEach(btn => {
+    const isSelected = (btn.dataset.mood || btn.dataset.preMood) === "good";
+    btn.classList.toggle("is-selected", isSelected);
+    btn.classList.toggle("selected", isSelected);
+    btn.setAttribute("aria-pressed", isSelected ? "true" : "false");
   });
-  const range = document.getElementById("preSleepRange");
-  if (range) range.value = "8";
-  updateSleepValue();
+  renderPrecheckSleepDial();
 }
 
-document.querySelectorAll("[data-pre-mood]").forEach(btn => {
+document.querySelectorAll(".condition-mood-button").forEach(btn => {
   btn.addEventListener("click", () => {
-    preGameCheck.mood = btn.dataset.preMood;
-    document.querySelectorAll("[data-pre-mood]").forEach(x => x.classList.toggle("selected", x === btn));
+    selectPrecheckMood(btn);
   });
 });
 
-document.getElementById("preSleepRange")?.addEventListener("input", updateSleepValue);
+document.getElementById("sleepDown")?.addEventListener("click", () => changePrecheckSleep(1));
+document.getElementById("sleepUp")?.addEventListener("click", () => changePrecheckSleep(-1));
+document.querySelector(".condition-sleep-dial")?.addEventListener("pointerdown", startPrecheckSleepDrag);
+document.querySelector(".condition-sleep-dial")?.addEventListener("pointermove", dragPrecheckSleep);
+document.querySelector(".condition-sleep-dial")?.addEventListener("pointerup", endPrecheckSleepDrag);
+document.querySelector(".condition-sleep-dial")?.addEventListener("pointercancel", endPrecheckSleepDrag);
 
 function submitPrecheck(skipped = false) {
   const moodLabels = { good: "좋음", normal: "보통", bad: "나쁨" };
-  updateSleepValue();
+  preGameCheck.sleepHours = selectedPrecheckSleepHours();
   preGameCheck = {
     phase: "pre",
     skipped,
@@ -373,7 +519,7 @@ function submitPrecheck(skipped = false) {
   showStartIntro(false);
 }
 
-document.getElementById("precheckNextBtn")?.addEventListener("click", () => submitPrecheck(false));
-document.getElementById("precheckSkipBtn")?.addEventListener("click", () => submitPrecheck(true));
+document.getElementById("conditionSubmit")?.addEventListener("click", () => submitPrecheck(false));
+document.getElementById("conditionSkip")?.addEventListener("click", () => submitPrecheck(true));
 
 resetPrecheckUi();

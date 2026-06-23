@@ -154,7 +154,7 @@ let assetsReady = false;
 let fatalError = null;
 let displayRequestEmitted = false;
 let finishCheck = { mood: null, fatigue: null, difficulty: null, help: null, replay: null };
-let preGameCheck = { mood: "normal", sleepHours: 8, skipped: false, completed: false };
+let preGameCheck = { mood: "good", sleepHours: 7, skipped: false, completed: false };
 let startDifficultyUnlocked = false;
 let pendingDiff = null;
 let pendingSessionSettings = null;
@@ -312,6 +312,7 @@ function applyRuntimeConfig(next) {
 function updateModeUi() {
   document.getElementById("start")?.classList.toggle("hide-difficulty", !runtime.showDifficultySelect);
   document.getElementById("start")?.classList.toggle("hide-settings", !runtime.showSettings);
+  document.body.classList.toggle("hide-start-settings", !runtime.showSettings);
   const play = document.getElementById("play");
   play?.classList.toggle("hide-progress", !runtime.showProgress);
   play?.classList.toggle("hide-help", !runtime.showHelp);

@@ -26,6 +26,7 @@
       this.volume = 1;
       this.noteVolumeBoost = this.isMobileDevice() ? 2.8 : 1.8;
       this.audioCache = new Map();
+      this.effectAudioElements = new Map();
       this.missingAudioFiles = new Set();
       this.audioSupported = typeof fetch === "function";
       this.backgroundEnabled = true;
@@ -176,12 +177,56 @@
       }, 30);
     }
 
+    playEffectAudio(key, src, volumeScale, options) {
+      const allowWhenEffectsDisabled = options && options.allowWhenEffectsDisabled;
+      if ((!this.enabled && !allowWhenEffectsDisabled) || this.volume <= 0 || typeof Audio !== "function") {
+        return;
+      }
+
+      const effectAudio = this.getEffectAudio(key, src);
+      effectAudio.volume = Math.min(1, this.volume * (volumeScale || 1));
+      try {
+        effectAudio.currentTime = 0;
+      } catch (error) {}
+
+      const playResult = effectAudio.play();
+      if (playResult && typeof playResult.catch === "function") {
+        playResult.catch(() => {});
+      }
+    }
+
+    getEffectAudio(key, src) {
+      if (!this.effectAudioElements.has(key)) {
+        const effectAudio = new Audio(src);
+        effectAudio.preload = "auto";
+        this.effectAudioElements.set(key, effectAudio);
+      }
+
+      return this.effectAudioElements.get(key);
+    }
+
     playClick() {
       this.playTone(220, 0.04, "sine", 0.18);
     }
 
+    playButtonClick() {
+      this.playEffectAudio("buttonClick", "assets/audio/button-click2.wav", 0.85);
+    }
+
     playCountdownTick() {
-      this.playTone(660, 0.07, "sine", 0.16);
+      this.playEffectAudio("countdownTick", "assets/audio/countdown-tick.wav", 0.9);
+    }
+
+    playStartCue() {
+      this.playEffectAudio("startCue", "assets/audio/start.wav", 0.9);
+    }
+
+    playVoiceReady() {
+      this.playEffectAudio("voiceReady", "assets/audio/voice-ready.wav", 1, { allowWhenEffectsDisabled: true });
+    }
+
+    playComplete() {
+      this.playEffectAudio("complete", "assets/audio/complete2.wav", 1);
     }
 
     playSuccess() {

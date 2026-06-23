@@ -105,7 +105,18 @@ function ensureAudio() {
 
 function setToggleState(button, on, unavailable = false) {
   if (!button) return;
-  const status = button.querySelector("strong");
+  const isInput = button.matches?.("input.setting-toggle");
+  const row = isInput ? button.closest(".setting-row") : button;
+  const status = row?.querySelector("strong") || button.querySelector?.("strong");
+  if (isInput) {
+    const label = button.dataset.settingLabel || status?.dataset.settingLabel || "";
+    button.checked = !!on;
+    button.disabled = unavailable;
+    row?.classList.toggle("is-off", !on || unavailable);
+    if (row) row.style.opacity = unavailable ? ".64" : "";
+    if (status) status.textContent = unavailable ? `${label} 없음` : `${label} ${on ? "켬" : "끔"}`;
+    return;
+  }
   if (status) {
     status.textContent = unavailable ? "없음" : (on ? "켜짐" : "꺼짐");
   } else {
@@ -374,8 +385,14 @@ function updateStageScale(portrait = window.innerHeight > window.innerWidth) {
   const scaleY = availableHeight / STAGE_HEIGHT;
   const fallbackScale = Math.min(scaleX, scaleY);
   document.documentElement.style.setProperty("--stage-scale", Math.max(0.01, fallbackScale).toFixed(5));
-  document.documentElement.style.setProperty("--stage-scale-x", Math.max(0.01, scaleX).toFixed(5));
-  document.documentElement.style.setProperty("--stage-scale-y", Math.max(0.01, scaleY).toFixed(5));
+  document.documentElement.style.setProperty("--stage-scale-x", Math.max(0.01, fallbackScale).toFixed(5));
+  document.documentElement.style.setProperty("--stage-scale-y", Math.max(0.01, fallbackScale).toFixed(5));
+
+  const fixedUiScale = Math.min(1, Math.max(0.58, fallbackScale));
+  document.documentElement.style.setProperty("--fixed-ui-scale", fixedUiScale.toFixed(5));
+  document.documentElement.style.setProperty("--fixed-settings-button-size", `${Math.round(82 * fixedUiScale)}px`);
+  document.documentElement.style.setProperty("--fixed-settings-icon-size", `${Math.round(58 * fixedUiScale)}px`);
+  document.documentElement.style.setProperty("--fixed-settings-button-font-size", `${Math.round(56 * fixedUiScale)}px`);
 }
 
 function updateDisplayState() {

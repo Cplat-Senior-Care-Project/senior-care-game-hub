@@ -104,13 +104,14 @@
       document.querySelectorAll("[data-go]").forEach((button) => {
         button.addEventListener("pointerup", () => {
           const target = button.dataset.go;
-          this.audio.playClick();
+          this.playButtonClick();
           this.handleScreenNavigation(target);
         });
       });
 
       this.difficultyCards.forEach((card) => {
         card.addEventListener("pointerup", () => {
+          this.playButtonClick();
           this.selectDifficulty(card.dataset.difficulty, true);
           this.beginGame();
         });
@@ -120,31 +121,37 @@
         this.handleStartGameAction();
       });
       this.homeScreen && this.homeScreen.addEventListener("pointerup", (event) => this.handleHomeBackgroundPress(event));
-      this.difficultyStartButton && this.difficultyStartButton.addEventListener("pointerup", () => this.beginGame());
+      this.difficultyStartButton && this.difficultyStartButton.addEventListener("pointerup", () => {
+        this.playButtonClick();
+        this.beginGame();
+      });
       this.exitGameButton && this.exitGameButton.addEventListener("pointerup", () => this.handleExitAction());
-      this.retryButton && this.retryButton.addEventListener("pointerup", () => this.beginGame());
+      this.retryButton && this.retryButton.addEventListener("pointerup", () => {
+        this.playButtonClick();
+        this.beginGame();
+      });
       this.homeButton && this.homeButton.addEventListener("pointerup", () => this.handleHomeAction());
       this.hostReturnButton && this.hostReturnButton.addEventListener("pointerup", () => this.handleHostReturnAction());
       this.howtoNextButton && this.howtoNextButton.addEventListener("pointerup", () => {
-        this.audio.playClick();
+        this.playButtonClick();
         this.showHowtoPage(2);
       });
       this.howtoPrevButton && this.howtoPrevButton.addEventListener("pointerup", () => {
-        this.audio.playClick();
+        this.playButtonClick();
         this.showHowtoPage(1);
       });
       this.conditionElements.moodButtons.forEach((button) => {
         button.addEventListener("pointerup", () => {
-          this.audio.playClick();
+          this.playButtonClick();
           this.selectConditionMood(button);
         });
       });
       this.conditionElements.sleepUpButton && this.conditionElements.sleepUpButton.addEventListener("pointerup", () => {
-        this.audio.playClick();
+        this.playButtonClick();
         this.changeConditionSleep(1);
       });
       this.conditionElements.sleepDownButton && this.conditionElements.sleepDownButton.addEventListener("pointerup", () => {
-        this.audio.playClick();
+        this.playButtonClick();
         this.changeConditionSleep(-1);
       });
       this.conditionElements.sleepDial && this.conditionElements.sleepDial.addEventListener("pointerdown", (event) => this.startConditionSleepDrag(event));
@@ -152,33 +159,33 @@
       this.conditionElements.sleepDial && this.conditionElements.sleepDial.addEventListener("pointerup", (event) => this.endConditionSleepDrag(event));
       this.conditionElements.sleepDial && this.conditionElements.sleepDial.addEventListener("pointercancel", (event) => this.endConditionSleepDrag(event));
       this.conditionElements.confirmButton && this.conditionElements.confirmButton.addEventListener("pointerup", () => {
-        this.audio.playClick();
+        this.playButtonClick();
         this.submitCondition(false);
       });
       this.conditionElements.skipButton && this.conditionElements.skipButton.addEventListener("pointerup", () => {
-        this.audio.playClick();
+        this.playButtonClick();
         this.submitCondition(true);
       });
       document.querySelectorAll(".post-condition-option").forEach((button) => {
         button.addEventListener("pointerup", () => {
-          this.audio.playClick();
+          this.playButtonClick();
           this.selectPostConditionOption(button);
         });
       });
       this.finishNextButton && this.finishNextButton.addEventListener("pointerup", () => {
-        this.audio.playClick();
+        this.playButtonClick();
         this.updateFinishCheckPage(1);
       });
       this.finishBackButton && this.finishBackButton.addEventListener("pointerup", () => {
-        this.audio.playClick();
+        this.playButtonClick();
         this.updateFinishCheckPage(0);
       });
       this.finishSubmitButton && this.finishSubmitButton.addEventListener("pointerup", () => {
-        this.audio.playClick();
+        this.playButtonClick();
         this.submitFinishCheck();
       });
       this.finishSkipButton && this.finishSkipButton.addEventListener("pointerup", () => {
-        this.audio.playClick();
+        this.playButtonClick();
         this.skipFinishCheck();
       });
 
@@ -200,6 +207,39 @@
       window.addEventListener("melody-runtime:changed", () => this.applyRuntimeUi());
     }
 
+    playButtonClick() {
+      if (this.audio && typeof this.audio.playButtonClick === "function") {
+        this.audio.playButtonClick();
+        return;
+      }
+
+      if (this.audio && typeof this.audio.playClick === "function") {
+        this.audio.playClick();
+      }
+    }
+
+    playVoiceReadyCue() {
+      if (this.voiceGuideToggle && !this.voiceGuideToggle.checked) {
+        return;
+      }
+
+      if (this.audio && typeof this.audio.playVoiceReady === "function") {
+        this.audio.playVoiceReady();
+      }
+    }
+
+    playStartCue() {
+      if (this.audio && typeof this.audio.playStartCue === "function") {
+        this.audio.playStartCue();
+      }
+    }
+
+    playResultCue() {
+      if (this.audio && typeof this.audio.playComplete === "function") {
+        this.audio.playComplete();
+      }
+    }
+
     storageGet(key) {
       try {
         return window.localStorage.getItem(key);
@@ -211,6 +251,15 @@
     storageSet(key, value) {
       try {
         window.localStorage.setItem(key, value);
+      } catch (error) {
+        return false;
+      }
+      return true;
+    }
+
+    storageRemove(key) {
+      try {
+        window.localStorage.removeItem(key);
       } catch (error) {
         return false;
       }
@@ -615,6 +664,7 @@
       }
       window.ResultManager.renderResult(result || {});
       this.showScreen("result");
+      this.playResultCue();
       this.scheduleResultHubReturn(result);
       this.pendingResult = null;
       this.pendingResultOptions = null;
@@ -701,7 +751,6 @@
 
       const runtime = this.createGameRuntime();
       this.audio.ensureContext();
-      this.audio.playClick();
       if (window.DisplayBridge) {
         window.DisplayBridge.requestDisplay("game_start");
       }
@@ -744,6 +793,7 @@
       if (this.gameCountdownMessage) {
         this.gameCountdownMessage.textContent = "게임이 곧 시작돼요!";
       }
+      this.playVoiceReadyCue();
       this.syncBackgroundMusic();
 
       this.countdownIntroHandle = window.setTimeout(() => {
@@ -787,6 +837,7 @@
           const runtime = this.pendingCountdownRuntime;
           this.gameCountdownTimer.style.setProperty("--countdown-angle", "360deg");
           this.clearGameCountdown();
+          this.playStartCue();
           this.startGameAfterCountdown(runtime);
           return;
         }
@@ -836,10 +887,10 @@
     }
 
     handleStartGameAction() {
+      this.playButtonClick();
       this.requestDisplayFromGesture("home_start");
 
       if (this.shouldShowDifficultySelect()) {
-        this.audio.playClick();
         this.showScreen("difficulty");
         return;
       }
@@ -848,12 +899,12 @@
     }
 
     handleHomeAction() {
-      this.audio.playClick();
+      this.playButtonClick();
       this.showScreen("home");
     }
 
     handleHostReturnAction() {
-      this.audio.playClick();
+      this.playButtonClick();
       const runtime = window.MelodyRuntime && window.MelodyRuntime.runtimeSnapshot
         ? window.MelodyRuntime.runtimeSnapshot()
         : {};
@@ -916,7 +967,7 @@
     }
 
     handleExitAction() {
-      this.audio.playClick();
+      this.playButtonClick();
       if (window.ResultBridge && typeof window.ResultBridge.handleGameExitRequested === "function") {
         window.ResultBridge.handleGameExitRequested("user_exit");
       }
@@ -930,13 +981,9 @@
     }
 
     loadSettings() {
-      const savedBackgroundSound = this.storageGet("melodyDrumBackgroundSound");
       const savedSound = this.storageGet("melodyDrumEffectSound") || this.storageGet("melodyDrumSound");
       const savedVoiceGuide = this.storageGet("melodyDrumVoiceGuide");
-
-      if (savedBackgroundSound !== null && this.backgroundSoundToggle) {
-        this.backgroundSoundToggle.checked = savedBackgroundSound === "true";
-      }
+      this.storageRemove("melodyDrumBackgroundSound");
 
       if (savedSound !== null && this.soundToggle) {
         this.soundToggle.checked = savedSound === "true";
@@ -961,7 +1008,7 @@
       if (this.voiceGuideLabel && this.voiceGuideToggle) {
         this.voiceGuideLabel.textContent = this.voiceGuideToggle.checked ? "안내음성 켬" : "안내음성 끔";
       }
-      if (this.backgroundSoundToggle) this.storageSet("melodyDrumBackgroundSound", String(this.backgroundSoundToggle.checked));
+      this.storageRemove("melodyDrumBackgroundSound");
       if (this.soundToggle) this.storageSet("melodyDrumEffectSound", String(this.soundToggle.checked));
       if (this.voiceGuideToggle) this.storageSet("melodyDrumVoiceGuide", String(this.voiceGuideToggle.checked));
       this.updatePauseSoundButton(this.pauseBackgroundSoundButton, this.backgroundSoundToggle && this.backgroundSoundToggle.checked);
@@ -1049,7 +1096,7 @@
       }
 
       toggle.checked = !toggle.checked;
-      this.audio.playClick();
+      this.playButtonClick();
       this.applySettings();
     }
 
