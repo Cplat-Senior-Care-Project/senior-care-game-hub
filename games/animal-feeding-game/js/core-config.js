@@ -68,13 +68,13 @@ function showErrorScreen(error) {
 }
 
 const ANIMALS = {
-  tiger:    { id:"tiger",    label:"빨간 도깨비", img:"image/red_goblin.png", correctImg:"image/red_goblin_correct.png", baseImg:"image/red_goblin_base.png",
+  tiger:    { id:"tiger",    label:"빨간 도깨비", img:"image/red_goblin.png", correctImg:"image/red_goblin_correct.png", baseImg:"image/goblin_straw_base.png",
               cheers:["든든해요","고마워요","어흥, 좋아요","잘 먹을게요"] },
-  monkey:   { id:"monkey",   label:"초록 도깨비", img:"image/green_goblin.png", correctImg:"image/green_goblin_correct.png", baseImg:"image/green_goblin_base.png",
+  monkey:   { id:"monkey",   label:"초록 도깨비", img:"image/green_goblin.png", correctImg:"image/green_goblin_correct.png", baseImg:"image/goblin_straw_base.png",
               cheers:["우키, 좋아요","고마워요","맛있게 먹을게요","신나요"] },
-  squirrel: { id:"squirrel", label:"하얀 도깨비", img:"image/white_goblin.png", correctImg:"image/white_goblin_correct.png", baseImg:"image/white_goblin_base.png",
+  squirrel: { id:"squirrel", label:"하얀 도깨비", img:"image/white_goblin.png", correctImg:"image/white_goblin_correct.png", baseImg:"image/goblin_straw_base.png",
               cheers:["냠냠 좋아요","고마워요","따뜻해요","좋은 시간이네요"] },
-  panda:    { id:"panda",    label:"노란 도깨비",   img:"image/yellow_goblin.png", correctImg:"image/yellow_goblin_correct.png", baseImg:"image/yellow_goblin_base.png",
+  panda:    { id:"panda",    label:"노란 도깨비",   img:"image/yellow_goblin.png", correctImg:"image/yellow_goblin_correct.png", baseImg:"image/goblin_straw_base.png",
               cheers:["아삭아삭 좋아요","고마워요","마음에 들어요","천천히 먹을게요"] },
   bin:      { id:"bin",      label:"휴지통", img:"image/bin.png",
               cheers:["정리했어요","깔끔해졌어요","잘 치웠어요"] },

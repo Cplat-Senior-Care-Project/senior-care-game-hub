@@ -23,10 +23,10 @@
   height: clamp(76px, 88px, 132px);
   transform: translateX(-50%);
   background:
-    url("../image/red_goblin_base.png") 0% 100% / 24% auto no-repeat,
-    url("../image/green_goblin_base.png") 33.333% 100% / 24% auto no-repeat,
-    url("../image/white_goblin_base.png") 66.667% 100% / 24% auto no-repeat,
-    url("../image/yellow_goblin_base.png") 100% 100% / 24% auto no-repeat;
+    url("../image/goblin_straw_base.png") 0% 100% / 24% auto no-repeat,
+    url("../image/goblin_straw_base.png") 33.333% 100% / 24% auto no-repeat,
+    url("../image/goblin_straw_base.png") 66.667% 100% / 24% auto no-repeat,
+    url("../image/goblin_straw_base.png") 100% 100% / 24% auto no-repeat;
   filter: drop-shadow(0 18px 18px rgba(65,72,46,.14));
   pointer-events: none;
 }
