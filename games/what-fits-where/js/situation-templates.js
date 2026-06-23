@@ -7,13 +7,12 @@ window.SITUATION_TEMPLATE_DATA = {
       "id": "hospital_visit",
       "situationName": "병원 방문",
       "questionPatterns": [
-        "병원 진료를 받으러 가려고 해요. 챙겨야 할 물건을 골라주세요.",
-        "병원 접수와 진료, 이동과 연락에 필요한 물건은 무엇일까요?",
-        "병원 방문 전 준비물을 확인해 주세요."
+        "버스를 타고 병원 진료를 받으러 가려고 해요. 챙겨야 할 물건을 골라주세요.",
+        "병원 접수와 진료, 버스 이동과 연락에 필요한 물건은 무엇일까요?",
+        "버스를 타고 병원 방문 전 준비물을 확인해 주세요."
       ],
       "requiredPool": [
         "진료카드",
-        "마스크",
         "지갑",
         "휴대폰",
         "교통카드"
@@ -36,7 +35,6 @@ window.SITUATION_TEMPLATE_DATA = {
       ],
       "requiredPool": [
         "처방전",
-        "약",
         "지갑",
         "휴대폰"
       ],
@@ -73,15 +71,12 @@ window.SITUATION_TEMPLATE_DATA = {
       "id": "junk_shop_sale",
       "situationName": "고물상 방문",
       "questionPatterns": [
-        "고물상에 빈병이나 고철을 팔러 갈 때 필요한 물건을 골라주세요.",
-        "고물상에 빈병과 고철을 팔러 갈 때 준비해야 할 물건을 골라주세요.",
-        "빈병과 고철을 고물상에 가져가 팔려고 해요. 필요한 물건을 골라주세요."
+        "고물상에 많은 빈병이나 고철을 팔러 갈 때 필요한 물건을 골라주세요.",
+        "고물상에 많은 빈병과 고철을 팔러 갈 때 준비해야 할 물건을 골라주세요.",
+        "많은 빈병과 고철을 고물상에 가져가 팔려고 해요. 필요한 물건을 골라주세요."
       ],
       "requiredPool": [
-        "고철",
-        "빈병",
         "손수레",
-        "글러브",
         "지갑",
         "휴대폰"
       ],
@@ -97,17 +92,14 @@ window.SITUATION_TEMPLATE_DATA = {
       "id": "garden_planting",
       "situationName": "밭에 씨앗 심기",
       "questionPatterns": [
-        "텃밭에 씨앗을 심으러 가려고 해요. 필요한 물건을 골라주세요.",
+        "텃밭에 씨앗을 심고 물을 주려고 해요. 필요한 물건을 골라주세요.",
         "텃밭에서 씨앗을 심고 물을 주며 일할 때 필요한 물건은 무엇일까요?",
-        "텃밭에 가기 전 준비물을 확인해 주세요."
+        "텃밭에 씨앗을 심고 물을 주러 가기 전 준비물을 확인해 주세요."
       ],
       "requiredPool": [
         "씨앗",
         "삽",
-        "물뿌리개",
-        "글러브",
-        "모자",
-        "물통"
+        "물뿌리개"
       ],
       "wrongPool": [
         "베개",
@@ -170,11 +162,9 @@ window.SITUATION_TEMPLATE_DATA = {
       ],
       "requiredPool": [
         "통장",
-        "도장",
         "신분증",
         "지갑",
-        "휴대폰",
-        "현금"
+        "휴대폰"
       ],
       "wrongPool": [
         "수영복",
@@ -218,8 +208,7 @@ window.SITUATION_TEMPLATE_DATA = {
       "requiredPool": [
         "지갑",
         "휴대폰",
-        "교통카드",
-        "물통"
+        "교통카드"
       ],
       "wrongPool": [
         "프라이팬",
@@ -233,14 +222,13 @@ window.SITUATION_TEMPLATE_DATA = {
       "id": "market_grocery",
       "situationName": "시장 장보기",
       "questionPatterns": [
-        "시장에 장을 보러 가려고 해요. 필요한 물건을 골라주세요.",
-        "시장에 장을 보러 갈 때 준비해야 할 물건을 골라주세요.",
-        "시장에 가기 전 장보기와 결제, 이동에 필요한 물건을 확인해 주세요."
+        "버스를 타고 시장에 장을 보러 가려고 해요. 필요한 물건을 골라주세요.",
+        "버스를 타고 시장에 장을 보러 갈 때 준비해야 할 물건을 골라주세요.",
+        "시장에 가기 전 장보기와 결제, 버스 이동에 필요한 물건을 확인해 주세요."
       ],
       "requiredPool": [
         "장바구니",
         "지갑",
-        "현금",
         "휴대폰",
         "교통카드"
       ],
@@ -262,8 +250,6 @@ window.SITUATION_TEMPLATE_DATA = {
       ],
       "requiredPool": [
         "우산",
-        "장화",
-        "우비",
         "지갑",
         "휴대폰"
       ],
@@ -284,10 +270,8 @@ window.SITUATION_TEMPLATE_DATA = {
         "겨울 외출 전 방한용품과 휴대폰을 확인해 주세요."
       ],
       "requiredPool": [
-        "글러브",
         "목도리",
         "털모자",
-        "마스크",
         "휴대폰"
       ],
       "wrongPool": [
@@ -308,10 +292,7 @@ window.SITUATION_TEMPLATE_DATA = {
       ],
       "requiredPool": [
         "모자",
-        "선글라스",
-        "부채",
-        "물통",
-        "수박"
+        "부채"
       ],
       "wrongPool": [
         "목도리",
@@ -326,13 +307,11 @@ window.SITUATION_TEMPLATE_DATA = {
       "situationName": "동네 산책",
       "questionPatterns": [
         "동네를 산책하고 잠깐 들를 곳도 있어요. 챙길 물건을 골라주세요.",
-        "가볍게 걸으러 나가며 마실 물과 개인 물건을 챙기려면 무엇이 필요할까요?",
+        "가볍게 걸으러 나가며 개인 물건을 챙기려면 무엇이 필요할까요?",
         "산책 전 신발과 개인 물건을 확인해 주세요."
       ],
       "requiredPool": [
         "운동화",
-        "물통",
-        "모자",
         "휴대폰",
         "지갑"
       ],
@@ -355,10 +334,7 @@ window.SITUATION_TEMPLATE_DATA = {
       "requiredPool": [
         "등산화",
         "물통",
-        "모자",
-        "글러브",
-        "휴대폰",
-        "간식"
+        "휴대폰"
       ],
       "wrongPool": [
         "수영복",
@@ -379,7 +355,6 @@ window.SITUATION_TEMPLATE_DATA = {
       "requiredPool": [
         "비누",
         "샴푸",
-        "수건",
         "칫솔",
         "치약"
       ],
@@ -402,9 +377,7 @@ window.SITUATION_TEMPLATE_DATA = {
       "requiredPool": [
         "칫솔",
         "치약",
-        "컵",
-        "수건",
-        "거울"
+        "컵"
       ],
       "wrongPool": [
         "삽",
@@ -424,10 +397,7 @@ window.SITUATION_TEMPLATE_DATA = {
       ],
       "requiredPool": [
         "베개",
-        "이불",
-        "약",
-        "물통",
-        "휴대폰"
+        "이불"
       ],
       "wrongPool": [
         "장바구니",
@@ -449,8 +419,7 @@ window.SITUATION_TEMPLATE_DATA = {
         "밥그릇",
         "국그릇",
         "숟가락",
-        "젓가락",
-        "컵"
+        "젓가락"
       ],
       "wrongPool": [
         "칫솔",
@@ -472,8 +441,7 @@ window.SITUATION_TEMPLATE_DATA = {
         "라면",
         "냄비",
         "달걀",
-        "젓가락",
-        "컵"
+        "젓가락"
       ],
       "wrongPool": [
         "성경",
@@ -494,9 +462,7 @@ window.SITUATION_TEMPLATE_DATA = {
       "requiredPool": [
         "커피",
         "커피 잔",
-        "커피 포트",
-        "숟가락",
-        "컵"
+        "커피 포트"
       ],
       "wrongPool": [
         "씨앗",
@@ -517,9 +483,7 @@ window.SITUATION_TEMPLATE_DATA = {
       "requiredPool": [
         "주방용 세제",
         "수세미",
-        "고무장갑",
-        "컵",
-        "밥그릇"
+        "고무장갑"
       ],
       "wrongPool": [
         "교통카드",
@@ -541,8 +505,7 @@ window.SITUATION_TEMPLATE_DATA = {
         "빗자루",
         "걸레",
         "쓰레받기",
-        "쓰레기통",
-        "고무장갑"
+        "쓰레기통"
       ],
       "wrongPool": [
         "진료카드",
@@ -564,7 +527,6 @@ window.SITUATION_TEMPLATE_DATA = {
         "쓰레기통",
         "쓰레기봉투",
         "고무장갑",
-        "마스크",
         "손전등"
       ],
       "wrongPool": [
@@ -587,7 +549,6 @@ window.SITUATION_TEMPLATE_DATA = {
         "세탁세제",
         "빨래바구니",
         "고무장갑",
-        "수건",
         "빨래집게"
       ],
       "wrongPool": [
@@ -609,10 +570,7 @@ window.SITUATION_TEMPLATE_DATA = {
       "requiredPool": [
         "회원증",
         "공책",
-        "연필",
-        "마스크",
-        "교통카드",
-        "물통"
+        "연필"
       ],
       "wrongPool": [
         "수영복",
@@ -631,11 +589,7 @@ window.SITUATION_TEMPLATE_DATA = {
         "도서관 방문 전 준비물을 확인해 주세요."
       ],
       "requiredPool": [
-        "도서관카드",
-        "책",
-        "휴대폰",
-        "마스크",
-        "지갑"
+        "도서관카드"
       ],
       "wrongPool": [
         "냄비",
@@ -655,7 +609,6 @@ window.SITUATION_TEMPLATE_DATA = {
       ],
       "requiredPool": [
         "지갑",
-        "마스크",
         "휴대폰"
       ],
       "wrongPool": [
@@ -676,9 +629,6 @@ window.SITUATION_TEMPLATE_DATA = {
       ],
       "requiredPool": [
         "운동화",
-        "수건",
-        "물통",
-        "마스크",
         "휴대폰"
       ],
       "wrongPool": [
@@ -699,10 +649,8 @@ window.SITUATION_TEMPLATE_DATA = {
       ],
       "requiredPool": [
         "수영복",
-        "수건",
         "튜브",
-        "수영모",
-        "샴푸"
+        "수영모"
       ],
       "wrongPool": [
         "목도리",
@@ -723,9 +671,7 @@ window.SITUATION_TEMPLATE_DATA = {
       "requiredPool": [
         "도시락",
         "돗자리",
-        "물통",
-        "모자",
-        "휴대폰"
+        "물통"
       ],
       "wrongPool": [
         "진료카드",
@@ -745,10 +691,7 @@ window.SITUATION_TEMPLATE_DATA = {
       ],
       "requiredPool": [
         "수영복",
-        "튜브",
-        "수건",
-        "선글라스",
-        "모자"
+        "튜브"
       ],
       "wrongPool": [
         "난로",
@@ -768,10 +711,7 @@ window.SITUATION_TEMPLATE_DATA = {
       ],
       "requiredPool": [
         "손전등",
-        "건전지",
-        "휴대폰",
-        "물통",
-        "약"
+        "휴대폰"
       ],
       "wrongPool": [
         "수영복",
@@ -791,10 +731,7 @@ window.SITUATION_TEMPLATE_DATA = {
       ],
       "requiredPool": [
         "소화기",
-        "휴대폰",
-        "마스크",
-        "수건",
-        "물통"
+        "휴대폰"
       ],
       "wrongPool": [
         "수영복",
@@ -809,12 +746,10 @@ window.SITUATION_TEMPLATE_DATA = {
       "situationName": "약 챙기기",
       "questionPatterns": [
         "처방전과 약, 물을 챙기고 필요하면 결제나 연락도 하려고 해요. 필요한 물건을 골라주세요.",
-        "약을 받고 먹을 때 함께 준비하면 좋은 물건은 무엇일까요?",
-        "약을 챙기기 전 처방전과 개인 물건을 확인해 주세요."
+        "약을 받을 때 함께 준비하면 좋은 물건은 무엇일까요?",
+        "약을 받기 전 처방전과 개인 물건을 확인해 주세요."
       ],
       "requiredPool": [
-        "약",
-        "물통",
         "처방전",
         "휴대폰",
         "지갑"
@@ -838,8 +773,7 @@ window.SITUATION_TEMPLATE_DATA = {
       "requiredPool": [
         "현금",
         "휴대폰",
-        "지갑",
-        "교통카드"
+        "지갑"
       ],
       "wrongPool": [
         "수영복",
@@ -861,7 +795,6 @@ window.SITUATION_TEMPLATE_DATA = {
         "쌀",
         "지갑",
         "교통카드",
-        "장바구니",
         "휴대폰"
       ],
       "wrongPool": [
@@ -895,16 +828,15 @@ window.SITUATION_TEMPLATE_DATA = {
       "id": "pan_cooking",
       "situationName": "프라이팬 요리",
       "questionPatterns": [
-        "프라이팬으로 달걀 요리를 하고 정리하려고 해요. 필요한 물건을 골라주세요.",
-        "프라이팬으로 요리하고 식사와 정리까지 하려면 무엇을 준비하면 좋을까요?",
-        "요리와 정리 전 준비물을 확인해 주세요."
+        "프라이팬으로 달걀 요리를 하고 식사를 하려고 해요. 필요한 물건을 골라주세요.",
+        "프라이팬으로 달걀 요리를 하고 식사를 하려면 무엇을 준비하면 좋을까요?",
+        "달걀 요리 후, 식사 준비물을 확인해 주세요."
       ],
       "requiredPool": [
         "프라이팬",
         "달걀",
         "숟가락",
-        "젓가락",
-        "주방용 세제"
+        "젓가락"
       ],
       "wrongPool": [
         "성경",
@@ -925,8 +857,7 @@ window.SITUATION_TEMPLATE_DATA = {
       "requiredPool": [
         "신분증",
         "휴대폰",
-        "지갑",
-        "교통카드"
+        "지갑"
       ],
       "wrongPool": [
         "수영복",
@@ -941,15 +872,11 @@ window.SITUATION_TEMPLATE_DATA = {
       "situationName": "가족에게 전화하기",
       "questionPatterns": [
         "가족과 전화나 영상통화를 하려고 해요. 필요한 물건을 골라주세요.",
-        "통화를 편하게 하려면 무엇을 준비하면 좋을까요?",
+        "통화를 하려면 무엇을 준비하면 좋을까요?",
         "전화하기 전 준비물을 확인해 주세요."
       ],
       "requiredPool": [
-        "휴대폰",
-        "이어폰",
-        "안경",
-        "충전기",
-        "의자"
+        "휴대폰"
       ],
       "wrongPool": [
         "씨앗",
@@ -970,9 +897,7 @@ window.SITUATION_TEMPLATE_DATA = {
       "requiredPool": [
         "스마트폰",
         "이어폰",
-        "운동화",
-        "물통",
-        "모자"
+        "운동화"
       ],
       "wrongPool": [
         "냄비",
@@ -988,13 +913,12 @@ window.SITUATION_TEMPLATE_DATA = {
       "questionPatterns": [
         "성경 공부 모임에 가려고 해요. 공부와 이동에 필요한 물건을 골라주세요.",
         "교회 모임에서 공부하고 이동할 때 필요한 준비물은 무엇일까요?",
-        "성경 공부 모임 전 공부도구와 개인 물건을 확인해 주세요."
+        "버스를 타고 성경 공부 모임을 가기 전에 공부도구와 개인 물건을 확인해 주세요."
       ],
       "requiredPool": [
         "성경",
         "공책",
         "연필",
-        "마스크",
         "교통카드"
       ],
       "wrongPool": [
@@ -1009,9 +933,9 @@ window.SITUATION_TEMPLATE_DATA = {
       "id": "friend_visit",
       "situationName": "친구 집 방문",
       "questionPatterns": [
-        "친구 집에 방문하려고 해요. 연락과 이동에 필요한 물건을 골라주세요.",
-        "친구를 만나러 갈 때 무엇을 챙기면 좋을까요?",
-        "친구를 만나러 가기 전 준비물을 확인해 주세요."
+        "버스를 타고 친구 집에 방문하려고 해요. 연락과 이동에 필요한 물건을 골라주세요.",
+        "버스를 타고 친구를 만나러 갈 때 무엇을 챙기면 좋을까요?",
+        "버스를 타고 친구를 만나러 가기 전 준비물을 확인해 주세요."
       ],
       "requiredPool": [
         "휴대폰",
@@ -1037,7 +961,6 @@ window.SITUATION_TEMPLATE_DATA = {
       "requiredPool": [
         "신분증",
         "진료카드",
-        "마스크",
         "지갑",
         "휴대폰"
       ],
@@ -1058,11 +981,7 @@ window.SITUATION_TEMPLATE_DATA = {
         "공원 운동 전 준비물을 확인해 주세요."
       ],
       "requiredPool": [
-        "운동화",
-        "수건",
-        "물통",
-        "모자",
-        "스트레칭밴드"
+        "운동화"
       ],
       "wrongPool": [
         "냄비",
@@ -1082,10 +1001,8 @@ window.SITUATION_TEMPLATE_DATA = {
       ],
       "requiredPool": [
         "신분증",
-        "현금",
         "휴대폰",
-        "지갑",
-        "서류봉투"
+        "지갑"
       ],
       "wrongPool": [
         "수영복",
@@ -1104,11 +1021,8 @@ window.SITUATION_TEMPLATE_DATA = {
         "안경점 방문 전 준비물을 확인해 주세요."
       ],
       "requiredPool": [
-        "안경",
         "지갑",
-        "휴대폰",
-        "마스크",
-        "신분증"
+        "휴대폰"
       ],
       "wrongPool": [
         "씨앗",
@@ -1128,10 +1042,7 @@ window.SITUATION_TEMPLATE_DATA = {
       ],
       "requiredPool": [
         "장바구니",
-        "지갑",
-        "현금",
-        "모자",
-        "화분"
+        "지갑"
       ],
       "wrongPool": [
         "진료카드",
