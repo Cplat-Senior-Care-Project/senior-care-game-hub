@@ -1,7 +1,13 @@
 ﻿/* Active play screen, symbols, pads, and progress layout */
 .screen-play {
   --focus-x-offset: calc(-1 * clamp(16px, 3.4cqmin, 24px));
-  --topbar-x-offset: 16px;
+  --play-app-top-inset: calc(var(--safe-top, 0px) + var(--s-sm));
+  --play-app-left-inset: calc(var(--safe-left, 0px) + var(--s-md));
+  --play-app-right-inset: calc(var(--safe-right, 0px) + var(--s-md));
+  --play-screen-top-inset: calc(14px + var(--safe-top, 0px));
+  --play-screen-left-inset: calc(18px + var(--safe-left, 0px));
+  --play-screen-right-inset: calc(18px + var(--safe-right, 0px));
+  --topbar-x-offset: 0px;
   --spotlight-top-offset: clamp(190px, 26cqmin, 260px);
   position: relative;
   isolation: isolate;
@@ -35,21 +41,25 @@
 
 .play-topbar {
   position: absolute;
-  top: var(--s-xs);
-  left: 0;
-  right: 0;
+  top: calc(0px - var(--play-app-top-inset) - var(--play-screen-top-inset) - var(--game-viewport-top-gutter, 0px));
+  left: calc(0px - var(--play-app-left-inset) - var(--play-screen-left-inset) - var(--game-viewport-side-gutter, 0px));
+  right: auto;
   z-index: 5;
   display: grid;
   grid-template-columns: 1fr;
-  align-items: center;
-  gap: var(--s-sm);
-  width: 100%;
+  align-content: start;
+  align-items: start;
+  gap: 0;
+  width: calc(100% + var(--play-app-left-inset) + var(--play-app-right-inset) + var(--game-viewport-side-gutter, 0px) + var(--game-viewport-side-gutter, 0px));
   min-height: 0;
+  padding-top: 8px;
+  overflow: visible;
+  transform: none;
 }
 
 .progress-wrap {
   min-width: 0;
-  width: 1172px;
+  width: min(1172px, calc(100% - 48px));
   height: auto;
   min-height: 0;
   padding: 0;
@@ -168,7 +178,7 @@
 
 .play-center {
   position: relative;
-  z-index: 1;
+  z-index: 3;
   grid-row: 2;
   display: grid;
   grid-template-columns: 1fr minmax(130px, 0.32fr);
@@ -295,20 +305,25 @@
 }
 
 .current-symbol::after {
+  display: none;
+  content: none;
+}
+
+.current-symbol .symbol-instruction {
   position: absolute;
   left: 50%;
   top: calc(100% + clamp(34px, 5cqmin, 52px));
   z-index: 2;
   box-sizing: border-box;
-  display: grid;
-  place-items: center;
+  display: inline-flex;
+  align-items: baseline;
+  justify-content: center;
   width: max-content;
   max-width: 960px;
   padding: 0;
   border: 0;
   background: transparent;
   color: #4f2d14;
-  content: "같은 모양 버튼을 눌러주세요!";
   font-size: 35px;
   font-weight: 900;
   line-height: 1;
@@ -318,6 +333,13 @@
   white-space: nowrap;
   transform: translate(-50%, 8px);
   pointer-events: none;
+}
+
+.current-symbol .symbol-instruction-time {
+  display: inline-block;
+  color: #d82323;
+  white-space: nowrap;
+  word-break: keep-all;
 }
 
 .preview-card {

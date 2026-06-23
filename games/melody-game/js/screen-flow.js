@@ -1079,6 +1079,7 @@
       const isPortrait = this.isPortraitViewport(viewportWidth, viewportHeight);
 
       document.documentElement.style.setProperty("--game-scale", String(scale));
+      document.documentElement.style.setProperty("--game-viewport-side-gutter", `${horizontalGutter}px`);
       document.documentElement.style.setProperty("--game-viewport-right-gutter", `${horizontalGutter}px`);
       document.documentElement.style.setProperty("--game-viewport-top-gutter", `${Math.min(verticalGutter, 120)}px`);
       document.body.classList.toggle("portrait-viewport", isPortrait);
@@ -1106,28 +1107,26 @@
       this.playScreen.style.gridTemplateRows = "150px minmax(0, 1fr) 248px";
       this.playScreen.style.gap = "0";
 
-      this.playTopbar.style.position = "relative";
-      this.playTopbar.style.top = "auto";
-      this.playTopbar.style.left = "auto";
-      this.playTopbar.style.right = "auto";
+      this.playTopbar.style.position = "";
+      this.playTopbar.style.top = "";
+      this.playTopbar.style.left = "";
+      this.playTopbar.style.right = "";
       this.playTopbar.style.gridRow = "1";
       this.playTopbar.style.alignSelf = "start";
       this.playTopbar.style.alignContent = "start";
-      this.playTopbar.style.width = "100%";
-      this.playTopbar.style.minHeight = "0";
+      this.playTopbar.style.width = "";
+      this.playTopbar.style.minHeight = "";
       this.playTopbar.style.zIndex = "5";
-      this.playTopbar.style.transform = isPlaying ? "translateY(calc(var(--game-viewport-top-gutter, 0px) * -1))" : "";
+      this.playTopbar.style.transform = "";
       this.playTopbar.style.transformOrigin = "top center";
 
       this.progressWrap.style.justifySelf = "center";
       this.progressWrap.style.margin = "0 auto";
-      this.progressWrap.style.transform = "none";
+      this.progressWrap.style.transform = "";
 
       if (this.pauseButton) {
-        const runtime = window.MelodyRuntime && window.MelodyRuntime.runtime ? window.MelodyRuntime.runtime : {};
-        const isCompactProgressMode = runtime.mode === "care" || runtime.mode === "ai_assisted";
-        this.pauseButton.style.justifySelf = "stretch";
-        this.pauseButton.style.gridColumn = isCompactProgressMode ? "2" : "3";
+        this.pauseButton.style.justifySelf = "";
+        this.pauseButton.style.gridColumn = "";
       }
 
       this.playCenter.style.gridRow = "2";

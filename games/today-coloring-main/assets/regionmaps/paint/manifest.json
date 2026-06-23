@@ -1,0 +1,368 @@
+{
+  "version": 3,
+  "mode": "paint",
+  "paintMaxSide": 1500,
+  "source": "assets/images/artworks",
+  "maps": [
+    {
+      "id": "vertical-01",
+      "file": "vertical-01.png",
+      "lineLayerFile": "vertical-01.png",
+      "width": 896,
+      "height": 1200,
+      "regions": 600,
+      "paintablePixels": 337565
+    },
+    {
+      "id": "vertical-02",
+      "file": "vertical-02.png",
+      "lineLayerFile": "vertical-02.png",
+      "width": 896,
+      "height": 1200,
+      "regions": 234,
+      "paintablePixels": 395589
+    },
+    {
+      "id": "vertical-03",
+      "file": "vertical-03.png",
+      "lineLayerFile": "vertical-03.png",
+      "width": 896,
+      "height": 1200,
+      "regions": 946,
+      "paintablePixels": 390972
+    },
+    {
+      "id": "vertical-04",
+      "file": "vertical-04.png",
+      "lineLayerFile": "vertical-04.png",
+      "width": 896,
+      "height": 1200,
+      "regions": 12,
+      "paintablePixels": 476417
+    },
+    {
+      "id": "vertical-05",
+      "file": "vertical-05.png",
+      "lineLayerFile": "vertical-05.png",
+      "width": 896,
+      "height": 1200,
+      "regions": 839,
+      "paintablePixels": 324136
+    },
+    {
+      "id": "vertical-06",
+      "file": "vertical-06.png",
+      "lineLayerFile": "vertical-06.png",
+      "width": 896,
+      "height": 1200,
+      "regions": 1577,
+      "paintablePixels": 315271
+    },
+    {
+      "id": "vertical-07",
+      "file": "vertical-07.png",
+      "lineLayerFile": "vertical-07.png",
+      "width": 864,
+      "height": 1184,
+      "regions": 26,
+      "paintablePixels": 444347
+    },
+    {
+      "id": "vertical-08",
+      "file": "vertical-08.png",
+      "lineLayerFile": "vertical-08.png",
+      "width": 896,
+      "height": 1200,
+      "regions": 1010,
+      "paintablePixels": 276721
+    },
+    {
+      "id": "vertical-09",
+      "file": "vertical-09.png",
+      "lineLayerFile": "vertical-09.png",
+      "width": 896,
+      "height": 1200,
+      "regions": 1435,
+      "paintablePixels": 373371
+    },
+    {
+      "id": "vertical-10",
+      "file": "vertical-10.png",
+      "lineLayerFile": "vertical-10.png",
+      "width": 896,
+      "height": 1200,
+      "regions": 188,
+      "paintablePixels": 602870
+    },
+    {
+      "id": "vertical-11",
+      "file": "vertical-11.png",
+      "lineLayerFile": "vertical-11.png",
+      "width": 896,
+      "height": 1200,
+      "regions": 1624,
+      "paintablePixels": 278595
+    },
+    {
+      "id": "vertical-12",
+      "file": "vertical-12.png",
+      "lineLayerFile": "vertical-12.png",
+      "width": 896,
+      "height": 1200,
+      "regions": 561,
+      "paintablePixels": 304260
+    },
+    {
+      "id": "vertical-13",
+      "file": "vertical-13.png",
+      "lineLayerFile": "vertical-13.png",
+      "width": 896,
+      "height": 1200,
+      "regions": 3301,
+      "paintablePixels": 432681
+    },
+    {
+      "id": "vertical-14",
+      "file": "vertical-14.png",
+      "lineLayerFile": "vertical-14.png",
+      "width": 896,
+      "height": 1200,
+      "regions": 48,
+      "paintablePixels": 543628
+    },
+    {
+      "id": "vertical-15",
+      "file": "vertical-15.png",
+      "lineLayerFile": "vertical-15.png",
+      "width": 896,
+      "height": 1200,
+      "regions": 977,
+      "paintablePixels": 230034
+    },
+    {
+      "id": "vertical-16",
+      "file": "vertical-16.png",
+      "lineLayerFile": "vertical-16.png",
+      "width": 896,
+      "height": 1200,
+      "regions": 668,
+      "paintablePixels": 245196
+    },
+    {
+      "id": "vertical-17",
+      "file": "vertical-17.png",
+      "lineLayerFile": "vertical-17.png",
+      "width": 896,
+      "height": 1200,
+      "regions": 259,
+      "paintablePixels": 480861
+    },
+    {
+      "id": "vertical-18",
+      "file": "vertical-18.png",
+      "lineLayerFile": "vertical-18.png",
+      "width": 896,
+      "height": 1200,
+      "regions": 44,
+      "paintablePixels": 528257
+    },
+    {
+      "id": "vertical-19",
+      "file": "vertical-19.png",
+      "lineLayerFile": "vertical-19.png",
+      "width": 896,
+      "height": 1200,
+      "regions": 555,
+      "paintablePixels": 389381
+    },
+    {
+      "id": "vertical-20",
+      "file": "vertical-20.png",
+      "lineLayerFile": "vertical-20.png",
+      "width": 896,
+      "height": 1200,
+      "regions": 6564,
+      "paintablePixels": 472071
+    },
+    {
+      "id": "vertical-21",
+      "file": "vertical-21.png",
+      "lineLayerFile": "vertical-21.png",
+      "width": 896,
+      "height": 1200,
+      "regions": 608,
+      "paintablePixels": 458084
+    },
+    {
+      "id": "vertical-22",
+      "file": "vertical-22.png",
+      "lineLayerFile": "vertical-22.png",
+      "width": 896,
+      "height": 1200,
+      "regions": 1083,
+      "paintablePixels": 250879
+    },
+    {
+      "id": "vertical-23",
+      "file": "vertical-23.png",
+      "lineLayerFile": "vertical-23.png",
+      "width": 896,
+      "height": 1200,
+      "regions": 161,
+      "paintablePixels": 429102
+    },
+    {
+      "id": "vertical-24",
+      "file": "vertical-24.png",
+      "lineLayerFile": "vertical-24.png",
+      "width": 896,
+      "height": 1200,
+      "regions": 846,
+      "paintablePixels": 389292
+    },
+    {
+      "id": "vertical-25",
+      "file": "vertical-25.png",
+      "lineLayerFile": "vertical-25.png",
+      "width": 896,
+      "height": 1200,
+      "regions": 3275,
+      "paintablePixels": 389751
+    },
+    {
+      "id": "vertical-26",
+      "file": "vertical-26.png",
+      "lineLayerFile": "vertical-26.png",
+      "width": 896,
+      "height": 1200,
+      "regions": 5132,
+      "paintablePixels": 267569
+    },
+    {
+      "id": "vertical-27",
+      "file": "vertical-27.png",
+      "lineLayerFile": "vertical-27.png",
+      "width": 896,
+      "height": 1200,
+      "regions": 53,
+      "paintablePixels": 597735
+    },
+    {
+      "id": "vertical-28",
+      "file": "vertical-28.png",
+      "lineLayerFile": "vertical-28.png",
+      "width": 896,
+      "height": 1200,
+      "regions": 110,
+      "paintablePixels": 436169
+    },
+    {
+      "id": "vertical-29",
+      "file": "vertical-29.png",
+      "lineLayerFile": "vertical-29.png",
+      "width": 896,
+      "height": 1200,
+      "regions": 151,
+      "paintablePixels": 437793
+    },
+    {
+      "id": "vertical-30",
+      "file": "vertical-30.png",
+      "lineLayerFile": "vertical-30.png",
+      "width": 896,
+      "height": 1200,
+      "regions": 304,
+      "paintablePixels": 473606
+    },
+    {
+      "id": "vertical-31",
+      "file": "vertical-31.png",
+      "lineLayerFile": "vertical-31.png",
+      "width": 896,
+      "height": 1200,
+      "regions": 764,
+      "paintablePixels": 481181
+    },
+    {
+      "id": "vertical-32",
+      "file": "vertical-32.png",
+      "lineLayerFile": "vertical-32.png",
+      "width": 896,
+      "height": 1200,
+      "regions": 630,
+      "paintablePixels": 391709
+    },
+    {
+      "id": "vertical-33",
+      "file": "vertical-33.png",
+      "lineLayerFile": "vertical-33.png",
+      "width": 896,
+      "height": 1200,
+      "regions": 137,
+      "paintablePixels": 341394
+    },
+    {
+      "id": "vertical-34",
+      "file": "vertical-34.png",
+      "lineLayerFile": "vertical-34.png",
+      "width": 896,
+      "height": 1200,
+      "regions": 966,
+      "paintablePixels": 408752
+    },
+    {
+      "id": "vertical-35",
+      "file": "vertical-35.png",
+      "lineLayerFile": "vertical-35.png",
+      "width": 896,
+      "height": 1200,
+      "regions": 1756,
+      "paintablePixels": 384288
+    },
+    {
+      "id": "vertical-36",
+      "file": "vertical-36.png",
+      "lineLayerFile": "vertical-36.png",
+      "width": 896,
+      "height": 1200,
+      "regions": 521,
+      "paintablePixels": 352042
+    },
+    {
+      "id": "vertical-37",
+      "file": "vertical-37.png",
+      "lineLayerFile": "vertical-37.png",
+      "width": 896,
+      "height": 1200,
+      "regions": 425,
+      "paintablePixels": 396595
+    },
+    {
+      "id": "vertical-38",
+      "file": "vertical-38.png",
+      "lineLayerFile": "vertical-38.png",
+      "width": 896,
+      "height": 1200,
+      "regions": 128,
+      "paintablePixels": 431895
+    },
+    {
+      "id": "vertical-39",
+      "file": "vertical-39.png",
+      "lineLayerFile": "vertical-39.png",
+      "width": 896,
+      "height": 1200,
+      "regions": 637,
+      "paintablePixels": 489609
+    },
+    {
+      "id": "vertical-40",
+      "file": "vertical-40.png",
+      "lineLayerFile": "vertical-40.png",
+      "width": 896,
+      "height": 1200,
+      "regions": 481,
+      "paintablePixels": 404619
+    }
+  ]
+}

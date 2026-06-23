@@ -36,7 +36,7 @@
       hintEnabled: false,
       voiceGuideEnabled: true,
       hintDelayMs: 10000,
-      xHoldSeconds: 1.5
+      xHoldSeconds: 2
     },
     reminder: {
       difficulty: "easy",
@@ -59,7 +59,7 @@
       hintEnabled: false,
       voiceGuideEnabled: true,
       hintDelayMs: 10000,
-      xHoldSeconds: 1.5
+      xHoldSeconds: 2
     },
     care: {
       difficulty: "easy",
@@ -82,7 +82,7 @@
       hintEnabled: false,
       voiceGuideEnabled: true,
       hintDelayMs: 10000,
-      xHoldSeconds: 1.5
+      xHoldSeconds: 2
     },
     ai_assisted: {
       difficulty: "easy",
@@ -105,7 +105,7 @@
       hintEnabled: false,
       voiceGuideEnabled: true,
       hintDelayMs: 10000,
-      xHoldSeconds: 1.5
+      xHoldSeconds: 2
     }
   };
 
@@ -316,7 +316,7 @@
     base.hintEnabled = toBoolean(r.hintEnabled, false);
     base.voiceGuideEnabled = toBoolean(r.voiceGuideEnabled, true);
     base.hintDelayMs = toNumber(r.hintDelayMs, 10000);
-    base.xHoldSeconds = toNumber(r.xHoldSeconds, 1.5);
+    base.xHoldSeconds = toNumber(r.xHoldSeconds, 2);
     base.showTimer = toBoolean(r.showTimer, true);
     base.showScore = toBoolean(r.showScore, true);
     base.showDifficultySelect = toBoolean(r.showDifficultySelect, true);

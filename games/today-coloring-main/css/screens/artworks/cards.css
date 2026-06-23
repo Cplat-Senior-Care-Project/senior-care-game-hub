@@ -1,0 +1,136 @@
+/* Artwork list final pass: clearer cards, less badge clutter */
+.home .cardgrid,
+.gallery .cardgrid {
+  grid-template-columns:repeat(2, minmax(0, 1fr));
+  gap:16px 12px;
+  padding:8px 14px calc(112px + env(safe-area-inset-bottom));
+}
+
+.artcard {
+  gap:9px;
+}
+
+.artcard:hover .artcard__thumb {
+  transform:none;
+  box-shadow:none;
+}
+
+.artcard:active {
+  transform:scale(.98);
+}
+
+.artcard__thumb canvas,
+.artcard__thumb img {
+  width:100%;
+  height:100%;
+  object-fit:contain;
+  display:block;
+}
+
+
+.artcard__body {
+  padding:0 2px 3px;
+  gap:4px;
+}
+
+.artcard__label {
+  line-height:1.18;
+}
+
+.artcard__hint,
+.artcard__date {
+  font-size:12px;
+  line-height:1.25;
+}
+
+/* Final list/nav fit: keep artwork cards clear of the floating nav on short phones */
+.home,
+.gallery {
+  padding-bottom:calc(142px + env(safe-area-inset-bottom));
+}
+
+.home::after,
+.gallery::after {
+  content:"";
+  position:fixed;
+  left:0;
+  right:0;
+  bottom:0;
+  z-index:230;
+  height:92px;
+  pointer-events:none;
+  background:linear-gradient(180deg, rgba(250,246,238,0) 0%, rgba(250,246,238,0) 38%, rgba(250,246,238,.94) 72%, #FAF6EE 100%);
+}
+
+.gallery--empty::after {
+  display:none;
+}
+
+.home .cardgrid,
+.gallery .cardgrid {
+  padding-bottom:calc(158px + env(safe-area-inset-bottom));
+}
+
+.bottom-nav {
+  bottom:max(12px, env(safe-area-inset-bottom));
+  width:min(252px, calc(100vw - 56px));
+  min-height:60px;
+  padding:6px;
+  grid-template-columns:repeat(2, minmax(0, 1fr));
+  border-radius:24px;
+  background:#FFFDF8;
+  border-color:rgba(88,70,52,.1);
+  box-shadow:0 14px 34px rgba(75,55,35,.16), inset 0 1px 0 rgba(255,255,255,.9);
+}
+
+.bottom-nav__item {
+  min-height:48px;
+  border-radius:18px;
+}
+
+.bottom-nav__label {
+  font-size:12px;
+}
+
+@media (max-width: 340px) {
+  .home .cardgrid,
+  .gallery .cardgrid {
+    gap:14px 10px;
+    padding-inline:10px;
+  }
+}
+
+@media (max-height: 700px) {
+  .home .cardgrid,
+  .gallery .cardgrid {
+    gap:14px 12px;
+    padding-bottom:calc(170px + env(safe-area-inset-bottom));
+  }
+
+  .artcard {
+    gap:7px;
+    padding:7px;
+  }
+
+  .artcard__thumb {
+    border-radius:17px;
+  }
+
+  .bottom-nav {
+    bottom:max(10px, env(safe-area-inset-bottom));
+    width:min(244px, calc(100vw - 52px));
+    min-height:58px;
+  }
+}
+
+@media (min-width: 768px) {
+  .home::after,
+  .gallery::after {
+    display:none;
+  }
+
+  .home .cardgrid,
+  .gallery .cardgrid {
+    padding-bottom:calc(126px + env(safe-area-inset-bottom));
+  }
+}

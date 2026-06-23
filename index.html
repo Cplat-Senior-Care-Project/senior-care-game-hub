@@ -144,6 +144,10 @@
       margin-top: auto;
     }
 
+    .mode-grid--three .mode-link.standard {
+      grid-column: 1 / -1;
+    }
+
     .mode-link,
     .mode-button {
       display: flex;
@@ -529,6 +533,19 @@
           <a class="mode-link ai_assisted" href="games/new-light-game/index.html?mode=ai_assisted&game_key=light_memory" data-game-key="light_memory" data-mode="ai_assisted">AI 연동 모드</a>
         </div>
       </article>
+
+      <article class="game-card">
+        <div class="card-head">
+          <div class="card-kicker"><span class="status-dot" aria-hidden="true"></span>연결됨</div>
+          <h2>오늘의 색칠</h2>
+          <p class="card-copy">도안을 고르고 원하는 색으로 채워 완성하는 정서 활동입니다.</p>
+        </div>
+        <div class="mode-grid mode-grid--three" aria-label="오늘의 색칠 모드">
+          <a class="mode-link standard" href="games/today-coloring-main/index.html?mode=standard&game_key=today-coloring" data-game-key="today-coloring" data-mode="standard">표준 모드</a>
+          <a class="mode-link reminder" href="games/today-coloring-main/single.html?mode=reminder&game_key=today-coloring&content_id=today_coloring_001" data-game-key="today-coloring" data-mode="reminder">알림 모드</a>
+          <a class="mode-link care" href="games/today-coloring-main/single.html?mode=care&game_key=today-coloring&content_id=today_coloring_001" data-game-key="today-coloring" data-mode="care">케어 모드</a>
+        </div>
+      </article>
     </section>
 
     <section class="result-lab" aria-labelledby="result-lab-title">
@@ -719,6 +736,14 @@
           type = payload.status === "abandoned" || payload.status === "error" ? "SESSION_ABORT" : "SESSION_COMPLETE";
         }
         if (type === "GAME_ABANDONED") type = "SESSION_ABORT";
+        if (type === "COLORING_SESSION_END") {
+          var coloringCompleted = payload.completed !== false && payload.abandoned !== true;
+          type = coloringCompleted ? "SESSION_COMPLETE" : "SESSION_ABORT";
+          payload = Object.assign({}, payload, {
+            status: payload.status || (coloringCompleted ? "completed" : "abandoned"),
+            game_key: payload.game_key || payload.gameKey || "today-coloring"
+          });
+        }
 
         return {
           type: type,
@@ -756,7 +781,8 @@
         }
         if (message.type === "SESSION_COMPLETE" || message.type === "SESSION_ABORT") {
           var logs = payload.question_logs || (payload.result_detail_json && payload.result_detail_json.question_logs) || [];
-          return [payload.status || "", payload.game_key || "", logs.length ? logs.length + "문항" : ""].filter(Boolean).join(" · ");
+          var coloringCount = payload.fillCount != null ? payload.fillCount + "회 색칠" : "";
+          return [payload.status || "", payload.game_key || "", payload.title || payload.artworkId || "", logs.length ? logs.length + "문항" : coloringCount].filter(Boolean).join(" · ");
         }
         if (message.type === "ERROR") {
           return payload.error_code || payload.errorCode || "";

@@ -1,0 +1,12 @@
+/* Mobile width guard: no page-level horizontal drift */
+html,
+body,
+#root,
+.app,
+.screen {
+  overflow-x:hidden;
+}
+
+.appbar--home .appbar__count {
+  display:none;
+}
