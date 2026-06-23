@@ -13,6 +13,12 @@ function isNoTargetQuestion() {
   return !!cur && cur.itemType === "trash" && cur.correctTargetId === NO_TARGET_ID;
 }
 
+function correctTargetLabel() {
+  if (!cur) return "정답 위치";
+  if (cur.correctTargetId === NO_TARGET_ID) return NO_TARGET_LABEL;
+  return ANIMALS[cur.correctTargetId]?.label || "정답 위치";
+}
+
 function clearNoTargetAutoCorrect() {
   if (noTargetAutoCorrectTimer) {
     clearTimeout(noTargetAutoCorrectTimer);
@@ -424,24 +430,25 @@ function resolve(targetId, spotEl, inputType = "touch") {
     dingSoft();
     setTimeout(() => spotEl.classList.remove("bad"), 600);
     snapBack();
-    if (isNoTargetQuestion()) {
-      const msg = "아무에게도 주지 말고 그대로 두세요.";
-      setPrompt(msg, "warn");
-      playVoiceGuide("tryAgain", msg);
-      scheduleNoTargetAutoCorrect();
-      return;
-    }
     if (cur.wrongDropCount >= MAX_WRONG_ATTEMPTS) {
       cur._locked = true;
       cur.answerRevealed = true;
       cur.forcedAdvanceReason = "max_wrong_attempts";
       cur.responseTimeMs = Math.round(performance.now() - cur._t0);
       showCorrectAnswer();
-      const targetLabel = ANIMALS[cur.correctTargetId]?.label || "반짝이는 곳";
-      const msg = `정답은 ${targetLabel}이에요. 다음 문제로 넘어갈게요.`;
+      const msg = isNoTargetQuestion()
+        ? "아무에게도 주지 않는 것이 정답이에요. 다음 문제로 넘어갈게요."
+        : `정답은 ${correctTargetLabel()}이에요. 다음 문제로 넘어갈게요.`;
       setPrompt(msg, "warn");
       playVoiceGuide("hint", msg);
       finishQuestion(ANSWER_REVEAL_DELAY_MS);
+      return;
+    }
+    if (isNoTargetQuestion()) {
+      const msg = "아무에게도 주지 말고 그대로 두세요.";
+      setPrompt(msg, "warn");
+      playVoiceGuide("tryAgain", msg);
+      scheduleNoTargetAutoCorrect();
       return;
     }
     if (runtime.hintEnabled && runtime.autoHintEnabled && cur.attempts >= 2 && !cur.hintUsed) {
@@ -508,10 +515,12 @@ document.getElementById("helpBtn").addEventListener("click", () => {
   cur.hintUsed = true;
   const h = document.querySelector(`.spot[data-target="${cur.correctTargetId}"], .bin[data-target="${cur.correctTargetId}"]`);
   if (h) h.classList.add("hint");
-  const targetLabel = ANIMALS[cur.correctTargetId]?.label || "반짝이는 곳";
-  const msg = runtime.softFeedback
-    ? `괜찮아요. 반짝이는 ${targetLabel}을 봐주세요.`
-    : `반짝이는 ${targetLabel}에게 보내요`;
+  const targetLabel = correctTargetLabel();
+  const msg = isNoTargetQuestion()
+    ? "그대로 두세요."
+    : (runtime.softFeedback
+      ? `괜찮아요. ${targetLabel}을 봐주세요.`
+      : `${targetLabel}에게 보내요`);
   setPrompt(msg, "warn");
   playVoiceGuide("hint", msg);
   RN({
