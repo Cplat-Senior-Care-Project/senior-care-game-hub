@@ -107,6 +107,12 @@ function scheduleAutoReturn(delayOverrideMs = runtime.autoReturnMs) {
   }, delayMs);
 }
 
+function shouldShowFinishCheck(completed, reason) {
+  if (!runtime.showFinishCheck) return false;
+  if (completed) return true;
+  return runtime.mode === "standard" && reason === "user_quit";
+}
+
 function finishSession(completed, reason = "user_quit", error = null) {
   if (!state) return;
   if (state._status !== "running") return;
@@ -170,12 +176,12 @@ function finishSession(completed, reason = "user_quit", error = null) {
   }
   document.getElementById("doneReturnNote").textContent = copy.note;
 
-  const shouldFinishCheck = completed && runtime.showFinishCheck;
+  const shouldFinishCheck = shouldShowFinishCheck(completed, reason);
   if (shouldFinishCheck) resetFinishCheck();
   const againBtn = document.getElementById("againBtn");
   const doneBtn = document.getElementById("doneBtn");
-  if (againBtn) againBtn.classList.toggle("hidden", !!completed);
-  if (doneBtn) doneBtn.textContent = completed ? "확인" : "오늘은 여기까지";
+  if (againBtn) againBtn.classList.toggle("hidden", !!completed || shouldFinishCheck);
+  if (doneBtn) doneBtn.textContent = shouldFinishCheck ? "마무리 체크" : (completed ? "확인" : "오늘은 여기까지");
   show("done");
   if (completed) {
     playVoiceGuide("sessionComplete", runtime.softFeedback ? "오늘은 여기까지 해도 충분해요. 잘 참여해주셨어요." : "오늘도 잘 해내셨어요");
@@ -401,7 +407,7 @@ document.getElementById("doneBtn").addEventListener("click", () => {
     clearTimeout(autoReturnTimer);
     autoReturnTimer = null;
   }
-  if (pendingCompletionMessage && state?._status === "completed") {
+  if (pendingCompletionMessage) {
     showFinishStep(1);
     show("finish");
     setTimeout(() => playVoiceGuide("finishCurrentState", "지금의 상태를 알려주세요."), 80);
@@ -516,6 +522,7 @@ function submitFinishCheck(skipped = false) {
   const payload = finishCheckPayload(skipped);
   RN({ type:"CONDITION_CHECK", payload: payload.condition_check });
   RN({ type:"FINISH_CHECK", payload });
+  const shouldReturnAfterFinishCheck = pendingCompletionMessage?.type === "SESSION_ABORT";
   if (pendingCompletionMessage) {
     pendingCompletionMessage.payload.condition_check = payload.condition_check;
     pendingCompletionMessage.payload.fatigue_check = payload.fatigue_check;
@@ -534,10 +541,15 @@ function submitFinishCheck(skipped = false) {
       pendingCompletionMessage.payload.result_detail_json.finish_check_payload = payload;
     }
     RN(pendingCompletionMessage);
-    if (pendingAutoReturnMs > 0) scheduleAutoReturn(pendingAutoReturnMs);
+    if (shouldReturnAfterFinishCheck) {
+      returnToHost({}, { navigateToHub: true });
+    } else if (pendingAutoReturnMs > 0) {
+      scheduleAutoReturn(pendingAutoReturnMs);
+    }
     pendingCompletionMessage = null;
     pendingAutoReturnMs = 0;
   }
+  if (shouldReturnAfterFinishCheck) return;
   if (typeof showStartIntro === "function") showStartIntro(true);
   else show("start");
 }
