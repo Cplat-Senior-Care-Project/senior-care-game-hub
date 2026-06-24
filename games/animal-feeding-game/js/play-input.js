@@ -413,9 +413,7 @@ function resolve(targetId, spotEl, inputType = "touch") {
     dingHappy();
     updateEnergy(targetId);
     const animal = ANIMALS[targetId];
-    const msg = runtime.softFeedback
-      ? (targetId === "bin" ? "좋아요. 정리했어요." : "좋아요. 잘 보셨어요.")
-      : (targetId === "bin" ? "정리 구역에 잘 보냈어요" : `${animal.label}가 좋아해요`);
+    const msg = runtime.softFeedback ? "좋아요. 잘 보셨어요." : `${animal.label}가 좋아해요`;
     setPrompt(msg, "good");
     playVoiceGuide("wellDone", msg);
     document.getElementById("itemWrap").classList.add("item-delivered");

@@ -274,7 +274,7 @@ body.mode-ai #play .bin::before {
   z-index: 0;
   border: 0;
   border-radius: 24px;
-  background: var(--spot-base-image, url("../image/animal-pen.png")) center bottom / contain no-repeat;
+  background: var(--spot-base-image, url("../image/goblin_straw_base.png")) center bottom / contain no-repeat;
   box-shadow: none;
 }
 
@@ -356,7 +356,7 @@ body.mode-ai #play .bin::before {
   bottom: 0;
   width: calc(var(--bin) * 1.56);
   height: calc(var(--bin) * 1.38);
-  background: url("../image/cleanup-zone.png") center bottom / contain no-repeat;
+  background: url("../image/goblin_straw_base.png") center bottom / contain no-repeat;
 }
 
 #play .bin::after,
@@ -588,7 +588,7 @@ body.mode-reminder .board.animals-4.has-bin .bin.target {
     height: calc(var(--animal) * .82);
     border: 0;
     border-radius: 18px;
-    background: url("../image/animal-pen.png") center bottom / contain no-repeat;
+    background: url("../image/goblin_straw_base.png") center bottom / contain no-repeat;
   }
 
   #play .spot::after {
@@ -632,7 +632,7 @@ body.mode-reminder .board.animals-4.has-bin .bin.target {
     width: calc(var(--bin) * 1.44);
     height: calc(var(--bin) * 1.28);
     border: 0;
-    background: url("../image/cleanup-zone.png") center bottom / contain no-repeat;
+    background: url("../image/goblin_straw_base.png") center bottom / contain no-repeat;
   }
 
   #play .bin::after {

@@ -1,0 +1,497 @@
+﻿<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>도깨비 게임 에셋리스트 및 라이선스 체크표</title>
+  <style>
+    :root {
+      --ink: #202124;
+      --muted: #5f6368;
+      --line: #d7dde6;
+      --head: #eef4fb;
+      --soft: #f8fafc;
+      --accent: #5c7c38;
+      --warn: #8a5a00;
+      --warn-bg: #fff8e6;
+      --ok: #1f6b45;
+      --ok-bg: #edf8f2;
+      --risk: #9a3412;
+      --risk-bg: #fff1e8;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: #ffffff;
+      color: var(--ink);
+      font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", sans-serif;
+      line-height: 1.65;
+      letter-spacing: 0;
+    }
+
+    main {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 48px 40px 72px;
+    }
+
+    h1 {
+      margin: 0 0 10px;
+      font-size: 30px;
+      line-height: 1.35;
+      letter-spacing: 0;
+    }
+
+    h2 {
+      margin: 40px 0 14px;
+      padding-left: 12px;
+      border-left: 5px solid var(--accent);
+      font-size: 22px;
+      line-height: 1.35;
+      letter-spacing: 0;
+    }
+
+    h3 {
+      margin: 26px 0 10px;
+      font-size: 17px;
+      letter-spacing: 0;
+    }
+
+    p {
+      margin: 8px 0;
+    }
+
+    .lead {
+      color: var(--muted);
+      font-size: 15px;
+    }
+
+    .meta {
+      margin-top: 18px;
+      padding: 14px 16px;
+      border: 1px solid var(--line);
+      background: var(--soft);
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .note {
+      margin-top: 12px;
+      padding: 12px 14px;
+      border: 1px solid var(--line);
+      background: var(--soft);
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .table-wrap {
+      width: 100%;
+      margin: 14px 0 18px;
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      min-width: 900px;
+      border-collapse: collapse;
+      table-layout: fixed;
+      background: #ffffff;
+      font-size: 13px;
+    }
+
+    caption {
+      caption-side: top;
+      padding: 0 0 8px;
+      color: var(--muted);
+      text-align: left;
+      font-weight: 700;
+    }
+
+    th,
+    td {
+      border: 1px solid var(--line);
+      padding: 9px 10px;
+      vertical-align: middle;
+      word-break: keep-all;
+      overflow-wrap: anywhere;
+    }
+
+    th {
+      background: var(--head);
+      text-align: center;
+      font-weight: 700;
+    }
+
+    td.num {
+      text-align: right;
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+    }
+
+    td.center {
+      text-align: center;
+      white-space: nowrap;
+    }
+
+    tr.total td {
+      background: #eef7ec;
+      font-weight: 700;
+    }
+
+    .asset-status {
+      max-width: 720px;
+      min-width: 560px;
+      font-size: 15px;
+    }
+
+    .asset-status th {
+      background: #f8e4aa;
+    }
+
+    .asset-table {
+      min-width: 1320px;
+      font-size: 14px;
+    }
+
+    .font-table {
+      min-width: 1080px;
+      font-size: 14px;
+    }
+
+    .risk-table {
+      min-width: 860px;
+      font-size: 14px;
+    }
+
+    .asset-table th,
+    .font-table th,
+    .risk-table th {
+      background: #f8e4aa;
+    }
+
+    code.path-code {
+      color: #e45757;
+      font-weight: 700;
+      background: #f3f3f3;
+    }
+
+    code {
+      padding: 1px 5px;
+      border-radius: 4px;
+      background: #eef1f5;
+      font-family: Consolas, "Courier New", monospace;
+      font-size: 0.92em;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 2px 7px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .badge.ok {
+      background: var(--ok-bg);
+      color: var(--ok);
+    }
+
+    .badge.warn {
+      background: var(--warn-bg);
+      color: var(--warn);
+    }
+
+    .badge.risk {
+      background: var(--risk-bg);
+      color: var(--risk);
+    }
+
+    ul {
+      margin: 8px 0 0 22px;
+      padding: 0;
+    }
+
+    li {
+      margin: 6px 0;
+    }
+
+    .checklist td:first-child {
+      text-align: center;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    @media print {
+      main {
+        max-width: none;
+        padding: 24px;
+      }
+
+      h2,
+      h3 {
+        break-after: avoid;
+      }
+
+      table {
+        break-inside: avoid;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>도깨비 게임 에셋리스트 및 라이선스 체크표</h1>
+    <p class="lead">도깨비 색 분류 게임의 배포 이미지, 배경음, 효과음, 안내 음성, 폰트 사용 현황과 저작권 확인 상태를 정리한 HTML 문서입니다.</p>
+    <div class="meta">
+      <p>작성 기준일: 2026-06-24</p>
+      <p>점검 기준 폴더: <code>image/</code>, <code>audio/</code></p>
+      <p>제외 항목: 루트의 <code>asset-catalog.png</code>, 서버 로그, README, 문서 파일처럼 게임 실행 중 로드되지 않는 보조 산출물</p>
+    </div>
+
+    <h2>1. 에셋 현황 요약</h2>
+    <p>현재 도깨비 게임은 별도 <code>assets/</code> 폴더 대신 <code>image/</code>와 <code>audio/</code> 폴더를 배포 에셋 위치로 사용합니다.</p>
+    <p>실행 파일 기준 이미지 에셋은 27개, 오디오 에셋은 16개입니다. 폰트는 별도 파일을 포함하지 않고 CSS에서 사용하는 폰트 스택 2개를 외부/시스템 폰트 항목으로 집계했습니다.</p>
+
+    <div class="table-wrap">
+      <table class="asset-status">
+        <caption>에셋 현황 집계</caption>
+        <thead>
+          <tr>
+            <th>구분</th>
+            <th>전체</th>
+            <th>직접 제작</th>
+            <th>외부 소스</th>
+            <th>확인 완료</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>이미지</td>
+            <td class="num">27</td>
+            <td class="num">27</td>
+            <td class="num">0</td>
+            <td class="num">27</td>
+          </tr>
+          <tr>
+            <td>오디오</td>
+            <td class="num">16</td>
+            <td class="num">14</td>
+            <td class="num">2</td>
+            <td class="num">16</td>
+          </tr>
+          <tr>
+            <td>폰트</td>
+            <td class="num">2</td>
+            <td class="num">0</td>
+            <td class="num">2</td>
+            <td class="num">2</td>
+          </tr>
+          <tr>
+            <td>합계</td>
+            <td class="num">45</td>
+            <td class="num">41</td>
+            <td class="num">4</td>
+            <td class="num">45</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p class="note">※ <strong>확인 완료</strong>는 현재 문서에 에셋 목록과 사용 여부를 등재했다는 의미입니다. 법적 라이선스 확정 여부와 출처 증빙 상태는 5장과 6장의 저작권 체크 항목에서 별도로 확인해야 합니다.</p>
+    <p class="note">※ 현재 코드 기준 배경음은 <code>audio/bgm/goblin-fate.mp3</code> 1개 파일로 통일되어 있습니다. 이전 프로젝트에서 쓰이던 <code>assets/audio/bgm-pregame.mp3</code>, <code>assets/audio/bgm-gameplay.mp3</code> 형태의 파일은 이 도깨비 게임의 배포 에셋 및 사용 목록에 포함하지 않았습니다.</p>
+
+    <h2>2. 이미지 에셋</h2>
+    <div class="table-wrap">
+      <table class="asset-table">
+        <caption>이미지 에셋</caption>
+        <thead>
+          <tr>
+            <th>에셋 ID</th>
+            <th>에셋 이름</th>
+            <th>파일명/경로</th>
+            <th>사용 화면</th>
+            <th>용도</th>
+            <th>직접 제작</th>
+            <th>라이선스</th>
+            <th>상업적 사용</th>
+            <th>수정 가능</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>IMG-001</td><td>배경</td><td><code class="path-code">image/farm-background.png</code></td><td>로딩, 시작, 상태 확인, 게임 진행, 결과 화면</td><td>전체 화면 배경 이미지</td><td>O</td><td>자체 제작/프로젝트 생성 이미지</td><td>O</td><td>O</td></tr>
+          <tr><td>IMG-002</td><td>타이틀 로고</td><td><code class="path-code">image/game-title.png</code></td><td>로딩, 시작 화면</td><td>게임 대표 타이틀 로고</td><td>O</td><td>자체 제작/프로젝트 생성 이미지</td><td>O</td><td>O</td></tr>
+          <tr><td>IMG-003</td><td>빨간 도깨비</td><td><code class="path-code">image/red_goblin.png</code></td><td>시작, 난이도 선택, 게임 진행 화면</td><td>빨간색 대상 캐릭터</td><td>O</td><td>자체 제작/프로젝트 생성 이미지</td><td>O</td><td>O</td></tr>
+          <tr><td>IMG-004</td><td>빨간 도깨비 정답</td><td><code class="path-code">image/red_goblin_correct.png</code></td><td>게임 진행 화면</td><td>빨간 도깨비 정답 피드백</td><td>O</td><td>자체 제작/프로젝트 생성 이미지</td><td>O</td><td>O</td></tr>
+          <tr><td>IMG-005</td><td>초록 도깨비</td><td><code class="path-code">image/green_goblin.png</code></td><td>시작, 난이도 선택, 게임 진행 화면</td><td>초록색 대상 캐릭터</td><td>O</td><td>자체 제작/프로젝트 생성 이미지</td><td>O</td><td>O</td></tr>
+          <tr><td>IMG-006</td><td>초록 도깨비 정답</td><td><code class="path-code">image/green_goblin_correct.png</code></td><td>게임 진행 화면</td><td>초록 도깨비 정답 피드백</td><td>O</td><td>자체 제작/프로젝트 생성 이미지</td><td>O</td><td>O</td></tr>
+          <tr><td>IMG-007</td><td>하얀 도깨비</td><td><code class="path-code">image/white_goblin.png</code></td><td>시작, 난이도 선택, 게임 진행 화면</td><td>하얀색 대상 캐릭터</td><td>O</td><td>자체 제작/프로젝트 생성 이미지</td><td>O</td><td>O</td></tr>
+          <tr><td>IMG-008</td><td>하얀 도깨비 정답</td><td><code class="path-code">image/white_goblin_correct.png</code></td><td>게임 진행 화면</td><td>하얀 도깨비 정답 피드백</td><td>O</td><td>자체 제작/프로젝트 생성 이미지</td><td>O</td><td>O</td></tr>
+          <tr><td>IMG-009</td><td>노란 도깨비</td><td><code class="path-code">image/yellow_goblin.png</code></td><td>시작, 난이도 선택, 게임 진행 화면</td><td>노란색 대상 캐릭터</td><td>O</td><td>자체 제작/프로젝트 생성 이미지</td><td>O</td><td>O</td></tr>
+          <tr><td>IMG-010</td><td>노란 도깨비 정답</td><td><code class="path-code">image/yellow_goblin_correct.png</code></td><td>게임 진행 화면</td><td>노란 도깨비 정답 피드백</td><td>O</td><td>자체 제작/프로젝트 생성 이미지</td><td>O</td><td>O</td></tr>
+          <tr><td>IMG-011</td><td>랜덤 도깨비</td><td><code class="path-code">image/mystery_goblin.png</code></td><td>난이도 선택 화면</td><td>무작위 등장 도깨비 표시</td><td>O</td><td>자체 제작/프로젝트 생성 이미지</td><td>O</td><td>O</td></tr>
+          <tr><td>IMG-012</td><td>받침 배경</td><td><code class="path-code">image/goblin_straw_base.png</code></td><td>시작, 게임 진행, 결과 화면</td><td>도깨비 배치 지점 배경</td><td>O</td><td>자체 제작/프로젝트 생성 이미지</td><td>O</td><td>O</td></tr>
+          <tr><td>IMG-013</td><td>토마토</td><td><code class="path-code">image/tomato.png</code></td><td>게임 진행 화면</td><td>빨간색 선택지</td><td>O</td><td>자체 제작/프로젝트 생성 이미지</td><td>O</td><td>O</td></tr>
+          <tr><td>IMG-014</td><td>사과</td><td><code class="path-code">image/apple.png</code></td><td>게임 방법, 게임 진행 화면</td><td>빨간색 선택지</td><td>O</td><td>자체 제작/프로젝트 생성 이미지</td><td>O</td><td>O</td></tr>
+          <tr><td>IMG-015</td><td>딸기</td><td><code class="path-code">image/strawberry.png</code></td><td>게임 진행 화면</td><td>빨간색 선택지</td><td>O</td><td>자체 제작/프로젝트 생성 이미지</td><td>O</td><td>O</td></tr>
+          <tr><td>IMG-016</td><td>바나나</td><td><code class="path-code">image/yellow_banana.png</code></td><td>게임 진행 화면</td><td>노란색 선택지</td><td>O</td><td>자체 제작/프로젝트 생성 이미지</td><td>O</td><td>O</td></tr>
+          <tr><td>IMG-017</td><td>참외</td><td><code class="path-code">image/chamoe.png</code></td><td>게임 진행 화면</td><td>노란색 선택지</td><td>O</td><td>자체 제작/프로젝트 생성 이미지</td><td>O</td><td>O</td></tr>
+          <tr><td>IMG-018</td><td>옥수수</td><td><code class="path-code">image/corn.png</code></td><td>게임 진행 화면</td><td>노란색 선택지</td><td>O</td><td>자체 제작/프로젝트 생성 이미지</td><td>O</td><td>O</td></tr>
+          <tr><td>IMG-019</td><td>무</td><td><code class="path-code">image/radish.png</code></td><td>게임 진행 화면</td><td>하얀색 선택지</td><td>O</td><td>자체 제작/프로젝트 생성 이미지</td><td>O</td><td>O</td></tr>
+          <tr><td>IMG-020</td><td>양파</td><td><code class="path-code">image/onion.png</code></td><td>게임 진행 화면</td><td>하얀색 선택지</td><td>O</td><td>자체 제작/프로젝트 생성 이미지</td><td>O</td><td>O</td></tr>
+          <tr><td>IMG-021</td><td>마늘</td><td><code class="path-code">image/garlic.png</code></td><td>게임 진행 화면</td><td>하얀색 선택지</td><td>O</td><td>자체 제작/프로젝트 생성 이미지</td><td>O</td><td>O</td></tr>
+          <tr><td>IMG-022</td><td>브로콜리</td><td><code class="path-code">image/broccoli.png</code></td><td>게임 진행 화면</td><td>초록색 선택지</td><td>O</td><td>자체 제작/프로젝트 생성 이미지</td><td>O</td><td>O</td></tr>
+          <tr><td>IMG-023</td><td>완두콩</td><td><code class="path-code">image/pea_pod.png</code></td><td>게임 진행 화면</td><td>초록색 선택지</td><td>O</td><td>자체 제작/프로젝트 생성 이미지</td><td>O</td><td>O</td></tr>
+          <tr><td>IMG-024</td><td>오이</td><td><code class="path-code">image/cucumber.png</code></td><td>게임 진행 화면</td><td>초록색 선택지</td><td>O</td><td>자체 제작/프로젝트 생성 이미지</td><td>O</td><td>O</td></tr>
+          <tr><td>IMG-025</td><td>팥죽</td><td><code class="path-code">image/patjuk.png</code></td><td>게임 진행 화면</td><td>아무에게도 주지 않을 방해 선택지</td><td>O</td><td>자체 제작/프로젝트 생성 이미지</td><td>O</td><td>O</td></tr>
+          <tr><td>IMG-026</td><td>부적</td><td><code class="path-code">image/talisman.png</code></td><td>게임 진행 화면</td><td>아무에게도 주지 않을 방해 선택지</td><td>O</td><td>자체 제작/프로젝트 생성 이미지</td><td>O</td><td>O</td></tr>
+          <tr><td>IMG-027</td><td>선택지 바구니</td><td><code class="path-code">image/feed-basket.png</code></td><td>게임 진행 화면</td><td>선택지 영역 배경</td><td>O</td><td>자체 제작/프로젝트 생성 이미지</td><td>O</td><td>O</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h2>3. 오디오 에셋</h2>
+    <div class="table-wrap">
+      <table class="asset-table">
+        <caption>오디오 에셋</caption>
+        <thead>
+          <tr>
+            <th>에셋 ID</th>
+            <th>에셋 이름</th>
+            <th>파일명/경로</th>
+            <th>사용 화면</th>
+            <th>재생 상황</th>
+            <th>용도</th>
+            <th>직접 제작</th>
+            <th>라이선스</th>
+            <th>상업적 사용</th>
+            <th>수정 가능</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>AUD-001</td><td>공통 BGM</td><td><code class="path-code">audio/bgm/goblin-fate.mp3</code></td><td>시작, 상태 확인, 난이도, 로딩, 게임 진행, 결과 화면</td><td>게임 전체</td><td>부드러운 분위기 제공</td><td>X</td><td>외부/생성 BGM 출처 증빙 필요</td><td>확인 필요</td><td>확인 필요</td></tr>
+          <tr><td>AUD-002</td><td>버튼 클릭음</td><td><code class="path-code">audio/sfx/button-click.mp3</code></td><td>전체 화면</td><td>일반 버튼 선택 시</td><td>터치 피드백</td><td>X</td><td>외부/생성 효과음 출처 증빙 필요</td><td>확인 필요</td><td>확인 필요</td></tr>
+          <tr><td>AUD-003</td><td>사전 상태 확인 안내</td><td><code class="path-code">audio/voice/precheck-mood-sleep.mp3</code></td><td>상태 확인 화면</td><td>기분/수면 확인 진입 시</td><td>음성 가이드</td><td>O</td><td>자체 제작/프로젝트 생성 음성</td><td>O</td><td>O</td></tr>
+          <tr><td>AUD-004</td><td>난이도 선택 안내</td><td><code class="path-code">audio/voice/select-difficulty.mp3</code></td><td>난이도 선택 화면</td><td>난이도 선택 진입 시</td><td>음성 가이드</td><td>O</td><td>자체 제작/프로젝트 생성 음성</td><td>O</td><td>O</td></tr>
+          <tr><td>AUD-005</td><td>카운트다운 안내</td><td><code class="path-code">audio/voice/game-starts-in-3-seconds.mp3</code></td><td>카운트다운 화면</td><td>게임 시작 직전</td><td>음성 가이드</td><td>O</td><td>자체 제작/프로젝트 생성 음성</td><td>O</td><td>O</td></tr>
+          <tr><td>AUD-006</td><td>대상 선택 안내</td><td><code class="path-code">audio/voice/who-to-feed.mp3</code></td><td>게임 진행 화면</td><td>같은 색 도깨비를 선택해야 할 때</td><td>음성 가이드</td><td>O</td><td>자체 제작/프로젝트 생성 음성</td><td>O</td><td>O</td></tr>
+          <tr><td>AUD-007</td><td>그대로 두기 안내</td><td><code class="path-code">audio/voice/where-to-cleanup.mp3</code></td><td>게임 진행 화면</td><td>방해 선택지를 아무에게도 주지 않아야 할 때</td><td>음성 가이드</td><td>O</td><td>자체 제작/프로젝트 생성 음성</td><td>O</td><td>O</td></tr>
+          <tr><td>AUD-008</td><td>다시 시도 안내</td><td><code class="path-code">audio/voice/try-again.mp3</code></td><td>게임 진행 화면</td><td>오답 선택 시</td><td>음성 가이드</td><td>O</td><td>자체 제작/프로젝트 생성 음성</td><td>O</td><td>O</td></tr>
+          <tr><td>AUD-009</td><td>정답 칭찬 안내</td><td><code class="path-code">audio/voice/well-done.mp3</code></td><td>게임 진행, 결과 화면</td><td>정답 또는 완료 후</td><td>음성 가이드</td><td>O</td><td>자체 제작/프로젝트 생성 음성</td><td>O</td><td>O</td></tr>
+          <tr><td>AUD-010</td><td>세션 완료 안내</td><td><code class="path-code">audio/voice/session-complete.mp3</code></td><td>결과 화면</td><td>세션 완료 시</td><td>음성 가이드</td><td>O</td><td>자체 제작/프로젝트 생성 음성</td><td>O</td><td>O</td></tr>
+          <tr><td>AUD-011</td><td>오늘은 충분 안내</td><td><code class="path-code">audio/voice/enough-for-today.mp3</code></td><td>종료/복귀 화면</td><td>활동 종료 안내 시</td><td>음성 가이드</td><td>O</td><td>자체 제작/프로젝트 생성 음성</td><td>O</td><td>O</td></tr>
+          <tr><td>AUD-012</td><td>힌트 안내</td><td><code class="path-code">audio/voice/hint.mp3</code></td><td>게임 진행 화면</td><td>힌트 요청 또는 힌트 팝업 시</td><td>음성 가이드</td><td>O</td><td>자체 제작/프로젝트 생성 음성</td><td>O</td><td>O</td></tr>
+          <tr><td>AUD-013</td><td>다음 문제 안내</td><td><code class="path-code">audio/voice/next-question.mp3</code></td><td>게임 진행 화면</td><td>다음 문항 전환 시</td><td>음성 가이드</td><td>O</td><td>자체 제작/프로젝트 생성 음성</td><td>O</td><td>O</td></tr>
+          <tr><td>AUD-014</td><td>휴식 안내</td><td><code class="path-code">audio/voice/taking-a-break.mp3</code></td><td>일시정지/중단 화면</td><td>잠시 쉬기 안내 시</td><td>음성 가이드</td><td>O</td><td>자체 제작/프로젝트 생성 음성</td><td>O</td><td>O</td></tr>
+          <tr><td>AUD-015</td><td>종료 현재 상태 안내</td><td><code class="path-code">audio/voice/finish-current-state.mp3</code></td><td>종료 전 확인 화면</td><td>현재 상태 확인 시</td><td>음성 가이드</td><td>O</td><td>자체 제작/프로젝트 생성 음성</td><td>O</td><td>O</td></tr>
+          <tr><td>AUD-016</td><td>종료 추가 정보 안내</td><td><code class="path-code">audio/voice/finish-extra-info.mp3</code></td><td>종료 전 확인 화면</td><td>추가 정보 확인 시</td><td>음성 가이드</td><td>O</td><td>자체 제작/프로젝트 생성 음성</td><td>O</td><td>O</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h2>4. 폰트</h2>
+    <div class="table-wrap">
+      <table class="font-table">
+        <caption>폰트</caption>
+        <thead>
+          <tr>
+            <th>에셋 ID</th>
+            <th>에셋 이름</th>
+            <th>파일명</th>
+            <th>사용 화면</th>
+            <th>직접 제작</th>
+            <th>외부 출처</th>
+            <th>라이선스</th>
+            <th>상업적 사용</th>
+            <th>수정 가능</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>FNT-01</td><td>기본 한글 UI 폰트 스택</td><td>CSS 지정</td><td>전체 UI 텍스트</td><td>X</td><td>OS/브라우저 내장 폰트</td><td>별도 폰트 파일 배포 없음</td><td>O</td><td>O</td></tr>
+          <tr><td>FNT-02</td><td>제목/버튼/숫자 강조 폰트 스택</td><td>CSS 지정</td><td>제목, 버튼, 타이머, 점수 표시</td><td>X</td><td>OS/브라우저 내장 폰트</td><td>별도 폰트 파일 배포 없음</td><td>O</td><td>O</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h2>5. 저작권 위험 체크</h2>
+    <div class="table-wrap">
+      <table class="risk-table">
+        <caption>저작권 위험 체크</caption>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>점검 항목</th>
+            <th>확인 결과</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>R-01</td><td>특정 상용 게임 화면을 거의 따라 만든 이미지가 있는가</td><td>해당 없음</td></tr>
+          <tr><td>R-02</td><td>기존 게임 에셋을 그대로 사용하거나 변형한 것이 있는가</td><td>해당 없음</td></tr>
+          <tr><td>R-03</td><td>캐릭터/UI 느낌이 기존 서비스와 지나치게 유사한가</td><td>해당 없음. 도깨비는 일반 민속 소재이며 특정 상표 캐릭터로 보이는 요소는 확인되지 않음</td></tr>
+          <tr><td>R-04</td><td>라이선스 확인 없이 외부 소스를 사용한 에셋이 있는가</td><td>BGM/SFX 2개는 외부 또는 생성 음원으로 분류되며 출처 및 사용 조건 증빙 보관 필요</td></tr>
+          <tr><td>R-05</td><td>상업적 사용이 불가한 에셋이 포함되어 있는가</td><td>해당 없음으로 정리하되, BGM/SFX는 최종 라이선스 증빙 확인 필요</td></tr>
+          <tr><td>R-06</td><td>출처 표기가 필요한 에셋에 출처가 누락되어 있는가</td><td>이미지/음성 안내는 자체 제작 또는 프로젝트 생성물로 분류. 외부/생성 음원은 서비스별 출처 표기 필요 여부 확인 권장</td></tr>
+          <tr><td>R-07</td><td>외부 폰트 파일을 앱에 포함하거나 재배포하는가</td><td>해당 없음. CSS에서 OS/브라우저 내장 폰트만 지정</td></tr>
+          <tr><td>R-08</td><td>AI 생성 이미지/음성의 사용권 증빙이 필요한가</td><td>이미지와 음성 안내는 자체 제작/프로젝트 생성 산출물로 분류. 생성일, 프롬프트, 사용권 화면 보관 권장</td></tr>
+          <tr><td>R-09</td><td>임시 후보 파일이 배포 에셋에 섞여 있는가</td><td>해당 없음. <code>asset-catalog.png</code>, 서버 로그, 문서 파일은 실행 에셋 합계에서 제외</td></tr>
+          <tr><td>R-10</td><td>상표, 유명 캐릭터, 개인정보가 노출된 에셋이 있는가</td><td>해당 없음</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <h2>6. 외부/생성 음원 출처</h2>
+    <p>오디오 파일은 게임 UX에서 직접 재생되는 배포 에셋이므로, 이미지보다 우선적으로 출처와 이용 범위를 확정하는 것이 좋습니다.</p>
+
+    <div class="table-wrap">
+      <table>
+        <caption>외부/생성 음원 출처 확인표</caption>
+        <thead>
+          <tr>
+            <th>대상</th>
+            <th>파일</th>
+            <th>현재 사용</th>
+            <th>확인해야 할 출처 정보</th>
+            <th>배포 전 판정</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>BGM</td>
+            <td><code>audio/bgm/goblin-fate.mp3</code></td>
+            <td>공통 배경음</td>
+            <td>작곡자/생성 서비스, 라이선스명, 구매 또는 생성 증빙, 상업적 앱 배포 가능 여부</td>
+            <td><span class="badge risk">확인 전 배포 보류 권장</span></td>
+          </tr>
+          <tr>
+            <td>SFX</td>
+            <td><code>audio/sfx/button-click.mp3</code></td>
+            <td>버튼 클릭 효과음</td>
+            <td>효과음 제작자/다운로드 URL, 라이선스명, 크레딧 표기 필요 여부</td>
+            <td><span class="badge warn">확인 필요</span></td>
+          </tr>
+          <tr>
+            <td>Voice</td>
+            <td><code>audio/voice/*.mp3</code></td>
+            <td>안내 음성 14개</td>
+            <td>녹음자 또는 TTS 서비스명, 음성 모델 권리, 서비스 약관, 상업적 배포 가능 여부</td>
+            <td><span class="badge warn">확인 필요</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>권장 보관 자료</h3>
+    <ul>
+      <li>파일별 원본 출처 URL 또는 제작자명</li>
+      <li>구매 에셋인 경우 주문 번호, 영수증, 라이선스 전문</li>
+      <li>무료 에셋인 경우 다운로드 날짜, 라이선스명, 크레딧 표기 조건</li>
+      <li>AI 생성 에셋인 경우 생성 모델, 생성일, 주요 프롬프트, 후가공 내역</li>
+      <li>TTS/음성 생성물인 경우 서비스 약관, 사용 음성 모델, 상업적 이용 가능 여부</li>
+    </ul>
+  </main>
+</body>
+</html>
+

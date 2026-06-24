@@ -896,7 +896,7 @@ body.mode-ai .settings-icon {
   width: min(720px, 921.6px);
   height: clamp(72px, 93.6px, 128px);
   transform: translateX(-50%);
-  background: url("../image/animal-pen.png") center bottom / contain no-repeat;
+  background: url("../image/goblin_straw_base.png") center bottom / contain no-repeat;
   opacity: .94;
   filter: drop-shadow(0 20px 22px rgba(65,72,46,.12));
 }

@@ -1,0 +1,1277 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>도깨비야! 무슨 색을 먹니? - 이벤트 및 상태전이 정의서</title>
+  <style>
+    :root {
+      --ink: #202124;
+      --muted: #5f6368;
+      --line: #d8dde6;
+      --head: #eef4fb;
+      --soft: #f8fafc;
+      --accent: #2f6f5e;
+      --accent-soft: #eaf7f1;
+      --warn: #fff8e7;
+      --warn-line: #e4bf63;
+      --danger: #fdf0f0;
+      --danger-line: #e3a3a3;
+      --code: #edf1f5;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: #ffffff;
+      color: var(--ink);
+      font-family: "Malgun Gothic", "Apple SD Gothic Neo", Arial, sans-serif;
+      line-height: 1.65;
+    }
+
+    main {
+      max-width: 1160px;
+      margin: 0 auto;
+      padding: 46px 38px 76px;
+    }
+
+    h1 {
+      margin: 0 0 10px;
+      font-size: 30px;
+      line-height: 1.35;
+      letter-spacing: 0;
+    }
+
+    h2 {
+      margin: 42px 0 14px;
+      padding-left: 12px;
+      border-left: 5px solid var(--accent);
+      font-size: 22px;
+      line-height: 1.35;
+      letter-spacing: 0;
+    }
+
+    h3 {
+      margin: 28px 0 12px;
+      font-size: 18px;
+      line-height: 1.4;
+      letter-spacing: 0;
+    }
+
+    p {
+      margin: 8px 0;
+    }
+
+    .lead {
+      color: var(--muted);
+      font-size: 15px;
+    }
+
+    .meta,
+    .note,
+    .warning,
+    .danger {
+      margin: 14px 0 18px;
+      padding: 12px 14px;
+      border-radius: 6px;
+      font-size: 14px;
+    }
+
+    .meta {
+      border: 1px solid var(--line);
+      background: var(--soft);
+      color: var(--muted);
+    }
+
+    .note {
+      border: 1px solid #c8e4d6;
+      background: var(--accent-soft);
+      color: #264f43;
+    }
+
+    .warning {
+      border: 1px solid var(--warn-line);
+      background: var(--warn);
+      color: #614600;
+    }
+
+    .danger {
+      border: 1px solid var(--danger-line);
+      background: var(--danger);
+      color: #652f2f;
+    }
+
+    .table-wrap {
+      width: 100%;
+      margin: 14px 0 18px;
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      table-layout: fixed;
+      background: #ffffff;
+      font-size: 14px;
+    }
+
+    caption {
+      caption-side: top;
+      padding: 0 0 8px;
+      color: var(--muted);
+      text-align: left;
+      font-weight: 700;
+    }
+
+    th,
+    td {
+      border: 1px solid var(--line);
+      padding: 9px 10px;
+      vertical-align: top;
+      word-break: keep-all;
+      overflow-wrap: anywhere;
+    }
+
+    th {
+      background: var(--head);
+      text-align: center;
+      font-weight: 700;
+    }
+
+    td.center {
+      text-align: center;
+      white-space: nowrap;
+    }
+
+    code {
+      padding: 1px 5px;
+      border-radius: 4px;
+      background: var(--code);
+      font-family: Consolas, "Courier New", monospace;
+      font-size: 0.92em;
+    }
+
+    pre {
+      margin: 14px 0 18px;
+      padding: 16px 18px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: #f8fafc;
+      overflow-x: auto;
+      font-family: Consolas, "Courier New", monospace;
+      font-size: 13px;
+      line-height: 1.55;
+      white-space: pre;
+    }
+
+    ul {
+      margin: 8px 0 0 22px;
+      padding: 0;
+    }
+
+    li {
+      margin: 6px 0;
+    }
+
+    @media print {
+      main {
+        max-width: none;
+        padding: 24px;
+      }
+
+      h2,
+      h3,
+      table,
+      pre {
+        break-inside: avoid;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>도깨비야! 무슨 색을 먹니? - 이벤트 및 상태전이 정의서</h1>
+    <p class="lead">도깨비 게임의 주요 상태, 상태 전이, 앱-WebView 연동 이벤트, 결과 저장 경계를 정의한 구현 기준 문서입니다.</p>
+    <div class="meta">
+      <p><strong>작성 기준:</strong> <code>index.html</code>, <code>js/core-config.js</code>, <code>js/audio-display.js</code>, <code>js/screen-flow.js</code>, <code>js/session-board.js</code>, <code>js/play-input.js</code>, <code>js/result-bridge.js</code>, <code>data/animal-feeding-content.json</code></p>
+      <p><strong>적용 게임:</strong> <code>content_id=cognitive_animal_feeding_001</code>, <code>game_key=animal_feeding</code>, <code>game_version=2.0.0</code></p>
+      <p><strong>작성일:</strong> 2026-06-24</p>
+    </div>
+
+    <h2>1. 문서 개요</h2>
+    <p>이 문서는 <strong>도깨비야! 무슨 색을 먹니?</strong> 게임의 주요 상태, 상태 전이, 앱-게임 연동 이벤트, 결과 저장 경계를 정의한다. Cplat 개발팀이 게임 클라이언트 구현, 효담콜 앱 연동, 케어/AI 보조 모드 진입 정책, 결과 저장 API 연계를 확인할 때 참조하는 기준 문서다.</p>
+    <p>현재 활성 게임 유형은 <strong>색/종류에 맞는 도깨비에게 먹이 주기</strong>이다. 내부 게임 키는 <code>animal_feeding</code>이며, 문항 단위 미션 키는 <code>feed_animal</code>과 <code>leave_item</code>이다. <code>feed_animal</code>은 음식의 색 또는 속성에 맞는 도깨비를 고르는 문항이고, <code>leave_item</code>은 팥죽/부적 같은 예외 물건을 아무 도깨비에게도 주지 않는 문항이다.</p>
+    <p>코드에는 이전 동물 먹이주기 구조의 식별자가 일부 남아 있어 <code>animal-feeding-game</code>, <code>tiger</code>, <code>monkey</code>, <code>squirrel</code>, <code>panda</code>, <code>animal_count</code>, <code>target_animals</code> 같은 이름을 사용한다. 실제 화면에서는 각각 빨간/초록/하얀/노란 도깨비와 선택지 수를 의미한다.</p>
+
+    <h3>변경 이력</h3>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>버전</th>
+            <th>일자</th>
+            <th>변경 내용</th>
+            <th>작성/검토</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="center">v0.1</td>
+            <td class="center">2026-06-24</td>
+            <td>도깨비 게임 구현 기준의 상태, 이벤트, 결과 저장 경계 최초 정리</td>
+            <td class="center">Codex</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>참조 문서 및 구현 파일</h3>
+    <ul>
+      <li><code>README.md</code>, <code>README.html</code></li>
+      <li><code>docs/도깨비_모드별_config_매트릭스.html</code></li>
+      <li><code>docs/도깨비_데이터_수집_항목표.html</code></li>
+      <li><code>docs/도깨비_에셋리스트_및_라이선스_체크표.html</code></li>
+      <li><code>data/animal-feeding-content.json</code></li>
+      <li><code>js/core-config.js</code>, <code>js/audio-display.js</code>, <code>js/screen-flow.js</code></li>
+      <li><code>js/session-board.js</code>, <code>js/play-input.js</code>, <code>js/result-bridge.js</code></li>
+      <li><code>index.html</code></li>
+      <li><code>시니어_WebView_게임_요구사항정의서.xlsx</code></li>
+    </ul>
+
+    <h2>2. 상태 목록</h2>
+    <p>화면 상태는 <code>SCREENS</code> 배열에 정의된 DOM 화면 단위이고, 세션 상태는 <code>state._status</code> 및 <code>state._paused</code>로 관리한다.</p>
+
+    <div class="table-wrap">
+      <table>
+        <caption>화면 상태</caption>
+        <thead>
+          <tr>
+            <th>상태 ID</th>
+            <th>상태명</th>
+            <th>진입 조건</th>
+            <th>주요 이탈 조건</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>loading</code></td>
+            <td>로딩</td>
+            <td>페이지 로드 직후, 이미지 에셋 preload 시작</td>
+            <td>모든 에셋 로딩 성공 시 <code>READY</code> 전송 후 시작 흐름으로 이동, 실패 시 <code>error</code></td>
+          </tr>
+          <tr>
+            <td><code>start</code></td>
+            <td>시작</td>
+            <td>로딩 완료 후 수동 시작 모드 진입, 컨디션 체크 완료 후 복귀, 결과 화면 확인 후 복귀</td>
+            <td>시작 버튼, 난이도 선택, 진행방법 확인, 앱 복귀 버튼</td>
+          </tr>
+          <tr>
+            <td><code>precheck</code></td>
+            <td>시작 전 컨디션 체크</td>
+            <td><code>standard</code> 모드에서 난이도 선택 전 컨디션 체크가 필요한 경우</td>
+            <td><code>CONDITION_CHECK</code> 전송 후 <code>start</code> 난이도 선택 단계로 이동</td>
+          </tr>
+          <tr>
+            <td><code>how</code></td>
+            <td>진행방법</td>
+            <td><code>show_how_to_play=true</code>이고 최초 진행방법 확인이 필요한 경우</td>
+            <td>시작 버튼 클릭 시 <code>ready</code>, 건너뛰기 시 <code>start</code></td>
+          </tr>
+          <tr>
+            <td><code>ready</code></td>
+            <td>준비</td>
+            <td>난이도/세션 설정 확정 후 카운트다운 전</td>
+            <td>짧은 대기 후 <code>countdown</code></td>
+          </tr>
+          <tr>
+            <td><code>countdown</code></td>
+            <td>3초 카운트다운</td>
+            <td><code>ready</code> 이후</td>
+            <td>카운트다운 종료 시 <code>startSession()</code> 호출 후 <code>play</code></td>
+          </tr>
+          <tr>
+            <td><code>play</code></td>
+            <td>게임 진행</td>
+            <td><code>SESSION_START</code> 전송 후 첫 문항 생성</td>
+            <td>전체 문항 완료, 사용자 중단, 시간 초과, 런타임 오류, pagehide</td>
+          </tr>
+          <tr>
+            <td><code>finish</code></td>
+            <td>마무리 체크</td>
+            <td><code>show_finish_check=true</code>이고 완료/중단 후 체크가 필요한 경우</td>
+            <td><code>FINISH_CHECK</code> 전송 후 보류 중인 최종 결과 전송</td>
+          </tr>
+          <tr>
+            <td><code>done</code></td>
+            <td>결과/종료</td>
+            <td>정상 완료 또는 중도 종료 처리 후</td>
+            <td>확인 버튼, 다시하기, 자동 복귀 타이머</td>
+          </tr>
+          <tr>
+            <td><code>mood</code></td>
+            <td>기분 체크</td>
+            <td>별도 후속 기분 체크 화면을 사용하는 레거시 경로</td>
+            <td><code>MOOD_CHECK</code> 및 <code>RETURN_TO_APP</code></td>
+          </tr>
+          <tr>
+            <td><code>error</code></td>
+            <td>오류</td>
+            <td>에셋 로딩 실패 또는 런타임 오류</td>
+            <td>복귀 버튼으로 <code>RETURN_TO_APP</code></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <caption>세션 내부 상태</caption>
+        <thead>
+          <tr>
+            <th>필드</th>
+            <th>값</th>
+            <th>의미</th>
+            <th>저장 반영</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>state === null</code></td>
+            <td class="center">세션 없음</td>
+            <td>아직 게임 세션이 시작되지 않았거나 결과 처리 후 새 세션 대기 중</td>
+            <td>저장 대상 아님</td>
+          </tr>
+          <tr>
+            <td><code>state._status</code></td>
+            <td><code>running</code></td>
+            <td>세션 진행 중</td>
+            <td>최종 저장 전 상태</td>
+          </tr>
+          <tr>
+            <td><code>state._status</code></td>
+            <td><code>completed</code></td>
+            <td>계획된 문항을 모두 끝낸 정상 완료</td>
+            <td><code>SESSION_COMPLETE</code> payload의 <code>status=completed</code></td>
+          </tr>
+          <tr>
+            <td><code>state._status</code></td>
+            <td><code>abandoned</code></td>
+            <td>사용자 중단, 시간 초과, 앱 종료 등으로 세션 중단</td>
+            <td><code>SESSION_ABORT</code> payload의 <code>status=abandoned</code></td>
+          </tr>
+          <tr>
+            <td><code>state._status</code></td>
+            <td><code>error</code></td>
+            <td>진행 중 런타임 오류로 세션 종료</td>
+            <td><code>SESSION_ABORT</code> payload의 <code>status=error</code></td>
+          </tr>
+          <tr>
+            <td><code>state._paused</code></td>
+            <td><code>true</code> / <code>false</code></td>
+            <td>일시정지 여부. 일시정지 중에는 타이머와 입력 처리를 멈춘다.</td>
+            <td><code>SESSION_PAUSE</code>, <code>SESSION_RESUME</code>, <code>pause_count</code></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h2>3. 상태 전이 정의</h2>
+
+    <h3>3-1. 초기 진입</h3>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>순서</th>
+            <th>트리거</th>
+            <th>처리</th>
+            <th>이벤트</th>
+            <th>다음 상태</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="center">1</td>
+            <td>페이지 로드</td>
+            <td>URL query를 읽어 <code>mode</code>, <code>difficulty</code>, 표시 옵션을 정규화한다.</td>
+            <td>-</td>
+            <td><code>loading</code></td>
+          </tr>
+          <tr>
+            <td class="center">2</td>
+            <td><code>loading()</code></td>
+            <td>도깨비, 음식, 정답 이미지 preload를 수행하고 로딩바를 갱신한다.</td>
+            <td><code>LOADING_PROGRESS</code></td>
+            <td><code>loading</code></td>
+          </tr>
+          <tr>
+            <td class="center">3</td>
+            <td>에셋 로딩 성공</td>
+            <td><code>assetsReady=true</code>로 표시하고 앱에 준비 완료를 알린다.</td>
+            <td><code>READY</code>, <code>DISPLAY_REQUEST</code></td>
+            <td>모드에 따라 <code>precheck</code>, <code>start</code>, 또는 자동 시작 흐름</td>
+          </tr>
+          <tr>
+            <td class="center">4</td>
+            <td>에셋 로딩 실패</td>
+            <td><code>asset_load_failed</code> 오류를 보고한다.</td>
+            <td><code>ERROR</code></td>
+            <td><code>error</code></td>
+          </tr>
+          <tr>
+            <td class="center">5</td>
+            <td>앱 <code>CONFIG</code> 수신</td>
+            <td>런타임 config를 적용하고 모드 UI를 갱신한다. 에셋 준비가 끝났고 <code>auto_start</code> 조건이 맞으면 자동 시작한다.</td>
+            <td><code>CONFIG_APPLIED</code>, <code>DISPLAY_REQUEST</code></td>
+            <td>현재 상태 유지 또는 자동 시작 흐름</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>3-2. 시작 전 흐름</h3>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>흐름</th>
+            <th>조건</th>
+            <th>전이</th>
+            <th>비고</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>standard</code> 기본</td>
+            <td><code>show_difficulty_select=true</code>, <code>auto_start=false</code></td>
+            <td><code>loading</code> -> <code>precheck</code> -> <code>start</code> 난이도 선택 -> <code>how</code> 또는 <code>ready</code> -> <code>countdown</code> -> <code>play</code></td>
+            <td>컨디션 체크는 <code>CONDITION_CHECK</code>로 기록한다. 진행방법 화면은 <code>localStorage.af_seen_how=1</code>이면 생략될 수 있다.</td>
+          </tr>
+          <tr>
+            <td><code>reminder</code></td>
+            <td>기본 <code>auto_start=true</code></td>
+            <td><code>loading</code> -> <code>ready</code> -> <code>countdown</code> -> <code>play</code></td>
+            <td>기본 난이도는 <code>normal</code>, 완료 후 자동 복귀 기본값은 3000ms이다.</td>
+          </tr>
+          <tr>
+            <td><code>care</code></td>
+            <td>수동 시작, 쉬운 구성</td>
+            <td><code>loading</code> -> <code>start</code> -> <code>ready</code> -> <code>countdown</code> -> <code>play</code></td>
+            <td>기본 <code>difficulty=easy</code>, <code>animal_count=2</code>, <code>question_count=5</code>, <code>trash_count=0</code>, 부드러운 피드백 사용.</td>
+          </tr>
+          <tr>
+            <td><code>ai_assisted</code></td>
+            <td>수동 시작, AI 보조 복귀 문구</td>
+            <td><code>loading</code> -> <code>start</code> -> <code>ready</code> -> <code>countdown</code> -> <code>play</code></td>
+            <td><code>care</code>와 유사하되 앱 복귀 문구와 실행 출처를 AI 보조 맥락으로 해석한다.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>3-3. 게임 진행 흐름</h3>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>순서</th>
+            <th>상태/함수</th>
+            <th>처리</th>
+            <th>이벤트</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="center">1</td>
+            <td><code>startSession(diff)</code></td>
+            <td>세션 ID, 난이도, 문항 수, 도깨비 구성, 문항 queue, 시작 시각, 타이머를 초기화한다.</td>
+            <td><code>SESSION_START</code></td>
+          </tr>
+          <tr>
+            <td class="center">2</td>
+            <td><code>nextQuestion()</code></td>
+            <td>현재 문항의 음식/예외 물건과 선택 가능한 도깨비를 화면에 표시한다.</td>
+            <td><code>QUESTION_START</code></td>
+          </tr>
+          <tr>
+            <td class="center">3</td>
+            <td>사용자 입력</td>
+            <td>터치, 드래그, 키보드, 외부 입력, 예외 물건 자동 대기 입력을 처리한다.</td>
+            <td>문항 종료 전까지 중간 이벤트 없음</td>
+          </tr>
+          <tr>
+            <td class="center">4</td>
+            <td>정답</td>
+            <td><code>selectedTargetId</code>, 응답 시간, 입력 타입을 기록하고 다음 문항으로 넘어간다.</td>
+            <td><code>QUESTION_RESULT</code></td>
+          </tr>
+          <tr>
+            <td class="center">5</td>
+            <td>오답</td>
+            <td>오답 횟수, 선택 변경, 드래그 실패를 기록한다. 2회 이상 오답 시 설정에 따라 힌트를 표시한다.</td>
+            <td>힌트 버튼 사용 시 <code>HELP_USED</code>, 문항 종료 시 <code>QUESTION_RESULT</code></td>
+          </tr>
+          <tr>
+            <td class="center">6</td>
+            <td>최대 오답</td>
+            <td>오답 3회 이상이면 정답을 표시하고 <code>answer_revealed=true</code>, <code>forced_advance_reason=max_wrong_attempts</code>로 다음 문항으로 이동한다.</td>
+            <td><code>QUESTION_RESULT</code></td>
+          </tr>
+          <tr>
+            <td class="center">7</td>
+            <td>예외 물건</td>
+            <td><code>leave_item</code> 문항에서 2초 동안 아무 도깨비에게도 주지 않으면 <code>input_type=idle</code>로 자동 정답 처리한다.</td>
+            <td><code>QUESTION_RESULT</code></td>
+          </tr>
+          <tr>
+            <td class="center">8</td>
+            <td>마지막 문항 이후</td>
+            <td><code>state._idx &gt;= plannedRounds</code>이면 정상 완료 처리한다.</td>
+            <td><code>SESSION_COMPLETE</code></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>3-4. 일시정지, 종료, 결과 흐름</h3>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>트리거</th>
+            <th>처리</th>
+            <th>최종 상태</th>
+            <th>이벤트</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>사용자 종료 버튼</td>
+            <td><code>pauseSession("user_pause")</code> 후 종료 확인 모달 표시. 계속하기는 <code>resumeSession("user_resume")</code>, 그만하기는 <code>finishSession(false, "user_quit")</code>.</td>
+            <td><code>abandoned</code></td>
+            <td><code>SESSION_PAUSE</code>, <code>SESSION_RESUME</code>, <code>SESSION_ABORT</code></td>
+          </tr>
+          <tr>
+            <td>앱 <code>PAUSE</code>/<code>RESUME</code></td>
+            <td>앱 명령으로 세션 타이머, 음성, 자동 정답 대기 타이머를 멈추거나 재개한다.</td>
+            <td><code>running</code></td>
+            <td><code>SESSION_PAUSE</code>, <code>SESSION_RESUME</code></td>
+          </tr>
+          <tr>
+            <td>앱 <code>QUIT</code></td>
+            <td><code>finishSession(false, reason || "app_quit")</code>로 종료한다.</td>
+            <td><code>abandoned</code></td>
+            <td><code>SESSION_ABORT</code></td>
+          </tr>
+          <tr>
+            <td>제한 시간 초과</td>
+            <td>타이머가 0 이하가 되면 <code>timedOut=true</code>, <code>abandon_reason=time_limit</code>으로 종료한다.</td>
+            <td><code>abandoned</code></td>
+            <td><code>SESSION_ABORT</code></td>
+          </tr>
+          <tr>
+            <td>런타임 오류</td>
+            <td><code>ERROR</code>를 먼저 전송하고, 진행 중 세션이 있으면 <code>finishSession(false, "runtime_error", error)</code>를 호출한다.</td>
+            <td><code>error</code></td>
+            <td><code>ERROR</code>, <code>SESSION_ABORT</code></td>
+          </tr>
+          <tr>
+            <td><code>pagehide</code></td>
+            <td>진행 중 세션이면 <code>finishSession(false, "pagehide")</code>로 중단 처리한다.</td>
+            <td><code>abandoned</code></td>
+            <td><code>SESSION_ABORT</code></td>
+          </tr>
+          <tr>
+            <td>완료 후 마무리 체크</td>
+            <td><code>show_finish_check=true</code>이면 최종 결과 이벤트를 잠시 보류하고 <code>finish</code> 화면에서 응답을 받은 뒤 전송한다.</td>
+            <td><code>completed</code> 또는 <code>abandoned</code></td>
+            <td><code>CONDITION_CHECK</code>, <code>FINISH_CHECK</code>, <code>SESSION_COMPLETE</code> 또는 <code>SESSION_ABORT</code></td>
+          </tr>
+          <tr>
+            <td>자동 복귀</td>
+            <td><code>auto_return_ms</code>가 0보다 크면 결과 전송 후 지정 시간 뒤 앱 복귀를 요청하고 허브 URL로 이동한다.</td>
+            <td>결과 처리 완료</td>
+            <td><code>RETURN_TO_APP</code></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h2>4. 이벤트 명세</h2>
+    <p>문서 기준의 공통 이벤트 래퍼는 아래 형식이다.</p>
+    <pre><code>{
+  "type": "EVENT_NAME",
+  "payload": {},
+  "timestamp": "2026-06-24T00:00:00.000Z"
+}</code></pre>
+    <div class="warning">
+      현재 구현의 <code>RN(message)</code> 함수는 <code>type</code>과 <code>payload</code>를 그대로 직렬화하며 <code>timestamp</code>를 자동으로 추가하지 않는다. 저장/감사용 timestamp가 필요하면 앱 수신 시각을 보강하거나 게임의 <code>RN</code> 함수에서 공통 래퍼를 확장해야 한다.
+    </div>
+    <p>React Native WebView 환경에서는 <code>window.ReactNativeWebView.postMessage(JSON.stringify(message))</code>를 사용한다. iOS 네이티브 핸들러가 있는 경우 <code>window.webkit.messageHandlers.gameBridge.postMessage(message)</code>, Android 브릿지가 있는 경우 <code>window.AndroidBridge.onMessage(JSON.stringify(message))</code>도 지원한다. 로컬 QA에서는 <code>qa=1</code> query를 붙였을 때 parent/opener 창으로 QA 메시지를 전달한다.</p>
+
+    <h3>4-1. 게임 -> 앱</h3>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>이벤트</th>
+            <th>발생 시점</th>
+            <th>주요 payload</th>
+            <th>앱 처리 기준</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>LOADING_PROGRESS</code></td>
+            <td>에셋 로딩 진행 중</td>
+            <td><code>progress</code></td>
+            <td>로딩 UI 또는 WebView 준비 상태 표시</td>
+          </tr>
+          <tr>
+            <td><code>READY</code></td>
+            <td>에셋 로딩 및 초기 준비 완료</td>
+            <td><code>version</code></td>
+            <td>앱에서 게임 준비 완료로 판단</td>
+          </tr>
+          <tr>
+            <td><code>CONFIG_APPLIED</code></td>
+            <td>앱 <code>CONFIG</code> 적용 후</td>
+            <td><code>config_snapshot</code></td>
+            <td>앱이 전달한 모드/난이도/표시 옵션 반영 여부 검증</td>
+          </tr>
+          <tr>
+            <td><code>DISPLAY_REQUEST</code></td>
+            <td>초기 준비, config 적용, 사용자 표시 요청 시</td>
+            <td><code>reason</code>, <code>fullscreen</code>, <code>orientation_lock</code>, <code>capabilities</code>, <code>native_hint</code></td>
+            <td>네이티브 앱의 전체화면/가로모드 전환 요청으로 처리</td>
+          </tr>
+          <tr>
+            <td><code>DISPLAY_APPLIED</code></td>
+            <td>브라우저 fullscreen/orientation lock 시도 후</td>
+            <td><code>reason</code>, <code>fullscreen</code>, <code>orientation</code>, <code>capabilities</code></td>
+            <td>실제 WebView 표시 적용 결과 추적</td>
+          </tr>
+          <tr>
+            <td><code>CONDITION_CHECK</code></td>
+            <td>시작 전 컨디션 체크 제출 또는 마무리 체크 중 post 기분 항목 제출</td>
+            <td><code>phase</code>, <code>skipped</code>, <code>mood</code>, <code>mood_label</code>, <code>sleep_hours</code></td>
+            <td>컨디션과 수행 결과 비교 분석. 시작 전 값은 최종 payload의 <code>pre_condition_check</code>에도 포함된다.</td>
+          </tr>
+          <tr>
+            <td><code>SESSION_START</code></td>
+            <td>세션 시작 직후</td>
+            <td><code>sessionId</code>, <code>contentId</code>, <code>gameKey</code>, <code>version</code>, <code>mode</code>, <code>difficulty</code>, <code>plannedRounds</code>, <code>total_questions</code>, <code>target_animals</code>, <code>trash_count</code></td>
+            <td>실시간 시작 로그. 최종 저장은 완료/중단 이벤트 기준.</td>
+          </tr>
+          <tr>
+            <td><code>QUESTION_START</code></td>
+            <td>각 문항 표시 시</td>
+            <td><code>question_id</code>, <code>question_index</code>, <code>question_type</code>, <code>item</code>, <code>choices</code>, <code>correct_answer</code>, <code>input_modes_enabled</code></td>
+            <td>실시간 문항 제시 로그 또는 외부 음성/접근성 입력 매칭 기준.</td>
+          </tr>
+          <tr>
+            <td><code>QUESTION_RESULT</code></td>
+            <td>각 문항 종료 시</td>
+            <td>raw 문항 결과, <code>question_log</code></td>
+            <td>문항별 분석. 최종 payload의 <code>question_logs</code>에도 누적 포함된다.</td>
+          </tr>
+          <tr>
+            <td><code>HELP_USED</code></td>
+            <td>도움 버튼 클릭 시</td>
+            <td><code>session_id</code>, <code>content_id</code>, <code>game_key</code>, <code>question_id</code>, <code>question_index</code></td>
+            <td>힌트 사용 횟수 및 도움 필요도 추적.</td>
+          </tr>
+          <tr>
+            <td><code>FINISH_CHECK</code></td>
+            <td>마무리 체크 제출 또는 건너뛰기 시</td>
+            <td><code>mood</code>, <code>fatigue</code>, <code>difficulty</code>, <code>help_needed</code>, <code>replay_wanted</code>, 각 항목별 <code>skipped</code></td>
+            <td>종료 후 상태와 재시도 의사 저장. 최종 payload의 <code>finish_check</code>와 <code>result_detail_json</code>에도 반영된다.</td>
+          </tr>
+          <tr>
+            <td><code>SESSION_COMPLETE</code></td>
+            <td>계획된 문항을 모두 완료한 뒤</td>
+            <td>최종 결과 전체 payload, <code>status=completed</code></td>
+            <td><strong>결과 저장 API 호출 기준 이벤트</strong></td>
+          </tr>
+          <tr>
+            <td><code>SESSION_ABORT</code></td>
+            <td>사용자 중단, 시간 초과, 앱 종료, pagehide, 런타임 오류 종료 시</td>
+            <td>최종 결과 전체 payload, <code>status=abandoned</code> 또는 <code>status=error</code>, <code>abandon_reason</code>, <code>abandon_step</code></td>
+            <td><strong>중단/오류 결과 저장 API 호출 기준 이벤트</strong></td>
+          </tr>
+          <tr>
+            <td><code>SESSION_PAUSE</code>, <code>SESSION_RESUME</code></td>
+            <td>사용자 또는 앱 명령으로 일시정지/재개 시</td>
+            <td><code>session_id</code>, <code>reason</code></td>
+            <td>활성 진행 시간 계산 및 중단 분석 참고.</td>
+          </tr>
+          <tr>
+            <td><code>AUDIO_APPLIED</code></td>
+            <td>음성/효과음/배경음 설정 적용 후</td>
+            <td><code>voice</code>, <code>effect_sound_enabled</code>, <code>background_music_enabled</code></td>
+            <td>접근성/음향 설정 확인.</td>
+          </tr>
+          <tr>
+            <td><code>ERROR</code></td>
+            <td>에셋 또는 런타임 오류 발생 시</td>
+            <td><code>code</code>, <code>message</code>, <code>recoverable</code>, <code>phase</code></td>
+            <td>오류 분석. 진행 중 세션이 있으면 이어서 <code>SESSION_ABORT</code>가 전송될 수 있다.</td>
+          </tr>
+          <tr>
+            <td><code>RETURN_TO_APP</code></td>
+            <td>확인 버튼, 시작 화면 복귀, 오류 화면 복귀, 자동 복귀 시</td>
+            <td><code>session_id</code>, <code>status</code>, <code>mode</code>, <code>auto_return</code>, <code>reason</code></td>
+            <td>앱 화면 전환 및 허브 복귀 처리.</td>
+          </tr>
+          <tr>
+            <td><code>MOOD_CHECK</code></td>
+            <td>레거시 <code>mood</code> 화면에서 기분 선택 또는 건너뛰기 시</td>
+            <td><code>phase</code>, <code>mood</code>, <code>skipped</code></td>
+            <td>현재 기본 흐름에서는 <code>FINISH_CHECK</code>가 우선이다. 유지 여부는 후속 정리 필요.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>4-2. 앱 -> 게임</h3>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>이벤트</th>
+            <th>payload</th>
+            <th>처리</th>
+            <th>비고</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>CONFIG</code></td>
+            <td>모드, 난이도, 세션 ID, 표시/입력/오디오 옵션</td>
+            <td><code>applyRuntimeConfig()</code>로 런타임 설정을 적용한다.</td>
+            <td>현재 구현의 수신 이벤트명은 <code>APP_CONFIG</code>가 아니라 <code>CONFIG</code>이다.</td>
+          </tr>
+          <tr>
+            <td><code>EXTERNAL_ANSWER</code></td>
+            <td><code>selected_answer</code> 또는 <code>selectedAnswer</code>, <code>input_type</code>, <code>raw_transcript</code>, <code>confidence</code></td>
+            <td>현재 문항의 도깨비 ID/라벨 또는 <code>no_target</code> 별칭과 매칭되면 선택을 적용한다.</td>
+            <td>매칭 성공 시 문항 로그의 <code>input_type</code>은 기본 <code>external</code>로 기록된다.</td>
+          </tr>
+          <tr>
+            <td><code>PAUSE</code></td>
+            <td>없음 또는 임의 payload</td>
+            <td><code>pauseSession("app_command")</code></td>
+            <td>진행 중 세션이 아니거나 이미 정지 상태이면 무시한다.</td>
+          </tr>
+          <tr>
+            <td><code>RESUME</code></td>
+            <td>없음 또는 임의 payload</td>
+            <td><code>resumeSession("app_command")</code></td>
+            <td>진행 중 세션이 아니거나 정지 상태가 아니면 무시한다.</td>
+          </tr>
+          <tr>
+            <td><code>MUTE</code></td>
+            <td><code>muted=true</code>로 해석, 추가 오디오 옵션 허용</td>
+            <td>음성, 효과음, 배경음을 끈다.</td>
+            <td>적용 후 <code>AUDIO_APPLIED</code>를 전송한다.</td>
+          </tr>
+          <tr>
+            <td><code>UNMUTE</code></td>
+            <td><code>muted=false</code>로 해석, 추가 오디오 옵션 허용</td>
+            <td>음성, 효과음, 배경음을 켠다.</td>
+            <td>적용 후 <code>AUDIO_APPLIED</code>를 전송한다.</td>
+          </tr>
+          <tr>
+            <td><code>SET_AUDIO</code></td>
+            <td><code>voice</code>, <code>voice_guide_enabled</code>, <code>effect_sound_enabled</code>, <code>background_music_enabled</code>, <code>backgroundMusic</code></td>
+            <td>오디오 세부 설정을 적용한다.</td>
+            <td>적용 후 <code>AUDIO_APPLIED</code>를 전송한다.</td>
+          </tr>
+          <tr>
+            <td><code>QUIT</code></td>
+            <td><code>reason</code></td>
+            <td><code>finishSession(false, reason || "app_quit")</code></td>
+            <td>최종 <code>SESSION_ABORT</code>를 전송한다.</td>
+          </tr>
+          <tr>
+            <td><code>ENTER_DISPLAY</code>, <code>ENTER_FULLSCREEN</code>, <code>LOCK_ORIENTATION</code></td>
+            <td>없음 또는 임의 payload</td>
+            <td><code>enterGameDisplay("app_command")</code>로 전체화면/가로모드 적용을 재시도한다.</td>
+            <td><code>DISPLAY_REQUEST</code>, <code>DISPLAY_APPLIED</code>가 전송된다.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>CONFIG payload 예시</h3>
+    <pre><code>{
+  "type": "CONFIG",
+  "payload": {
+    "session_id": "session_001",
+    "content_id": "cognitive_animal_feeding_001",
+    "game_key": "animal_feeding",
+    "mode": "care",
+    "difficulty": "easy",
+    "question_count": 5,
+    "animal_count": 2,
+    "choice_count": 2,
+    "trash_count": 0,
+    "time_limit_seconds": 180,
+    "show_timer": false,
+    "show_score": false,
+    "show_help": false,
+    "show_how_to_play": false,
+    "show_finish_check": false,
+    "show_progress": false,
+    "use_drag": true,
+    "soft_feedback": true,
+    "auto_return_ms": 3000,
+    "return_url": "../../index.html",
+    "voice_guide_enabled": true,
+    "effect_sound_enabled": true,
+    "background_music_enabled": true
+  }
+}</code></pre>
+    <div class="note">
+      <code>senior_id</code>, <code>guardian_id</code>, <code>assignment_id</code>, <code>alarm_id</code>, <code>schedule_id</code>, <code>play_source</code>, <code>client_context</code>, <code>voice_context</code>는 결과 저장 API에 필요한 앱 실행 맥락 필드다. 현재 게임 런타임은 이 필드를 직접 사용하지 않으므로 앱이 최종 저장 요청을 만들 때 보강한다.
+    </div>
+
+    <h3>EXTERNAL_ANSWER payload 예시</h3>
+    <pre><code>{
+  "type": "EXTERNAL_ANSWER",
+  "payload": {
+    "selected_answer": "tiger",
+    "input_type": "external",
+    "raw_transcript": "빨간 도깨비",
+    "confidence": 0.91
+  }
+}</code></pre>
+    <pre><code>{
+  "type": "EXTERNAL_ANSWER",
+  "payload": {
+    "selected_answer": "no_target",
+    "input_type": "external",
+    "raw_transcript": "아무에게도 주지 않음",
+    "confidence": 0.86
+  }
+}</code></pre>
+    <div class="warning">
+      현재 구현은 외부 입력이 현재 문항의 선택지와 매칭되지 않거나 현재 문항이 준비되지 않은 경우 별도 <code>EXTERNAL_ANSWER_IGNORED</code> 이벤트를 보내지 않고 무시한다. 앱 관측성이 필요하면 무시 이벤트 추가를 후속 과제로 처리한다.
+    </div>
+
+    <h2>5. 모드별 분기 요약</h2>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>모드</th>
+            <th>기본 진입</th>
+            <th>기본 설정</th>
+            <th>결과/복귀</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>standard</code></td>
+            <td>시작 전 컨디션 체크, 난이도 선택, 진행방법 화면 사용</td>
+            <td>난이도 선택 표시, 점수 표시, 진행률 표시, 도움 버튼 표시, 마무리 체크 표시, 다시하기 허용</td>
+            <td>완료 또는 사용자 중단 후 <code>done</code>. 자동 복귀 기본값 없음.</td>
+          </tr>
+          <tr>
+            <td><code>reminder</code></td>
+            <td>로딩 완료 후 자동 시작</td>
+            <td>기본 <code>difficulty=normal</code>, 타이머/진행률 표시, 점수/도움/마무리 체크 숨김</td>
+            <td>완료 후 <code>auto_return_ms=3000</code> 기준으로 앱 복귀 요청.</td>
+          </tr>
+          <tr>
+            <td><code>care</code></td>
+            <td>시작 화면에서 수동 시작</td>
+            <td>기본 <code>difficulty=easy</code>, <code>question_count=5</code>, <code>animal_count=2</code>, <code>trash_count=0</code>, 부드러운 피드백</td>
+            <td>완료 후 자동 복귀. 보호자/케어 세션 맥락은 앱 저장 계층에서 <code>play_source=care_session</code> 등으로 보강.</td>
+          </tr>
+          <tr>
+            <td><code>ai_assisted</code></td>
+            <td>시작 화면에서 수동 시작</td>
+            <td><code>care</code>와 동일한 쉬운 구성, AI 보조 복귀 문구</td>
+            <td>완료 후 자동 복귀. 앱 저장 계층에서 <code>play_source=ai_recommendation</code> 등으로 보강.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h2>6. 구현 결정사항</h2>
+    <ul>
+      <li>WebView 게임은 API 서버를 직접 호출하지 않고 앱에 결과 payload만 전달한다.</li>
+      <li>최종 저장 기준 이벤트는 <code>SESSION_COMPLETE</code>와 <code>SESSION_ABORT</code>이다. 런타임 오류 종료도 이벤트명은 <code>SESSION_ABORT</code>이고 payload의 <code>status</code>가 <code>error</code>이다.</li>
+      <li>현재 앱에서 게임으로 보내는 설정 이벤트명은 <code>CONFIG</code>이다. 기존 앱 표준이 <code>APP_CONFIG</code>라면 앱 브릿지에서 변환하거나 게임에 alias를 추가한다.</li>
+      <li>문항 유형은 <code>feed_animal</code>과 <code>leave_item</code>이다. <code>leave_item</code>은 예외 물건을 아무 도깨비에게도 주지 않는 선택지이며 <code>correct_answer=no_target</code>으로 기록한다.</li>
+      <li>오답 3회 이상이면 정답을 보여주고 다음 문항으로 넘어간다. 이 경우 <code>is_correct=false</code>, <code>answer_revealed=true</code>, <code>forced_advance_reason=max_wrong_attempts</code>로 분석한다.</li>
+      <li>일시정지 중 시간은 <code>duration_ms</code> 계산에서 제외된다. <code>pause_count</code>는 결과 payload에 포함한다.</li>
+      <li>전체화면/가로모드는 게임이 브라우저 API를 시도하지만, WebView 환경에서는 앱이 <code>DISPLAY_REQUEST</code>를 받아 네이티브 표시 정책을 적용하는 것을 기준으로 한다.</li>
+      <li>현재 <code>timestamp</code>, <code>EXTERNAL_ANSWER_IGNORED</code>, <code>game_version</code> root 필드 자동 생성은 구현되어 있지 않다. 저장 API 요청 시 앱이 보강하거나 게임 공통 브릿지에서 확장한다.</li>
+    </ul>
+
+    <h2>7. 결과 payload 주요 필드</h2>
+    <p><code>SESSION_COMPLETE</code>와 <code>SESSION_ABORT</code>의 payload는 아래 필드를 포함한다. 구현상 camelCase 레거시 필드와 snake_case 공통 필드가 함께 존재할 수 있으므로 저장 API 매핑 시 snake_case 공통 필드를 우선 사용한다.</p>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>필드</th>
+            <th>설명</th>
+            <th>예시/값</th>
+            <th>저장 매핑</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>session_id</code> / <code>sessionId</code></td>
+            <td>게임 실행 1회를 구분하는 세션 ID</td>
+            <td><code>session_001</code> 또는 게임 생성 ID</td>
+            <td><code>session_id</code></td>
+          </tr>
+          <tr>
+            <td><code>content_id</code> / <code>contentId</code></td>
+            <td>콘텐츠 ID</td>
+            <td><code>cognitive_animal_feeding_001</code></td>
+            <td><code>content_id</code></td>
+          </tr>
+          <tr>
+            <td><code>game_key</code> / <code>gameKey</code></td>
+            <td>게임 유형 키</td>
+            <td><code>animal_feeding</code></td>
+            <td><code>game_key</code></td>
+          </tr>
+          <tr>
+            <td><code>version</code></td>
+            <td>게임 버전</td>
+            <td><code>2.0.0</code></td>
+            <td><code>game_version</code>으로 매핑</td>
+          </tr>
+          <tr>
+            <td><code>mode</code></td>
+            <td>실행 모드</td>
+            <td><code>standard</code>, <code>reminder</code>, <code>care</code>, <code>ai_assisted</code></td>
+            <td><code>game_result.mode</code></td>
+          </tr>
+          <tr>
+            <td><code>difficulty</code></td>
+            <td>적용 난이도</td>
+            <td><code>easy</code>, <code>normal</code>, <code>hard</code></td>
+            <td><code>game_result.difficulty</code></td>
+          </tr>
+          <tr>
+            <td><code>status</code></td>
+            <td>최종 상태</td>
+            <td><code>completed</code>, <code>abandoned</code>, <code>error</code></td>
+            <td><code>status</code></td>
+          </tr>
+          <tr>
+            <td><code>started_at</code>, <code>ended_at</code></td>
+            <td>세션 시작/종료 시각</td>
+            <td>ISO 8601</td>
+            <td><code>started_at</code>, <code>ended_at</code></td>
+          </tr>
+          <tr>
+            <td><code>duration_ms</code></td>
+            <td>일시정지 시간을 제외한 실제 진행 시간</td>
+            <td>정수 ms</td>
+            <td><code>duration_ms</code></td>
+          </tr>
+          <tr>
+            <td><code>time_limit_ms</code>, <code>timed_out</code></td>
+            <td>제한 시간과 시간 초과 여부</td>
+            <td><code>180000</code>, <code>true</code>/<code>false</code></td>
+            <td><code>game_result</code>, reporting column 후보</td>
+          </tr>
+          <tr>
+            <td><code>total_questions</code>, <code>completed_questions</code></td>
+            <td>전체 문항 수와 완료 문항 수</td>
+            <td><code>5</code>, <code>10</code></td>
+            <td><code>total_questions</code>, <code>game_result</code></td>
+          </tr>
+          <tr>
+            <td><code>correct_count</code>, <code>wrong_count</code></td>
+            <td>정답/오답 문항 수</td>
+            <td>정수</td>
+            <td><code>correct_count</code>, <code>wrong_count</code></td>
+          </tr>
+          <tr>
+            <td><code>hint_count</code>, <code>retry_count</code></td>
+            <td>힌트 사용 및 재시도 집계</td>
+            <td>정수</td>
+            <td><code>hint_count</code>, <code>game_result</code></td>
+          </tr>
+          <tr>
+            <td><code>pause_count</code>, <code>help_open_count</code>, <code>interaction_count</code></td>
+            <td>일시정지, 도움 버튼, 선택 상호작용 집계</td>
+            <td>정수</td>
+            <td><code>result_detail_json</code></td>
+          </tr>
+          <tr>
+            <td><code>avg_response_time_ms</code></td>
+            <td>평균 응답 시간</td>
+            <td>정수 ms</td>
+            <td><code>avg_response_time_ms</code></td>
+          </tr>
+          <tr>
+            <td><code>completion_rate</code></td>
+            <td>완료 문항 수 / 전체 문항 수</td>
+            <td><code>1</code>, <code>0.6</code></td>
+            <td><code>game_result</code></td>
+          </tr>
+          <tr>
+            <td><code>abandon_reason</code>, <code>abandon_step</code></td>
+            <td>중단 사유와 중단 위치</td>
+            <td><code>user_quit</code>, <code>time_limit</code>, <code>runtime_error</code>, <code>pagehide</code></td>
+            <td><code>result_detail_json.abandon</code></td>
+          </tr>
+          <tr>
+            <td><code>config_snapshot</code></td>
+            <td>세션에 적용된 런타임 설정 스냅샷</td>
+            <td>object</td>
+            <td><code>result_detail_json.config_snapshot</code></td>
+          </tr>
+          <tr>
+            <td><code>question_logs</code></td>
+            <td>문항별 상세 로그 배열</td>
+            <td>array</td>
+            <td><code>game_question_logs</code> 또는 <code>game_result_json</code></td>
+          </tr>
+          <tr>
+            <td><code>result_detail_json</code></td>
+            <td>세션 요약, 문항 로그, 원본 결과, 과정 지표, 체크 결과를 묶은 상세 JSON</td>
+            <td>object</td>
+            <td><code>result_detail_json</code></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>문항 로그 주요 필드</h3>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>필드</th>
+            <th>설명</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>question_id</code>, <code>question_index</code>, <code>total_questions</code></td>
+            <td>문항 식별자, 순번, 전체 문항 수</td>
+          </tr>
+          <tr>
+            <td><code>question_type</code></td>
+            <td><code>feed_animal</code> 또는 <code>leave_item</code></td>
+          </tr>
+          <tr>
+            <td><code>cognitive_domain</code></td>
+            <td><code>semantic_memory</code> 또는 <code>selective_attention</code></td>
+          </tr>
+          <tr>
+            <td><code>item_id</code>, <code>item_label</code>, <code>item_type</code></td>
+            <td>제시된 음식/예외 물건 정보</td>
+          </tr>
+          <tr>
+            <td><code>correct_answer</code>, <code>selected_answer</code></td>
+            <td>정답 도깨비 ID 또는 <code>no_target</code>, 사용자가 선택한 값</td>
+          </tr>
+          <tr>
+            <td><code>is_correct</code>, <code>answer_revealed</code>, <code>forced_advance_reason</code></td>
+            <td>정답 여부, 정답 노출 여부, 강제 진행 사유</td>
+          </tr>
+          <tr>
+            <td><code>attempt_count</code>, <code>hint_count</code>, <code>wrong_tap_count</code>, <code>drag_fail_count</code></td>
+            <td>시도/힌트/오답/드래그 실패 집계</td>
+          </tr>
+          <tr>
+            <td><code>response_time_ms</code>, <code>first_response_time_ms</code></td>
+            <td>문항 표시 후 최종 응답 시간과 첫 반응 시간</td>
+          </tr>
+          <tr>
+            <td><code>input_type</code>, <code>external_input</code></td>
+            <td><code>touch</code>, <code>drag</code>, <code>keyboard</code>, <code>external</code>, <code>idle</code> 및 외부 입력 상세</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h2>8. 저장 API 전달 경계</h2>
+    <p>WebView 게임은 API 서버를 직접 호출하지 않는다. 게임은 <code>window.ReactNativeWebView.postMessage</code> 등 브릿지로 결과 payload를 호스트 앱에 전달하고, 앱이 결과 저장 API를 호출한다.</p>
+    <p>결과 저장 API로 넘어갈 때 MVP 필수 필드는 <code>senior_id</code>, <code>content_id</code>, <code>game_key</code>, <code>game_version</code>, <code>session_id</code>, <code>play_source</code>, <code>status</code>, <code>started_at</code>, <code>ended_at</code>, <code>duration_ms</code>, <code>game_result</code>다. <code>guardian_id</code>, <code>assignment_id</code>, <code>alarm_id</code>, <code>schedule_id</code>, <code>client_context</code>, <code>voice_context</code>는 앱 실행 맥락에 따라 nullable 또는 조건부로 전달한다.</p>
+    <pre><code>{
+  "senior_id": "senior_001",
+  "guardian_id": null,
+  "assignment_id": "assignment_001",
+  "alarm_id": null,
+  "schedule_id": null,
+  "content_id": "cognitive_animal_feeding_001",
+  "game_key": "animal_feeding",
+  "game_version": "2.0.0",
+  "session_id": "session_001",
+  "play_source": "care_session",
+  "status": "completed",
+  "started_at": "2026-06-24T00:00:00.000Z",
+  "ended_at": "2026-06-24T00:03:00.000Z",
+  "duration_ms": 180000,
+  "client_context": {
+    "device_id": "device_001",
+    "platform": "android",
+    "app_version": "1.0.0",
+    "timezone": "Asia/Seoul"
+  },
+  "voice_context": {
+    "voice_profile_id": "voice_default_001",
+    "voice_owner_type": "system",
+    "voice_owner_id": null
+  },
+  "game_result": {
+    "...": "SESSION_COMPLETE 또는 SESSION_ABORT payload 원본"
+  }
+}</code></pre>
+    <ul>
+      <li>중복 저장 방지는 <code>session_id</code> 또는 <code>assignment_id + session_id</code> 기준을 권장한다.</li>
+      <li>원본 WebView 결과는 <code>game_result_json</code>으로 그대로 보존한다.</li>
+      <li>보고/통계용 공통 컬럼은 <code>total_questions</code>, <code>correct_count</code>, <code>wrong_count</code>, <code>hint_count</code>, <code>avg_response_time_ms</code> 등을 payload에서 추출한다.</li>
+      <li><code>question_logs</code>는 별도 <code>game_question_logs</code> 테이블로 분리 저장하거나, MVP 단계에서는 <code>game_result_json</code>과 <code>result_detail_json</code>에 보존한다.</li>
+      <li>히스토리 재실행은 기존 결과를 덮어쓰지 않고 새 <code>session_id</code>와 <code>play_source=history_replay</code>로 저장한다.</li>
+      <li>오류 종료는 <code>status=error</code>, <code>error_code</code>, <code>error_message</code>, <code>abandon_reason=runtime_error</code>를 함께 저장한다.</li>
+    </ul>
+
+    <h2>9. 상태별 QA 확인 항목</h2>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>영역</th>
+            <th>확인 항목</th>
+            <th>기대 결과</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>초기 로딩</td>
+            <td>에셋 로딩 중 <code>LOADING_PROGRESS</code>, 완료 시 <code>READY</code>가 전송되는지 확인</td>
+            <td>로딩 실패가 없으면 시작 흐름으로 진입한다.</td>
+          </tr>
+          <tr>
+            <td>CONFIG 적용</td>
+            <td>앱에서 <code>CONFIG</code>를 보낸 뒤 <code>CONFIG_APPLIED.config_snapshot</code> 확인</td>
+            <td>모드, 난이도, 문항 수, 표시 옵션이 의도대로 반영된다.</td>
+          </tr>
+          <tr>
+            <td>표시 모드</td>
+            <td><code>DISPLAY_REQUEST</code> 수신 후 앱이 전체화면/가로모드를 적용하는지 확인</td>
+            <td>WebView가 1280x720 기준 화면을 가로모드로 안정적으로 표시한다.</td>
+          </tr>
+          <tr>
+            <td>시작 전 체크</td>
+            <td><code>standard</code>에서 컨디션 체크 제출/건너뛰기</td>
+            <td><code>CONDITION_CHECK</code>와 최종 payload의 <code>pre_condition_check</code>가 일치한다.</td>
+          </tr>
+          <tr>
+            <td>세션 시작</td>
+            <td><code>SESSION_START</code> payload의 문항 수, 도깨비 수, 예외 물건 수 확인</td>
+            <td>모드별 config 매트릭스와 일치한다.</td>
+          </tr>
+          <tr>
+            <td>문항 진행</td>
+            <td>정답, 오답, 3회 오답, 힌트, 드래그 실패, 키보드 입력 확인</td>
+            <td><code>QUESTION_RESULT.question_log</code>의 시도/힌트/응답 시간이 정확하다.</td>
+          </tr>
+          <tr>
+            <td>예외 물건</td>
+            <td><code>leave_item</code> 문항에서 아무 곳에도 주지 않고 2초 대기</td>
+            <td><code>correct_answer=no_target</code>, <code>input_type=idle</code>로 정답 처리된다.</td>
+          </tr>
+          <tr>
+            <td>외부 입력</td>
+            <td><code>EXTERNAL_ANSWER.selected_answer</code>로 도깨비 ID/라벨 또는 <code>no_target</code> 전달</td>
+            <td>매칭 성공 시 선택이 적용되고 <code>input_type=external</code>로 기록된다.</td>
+          </tr>
+          <tr>
+            <td>일시정지</td>
+            <td>앱 <code>PAUSE</code>/<code>RESUME</code>, 사용자 종료 모달 계속하기 확인</td>
+            <td><code>SESSION_PAUSE</code>, <code>SESSION_RESUME</code>과 <code>pause_count</code>가 반영된다.</td>
+          </tr>
+          <tr>
+            <td>정상 완료</td>
+            <td>모든 문항 완료</td>
+            <td><code>SESSION_COMPLETE</code>, <code>status=completed</code>, <code>completion_rate=1</code></td>
+          </tr>
+          <tr>
+            <td>중도 종료</td>
+            <td>사용자 그만하기, 앱 <code>QUIT</code>, 시간 초과, pagehide 확인</td>
+            <td><code>SESSION_ABORT</code>, <code>status=abandoned</code>, 적절한 <code>abandon_reason</code></td>
+          </tr>
+          <tr>
+            <td>오류 종료</td>
+            <td>런타임 오류 또는 에셋 로딩 실패 시나리오 확인</td>
+            <td><code>ERROR</code>가 전송되고, 진행 중 세션은 <code>SESSION_ABORT.status=error</code>로 저장 가능하다.</td>
+          </tr>
+          <tr>
+            <td>저장 경계</td>
+            <td>앱이 <code>SESSION_COMPLETE</code>/<code>SESSION_ABORT</code> 수신 후 API 요청 생성</td>
+            <td>필수 저장 필드와 원본 <code>game_result_json</code>이 누락되지 않는다.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h2>10. 오픈 이슈 및 후속 정리</h2>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>항목</th>
+            <th>현재 상태</th>
+            <th>후속 방향</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>이벤트 timestamp</td>
+            <td><code>RN</code> 함수가 자동 추가하지 않음</td>
+            <td>앱 수신 시각을 저장하거나 공통 브릿지에서 <code>timestamp</code> 추가</td>
+          </tr>
+          <tr>
+            <td><code>APP_CONFIG</code> 호환성</td>
+            <td>현재 게임은 <code>CONFIG</code>만 수신</td>
+            <td>앱 브릿지 변환 또는 게임 수신 alias 추가 여부 결정</td>
+          </tr>
+          <tr>
+            <td>외부 입력 무시 이벤트</td>
+            <td>매칭 실패 시 별도 <code>EXTERNAL_ANSWER_IGNORED</code> 없음</td>
+            <td>음성/접근성 연동 디버깅을 위해 무시 사유 이벤트 추가 검토</td>
+          </tr>
+          <tr>
+            <td>로컬 브라우저 console 출력</td>
+            <td>현재 standalone 브라우저에서는 자동 console log가 아님. <code>qa=1</code>에서 parent/opener postMessage 지원</td>
+            <td>개발 편의를 위해 console fallback 추가 여부 검토</td>
+          </tr>
+          <tr>
+            <td><code>game_version</code> root 필드</td>
+            <td>최종 payload는 <code>version</code>을 포함</td>
+            <td>앱 저장 요청에서 <code>game_version=payload.version</code>으로 매핑하거나 게임 payload에 <code>game_version</code> 추가</td>
+          </tr>
+          <tr>
+            <td>앱 실행 맥락 보존</td>
+            <td><code>play_source</code>, <code>client_context</code>, <code>voice_context</code>는 게임이 직접 보존하지 않음</td>
+            <td>앱 저장 계층에서 최종 API 요청에 보강. 필요 시 <code>config_snapshot</code>에 보존하도록 확장</td>
+          </tr>
+          <tr>
+            <td><code>MOOD_CHECK</code> 경로</td>
+            <td>레거시 <code>mood</code> 화면 이벤트가 남아 있음</td>
+            <td>마무리 체크는 <code>FINISH_CHECK</code>로 통합하고 레거시 경로 유지 여부 결정</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </main>
+</body>
+</html>

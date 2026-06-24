@@ -639,7 +639,7 @@ function applyAudioCommand(payload) {
 function handleExternalAnswer(payload) {
   if (!cur) return;
   const raw = String(payload.selected_answer || payload.selectedAnswer || "").trim();
-  const noTargetAliases = ["no_target", "none", "idle", "wait", "아무에게도 주지 않음"];
+  const noTargetAliases = ["no_target", "none", "idle", "wait", "아무에게도 주지 않음", "쓰레기통", "휴지통"];
   if (typeof NO_TARGET_ID !== "undefined" && noTargetAliases.includes(raw)) {
     cur.externalAnswer = {
       inputType: payload.input_type || payload.inputType || "external",
@@ -650,9 +650,8 @@ function handleExternalAnswer(payload) {
     autoCorrectNoTargetQuestion();
     return;
   }
-  const aliasTargetId = raw === "쓰레기통" || raw === "휴지통" ? "bin" : null;
   const target = Object.values(ANIMALS).find(a => a.id === raw || a.label === raw);
-  const targetId = aliasTargetId || (target ? target.id : raw);
+  const targetId = target ? target.id : raw;
   const spot = document.querySelector(`.spot[data-target="${targetId}"], .bin[data-target="${targetId}"]`);
   if (!spot) return;
   cur.externalAnswer = {

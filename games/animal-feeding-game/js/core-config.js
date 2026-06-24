@@ -76,8 +76,6 @@ const ANIMALS = {
               cheers:["냠냠 좋아요","고마워요","따뜻해요","좋은 시간이네요"] },
   panda:    { id:"panda",    label:"노란 도깨비",   img:"image/yellow_goblin.png", correctImg:"image/yellow_goblin_correct.png", baseImg:"image/goblin_straw_base.png",
               cheers:["아삭아삭 좋아요","고마워요","마음에 들어요","천천히 먹을게요"] },
-  bin:      { id:"bin",      label:"휴지통", img:"image/bin.png",
-              cheers:["정리했어요","깔끔해졌어요","잘 치웠어요"] },
 };
 
 function pickCheer(animalId) {

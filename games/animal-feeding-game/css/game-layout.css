@@ -679,7 +679,7 @@ body.paused .item {
   width: 132%;
   height: 64%;
   transform: translateX(-50%);
-  background: var(--done-base-image, url("../image/animal-pen.png")) center bottom / contain no-repeat;
+  background: var(--done-base-image, url("../image/goblin_straw_base.png")) center bottom / contain no-repeat;
   filter: drop-shadow(0 14px 14px rgba(65,72,46,.12));
   z-index: 0;
 }
