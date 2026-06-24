@@ -73,7 +73,7 @@ function showStartIntro(resetCheck = false) {
 function showInitialStartScreen() {
   pendingDiff = null;
   resetDifficultyStartState(true);
-  resetPreGameCheckState();
+  if (!preGameCheck?.completed) resetPreGameCheckState();
   startDifficultyUnlocked = !runtime.showDifficultySelect;
   setStartStage("intro");
   show("start");

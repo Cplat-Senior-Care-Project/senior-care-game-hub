@@ -38,9 +38,9 @@
    ├─ farm-background.png
    ├─ animal-pen.png
    ├─ cleanup-zone.png
-   ├─ feed-tray.png
-   ├─ nameplate.png
+   ├─ feed-basket.png
    ├─ game-title.png
+   ├─ goblin_straw_base.png
    ├─ red_goblin.png
    ├─ red_goblin_correct.png
    ├─ green_goblin.png
@@ -51,28 +51,18 @@
    ├─ yellow_goblin_correct.png
    ├─ mystery_goblin.png
    ├─ tomato.png
-   ├─ cherry.png
    ├─ apple.png
-   ├─ red_chili_pepper.png
-   ├─ red_bell_pepper.png
    ├─ strawberry.png
-   ├─ kiwi.png
-   ├─ green_grape.png
    ├─ pea_pod.png
    ├─ broccoli.png
    ├─ cucumber.png
-   ├─ green_apple.png
    ├─ garlic.png
    ├─ onion.png
-   ├─ pear.png
-   ├─ peach.png
-   ├─ mushroom.png
    ├─ radish.png
    ├─ chamoe.png
    ├─ corn.png
-   ├─ pineapple.png
-   ├─ yellow_bell_pepper.png
    ├─ yellow_banana.png
+   ├─ patjuk.png
    ├─ talisman.png
    └─ bin.png
 ```
@@ -358,10 +348,10 @@ QUESTION_START → QUESTION_RESULT ... → CONDITION_CHECK → FINISH_CHECK → 
     "prompt_text": "누구에게 줄까요?",
     "prompt_type": "image",
     "item": {
-      "item_id": "green_grape",
-      "label": "청포도",
+      "item_id": "broccoli",
+      "label": "브로콜리",
       "type": "food",
-      "image_src": "image/green_grape.png"
+      "image_src": "image/broccoli.png"
     },
     "choices": [
       { "answer_id": "tiger", "label": "빨간 도깨비", "type": "animal", "image_src": "image/red_goblin.png" },

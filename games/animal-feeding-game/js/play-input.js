@@ -495,10 +495,10 @@ function finishQuestion(nextDelayMs = 1100) {
    =========================================================== */
 const quitModal = document.getElementById("quitModal");
 function quitCopy() {
-  if (runtime.mode === "care") return ["숲 속 벤치에서 쉬어 갈까요?", "여기까지도 충분해요.<br/>천천히 쉬어도 좋아요."];
+  if (runtime.mode === "care") return ["산 속에서 잠시 쉬어 갈까요?", "여기까지도 충분해요.<br/>천천히 쉬어도 좋아요."];
   if (runtime.mode === "ai_assisted") return ["잠깐 쉬고 대화로 돌아갈까요?", "활동은 여기까지 해도 괜찮아요.<br/>준비되면 대화로 돌아가요."];
   if (runtime.mode === "reminder") return ["오늘 활동을 마칠까요?", "짧게 잘 참여했어요.<br/>이제 효담콜로 돌아갈 수 있어요."];
-  return ["숲 속 벤치에서 쉬어 갈까요?", "여기까지도 충분해요.<br/>잠시 쉬고 다시 와도 좋아요."];
+  return ["산 속에서 잠시 쉬어 갈까요?", "여기까지도 충분해요.<br/>잠시 쉬고 다시 와도 좋아요."];
 }
 document.getElementById("quitBtn").addEventListener("click", () => {
   pauseSession("user_pause");
