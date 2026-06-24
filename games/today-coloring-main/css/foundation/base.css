@@ -25,7 +25,7 @@ html,body,#root { margin:0; height:100%; min-height:100%; }
 }
 #root { display:flex; overflow:hidden; }
 body {
-  font-family:'Outfit',-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo','Pretendard',sans-serif;
+  font-family:'Pretendard Variable','Pretendard','Outfit',-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo',sans-serif;
   color:var(--ink); background:var(--bg);
   overscroll-behavior:none; -webkit-user-select:none; user-select:none;
   font-weight:500;
@@ -45,11 +45,10 @@ h1,h2,h3,p { margin:0; }
 .app { flex:1; min-height:0; background:var(--bg); display:flex; flex-direction:column; overflow:hidden; position:relative; }
 .screen { flex:1; min-height:0; display:flex; flex-direction:column; }
 
-/* ── 상단바 (글래스모피즘) ── */
+/* ── 상단바 ── */
 .appbar {
   display:flex; align-items:center; justify-content:space-between; gap:10px; flex:0 0 auto;
   padding:14px 18px; background:rgba(255, 255, 255, 0.85);
-  -webkit-backdrop-filter:blur(20px); backdrop-filter:blur(20px);
   border-bottom:1px solid var(--line); box-shadow:0 4px 20px rgba(74,56,30,.03); z-index:5;
   padding-top:max(14px, env(safe-area-inset-top));
 }

@@ -236,7 +236,7 @@ function renderImageDataToCanvas(canvas, imageData, options = {}) {
 }
 
 function renderComposedPaintFrame(canvas, baseImgData, fillLayer, lineLayer, options = {}) {
-  const composed = composePaintLayers(baseImgData, fillLayer, lineLayer);
+  const composed = composePaintLayers(baseImgData, fillLayer, lineLayer, options);
   renderImageDataToCanvas(canvas, composed, options);
   return composed;
 }
@@ -278,8 +278,10 @@ function CanvasArt({ art, fills, onPaint, selected, interactive = true, frameMod
   const baseImageDataRef = React.useRef(null);
   const lineLayerImageDataRef = React.useRef(null);
   const fillLayerImageDataRef = React.useRef(null);
+  const composedImageDataRef = React.useRef(null);
   const progressImageDataRef = React.useRef(null);
   const regionMapRef = React.useRef(null);
+  const lastRenderedPaintKeyRef = React.useRef("");
   const fillsArray = Array.isArray(fills) ? fills : [];
   const regionsRef = React.useRef(null);
   const frameRef = React.useRef(null);
@@ -293,8 +295,10 @@ function CanvasArt({ art, fills, onPaint, selected, interactive = true, frameMod
     baseImageDataRef.current = null;
     lineLayerImageDataRef.current = null;
     fillLayerImageDataRef.current = null;
+    composedImageDataRef.current = null;
     progressImageDataRef.current = null;
     regionMapRef.current = null;
+    lastRenderedPaintKeyRef.current = "";
     lastArtSrcRef.current = art.src;
   }
   const publishRegions = (regions) => {
@@ -392,9 +396,11 @@ function CanvasArt({ art, fills, onPaint, selected, interactive = true, frameMod
       cacheKey,
       () => buildPaintLayerState(baseImgData, fillsArray, frameRef.current, regionMapRef.current)
     );
-    renderComposedPaintFrame(canvasRef.current, baseImgData, fillLayer, lineLayer, { smoothToDisplay: true });
+    if (lastRenderedPaintKeyRef.current === cacheKey && composedImageDataRef.current) return;
+    composedImageDataRef.current = renderComposedPaintFrame(canvasRef.current, baseImgData, fillLayer, lineLayer, { smoothToDisplay: true });
     fillLayerImageDataRef.current = fillLayer;
     progressImageDataRef.current = progressImgData;
+    lastRenderedPaintKeyRef.current = cacheKey;
   };
   React.useEffect(() => {
     if (!canvasRef.current || !baseImageDataRef.current) return;
@@ -479,16 +485,34 @@ function CanvasArt({ art, fills, onPaint, selected, interactive = true, frameMod
     let fillLayer = cachedFillLayer && cachedFillLayer.width === cw && cachedFillLayer.height === ch
       ? cloneFillLayerImageData(cachedFillLayer)
       : buildPaintLayerState(baseImgData, fillsArray, frameRef.current, regionMap).fillLayer;
+    let dirtyBounds = null;
+    const includeDirtyBounds = (bounds) => {
+      if (!bounds) return;
+      if (!dirtyBounds) {
+        dirtyBounds = { minX: bounds.minX, minY: bounds.minY, maxX: bounds.maxX, maxY: bounds.maxY };
+        return;
+      }
+      dirtyBounds.minX = Math.min(dirtyBounds.minX, bounds.minX);
+      dirtyBounds.minY = Math.min(dirtyBounds.minY, bounds.minY);
+      dirtyBounds.maxX = Math.max(dirtyBounds.maxX, bounds.maxX);
+      dirtyBounds.maxY = Math.max(dirtyBounds.maxY, bounds.maxY);
+    };
     directPaintSeeds.forEach((seed) => {
       const mappedBounds = regionMap ? paintRegionMapSeed(fillLayer, regionMap, seed, selectedRgb) : null;
-      if (!mappedBounds) paintFillLayerSeed(fillLayer, baseImgData.data, seed, selectedRgb);
+      includeDirtyBounds(mappedBounds || paintFillLayerSeed(fillLayer, baseImgData.data, seed, selectedRgb));
     });
     const lineLayer = lineLayerImageDataRef.current || buildLineLayerImageData(baseImgData);
     lineLayerImageDataRef.current = lineLayer;
-    renderComposedPaintFrame(canvasRef.current, baseImgData, fillLayer, lineLayer, { smoothToDisplay: true });
+    composedImageDataRef.current = renderComposedPaintFrame(canvasRef.current, baseImgData, fillLayer, lineLayer, {
+      smoothToDisplay: true,
+      bounds: dirtyBounds,
+      previousImageData: composedImageDataRef.current
+    });
     fillLayerImageDataRef.current = fillLayer;
     progressImageDataRef.current = progressImgData;
-    rememberPaintLayerState(getPaintLayerStateCacheKey(art, frameMode, cw, ch, nextFills), { fillLayer, progressImgData });
+    const nextCacheKey = getPaintLayerStateCacheKey(art, frameMode, cw, ch, nextFills);
+    rememberPaintLayerState(nextCacheKey, { fillLayer, progressImgData });
+    lastRenderedPaintKeyRef.current = nextCacheKey;
     onPaint(nextFills);
     if (paintFeedback) {
       const pulse = { id: Date.now(), x: paintX / cw * 100, y: paintY / ch * 100 };
@@ -821,6 +845,7 @@ function LobbyScreen({ onStart }) {
   const e = React.createElement;
   const [showGuide, setShowGuide] = React.useState(false);
   const featuredArt = window.ARTWORKS[0];
+  const showcaseArts = window.ARTWORKS.slice(1, 3);
   const openGuide = () => setShowGuide(true);
   const closeGuide = () => setShowGuide(false);
 
@@ -839,6 +864,9 @@ function LobbyScreen({ onStart }) {
         featuredArt && e("div", { className: "lobby-showcase__card lobby-showcase__card--0" },
           e(ArtworkImage, { art: featuredArt, priority: true })
         ),
+        showcaseArts.map((art, idx) => e("div", { key: art.id, className: "lobby-showcase__card lobby-showcase__card--" + (idx + 1) },
+          e(ArtworkImage, { art })
+        )),
         e("div", { className: "lobby-showcase__badge" },
           e(Icon, { name: "star", size: 16, color: "#fff" }),
           e("span", null, "작품 ", window.ARTWORKS.length, "장")
@@ -937,10 +965,11 @@ function HomeScreen({ onPick, onGallery, onSettings, artworksList, progress, gal
     )
   );
 }
-function GalleryScreen({ items, onBack, onView }) {
+function GalleryScreen({ items, onBack, onView, onPick }) {
   const e = React.createElement;
   const latest = items[0];
   const latestArt = latest ? getArtworkById(latest.artId) : window.ARTWORKS[0];
+  const suggestionArts = window.ARTWORKS.slice(0, 3);
   return e("div", { className: "screen gallery " + (items.length === 0 ? "gallery--empty" : "gallery--filled") },
     e("header", { className: "appbar" },
       e("div", { className: "appbar__brand" },
@@ -964,10 +993,18 @@ function GalleryScreen({ items, onBack, onView }) {
       e("div", { className: "gallery-summary__count" }, items.length, "점")
     ),
     items.length === 0 ? e("div", { className: "empty empty--gallery" },
-      e("div", { className: "empty__art" }, e(Thumb, { art: window.ARTWORKS[0] })),
-      e("p", { className: "empty__title" }, "아직 보관한 작품이 없어요"),
-      e("p", { className: "empty__sub" }, "마음에 드는 도안을 골라 첫 작품을 완성해보세요."),
-      e(BigButton, { icon: "plus", onClick: onBack }, "작품 고르기")
+      e("div", { className: "empty-gallery__copy" },
+        e("div", { className: "empty__art" }, e(Thumb, { art: window.ARTWORKS[0] })),
+        e("p", { className: "empty__title" }, "아직 보관한 작품이 없어요"),
+        e("p", { className: "empty__sub" }, "마음에 드는 도안을 골라 첫 작품을 완성해보세요."),
+        e(BigButton, { icon: "plus", onClick: onBack }, "작품 고르기")
+      ),
+      e("div", { className: "empty-gallery__suggestions", "aria-label": "추천 도안" },
+        suggestionArts.map((art) => e("button", { key: art.id, type: "button", className: "empty-gallery__suggestion", onClick: () => onPick ? onPick(art.id) : onBack() },
+          e("span", { className: "empty-gallery__thumb" }, e(ArtworkImage, { art })),
+          e("span", { className: "empty-gallery__title" }, art.title)
+        ))
+      )
     ) : e("div", { className: "cardgrid" }, items.map((it) => {
     const art = getArtworkById(it.artId);
     if (!art) return null;
@@ -1072,7 +1109,7 @@ const THEME_OPTIONS = [
   { label: "차분", value: "차분" },
   { label: "고대비", value: "고대비" }
 ];
-function SettingsDialog({ settings, onChange, onClose }) {
+function SettingsDialog({ settings, onChange, onClose, progressCount = 0, galleryCount = 0, onResetProgress, onDeleteAllRecords }) {
   const e = React.createElement;
   const dialogRef = React.useRef(null);
   const fontScale = settings && settings.fontScale ? settings.fontScale : 1;
@@ -1132,7 +1169,41 @@ function SettingsDialog({ settings, onChange, onClose }) {
           )
         )
       ),
-      e("p", { className: "settings-preview", "aria-live": "polite" }, "오늘의 색칠")
+      e("p", { className: "settings-preview", "aria-live": "polite" }, "오늘의 색칠"),
+      e("div", { className: "settings-danger-zone" },
+        e("fieldset", { className: "settings-field settings-field--danger" },
+          e("legend", null, "도안 기록"),
+          e("button", {
+            type: "button",
+            className: "settings-reset",
+            onClick: onResetProgress,
+            disabled: progressCount <= 0
+          },
+            e("span", { className: "settings-reset__icon", "aria-hidden": "true" }, e(Icon, { name: "reset", size: 19 })),
+            e("span", { className: "settings-reset__copy" },
+              e("strong", null, "색칠 기록 초기화"),
+              e("small", null, progressCount > 0 ? progressCount + "개 도안을 처음 상태로 돌려요" : "초기화할 색칠 기록이 없어요")
+            )
+          ),
+          e("p", { className: "settings-help" }, "갤러리에 보관한 완성 작품은 유지돼요.")
+        ),
+        e("fieldset", { className: "settings-field settings-field--danger" },
+          e("legend", null, "전체 기록"),
+          e("button", {
+            type: "button",
+            className: "settings-reset settings-reset--danger",
+            onClick: onDeleteAllRecords,
+            disabled: progressCount + galleryCount <= 0
+          },
+            e("span", { className: "settings-reset__icon", "aria-hidden": "true" }, e(Icon, { name: "trash", size: 19 })),
+            e("span", { className: "settings-reset__copy" },
+              e("strong", null, "기록 전체 삭제"),
+              e("small", null, progressCount + galleryCount > 0 ? "진행 작품과 갤러리를 모두 비워요" : "삭제할 기록이 없어요")
+            )
+          ),
+          e("p", { className: "settings-help" }, "설정값은 유지돼요.")
+        )
+      )
     )
   );
 }
@@ -1411,8 +1482,22 @@ function ColoringScreen({ art, fills, history, selected, onSelect, onPaint, onHi
   }, [scale, aspect, layout]);
   const hasHistory = historyStack.length > 0;
   const pageAspect = aspect >= 0.92 ? (layout === "side" ? 0.86 : 0.75) : aspect;
-  const bottomChrome = window.innerWidth >= 768 ? 250 : 268;
+  const usesDesktopStage = layout === "side" && window.innerWidth >= 1024 && window.innerHeight >= 740;
+  const sideCanvasHeightLimit = usesDesktopStage
+    ? `calc((100dvh - 124px) * ${pageAspect}), calc(861px * ${pageAspect})`
+    : `calc((100dvh - 84px) * ${pageAspect})`;
+  const isPortraitTabletBottom = layout === "bottom" && window.innerWidth >= 521 && window.innerWidth <= 1024;
+  const bottomChrome = isPortraitTabletBottom ? 295 : window.innerWidth >= 768 ? 250 : 268;
   const selectedColorName = PALETTE.find((p) => p.c === selected)?.name || "";
+  const canvasWrapStyle = {
+    width: "100%",
+    touchAction: "none",
+    overflow: scale > 1 ? "hidden" : "auto",
+    cursor: scale > 1 ? (isPanning ? "grabbing" : "grab") : "crosshair"
+  };
+  if (layout === "side") {
+    canvasWrapStyle.height = "100%";
+  }
   return e("div", { className: "screen color color--" + layout },
     e("header", { className: "appbar appbar--color", style: { position: "relative" } },
       e("button", { className: "appbar__back", onClick: onExit },
@@ -1431,12 +1516,12 @@ function ColoringScreen({ art, fills, history, selected, onSelect, onPaint, onHi
       e("div", {
         className: "canvaswrap",
         ref: containerRef,
-        style: { width: "100%", height: "100%", touchAction: "none", overflow: "hidden", cursor: scale > 1 ? (isPanning ? "grabbing" : "grab") : "crosshair" }
+        style: canvasWrapStyle
       },
         e("div", {
           className: "canvasinner",
           style: {
-            width: layout === "side" ? `min(100%, calc((100dvh - 84px) * ${pageAspect}), calc(100dvw - var(--color-side-reserved, 320px)), var(--color-canvas-max-side, 920px))` : `min(calc(100dvw - 10px), calc((100dvh - ${bottomChrome}px) * ${pageAspect}), var(--color-canvas-max-bottom, 680px))`,
+            width: layout === "side" ? `min(100%, ${sideCanvasHeightLimit}, calc(100dvw - var(--color-side-reserved, 320px)), var(--color-canvas-max-side, 920px))` : `min(calc(100dvw - 10px), calc((100dvh - ${bottomChrome}px) * ${pageAspect}), var(--color-canvas-max-bottom, 680px))`,
             aspectRatio: pageAspect,
             transform: `translate(${offset.x}px, ${offset.y}px) scale(${scale})`,
             transformOrigin: "0 0",
@@ -1683,6 +1768,8 @@ const App = function App() {
   const [justSaved, setJustSaved] = React.useState(false);
   const [toast, setToast] = React.useState(null);
   const [deleteConfirmId, setDeleteConfirmId] = React.useState(null);
+  const [resetProgressConfirmOpen, setResetProgressConfirmOpen] = React.useState(false);
+  const [deleteAllConfirmOpen, setDeleteAllConfirmOpen] = React.useState(false);
   const progressSaveTimerRef = React.useRef(null);
   const pendingProgressRef = React.useRef(null);
   const artworksList = window.ARTWORKS;
@@ -1768,28 +1855,65 @@ const App = function App() {
     setJustSaved(true);
     const item = AppStorage.createGalleryItem({ id: "g" + Date.now(), artId, fills, date: Date.now() });
     const next = [item, ...gallery];
-    setGallery(next);
-    AppStorage.saveGallery(next);
+    const saveResult = AppStorage.saveGallery(next);
+    if (!saveResult.saved) {
+      setJustSaved(false);
+      flash("저장 공간이 부족해요. 오래된 작품을 삭제해 주세요");
+      return;
+    }
+    setGallery(saveResult.value);
+    if (saveResult.capped) flash("갤러리는 최근 " + saveResult.maxItems + "개까지 보관해요");
     createGallerySnapshotDataUrl(art, fills).then((snapshotDataUrl) => {
       const itemWithSnapshot = AppStorage.createGalleryItem({ ...item, snapshotDataUrl });
       setGallery((currentGallery) => {
         const updated = currentGallery.map((galleryItem) => galleryItem.id === item.id ? itemWithSnapshot : galleryItem);
-        AppStorage.saveGallery(updated);
-        return updated;
+        const snapshotSave = AppStorage.saveGallery(updated);
+        if (!snapshotSave.saved) {
+          window.setTimeout(() => flash("저장 공간이 부족해요. 오래된 작품을 삭제해 주세요"), 0);
+          return currentGallery;
+        }
+        return snapshotSave.value;
       });
     }).catch(() => {
     });
   };
   const deleteGalleryItem = (itemId) => {
     const next = gallery.filter((item) => item.id !== itemId);
-    setGallery(next);
-    AppStorage.saveGallery(next);
+    const saveResult = AppStorage.saveGallery(next);
+    setGallery(saveResult.saved ? saveResult.value : next);
     setDeleteConfirmId(null);
     if (viewItem && viewItem.id === itemId) {
       setViewItem(null);
       setScreen("gallery");
     }
-    flash("\uAC24\uB7EC\uB9AC\uC5D0\uC11C \uC0AD\uC81C\uD588\uC5B4\uC694");
+    flash(saveResult.saved ? "\uAC24\uB7EC\uB9AC\uC5D0\uC11C \uC0AD\uC81C\uD588\uC5B4\uC694" : "저장 공간이 부족해요. 오래된 작품을 삭제해 주세요");
+  };
+  const resetAllProgress = () => {
+    if (progressSaveTimerRef.current) {
+      window.clearTimeout(progressSaveTimerRef.current);
+      progressSaveTimerRef.current = null;
+    }
+    pendingProgressRef.current = null;
+    setProgress({});
+    AppStorage.saveProgress({});
+    setResetProgressConfirmOpen(false);
+    flash("도안 색칠 기록을 초기화했어요");
+  };
+  const deleteAllRecords = () => {
+    if (progressSaveTimerRef.current) {
+      window.clearTimeout(progressSaveTimerRef.current);
+      progressSaveTimerRef.current = null;
+    }
+    pendingProgressRef.current = null;
+    AppStorage.saveProgress({});
+    AppStorage.saveGallery([]);
+    setProgress({});
+    setGallery([]);
+    setViewItem(null);
+    setJustSaved(false);
+    setDeleteAllConfirmOpen(false);
+    if (screen === "gallery" || screen === "view" || screen === "done") setScreen("home");
+    flash("기록을 모두 삭제했어요");
   };
   const saveArtworkPng = async (targetArt, targetFills) => {
     try {
@@ -1849,6 +1973,7 @@ const App = function App() {
     {
       items: gallery,
       onBack: () => setScreen("home"),
+      onPick: pickArt,
       onView: (it) => {
         setViewItem(it);
         setScreen("view");
@@ -1872,15 +1997,21 @@ const App = function App() {
       },
       onDelete: setDeleteConfirmId
     }
-  ), deleteConfirmId && /* @__PURE__ */ React.createElement(ConfirmDialog, { title: "\uAC24\uB7EC\uB9AC\uC5D0\uC11C \uC0AD\uC81C\uD560\uAE4C\uC694?", message: "\uC0AD\uC81C\uD55C \uC644\uC131\uC791\uC740 \uB2E4\uC2DC \uBCF5\uAD6C\uD560 \uC218 \uC5C6\uC5B4\uC694.", confirmLabel: "\uC0AD\uC81C", cancelLabel: "\uCDE8\uC18C", danger: true, onConfirm: () => deleteGalleryItem(deleteConfirmId), onCancel: () => setDeleteConfirmId(null) }), toast && /* @__PURE__ */ React.createElement("div", { className: "toast toast--" + screen }, toast), showBottomNav && /* @__PURE__ */ React.createElement(
+  ), deleteConfirmId && /* @__PURE__ */ React.createElement(ConfirmDialog, { title: "\uAC24\uB7EC\uB9AC\uC5D0\uC11C \uC0AD\uC81C\uD560\uAE4C\uC694?", message: "\uC0AD\uC81C\uD55C \uC644\uC131\uC791\uC740 \uB2E4\uC2DC \uBCF5\uAD6C\uD560 \uC218 \uC5C6\uC5B4\uC694.", confirmLabel: "\uC0AD\uC81C", cancelLabel: "\uCDE8\uC18C", danger: true, onConfirm: () => deleteGalleryItem(deleteConfirmId), onCancel: () => setDeleteConfirmId(null) }), resetProgressConfirmOpen && /* @__PURE__ */ React.createElement(ConfirmDialog, { title: "\uC0C9\uCE60 \uAE30\uB85D\uC744 \uCD08\uAE30\uD654\uD560\uAE4C\uC694?", message: "\uBAA8\uB4E0 \uB3C4\uC548\uC758 \uC0C9\uCE60 \uC9C4\uD589 \uAE30\uB85D\uB9CC \uC9C0\uC6CC\uC838\uC694. \uAC24\uB7EC\uB9AC\uC5D0 \uBCF4\uAD00\uD55C \uC644\uC131 \uC791\uD488\uC740 \uADF8\uB300\uB85C \uB0A8\uC544\uC694.", confirmLabel: "\uCD08\uAE30\uD654", cancelLabel: "\uCDE8\uC18C", danger: true, icon: "reset", onConfirm: resetAllProgress, onCancel: () => setResetProgressConfirmOpen(false) }), deleteAllConfirmOpen && /* @__PURE__ */ React.createElement(ConfirmDialog, { title: "\uBAA8\uB4E0 \uAE30\uB85D\uC744 \uC0AD\uC81C\uD560\uAE4C\uC694?", message: "\uC9C4\uD589 \uC911\uC778 \uC791\uD488\uACFC \uAC24\uB7EC\uB9AC\uAC00 \uBAA8\uB450 \uC9C0\uC6CC\uC838\uC694. \uB418\uB3CC\uB9B4 \uC218 \uC5C6\uC5B4\uC694.", confirmLabel: "\uC804\uCCB4 \uC0AD\uC81C", cancelLabel: "\uCDE8\uC18C", danger: true, icon: "trash", onConfirm: deleteAllRecords, onCancel: () => setDeleteAllConfirmOpen(false) }), toast && /* @__PURE__ */ React.createElement("div", { className: "toast toast--" + screen }, toast), showBottomNav && /* @__PURE__ */ React.createElement(
     BottomNav,
     {
       active: activeNav,
       galleryCount: gallery.length,
-    onHome: () => setScreen("home"),
+      onHome: () => setScreen("home"),
       onGallery: () => setScreen("gallery")
     }
-  ), settingsOpen && /* @__PURE__ */ React.createElement(SettingsDialog, { settings, onChange: updateSettings, onClose: () => setSettingsOpen(false) }));
+  ), settingsOpen && /* @__PURE__ */ React.createElement(SettingsDialog, { settings, onChange: updateSettings, onClose: () => setSettingsOpen(false), progressCount: Object.keys(progress || {}).length, galleryCount: gallery.length, onResetProgress: () => {
+    setSettingsOpen(false);
+    setResetProgressConfirmOpen(true);
+  }, onDeleteAllRecords: () => {
+    setSettingsOpen(false);
+    setDeleteAllConfirmOpen(true);
+  } }));
 };
 window.ColoringRuntime = {
   App,
