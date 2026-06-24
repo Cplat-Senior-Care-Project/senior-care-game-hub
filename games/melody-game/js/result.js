@@ -93,7 +93,7 @@
       ? state.totalTouchMissCount
       : wrongTapCount + (state.xFailCount || 0);
     const autoHintEnabled = state.config && state.config.autoHintEnabled !== false;
-    const hintDelayMs = Number(state.config && state.config.hintDelayMs) || 10000;
+    const hintDelayMs = Number(state.config && state.config.hintDelayMs) || 5000;
     const inputModesEnabled = state.runtimeConfig && state.runtimeConfig.inputModesEnabled
       ? state.runtimeConfig.inputModesEnabled
       : ["touch", "external"];

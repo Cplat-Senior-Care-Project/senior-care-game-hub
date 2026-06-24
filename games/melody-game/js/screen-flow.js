@@ -416,7 +416,21 @@
 
     shouldShowFinishCheck() {
       const runtime = window.MelodyRuntime && window.MelodyRuntime.runtime ? window.MelodyRuntime.runtime : {};
+      if (runtime.mode === "standard") {
+        return true;
+      }
       return Boolean(runtime.showFinishCheck);
+    }
+
+    shouldPromptFinishCheck(resultStatus) {
+      const runtime = window.MelodyRuntime && window.MelodyRuntime.runtime ? window.MelodyRuntime.runtime : {};
+      if (!this.shouldShowFinishCheck()) {
+        return false;
+      }
+      if (runtime.mode === "standard") {
+        return resultStatus !== "error";
+      }
+      return resultStatus === "completed";
     }
 
     createGameRuntime() {
@@ -637,7 +651,7 @@
         this.audio.stopBackgroundMusic();
       }
 
-      if (resultStatus !== "completed" || !this.shouldShowFinishCheck() || this.finishCheckShown) {
+      if (!this.shouldPromptFinishCheck(resultStatus) || this.finishCheckShown) {
         this.markFinishCheckSkipped();
         this.completePendingResult();
         return;
@@ -912,7 +926,7 @@
       if (window.ResultBridge && typeof window.ResultBridge.handleGameExitRequested === "function") {
         window.ResultBridge.handleGameExitRequested("user_complete", runtime);
       }
-      if (this.shouldReturnResultToHub(mode)) {
+      if (this.shouldReturnToHubFromResultButton(mode)) {
         this.returnToHub("user_complete");
         return;
       }
@@ -923,6 +937,10 @@
 
     shouldReturnResultToHub(mode) {
       return ["reminder", "care", "ai_assisted"].includes(mode);
+    }
+
+    shouldReturnToHubFromResultButton(mode) {
+      return mode === "standard" || this.shouldReturnResultToHub(mode);
     }
 
     isEmbeddedInHost() {

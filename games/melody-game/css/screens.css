@@ -3402,9 +3402,9 @@ body:is(.mode-care, .mode-ai, [data-mode="care"], [data-mode="ai_assisted"]) #re
 }
 
 body .modal-layer {
-  position: absolute;
+  position: fixed;
   inset: 0;
-  z-index: 80;
+  z-index: 2000;
   display: grid;
   place-items: center;
   padding: 24px;

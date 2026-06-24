@@ -137,7 +137,7 @@
   }
 
   function normalizeMode(mode) {
-    const raw = String(mode || "standard").trim();
+    const raw = String(mode || "standard").trim().toLowerCase();
     return MODE_ALIASES[raw] || raw;
   }
 

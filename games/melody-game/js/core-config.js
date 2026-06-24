@@ -35,13 +35,13 @@
       autoHintEnabled: true,
       hintEnabled: false,
       voiceGuideEnabled: true,
-      hintDelayMs: 10000,
+      hintDelayMs: 5000,
       xHoldSeconds: 2
     },
     reminder: {
       difficulty: "easy",
       autoStart: true,
-      showTimer: false,
+      showTimer: true,
       showDifficultySelect: false,
       showSettings: false,
       showHelp: true,
@@ -58,7 +58,7 @@
       autoHintEnabled: true,
       hintEnabled: false,
       voiceGuideEnabled: true,
-      hintDelayMs: 10000,
+      hintDelayMs: 5000,
       xHoldSeconds: 2
     },
     care: {
@@ -81,7 +81,7 @@
       autoHintEnabled: true,
       hintEnabled: false,
       voiceGuideEnabled: true,
-      hintDelayMs: 10000,
+      hintDelayMs: 5000,
       xHoldSeconds: 2
     },
     ai_assisted: {
@@ -104,7 +104,7 @@
       autoHintEnabled: true,
       hintEnabled: false,
       voiceGuideEnabled: true,
-      hintDelayMs: 10000,
+      hintDelayMs: 5000,
       xHoldSeconds: 2
     }
   };
@@ -126,7 +126,7 @@
   }
 
   function normalizeMode(mode) {
-    const raw = String(mode || "standard").trim();
+    const raw = String(mode || "standard").trim().toLowerCase();
     return MODE_ALIASES[raw] || raw;
   }
 
@@ -229,7 +229,9 @@
       mode,
       difficulty,
       autoStart: toBoolean(readValue(p, nested, "autoStart", "auto_start", defaults.autoStart), defaults.autoStart),
-      showTimer: toBoolean(readValue(p, nested, "showTimer", "show_timer", defaults.showTimer), defaults.showTimer),
+      showTimer: mode === "reminder"
+        ? true
+        : toBoolean(readValue(p, nested, "showTimer", "show_timer", defaults.showTimer), defaults.showTimer),
       showDifficultySelect: toBoolean(readValue(p, nested, "showDifficultySelect", "show_difficulty_select", defaults.showDifficultySelect), defaults.showDifficultySelect),
       showSettings: toBoolean(readValue(p, nested, "showSettings", "show_settings", defaults.showSettings), defaults.showSettings),
       showHelp: toBoolean(readValue(p, nested, "showHelp", "show_help", defaults.showHelp), defaults.showHelp),
@@ -237,7 +239,9 @@
       showScore: toBoolean(readValue(p, nested, "showScore", "show_score", defaults.showScore), defaults.showScore),
       allowReplay: toBoolean(readValue(p, nested, "allowReplay", "allow_replay", defaults.allowReplay), defaults.allowReplay),
       showConditionCheck: toBoolean(readValue(p, nested, "showConditionCheck", "show_condition_check", defaults.showConditionCheck), defaults.showConditionCheck),
-      showFinishCheck: toBoolean(readValue(p, nested, "showFinishCheck", "show_finish_check", defaults.showFinishCheck), defaults.showFinishCheck),
+      showFinishCheck: mode === "standard"
+        ? true
+        : toBoolean(readValue(p, nested, "showFinishCheck", "show_finish_check", defaults.showFinishCheck), defaults.showFinishCheck),
       autoReturnMs: toNumber(readValue(p, nested, "autoReturnMs", "auto_return_ms", defaults.autoReturnMs), defaults.autoReturnMs),
       softFeedback: toBoolean(readValue(p, nested, "softFeedback", "soft_feedback", defaults.softFeedback), defaults.softFeedback),
       previewEnabled: readValue(p, nested, "previewEnabled", "preview_enabled", defaults.previewEnabled),
@@ -315,7 +319,7 @@
     base.autoHintEnabled = toBoolean(r.autoHintEnabled, true);
     base.hintEnabled = toBoolean(r.hintEnabled, false);
     base.voiceGuideEnabled = toBoolean(r.voiceGuideEnabled, true);
-    base.hintDelayMs = toNumber(r.hintDelayMs, 10000);
+    base.hintDelayMs = toNumber(r.hintDelayMs, 5000);
     base.xHoldSeconds = toNumber(r.xHoldSeconds, 2);
     base.showTimer = toBoolean(r.showTimer, true);
     base.showScore = toBoolean(r.showScore, true);

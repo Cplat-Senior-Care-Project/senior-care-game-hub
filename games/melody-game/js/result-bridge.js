@@ -201,7 +201,7 @@
       voice_guide_enabled: booleanValue(pickResultOrRuntime(config, safeRuntime, "voice_guide_enabled", "voiceGuideEnabled", true), true),
       hint_enabled: booleanValue(pickResultOrRuntime(config, safeRuntime, "hint_enabled", "hintEnabled", false), false),
       auto_hint_enabled: booleanValue(pickResultOrRuntime(config, safeRuntime, "auto_hint_enabled", "autoHintEnabled", true), true),
-      hint_delay_ms: numberValue(pickResultOrRuntime(config, safeRuntime, "hint_delay_ms", "hintDelayMs", 10000)),
+      hint_delay_ms: numberValue(pickResultOrRuntime(config, safeRuntime, "hint_delay_ms", "hintDelayMs", 5000)),
       result_log_level: pickResultOrRuntime(config, safeRuntime, "result_log_level", "resultLogLevel", "detailed"),
       show_progress: booleanValue(pickResultOrRuntime(config, safeRuntime, "show_progress", "showProgress", true), true),
       duration_seconds: numberValue(pickResultOrRuntime(config, safeRuntime, "duration_seconds", "sessionTime", 60)),

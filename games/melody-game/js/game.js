@@ -593,6 +593,11 @@
       this.state.noTouchElapsed += delta;
 
       if (this.state.sessionRemaining <= 0) {
+        if (this.isStandardMode()) {
+          this.finish("time_over");
+          return;
+        }
+
         this.abort("time_over");
         return;
       }
@@ -603,7 +608,7 @@
         return;
       }
 
-      const hintDelayMs = Number(this.state.config.hintDelayMs) || 10000;
+      const hintDelayMs = Number(this.state.config.hintDelayMs) || 5000;
       if (this.state.config.autoHintEnabled !== false && this.state.currentPrompt && !this.state.currentPrompt.isX && this.state.noTouchElapsed >= hintDelayMs / 1000) {
         this.showHint(false);
       }
@@ -859,6 +864,10 @@
     isCareAiMode() {
       const mode = this.state && this.state.mode;
       return mode === "care" || mode === "ai_assisted";
+    }
+
+    isStandardMode() {
+      return (this.state && this.state.mode) === "standard";
     }
 
     shouldCompleteSongSession() {
