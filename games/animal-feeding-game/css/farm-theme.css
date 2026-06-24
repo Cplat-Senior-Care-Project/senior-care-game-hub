@@ -407,7 +407,7 @@ body.mode-ai .board .bin .name {
   z-index: -1;
   border-radius: 0;
   border: 0;
-  background: url("../image/feed-tray.png") center / contain no-repeat;
+  background: url("../image/feed-basket.png") center / contain no-repeat;
   box-shadow: none;
 }
 
@@ -898,6 +898,8 @@ body.mode-ai .board.no-bin .spot.target {
   transform: scale(1.04) !important;
 }
 
+body.mode-standard .board.animals-3.no-bin .spot.tl,
+body.mode-reminder .board.animals-3.no-bin .spot.tl,
 body.mode-standard .board.animals-4.no-bin .spot.tl,
 body.mode-reminder .board.animals-4.no-bin .spot.tl {
   left: 4% !important;
@@ -906,6 +908,8 @@ body.mode-reminder .board.animals-4.no-bin .spot.tl {
   bottom: auto !important;
 }
 
+body.mode-standard .board.animals-3.no-bin .spot.tr,
+body.mode-reminder .board.animals-3.no-bin .spot.tr,
 body.mode-standard .board.animals-4.no-bin .spot.tr,
 body.mode-reminder .board.animals-4.no-bin .spot.tr {
   left: auto !important;
@@ -914,6 +918,8 @@ body.mode-reminder .board.animals-4.no-bin .spot.tr {
   bottom: auto !important;
 }
 
+body.mode-standard .board.animals-3.no-bin .spot.bl,
+body.mode-reminder .board.animals-3.no-bin .spot.bl,
 body.mode-standard .board.animals-4.no-bin .spot.bl,
 body.mode-reminder .board.animals-4.no-bin .spot.bl {
   left: 4% !important;
@@ -3448,4 +3454,207 @@ body > .start-top .settings-panel.settings-card {
   text-shadow:
     0 0 2px #fffdf3,
     0 2px 0 rgba(90, 45, 18, 0.24) !important;
+}
+
+/* Shared glossy pill treatment for the main action buttons across modes. */
+#start.hide-how #howAgainBtn,
+body.mode-care #howAgainBtn,
+body.mode-ai #howAgainBtn {
+  display: none !important;
+}
+
+.start-actions .btn,
+#how .how-actions .btn,
+#finish .check-actions .btn,
+.done-actions .btn,
+.sheet-actions .btn,
+#mood > .btn,
+#precheck .condition-confirm-button,
+#precheck .condition-skip-button,
+#start.difficulty-ready .difficulty-close-button {
+  display: inline-grid !important;
+  place-items: center;
+  align-content: center;
+  border-width: 3px !important;
+  border-style: solid !important;
+  border-radius: 999px !important;
+  color: #fffdf3 !important;
+  font-weight: 700 !important;
+  line-height: 1 !important;
+  letter-spacing: 0 !important;
+  text-align: center;
+  word-break: keep-all;
+  -webkit-text-stroke: 0 !important;
+  paint-order: normal !important;
+  transition: transform 120ms ease, box-shadow 120ms ease, filter 120ms ease;
+}
+
+#startBtn.start-button,
+#howStartBtn,
+#finishNextBtn,
+#finishConfirmBtn,
+#doneBtn,
+#errorReturnBtn,
+#contBtn,
+#precheck .condition-confirm-button {
+  border-color: #fde9a5 !important;
+  background:
+    linear-gradient(315deg, rgba(54, 109, 24, 0.2) 0%, rgba(120, 173, 52, 0.04) 46%, rgba(184, 219, 88, 0.22) 100%),
+    linear-gradient(180deg, #89c843 0%, #78ad34 54%, #5f9c24 100%) !important;
+  box-shadow:
+    0 7px 16px rgba(47, 65, 21, 0.22),
+    0 0 0 1px #245312,
+    inset 0 0 0 1px #245312,
+    inset 0 3px 0 rgba(255, 255, 244, 0.42),
+    inset 0 -7px 0 rgba(43, 79, 18, 0.38) !important;
+  text-shadow: 0 2px 0 rgba(56, 69, 32, 0.72) !important;
+}
+
+#startReturnBtn,
+#howAgainBtn,
+#howSkipBtn,
+#finishSkipBtn,
+#finishPrevBtn,
+#againBtn,
+#moodSkip,
+#stopBtn,
+#precheck .condition-skip-button,
+#start.difficulty-ready .difficulty-close-button {
+  color: #fffdf3 !important;
+  border-color: #ffe1a3 !important;
+  background:
+    linear-gradient(315deg, rgba(144, 65, 7, 0.2) 0%, rgba(230, 122, 25, 0.04) 46%, rgba(255, 184, 73, 0.25) 100%),
+    linear-gradient(180deg, #f79a29 0%, #f08a24 54%, #d97212 100%) !important;
+  box-shadow:
+    0 7px 16px rgba(126, 62, 15, 0.24),
+    0 0 0 1px #9d470e,
+    inset 0 0 0 1px #9d470e,
+    inset 0 3px 0 rgba(255, 255, 244, 0.42),
+    inset 0 -7px 0 rgba(127, 55, 8, 0.38) !important;
+  text-shadow: 0 2px 0 rgba(108, 52, 12, 0.72) !important;
+}
+
+#startBtn.start-button:active,
+#startBtn.start-button.is-pressed,
+#howStartBtn:active,
+#finishNextBtn:active,
+#finishConfirmBtn:active,
+#doneBtn:active,
+#errorReturnBtn:active,
+#contBtn:active,
+#precheck .condition-confirm-button:active {
+  transform: translateY(3px) scale(0.98) !important;
+  box-shadow:
+    0 3px 9px rgba(47, 65, 21, 0.2),
+    0 0 0 1px #245312,
+    inset 0 0 0 1px #245312,
+    inset 0 2px 0 rgba(255, 255, 244, 0.32),
+    inset 0 -3px 0 rgba(43, 79, 18, 0.34) !important;
+}
+
+#startReturnBtn:active,
+#startReturnBtn.is-pressed,
+#howAgainBtn:active,
+#howAgainBtn.is-pressed,
+#howSkipBtn:active,
+#finishSkipBtn:active,
+#finishPrevBtn:active,
+#againBtn:active,
+#moodSkip:active,
+#stopBtn:active,
+#precheck .condition-skip-button:active,
+#start.difficulty-ready .difficulty-close-button:active {
+  transform: translateY(3px) scale(0.98) !important;
+  box-shadow:
+    0 3px 9px rgba(126, 62, 15, 0.22),
+    0 0 0 1px #9d470e,
+    inset 0 0 0 1px #9d470e,
+    inset 0 2px 0 rgba(255, 255, 244, 0.32),
+    inset 0 -3px 0 rgba(127, 55, 8, 0.34) !important;
+}
+
+#finishNextBtn:disabled,
+#finishConfirmBtn:disabled {
+  cursor: default;
+  filter: saturate(0.72) brightness(0.92);
+  opacity: 0.72;
+  transform: none !important;
+}
+
+#play .hud-chip {
+  display: inline-grid;
+  place-items: center;
+  align-content: center;
+  min-width: clamp(118px, 10.8cqw, 150px) !important;
+  min-height: clamp(54px, 7.2cqh, 68px) !important;
+  padding: 0 clamp(22px, 2.6cqw, 34px) 5px !important;
+  border-width: 3px !important;
+  border-style: solid !important;
+  border-radius: 999px !important;
+  color: #fffdf3 !important;
+  font-size: clamp(25px, 2.8cqw, 34px) !important;
+  font-weight: 700 !important;
+  line-height: 1 !important;
+  letter-spacing: 0 !important;
+  text-align: center;
+  word-break: keep-all;
+  -webkit-text-stroke: 0 !important;
+  paint-order: normal !important;
+  pointer-events: auto;
+  touch-action: manipulation;
+}
+
+#play #helpBtn.hud-chip {
+  border-color: #fde9a5 !important;
+  background:
+    linear-gradient(315deg, rgba(54, 109, 24, 0.2) 0%, rgba(120, 173, 52, 0.04) 46%, rgba(184, 219, 88, 0.22) 100%),
+    linear-gradient(180deg, #89c843 0%, #78ad34 54%, #5f9c24 100%) !important;
+  box-shadow:
+    0 7px 16px rgba(47, 65, 21, 0.22),
+    0 0 0 1px #245312,
+    inset 0 0 0 1px #245312,
+    inset 0 3px 0 rgba(255, 255, 244, 0.42),
+    inset 0 -7px 0 rgba(43, 79, 18, 0.38) !important;
+  text-shadow: 0 2px 0 rgba(56, 69, 32, 0.72) !important;
+}
+
+#play #quitBtn.hud-chip {
+  border-color: #ffe1a3 !important;
+  background:
+    linear-gradient(315deg, rgba(144, 65, 7, 0.2) 0%, rgba(230, 122, 25, 0.04) 46%, rgba(255, 184, 73, 0.25) 100%),
+    linear-gradient(180deg, #f79a29 0%, #f08a24 54%, #d97212 100%) !important;
+  box-shadow:
+    0 7px 16px rgba(126, 62, 15, 0.24),
+    0 0 0 1px #9d470e,
+    inset 0 0 0 1px #9d470e,
+    inset 0 3px 0 rgba(255, 255, 244, 0.42),
+    inset 0 -7px 0 rgba(127, 55, 8, 0.38) !important;
+  text-shadow: 0 2px 0 rgba(108, 52, 12, 0.72) !important;
+}
+
+#play #helpBtn.hud-chip:active,
+#play #quitBtn.hud-chip:active {
+  transform: translateY(3px) scale(0.98) !important;
+}
+
+#play #helpBtn.hud-chip:active {
+  box-shadow:
+    0 3px 9px rgba(47, 65, 21, 0.2),
+    0 0 0 1px #245312,
+    inset 0 0 0 1px #245312,
+    inset 0 2px 0 rgba(255, 255, 244, 0.32),
+    inset 0 -3px 0 rgba(43, 79, 18, 0.34) !important;
+}
+
+#play #quitBtn.hud-chip:active {
+  box-shadow:
+    0 3px 9px rgba(126, 62, 15, 0.22),
+    0 0 0 1px #9d470e,
+    inset 0 0 0 1px #9d470e,
+    inset 0 2px 0 rgba(255, 255, 244, 0.32),
+    inset 0 -3px 0 rgba(127, 55, 8, 0.34) !important;
+}
+
+#play.hide-help #helpBtn {
+  display: none !important;
 }

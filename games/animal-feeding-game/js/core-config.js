@@ -316,8 +316,11 @@ function applyRuntimeConfig(next) {
 }
 
 function updateModeUi() {
-  document.getElementById("start")?.classList.toggle("hide-difficulty", !runtime.showDifficultySelect);
-  document.getElementById("start")?.classList.toggle("hide-settings", !runtime.showSettings);
+  const start = document.getElementById("start");
+  const hideHowToPlayButton = runtime.mode === "care" || runtime.mode === "ai_assisted" || !runtime.showHowToPlay;
+  start?.classList.toggle("hide-difficulty", !runtime.showDifficultySelect);
+  start?.classList.toggle("hide-settings", !runtime.showSettings);
+  start?.classList.toggle("hide-how", hideHowToPlayButton);
   document.body.classList.toggle("hide-start-settings", !runtime.showSettings);
   const play = document.getElementById("play");
   play?.classList.toggle("hide-progress", !runtime.showProgress);
@@ -335,7 +338,7 @@ function updateModeUi() {
       : "효담콜로 돌아가기";
   }
   const howAgainBtn = document.getElementById("howAgainBtn");
-  if (howAgainBtn) howAgainBtn.classList.toggle("hidden", !runtime.showHowToPlay);
+  if (howAgainBtn) howAgainBtn.classList.toggle("hidden", hideHowToPlayButton);
   const startReturnBtn = document.getElementById("startReturnBtn");
   if (startReturnBtn) startReturnBtn.classList.toggle("hidden", !shouldUseStandardStartScreen());
 }

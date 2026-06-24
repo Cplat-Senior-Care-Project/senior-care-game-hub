@@ -6,7 +6,7 @@ function doneCopy(completed) {
     return {
       title: "여기까지도 충분해요",
       sub: "잠시 쉬어가도 괜찮아요",
-      note: runtime.autoReturnMs > 0 ? "잠시 후 허브로 돌아갑니다" : "",
+      note: "",
     };
   }
   if (runtime.mode === "reminder") {
@@ -207,7 +207,7 @@ function finishSession(completed, reason = "user_quit", error = null) {
     return;
   }
   RN(completionMessage);
-  if (runtime.autoReturnMs > 0) {
+  if (completed && runtime.autoReturnMs > 0) {
     scheduleAutoReturn();
   }
 }
