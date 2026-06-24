@@ -61,6 +61,9 @@
       if (!this.enabled && !allowWhenEffectsDisabled) {
         return null;
       }
+      if (this.isPageHidden()) {
+        return null;
+      }
 
       const AudioContext = window.AudioContext || window.webkitAudioContext;
       if (!AudioContext) {
@@ -86,7 +89,7 @@
     }
 
     startBackgroundMusic() {
-      if (!this.backgroundEnabled) {
+      if (!this.backgroundEnabled || this.isPageHidden()) {
         return;
       }
 
@@ -121,6 +124,38 @@
       });
     }
 
+    stopForBackground() {
+      this.backgroundPlayToken += 1;
+      window.clearInterval(this.backgroundFadeHandle);
+      this.backgroundFadeHandle = null;
+      this.backgroundPlaying = false;
+
+      if (this.backgroundAudio) {
+        this.backgroundAudio.pause();
+        this.backgroundAudio.volume = 0;
+      }
+
+      this.effectAudioElements.forEach((audioElement) => this.pauseAudioElement(audioElement, true));
+      this.pauseAudioElement(this.clapAudio, true);
+
+      if (this.context && this.context.state === "running" && typeof this.context.suspend === "function") {
+        this.context.suspend().catch(() => {});
+      }
+    }
+
+    pauseAudioElement(audioElement, reset) {
+      if (!audioElement) {
+        return;
+      }
+
+      audioElement.pause();
+      if (reset) {
+        try {
+          audioElement.currentTime = 0;
+        } catch (error) {}
+      }
+    }
+
     getBackgroundAudio() {
       if (!this.backgroundAudio) {
         const backgroundAudio = new Audio("assets/audio/background.wav");
@@ -140,6 +175,11 @@
     }
 
     playBackgroundElement(backgroundAudio) {
+      if (this.isPageHidden()) {
+        this.backgroundPlaying = false;
+        return;
+      }
+
       const playResult = backgroundAudio.play();
       if (playResult && typeof playResult.catch === "function") {
         playResult.catch(() => {
@@ -179,7 +219,7 @@
 
     playEffectAudio(key, src, volumeScale, options) {
       const allowWhenEffectsDisabled = options && options.allowWhenEffectsDisabled;
-      if ((!this.enabled && !allowWhenEffectsDisabled) || this.volume <= 0 || typeof Audio !== "function") {
+      if (this.isPageHidden() || (!this.enabled && !allowWhenEffectsDisabled) || this.volume <= 0 || typeof Audio !== "function") {
         return;
       }
 
@@ -203,6 +243,10 @@
       }
 
       return this.effectAudioElements.get(key);
+    }
+
+    isPageHidden() {
+      return document.hidden || document.visibilityState === "hidden";
     }
 
     playClick() {

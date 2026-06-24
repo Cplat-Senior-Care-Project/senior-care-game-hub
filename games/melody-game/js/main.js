@@ -78,9 +78,6 @@
   flow = new window.MelodyScreenFlow({ audio, game });
   try {
     flow.init();
-    if (window.ResultBridge && typeof window.ResultBridge.handleGameReady === "function") {
-      window.ResultBridge.handleGameReady();
-    }
   } catch (error) {
     if (window.ResultBridge && typeof window.ResultBridge.handleGameError === "function") {
       window.ResultBridge.handleGameError(error);

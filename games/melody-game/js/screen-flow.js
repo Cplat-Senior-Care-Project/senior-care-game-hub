@@ -7,6 +7,7 @@
       this.game = options.game;
       this.app = document.getElementById("app");
       this.screens = Array.from(document.querySelectorAll(".screen"));
+      this.loadingScreen = document.getElementById("loadingScreen");
       this.homeScreen = document.getElementById("homeScreen");
       this.loadingFill = document.getElementById("loadingFill");
       this.loadingPercent = document.getElementById("loadingPercent");
@@ -59,7 +60,10 @@
       this.finishSubmitButton = document.getElementById("finishSubmit");
       this.finishSkipButton = document.getElementById("finishSkip");
       this.selectedDifficulty = (window.MelodyRuntime && window.MelodyRuntime.runtime.difficulty) || "normal";
+      this.loadingStarted = false;
       this.loadingComplete = false;
+      this.loadingTransitionPending = false;
+      this.readyNotified = false;
       this.orientationAutoPauseActive = false;
       this.orientationMusicPauseActive = false;
       this.conditionData = { skipped: true };
@@ -93,7 +97,7 @@
       this.selectDifficulty(this.selectedDifficulty, false);
       this.updateScaleVariable();
       this.applyRuntimeUi();
-      this.startLoading();
+      this.startLoadingWhenLandscape();
 
       if (window.DisplayBridge) {
         window.DisplayBridge.requestDisplay("load");
@@ -120,7 +124,8 @@
       this.startGameButton && this.startGameButton.addEventListener("pointerup", () => {
         this.handleStartGameAction();
       });
-      this.homeScreen && this.homeScreen.addEventListener("pointerup", (event) => this.handleHomeBackgroundPress(event));
+      this.loadingScreen && this.loadingScreen.addEventListener("pointerup", (event) => this.handleFullscreenBackgroundPress(event, "loading_background"));
+      this.homeScreen && this.homeScreen.addEventListener("pointerup", (event) => this.handleFullscreenBackgroundPress(event, "home_background"));
       this.difficultyStartButton && this.difficultyStartButton.addEventListener("pointerup", () => {
         this.playButtonClick();
         this.beginGame();
@@ -196,10 +201,16 @@
       this.pauseSoundButton && this.pauseSoundButton.addEventListener("pointerup", () => this.togglePauseSoundSetting(this.soundToggle));
       this.pauseVoiceGuideButton && this.pauseVoiceGuideButton.addEventListener("pointerup", () => this.togglePauseSoundSetting(this.voiceGuideToggle));
       window.addEventListener("resize", () => this.updateScaleVariable());
-      window.addEventListener("orientationchange", () => this.updateScaleVariable());
+      window.addEventListener("orientationchange", () => {
+        this.updateScaleVariable();
+        window.setTimeout(() => this.updateScaleVariable(), 160);
+      });
       window.addEventListener("pointerdown", () => this.syncBackgroundMusic(), { passive: true });
       window.addEventListener("touchstart", () => this.syncBackgroundMusic(), { passive: true });
       window.addEventListener("pointerup", () => this.syncBackgroundMusic());
+      document.addEventListener("visibilitychange", () => this.handleAudioVisibilityChange());
+      window.addEventListener("pagehide", () => this.stopAudioForBackground());
+      window.addEventListener("pageshow", () => this.handleAudioVisibilityChange());
       if (window.visualViewport) {
         window.visualViewport.addEventListener("resize", () => this.updateScaleVariable());
       }
@@ -272,7 +283,7 @@
       }
     }
 
-    handleHomeBackgroundPress(event) {
+    handleFullscreenBackgroundPress(event, source) {
       if (
         event.target
         && typeof event.target.closest === "function"
@@ -281,7 +292,7 @@
         return;
       }
 
-      this.requestDisplayFromGesture("home_background");
+      this.requestDisplayFromGesture(source || "screen_background");
     }
 
     showScreen(name) {
@@ -700,30 +711,73 @@
       window.ResultBridge.handleSessionComplete(result);
     }
 
+    notifyGameReady() {
+      if (this.readyNotified) {
+        return;
+      }
+
+      this.readyNotified = true;
+      if (window.ResultBridge && typeof window.ResultBridge.handleGameReady === "function") {
+        window.ResultBridge.handleGameReady();
+      }
+    }
+
+    startLoadingWhenLandscape() {
+      if (this.loadingStarted || this.loadingComplete || this.isOrientationBlocked()) {
+        return;
+      }
+
+      this.startLoading();
+    }
+
+    finishLoadingTransition() {
+      if (!this.loadingComplete || !this.loadingTransitionPending || this.isOrientationBlocked()) {
+        return;
+      }
+
+      this.loadingTransitionPending = false;
+      this.notifyGameReady();
+      const runtime = window.MelodyRuntime.runtime;
+      if (this.shouldShowConditionCheck() && !this.conditionCheckHandled) {
+        this.openConditionCheck(runtime.autoStart ? "autoStart" : "home");
+        return;
+      }
+      if (runtime.autoStart) {
+        this.beginGame();
+        return;
+      }
+      this.showScreen("home");
+    }
+
     startLoading() {
+      this.loadingStarted = true;
       const duration = 1800;
-      const startedAt = window.performance ? window.performance.now() : Date.now();
+      let elapsed = 0;
+      let lastFrameAt = null;
       let lastPercent = -1;
 
       const completeLoading = () => {
         window.setTimeout(() => {
           this.loadingComplete = true;
-          const runtime = window.MelodyRuntime.runtime;
-          if (this.shouldShowConditionCheck() && !this.conditionCheckHandled) {
-            this.openConditionCheck(runtime.autoStart ? "autoStart" : "home");
-            return;
-          }
-          if (runtime.autoStart) {
-            this.beginGame();
-            return;
-          }
-          this.showScreen("home");
+          this.loadingTransitionPending = true;
+          this.finishLoadingTransition();
         }, 260);
       };
 
       const animate = (timestamp) => {
         const now = typeof timestamp === "number" ? timestamp : Date.now();
-        const elapsed = Math.max(0, now - startedAt);
+        if (lastFrameAt === null) {
+          lastFrameAt = now;
+        }
+        const delta = Math.max(0, now - lastFrameAt);
+        lastFrameAt = now;
+
+        if (this.isOrientationBlocked()) {
+          window.requestAnimationFrame(animate);
+          return;
+        }
+
+        elapsed = Math.min(duration, elapsed + delta);
         const progress = Math.min(1, elapsed / duration);
         const easedProgress = 1 - Math.pow(1 - progress, 3);
         const percent = Math.min(100, Math.round(easedProgress * 100));
@@ -760,6 +814,11 @@
 
     beginGame() {
       if (this.countdownActive) {
+        return;
+      }
+
+      if (this.isOrientationBlocked()) {
+        this.updateScaleVariable();
         return;
       }
 
@@ -810,10 +869,35 @@
       this.playVoiceReadyCue();
       this.syncBackgroundMusic();
 
-      this.countdownIntroHandle = window.setTimeout(() => {
-        this.countdownIntroHandle = null;
-        this.beginCountdownNumbers();
-      }, this.countdownIntroDuration);
+      let introRemaining = this.countdownIntroDuration;
+      let lastIntroFrameAt = null;
+
+      const updateIntro = (timestamp) => {
+        if (!this.countdownActive) {
+          return;
+        }
+
+        const now = typeof timestamp === "number" ? timestamp : performance.now();
+        if (lastIntroFrameAt === null) {
+          lastIntroFrameAt = now;
+        }
+        const delta = Math.max(0, now - lastIntroFrameAt);
+        lastIntroFrameAt = now;
+
+        if (!this.isOrientationBlocked()) {
+          introRemaining = Math.max(0, introRemaining - delta);
+        }
+
+        if (introRemaining <= 0) {
+          this.countdownIntroHandle = null;
+          this.beginCountdownNumbers();
+          return;
+        }
+
+        this.countdownIntroHandle = window.requestAnimationFrame(updateIntro);
+      };
+
+      this.countdownIntroHandle = window.requestAnimationFrame(updateIntro);
     }
 
     beginCountdownNumbers() {
@@ -822,7 +906,8 @@
       }
 
       this.gameCountdown.classList.remove("is-intro");
-      let startedAt = performance.now();
+      let remaining = this.countdownDuration;
+      let lastFrameAt = null;
       let lastDisplaySeconds = null;
 
       const updateCountdown = (timestamp) => {
@@ -831,8 +916,19 @@
         }
 
         const now = typeof timestamp === "number" ? timestamp : performance.now();
-        const elapsed = Math.max(0, now - startedAt);
-        const remaining = Math.max(0, this.countdownDuration - elapsed);
+        if (lastFrameAt === null) {
+          lastFrameAt = now;
+        }
+        const delta = Math.max(0, now - lastFrameAt);
+        lastFrameAt = now;
+
+        const orientationBlocked = this.isOrientationBlocked();
+
+        if (!orientationBlocked) {
+          remaining = Math.max(0, remaining - delta);
+        }
+
+        const elapsed = Math.max(0, this.countdownDuration - remaining);
         const displaySeconds = Math.max(1, Math.ceil(remaining / 1000));
         const secondProgress = (elapsed % 1000) / 1000;
         const angle = secondProgress * 360;
@@ -840,7 +936,7 @@
         this.gameCountdownNumber.textContent = String(displaySeconds);
         this.gameCountdownTimer.style.setProperty("--countdown-angle", `${angle}deg`);
 
-        if (displaySeconds !== lastDisplaySeconds && remaining > 0) {
+        if (!orientationBlocked && displaySeconds !== lastDisplaySeconds && remaining > 0) {
           lastDisplaySeconds = displaySeconds;
           if (this.audio && typeof this.audio.playCountdownTick === "function") {
             this.audio.playCountdownTick();
@@ -859,15 +955,12 @@
         this.countdownFrameHandle = window.requestAnimationFrame(updateCountdown);
       };
 
-      this.countdownFrameHandle = window.requestAnimationFrame((timestamp) => {
-        startedAt = typeof timestamp === "number" ? timestamp : performance.now();
-        updateCountdown(startedAt);
-      });
+      this.countdownFrameHandle = window.requestAnimationFrame(updateCountdown);
     }
 
     clearGameCountdown() {
       if (this.countdownIntroHandle) {
-        window.clearTimeout(this.countdownIntroHandle);
+        window.cancelAnimationFrame(this.countdownIntroHandle);
         this.countdownIntroHandle = null;
       }
 
@@ -889,6 +982,11 @@
     }
 
     startGameAfterCountdown(runtime) {
+      if (this.isOrientationBlocked()) {
+        this.pendingCountdownRuntime = runtime || this.createGameRuntime();
+        return;
+      }
+
       const resolvedRuntime = runtime || this.createGameRuntime();
       this.pendingCountdownRuntime = null;
       this.selectedDifficulty = resolvedRuntime.difficulty || this.selectedDifficulty;
@@ -1040,6 +1138,11 @@
         return;
       }
 
+      if (document.hidden || document.visibilityState === "hidden") {
+        this.stopAudioForBackground();
+        return;
+      }
+
       if (document.body.classList.contains("is-portrait")) {
         this.audio.stopBackgroundMusic();
         return;
@@ -1061,10 +1164,34 @@
       }
     }
 
+    handleAudioVisibilityChange() {
+      if (document.hidden || document.visibilityState === "hidden") {
+        this.stopAudioForBackground();
+        return;
+      }
+
+      this.syncBackgroundMusic();
+    }
+
+    stopAudioForBackground() {
+      if (this.audio && typeof this.audio.stopForBackground === "function") {
+        this.audio.stopForBackground();
+        return;
+      }
+
+      if (this.audio && typeof this.audio.stopBackgroundMusic === "function") {
+        this.audio.stopBackgroundMusic();
+      }
+    }
+
     isPortraitViewport(viewportWidth, viewportHeight) {
       const width = Number(viewportWidth) || window.innerWidth || document.documentElement.clientWidth || 1280;
       const height = Number(viewportHeight) || window.innerHeight || document.documentElement.clientHeight || 720;
       return height > width;
+    }
+
+    isOrientationBlocked() {
+      return document.body.classList.contains("is-portrait") || this.isPortraitViewport();
     }
 
     canPauseForOrientationGuard() {
@@ -1088,7 +1215,7 @@
 
         if (!this.orientationAutoPauseActive && this.canPauseForOrientationGuard()) {
           this.orientationAutoPauseActive = true;
-          this.game.pause({ showOverlay: false });
+          this.game.pause({ showOverlay: false, count: false });
         }
         return;
       }
@@ -1154,6 +1281,10 @@
         orientationNotice.setAttribute("aria-hidden", isPortrait ? "false" : "true");
       }
       this.syncOrientationPause(isPortrait);
+      if (!isPortrait) {
+        this.startLoadingWhenLandscape();
+        this.finishLoadingTransition();
+      }
       this.applyPlayStatusLayout(viewportWidth, viewportHeight);
     }
 
