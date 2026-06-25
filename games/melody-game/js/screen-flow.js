@@ -91,6 +91,7 @@
     }
 
     init() {
+      document.body.dataset.activeScreen = "loading";
       this.prepareHowtoPages();
       this.bindEvents();
       this.loadSettings();
@@ -121,9 +122,17 @@
         });
       });
 
+      this.startGameButton && this.startGameButton.addEventListener("pointerdown", () => {
+        this.requestDisplayFromGesture("home_start");
+      });
+      this.startGameButton && this.startGameButton.addEventListener("click", () => {
+        this.requestDisplayFromGesture("home_start");
+      });
       this.startGameButton && this.startGameButton.addEventListener("pointerup", () => {
         this.handleStartGameAction();
       });
+      window.addEventListener("pointerdown", (event) => this.handleActiveScreenFullscreenPress(event), true);
+      window.addEventListener("click", (event) => this.handleActiveScreenFullscreenPress(event), true);
       this.loadingScreen && this.loadingScreen.addEventListener("pointerup", (event) => this.handleFullscreenBackgroundPress(event, "loading_background"));
       this.homeScreen && this.homeScreen.addEventListener("pointerup", (event) => this.handleFullscreenBackgroundPress(event, "home_background"));
       this.difficultyStartButton && this.difficultyStartButton.addEventListener("pointerup", () => {
@@ -281,6 +290,15 @@
       if (window.DisplayBridge) {
         window.DisplayBridge.requestDisplay(source || "user_gesture");
       }
+    }
+
+    handleActiveScreenFullscreenPress(event) {
+      const activeScreen = document.body.dataset.activeScreen;
+      if (activeScreen !== "loading" && activeScreen !== "home") {
+        return;
+      }
+
+      this.handleFullscreenBackgroundPress(event, `${activeScreen}_background`);
     }
 
     handleFullscreenBackgroundPress(event, source) {

@@ -19,23 +19,62 @@
     return Boolean(window.ReactNativeWebView && typeof window.ReactNativeWebView.postMessage === "function");
   }
 
-  async function requestWebFullscreen() {
-    if (!isNativeMobileHost()) return false;
+  function isMobileLandscape() {
+    const isLandscape = window.matchMedia("(orientation: landscape)").matches
+      || window.innerWidth > window.innerHeight;
+    const isTouchDevice = window.matchMedia("(pointer: coarse)").matches
+      || navigator.maxTouchPoints > 0
+      || isNativeMobileHost();
+    return isLandscape && isTouchDevice;
+  }
 
+  function isFullscreenActive() {
+    return Boolean(document.fullscreenElement || document.webkitFullscreenElement);
+  }
+
+  function scheduleViewportRefresh() {
+    window.setTimeout(() => {
+      window.dispatchEvent(new Event("resize"));
+    }, 250);
+  }
+
+  function requestNativeDisplay(source) {
+    const runtime = window.MelodyRuntime && window.MelodyRuntime.runtime;
+    if (!isNativeMobileHost() || !runtime || !runtime.nativeDisplayRequest) {
+      return false;
+    }
+
+    postHostMessage("REQUEST_DISPLAY", {
+      source: source || "user_gesture",
+      fullscreen: Boolean(runtime.requestFullscreen),
+      orientation_lock: runtime.orientationLock || "landscape"
+    });
+    return true;
+  }
+
+  async function requestWebFullscreen() {
     const runtime = window.MelodyRuntime && window.MelodyRuntime.runtime;
     if (!runtime || !runtime.requestFullscreen) return false;
+    if (!isMobileLandscape()) return false;
+    if (isFullscreenActive()) {
+      scheduleViewportRefresh();
+      return true;
+    }
 
     const target = document.documentElement;
     try {
       if (target.requestFullscreen) {
         await target.requestFullscreen({ navigationUI: "hide" });
+        scheduleViewportRefresh();
         return true;
       }
       if (target.webkitRequestFullscreen) {
         await target.webkitRequestFullscreen();
+        scheduleViewportRefresh();
         return true;
       }
     } catch (error) {
+      scheduleViewportRefresh();
       return false;
     }
     return false;
@@ -54,6 +93,7 @@
   }
 
   async function requestDisplay(source) {
+    requestNativeDisplay(source);
     await requestWebFullscreen();
     await lockOrientation();
   }
