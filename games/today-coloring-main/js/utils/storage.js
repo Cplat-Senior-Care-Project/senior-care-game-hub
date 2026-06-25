@@ -236,6 +236,71 @@
     return Array.isArray(gallery) ? gallery.slice(0, MAX_GALLERY_ITEMS) : [];
   }
 
+  function getGalleryDedupeKey(item) {
+    if (!item || !item.artId) return "";
+    return item.artId + ":" + (item.artworkVersion || getArtworkVersion(item.artId));
+  }
+
+  function getGalleryTimestamp(item) {
+    if (!item) return 0;
+    if (Number.isFinite(item.date)) return Number(item.date);
+    if (typeof item.savedAt === "number" && Number.isFinite(item.savedAt)) return item.savedAt;
+    if (typeof item.savedAt === "string") {
+      const parsed = Date.parse(item.savedAt);
+      if (Number.isFinite(parsed)) return parsed;
+    }
+    if (typeof item.id === "string") {
+      const idMatch = item.id.match(/^g(\d+)$/);
+      if (idMatch) return Number(idMatch[1]);
+    }
+    return 0;
+  }
+
+  function dedupeGalleryItems(gallery) {
+    if (!Array.isArray(gallery)) return [];
+    const latestByKey = new Map();
+    gallery.forEach((item, index) => {
+      const key = getGalleryDedupeKey(item);
+      if (!key) return;
+      const candidate = {
+        item,
+        timestamp: getGalleryTimestamp(item),
+        index
+      };
+      const previous = latestByKey.get(key);
+      if (!previous || candidate.timestamp > previous.timestamp || candidate.timestamp === previous.timestamp && candidate.index < previous.index) {
+        latestByKey.set(key, candidate);
+      }
+    });
+    return Array.from(latestByKey.values()).sort((a, b) => {
+      if (b.timestamp !== a.timestamp) return b.timestamp - a.timestamp;
+      return a.index - b.index;
+    }).map((entry) => entry.item);
+  }
+
+  function sameGalleryItems(a, b) {
+    if (!Array.isArray(a) || !Array.isArray(b) || a.length !== b.length) return false;
+    return a.every((item, index) => b[index] && item.id === b[index].id);
+  }
+
+  function stripGallerySnapshot(item) {
+    if (!item || !item.snapshotDataUrl) return item;
+    const next = { ...item };
+    delete next.snapshotDataUrl;
+    return next;
+  }
+
+  function compactGallerySnapshots(gallery, keepFirstSnapshot) {
+    let changed = false;
+    const value = gallery.map((item, index) => {
+      if (keepFirstSnapshot && index === 0) return item;
+      const compacted = stripGallerySnapshot(item);
+      if (compacted !== item) changed = true;
+      return compacted;
+    });
+    return { value, changed };
+  }
+
   function loadProgress() {
     const normalized = normalizeProgress(readJson(PROGRESS_KEY, {}));
     if (normalized.changed) writeJson(PROGRESS_KEY, normalized.value);
@@ -252,18 +317,43 @@
 
   function loadGallery() {
     const normalized = normalizeGallery(readJson(GALLERY_KEY, []));
-    const value = limitGalleryItems(normalized.value);
-    if (normalized.changed || value.length !== normalized.value.length) writeJson(GALLERY_KEY, value);
+    const deduped = dedupeGalleryItems(normalized.value);
+    const value = limitGalleryItems(deduped);
+    if (normalized.changed || !sameGalleryItems(deduped, normalized.value) || value.length !== deduped.length) writeJson(GALLERY_KEY, value);
     return value;
   }
 
   function saveGallery(list) {
     const normalized = normalizeGallery(list);
-    const value = limitGalleryItems(normalized.value);
+    const deduped = dedupeGalleryItems(normalized.value);
+    let value = limitGalleryItems(deduped);
+    let saved = writeJson(GALLERY_KEY, value);
+    let snapshotsTrimmed = false;
+    if (!saved) {
+      const compactedOld = compactGallerySnapshots(value, true);
+      if (compactedOld.changed) {
+        saved = writeJson(GALLERY_KEY, compactedOld.value);
+        if (saved) {
+          value = compactedOld.value;
+          snapshotsTrimmed = true;
+        }
+      }
+    }
+    if (!saved) {
+      const compactedAll = compactGallerySnapshots(value, false);
+      if (compactedAll.changed) {
+        saved = writeJson(GALLERY_KEY, compactedAll.value);
+        if (saved) {
+          value = compactedAll.value;
+          snapshotsTrimmed = true;
+        }
+      }
+    }
     return {
-      saved: writeJson(GALLERY_KEY, value),
+      saved,
       value,
-      capped: value.length !== normalized.value.length,
+      capped: value.length !== deduped.length,
+      snapshotsTrimmed,
       maxItems: MAX_GALLERY_ITEMS
     };
   }
