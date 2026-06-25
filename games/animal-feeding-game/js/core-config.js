@@ -40,6 +40,19 @@ const VERSION = "2.0.0";
 const GAME_ID = "animal_feeding";
 const DEFAULT_CONTENT_ID = "cognitive_animal_feeding_001";
 const DEFAULT_TIME_LIMIT_MS = 3 * 60 * 1000;
+const MODE_PLAY_SOURCE = {
+  standard: "manual",
+  reminder: "reminder",
+  care: "care_session",
+  ai_assisted: "ai_recommendation",
+};
+const VALID_PLAY_SOURCE = new Set([
+  "reminder",
+  "manual",
+  "history_replay",
+  "ai_recommendation",
+  "care_session",
+]);
 
 function assetUrl(src) {
   return src;
@@ -238,6 +251,23 @@ function normalizeRuntimeConfig(input) {
     sessionId: p.session_id || p.sessionId || null,
     contentId: p.content_id || p.contentId || DEFAULT_CONTENT_ID,
     gameKey: p.game_key || p.gameKey || GAME_ID,
+    gameVersion: read("gameVersion", "game_version", VERSION),
+    playSource: normalizePlaySourceForApi(read("playSource", "play_source", MODE_PLAY_SOURCE[mode] || "manual"), mode),
+    seniorId: read("seniorId", "senior_id", null),
+    userId: read("userId", "user_id", null),
+    anonymousUserId: read("anonymousUserId", "anonymous_user_id", null),
+    guardianId: read("guardianId", "guardian_id", null),
+    assignmentId: read("assignmentId", "assignment_id", null),
+    alarmId: read("alarmId", "alarm_id", null),
+    scheduleId: read("scheduleId", "schedule_id", null),
+    tenantId: read("tenantId", "tenant_id", null),
+    facilityId: read("facilityId", "facility_id", null),
+    programId: read("programId", "program_id", null),
+    rewardId: read("rewardId", "reward_id", null),
+    recommendationId: read("recommendationId", "recommendation_id", null),
+    clientContext: parsePlainObject(read("clientContext", "client_context", null)),
+    voiceContext: parsePlainObject(read("voiceContext", "voice_context", null)),
+    meta: parsePlainObject(read("meta", "meta", null)),
     mode,
     difficulty: isSimplifiedMode ? "easy" : (p.difficulty || (mode === "reminder" ? "normal" : selectedDiff)),
     showTimer: timerVisibleByMode && !!read("showTimer", "show_timer", timerVisibleByMode),
@@ -272,6 +302,70 @@ function normalizeRuntimeConfig(input) {
     cssLandscapeFallback: !!readDisplay(["cssLandscapeFallback", "css_landscape_fallback"], true),
     returnUrl,
     configSnapshot: null,
+  };
+}
+
+function parsePlainObject(value) {
+  if (!value) return null;
+  if (typeof value === "object" && !Array.isArray(value)) return { ...value };
+  if (typeof value !== "string") return null;
+  try {
+    const parsed = JSON.parse(value);
+    return parsed && typeof parsed === "object" && !Array.isArray(parsed) ? parsed : null;
+  } catch(_) {
+    return null;
+  }
+}
+
+function normalizePlaySourceForApi(value, mode = "standard") {
+  const raw = String(value || "").trim();
+  const aliases = {
+    alarm: "reminder",
+    alert: "reminder",
+    care: "care_session",
+    ai: "ai_recommendation",
+    ai_assist: "ai_recommendation",
+    ai_assisted: "ai_recommendation",
+    "ai-assisted": "ai_recommendation",
+    replay: "history_replay",
+    history: "history_replay",
+    historyReplay: "history_replay",
+  };
+  const source = aliases[raw] || raw || MODE_PLAY_SOURCE[mode] || "manual";
+  return VALID_PLAY_SOURCE.has(source) ? source : (MODE_PLAY_SOURCE[mode] || "manual");
+}
+
+function getRuntimeSeniorId(source = runtime) {
+  return source?.seniorId || source?.userId || source?.anonymousUserId || null;
+}
+
+function getLocalTimezone() {
+  try {
+    return Intl.DateTimeFormat().resolvedOptions().timeZone || null;
+  } catch(_) {
+    return null;
+  }
+}
+
+function createClientContext(source = runtime) {
+  const base = parsePlainObject(source?.clientContext) || {};
+  return {
+    device_id: base.device_id || base.deviceId || source?.deviceId || null,
+    platform: base.platform || source?.platform || (window.ReactNativeWebView ? "react-native-webview" : "browser"),
+    app_version: base.app_version || base.appVersion || source?.appVersion || source?.app_version || null,
+    timezone: base.timezone || source?.timezone || getLocalTimezone(),
+    ...base,
+  };
+}
+
+function createVoiceContext(source = runtime) {
+  const base = parsePlainObject(source?.voiceContext) || {};
+  const voiceProfileId = base.voice_profile_id || base.voiceProfileId || source?.voiceProfileId || source?.voice_profile_id || null;
+  return {
+    voice_profile_id: voiceProfileId,
+    voice_owner_type: base.voice_owner_type || base.voiceOwnerType || source?.voiceOwnerType || source?.voice_owner_type || "system",
+    voice_owner_id: base.voice_owner_id || base.voiceOwnerId || source?.voiceOwnerId || source?.voice_owner_id || null,
+    ...base,
   };
 }
 
@@ -352,6 +446,7 @@ function readUrlConfig() {
   const q = new URLSearchParams(location.search);
   const mode = q.get("mode");
   if (!mode) return {};
+  const root = { mode };
   const config = {};
   const readNumber = (key) => {
     if (q.has(key)) config[key] = Number(q.get(key));
@@ -362,6 +457,30 @@ function readUrlConfig() {
   ["question_count", "animal_count", "choice_count", "trash_count", "auto_return_ms", "time_limit_ms", "time_limit_seconds"].forEach(readNumber);
   ["return_url", "hub_url", "auto_return_url", "home_url", "exit_url"].forEach(key => {
     if (q.has(key)) config[key] = q.get(key);
+  });
+  [
+    "session_id",
+    "content_id",
+    "game_key",
+    "game_version",
+    "play_source",
+    "senior_id",
+    "user_id",
+    "anonymous_user_id",
+    "guardian_id",
+    "assignment_id",
+    "alarm_id",
+    "schedule_id",
+    "tenant_id",
+    "facility_id",
+    "program_id",
+    "reward_id",
+    "recommendation_id",
+    "client_context",
+    "voice_context",
+    "meta",
+  ].forEach(key => {
+    if (q.has(key)) root[key] = q.get(key);
   });
   [
     "show_timer",
@@ -380,7 +499,7 @@ function readUrlConfig() {
     "background_music_enabled",
   ].forEach(readBool);
   return {
-    mode,
+    ...root,
     difficulty: q.get("difficulty") || undefined,
     target_animals: q.get("target_animals") || undefined,
     config,

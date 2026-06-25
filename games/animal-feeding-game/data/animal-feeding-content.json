@@ -3,7 +3,7 @@
     "content_id":  "cognitive_animal_feeding_001",
     "version":  "2.0.0",
     "title":  "도깨비야! 무슨 색을 먹니?",
-    "thumbnail":  "image/game-thumbnail.png",
+    "thumbnail":  "game-thumbnail.png",
     "cognitive_domains":  [
                               "semantic_memory",
                               "selective_attention",

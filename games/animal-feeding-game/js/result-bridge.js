@@ -136,6 +136,7 @@ function finishSession(completed, reason = "user_quit", error = null) {
   state.timedOut = state.timedOut || reason === "time_limit";
   state._errorCode = error?.code || null;
   state._errorMessage = error?.message || null;
+  state._errorPhase = error?.phase || null;
   if (typeof stopSessionTimer === "function") stopSessionTimer();
   try { speechSynthesis.cancel(); } catch(_) {}
   if (typeof stopVoiceGuide === "function") stopVoiceGuide();
@@ -245,6 +246,8 @@ function toQuestionLog(r) {
     cognitive_domain: r.cognitiveDomain,
     difficulty: state?.difficulty || selectedDiff,
     prompt_type: "image",
+    target_item: r.itemId,
+    items_shown: state?._animals?.length || null,
     correct_answer: r.correctTargetId,
     selected_answer: r.selectedTargetId,
     is_correct: isQuestionCorrect(r),
@@ -259,6 +262,7 @@ function toQuestionLog(r) {
     changed_answer_count: r.targetChangeCount,
     wrong_tap_count: r.wrongDropCount,
     drag_fail_count: r.dragFailCount,
+    touch_miss_count: r.dragFailCount,
     input_type: r.inputType || "touch",
     external_input: r.externalAnswer || null,
     item_id: r.itemId,
@@ -319,34 +323,56 @@ function toCommonSessionLog(payload) {
   const correctCount = rs.filter(isQuestionCorrect).length;
   const wrongCount = Math.max(0, rs.length - correctCount);
   const questionLogs = rs.map(toQuestionLog);
+  const retryCount = rs.reduce((sum, r) => sum + Math.max(0, (r.attempts || 1) - 1), 0);
+  const hintCount = rs.filter(r => r.hintUsed).length;
+  const avgResponseTimeMs = process.avgResponseMs || 0;
+  const completionRate = totalQuestions ? state.completedRounds / totalQuestions : 0;
+  const status = state._status;
+  const isAbandoned = status === "abandoned";
+  const isError = status === "error";
+  const exitReason = isError
+    ? (state._abandonReason || "runtime_error")
+    : (status === "completed" ? "completed" : (state.timedOut ? "time_limit" : state._abandonReason));
   const sessionSummary = {
     session_id: state.sessionId,
+    senior_id: state.seniorId || null,
+    user_id: state.userId || null,
+    anonymous_user_id: state.anonymousUserId || null,
+    guardian_id: state.guardianId || null,
     content_id: state.contentId,
     game_key: state.gameKey,
+    game_version: state.gameVersion || state.version || VERSION,
+    play_source: normalizePlaySourceForApi(state.playSource, state.mode),
+    assignment_id: state.assignmentId || null,
+    alarm_id: state.alarmId || null,
+    schedule_id: state.scheduleId || null,
     mode: state.mode,
+    app_mode: state.mode,
+    game_mode: "animal_feeding",
     difficulty: state.difficulty,
-    status: state._status,
+    status,
     started_at: state.startedAt,
     ended_at: state.endedAt,
     duration_ms: state.durationMs,
     time_limit_ms: state.timeLimitMs || 0,
     timed_out: !!state.timedOut,
     total_questions: totalQuestions,
+    completed_question_count: state.completedRounds,
     completed_questions: state.completedRounds,
     correct_count: correctCount,
     wrong_count: wrongCount,
-    hint_count: rs.filter(r => r.hintUsed).length,
-    retry_count: rs.reduce((sum, r) => sum + Math.max(0, (r.attempts || 1) - 1), 0),
+    hint_count: hintCount,
+    retry_count: retryCount,
     pause_count: state._pauseCount,
     help_open_count: state._helpOpenCount,
     interaction_count: state._interactionCount,
-    avg_response_time_ms: process.avgResponseMs || 0,
-    completion_rate: totalQuestions ? state.completedRounds / totalQuestions : 0,
+    avg_response_time_ms: avgResponseTimeMs,
+    completion_rate: completionRate,
   };
   const abandonInfo = {
-    abandoned_at: state._status === "abandoned" ? state.endedAt : null,
-    abandon_reason: state._status === "abandoned" ? state._abandonReason : null,
-    abandon_step: state._status === "abandoned" ? {
+    abandoned_at: isAbandoned ? state.endedAt : null,
+    abandon_reason: isAbandoned ? exitReason : null,
+    abandon_step: isAbandoned ? {
       screen: currentScreenId(),
       question_index: state._idx + 1,
       completed_questions: state.completedRounds,
@@ -354,35 +380,84 @@ function toCommonSessionLog(payload) {
     } : null,
     error_code: state._errorCode,
     error_message: state._errorMessage,
+    error_phase: state._errorPhase,
+  };
+  const processDataJson = {
+    aggregate: process,
+    pause_count: state._pauseCount,
+    help_open_count: state._helpOpenCount,
+    interaction_count: state._interactionCount,
+    raw_results: rs,
+  };
+  const resultDetailJson = {
+    session: sessionSummary,
+    config_snapshot: state.configSnapshot,
+    question_logs: questionLogs,
+    raw_results: rs,
+    process,
+    reward: payload.reward || null,
+    pre_condition_check: state.preConditionCheck || null,
+    finish_check: null,
+    condition_check: null,
+    abandon: abandonInfo,
+    animal_count: state._animals.length,
+    choice_count: state._animals.length,
+    target_animals: state._animals,
+    item_count: rs.length,
+    trash_count: state._trashCount,
+    used_drag: rs.some(r => r.inputType === "drag"),
+    input_modes_enabled: runtime.useDrag ? ["touch", "drag", "external"] : ["touch", "external"],
+    soft_feedback: runtime.softFeedback,
+    auto_hint_enabled: runtime.autoHintEnabled,
+    help_open_count: state._helpOpenCount,
+    difficulty_downshifted: false,
+  };
+  const gameResultJson = {
+    status,
+    completed: status === "completed",
+    exit_reason: exitReason,
+    mode: state.mode,
+    app_mode: state.mode,
+    game_mode: "animal_feeding",
+    difficulty: state.difficulty,
+    config_snapshot: state.configSnapshot,
+    total_questions: totalQuestions,
+    completed_question_count: state.completedRounds,
+    correct_count: correctCount,
+    wrong_count: wrongCount,
+    hint_count: hintCount,
+    retry_count: retryCount,
+    pause_count: state._pauseCount,
+    interaction_count: state._interactionCount,
+    avg_response_time_ms: avgResponseTimeMs,
+    completion_rate: completionRate,
+    abandoned_at: abandonInfo.abandoned_at,
+    abandon_reason: abandonInfo.abandon_reason,
+    error_code: state._errorCode,
+    error_message: state._errorMessage,
+    error_phase: state._errorPhase,
+    question_logs: questionLogs,
+    result_detail_json: resultDetailJson,
+    process_data_json: processDataJson,
   };
   return {
     ...sessionSummary,
+    tenant_id: state.tenantId || null,
+    facility_id: state.facilityId || null,
+    program_id: state.programId || null,
+    reward_id: state.rewardId || null,
+    recommendation_id: state.recommendationId || null,
     config_snapshot: state.configSnapshot,
     ...abandonInfo,
+    exit_reason: exitReason,
     question_logs: questionLogs,
-    result_detail_json: {
-      session: sessionSummary,
-      config_snapshot: state.configSnapshot,
-      question_logs: questionLogs,
-      raw_results: rs,
-      process,
-      reward: payload.reward || null,
-      pre_condition_check: state.preConditionCheck || null,
-      finish_check: null,
-      condition_check: null,
-      abandon: abandonInfo,
-      animal_count: state._animals.length,
-      choice_count: state._animals.length,
-      target_animals: state._animals,
-      item_count: rs.length,
-      trash_count: state._trashCount,
-      used_drag: rs.some(r => r.inputType === "drag"),
-      input_modes_enabled: runtime.useDrag ? ["touch", "drag", "external"] : ["touch", "external"],
-      soft_feedback: runtime.softFeedback,
-      auto_hint_enabled: runtime.autoHintEnabled,
-      help_open_count: state._helpOpenCount,
-      difficulty_downshifted: false,
-    },
+    result_detail_json: resultDetailJson,
+    process_data_json: processDataJson,
+    game_result: gameResultJson,
+    game_result_json: gameResultJson,
+    client_context: state.clientContext || createClientContext(runtime),
+    voice_context: state.voiceContext || createVoiceContext(runtime),
+    meta: state.meta || null,
   };
 }
 
@@ -510,6 +585,32 @@ function finishCheckPayload(skipped = false) {
   };
 }
 
+function applyFinishCheckToResultPayload(targetPayload, payload) {
+  if (!targetPayload) return;
+  targetPayload.condition_check = payload.condition_check;
+  targetPayload.fatigue_check = payload.fatigue_check;
+  targetPayload.difficulty_check = payload.difficulty_check;
+  targetPayload.help_check = payload.help_check;
+  targetPayload.replay_check = payload.replay_check;
+  targetPayload.finish_check = payload.finish_check;
+  targetPayload.finish_check_payload = payload;
+
+  [
+    targetPayload.result_detail_json,
+    targetPayload.game_result?.result_detail_json,
+    targetPayload.game_result_json?.result_detail_json,
+  ].forEach(detail => {
+    if (!detail) return;
+    detail.condition_check = payload.condition_check;
+    detail.fatigue_check = payload.fatigue_check;
+    detail.difficulty_check = payload.difficulty_check;
+    detail.help_check = payload.help_check;
+    detail.replay_check = payload.replay_check;
+    detail.finish_check = payload.finish_check;
+    detail.finish_check_payload = payload;
+  });
+}
+
 function submitFinishCheck(skipped = false) {
   if (finishCheckSubmitted) return;
   finishCheckSubmitted = true;
@@ -518,22 +619,7 @@ function submitFinishCheck(skipped = false) {
   RN({ type:"FINISH_CHECK", payload });
   const shouldReturnAfterFinishCheck = !!pendingCompletionMessage;
   if (pendingCompletionMessage) {
-    pendingCompletionMessage.payload.condition_check = payload.condition_check;
-    pendingCompletionMessage.payload.fatigue_check = payload.fatigue_check;
-    pendingCompletionMessage.payload.difficulty_check = payload.difficulty_check;
-    pendingCompletionMessage.payload.help_check = payload.help_check;
-    pendingCompletionMessage.payload.replay_check = payload.replay_check;
-    pendingCompletionMessage.payload.finish_check = payload.finish_check;
-    pendingCompletionMessage.payload.finish_check_payload = payload;
-    if (pendingCompletionMessage.payload.result_detail_json) {
-      pendingCompletionMessage.payload.result_detail_json.condition_check = payload.condition_check;
-      pendingCompletionMessage.payload.result_detail_json.fatigue_check = payload.fatigue_check;
-      pendingCompletionMessage.payload.result_detail_json.difficulty_check = payload.difficulty_check;
-      pendingCompletionMessage.payload.result_detail_json.help_check = payload.help_check;
-      pendingCompletionMessage.payload.result_detail_json.replay_check = payload.replay_check;
-      pendingCompletionMessage.payload.result_detail_json.finish_check = payload.finish_check;
-      pendingCompletionMessage.payload.result_detail_json.finish_check_payload = payload;
-    }
+    applyFinishCheckToResultPayload(pendingCompletionMessage.payload, payload);
     RN(pendingCompletionMessage);
     pendingCompletionMessage = null;
     pendingAutoReturnMs = 0;
