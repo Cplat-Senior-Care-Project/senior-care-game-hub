@@ -122,7 +122,7 @@
 | IMG-105 | 지갑 | `assets/goods/wallet.png` | 문제/선택지 화면 | 준비물 선택지 이미지 | O | 자체 제작/프로젝트 생성 이미지 | O | O |
 | IMG-106 | 물뿌리개 | `assets/goods/watering_can.png` | 문제/선택지 화면 | 준비물 선택지 이미지 | O | 자체 제작/프로젝트 생성 이미지 | O | O |
 | IMG-107 | 수박 | `assets/goods/watermelon.png` | 문제/선택지 화면 | 준비물 선택지 이미지 | O | 자체 제작/프로젝트 생성 이미지 | O | O |
-| IMG-108 | 대표 썸네일 | `assets/thumbnail-4x3.png` | 앱 콘텐츠 목록 | 4:3 가로형 대표 썸네일 | O | 기존 자체 제작 자산 조합 | O | O |
+| IMG-108 | 대표 썸네일 | `assets/thumbnail-4x3.png` | 앱 콘텐츠 목록 | 4:3 가로형 대표 썸네일 | O | 사용자 제공/프로젝트 생성 이미지 | O | O |
 
 ## 3. 오디오 에셋
 
