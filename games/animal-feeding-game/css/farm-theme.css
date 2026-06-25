@@ -305,6 +305,8 @@ body.mode-ai #play .bin::after {
   position: relative;
   z-index: 2;
   transform: translateY(-5px);
+  backface-visibility: hidden;
+  will-change: transform, filter;
   filter: drop-shadow(0 12px 14px rgba(45, 52, 32, .18));
 }
 
@@ -3592,7 +3594,7 @@ body.mode-ai #howAgainBtn {
   border-style: solid !important;
   border-radius: 999px !important;
   color: #fffdf3 !important;
-  font-size: clamp(25px, 2.8cqw, 34px) !important;
+  font-size: var(--readable-control-font, clamp(25px, 2.8cqw, 34px)) !important;
   font-weight: 700 !important;
   line-height: 1 !important;
   letter-spacing: 0 !important;
@@ -3657,4 +3659,166 @@ body.mode-ai #howAgainBtn {
 
 #play.hide-help #helpBtn {
   display: none !important;
+}
+
+.app {
+  --readable-control-font: clamp(25px, 2.8cqw, 34px);
+}
+
+.activity-label,
+#start .start-activity-text,
+#play .status-label {
+  font-size: var(--readable-control-font) !important;
+  font-weight: 700 !important;
+  letter-spacing: 0 !important;
+  line-height: 1 !important;
+}
+
+.activity-label {
+  min-height: clamp(54px, 7.2cqh, 68px) !important;
+  padding: 0 clamp(22px, 2.6cqw, 34px) 5px !important;
+}
+
+.activity-label::before {
+  width: 18px !important;
+  height: 18px !important;
+}
+
+#play .topbar {
+  min-height: clamp(62px, 8cqh, 76px) !important;
+}
+
+#play > .activity-label,
+#play.show-timer > .activity-label {
+  top: calc(var(--safe-t) + clamp(86px, 12.4cqh, 104px)) !important;
+  left: calc(var(--safe-l) + clamp(14px, 2cqw, 28px)) !important;
+  transform: none !important;
+}
+
+#play .progress-status {
+  flex-basis: clamp(300px, 28cqw, 360px) !important;
+  width: min(28cqw, 360px) !important;
+  max-width: 360px !important;
+}
+
+#play .timer-status {
+  flex-basis: clamp(300px, 27cqw, 360px) !important;
+  width: min(27cqw, 360px) !important;
+  max-width: 360px !important;
+}
+
+#play .dots,
+#play .timer-gauge {
+  min-width: 260px !important;
+  height: clamp(54px, 7.2cqh, 68px) !important;
+  padding: 6px !important;
+}
+
+#play.hide-progress.show-timer .timer-status {
+  flex-basis: clamp(360px, 42cqw, 480px) !important;
+  width: min(42cqw, 480px) !important;
+  max-width: 480px !important;
+}
+
+#play .prompt,
+#play .item-label,
+#play .spot .name,
+#play .bin .name,
+#play .bubble,
+.done-eyebrow,
+.done-friend-name,
+.done-sub,
+.done-return-note,
+.stat b,
+.stat span,
+.mood-label,
+.check-sub,
+.ready-sub,
+.count-sub,
+#finish .final-check-heading span,
+#finish .final-check-heading strong,
+#finish .finish-choice-row .state-choice strong,
+#finish .finish-choice-row .state-choice span,
+#quitModal .sheet p,
+.settings-panel-title,
+.settings-card .setting-copy strong {
+  font-size: var(--readable-control-font) !important;
+  letter-spacing: 0 !important;
+}
+
+.app .btn,
+.app .chip {
+  font-size: var(--readable-control-font) !important;
+  letter-spacing: 0 !important;
+}
+
+#finish .check-actions .btn,
+#done .done-actions .btn,
+#quitModal .sheet-actions .btn {
+  font-size: var(--readable-control-font) !important;
+  letter-spacing: 0 !important;
+}
+
+#finish .check-title {
+  font-size: max(var(--readable-control-font), clamp(24px, 43.2px, 38px)) !important;
+}
+
+#finish .finish-choice-row .state-choice {
+  min-height: clamp(68px, 10.2cqh, 88px) !important;
+}
+
+#finish .final-check-heading span {
+  min-width: 120px !important;
+}
+
+#start.difficulty-ready .diff {
+  min-height: clamp(340px, 48cqh, 390px) !important;
+}
+
+#start.difficulty-ready .diff-row {
+  gap: 6px !important;
+}
+
+#start.difficulty-ready .diff-s,
+#start.difficulty-ready .diff-desc,
+#start.difficulty-ready .diff-meta,
+.done-joy,
+.done-title {
+  font-size: var(--readable-control-font) !important;
+  letter-spacing: 0 !important;
+}
+
+#start.difficulty-ready .diff-s {
+  margin-top: 6px !important;
+  line-height: 1.08 !important;
+}
+
+#start.difficulty-ready .diff-desc {
+  margin-top: 5px !important;
+  line-height: 1.04 !important;
+}
+
+#start.difficulty-ready .diff-icons {
+  margin-top: 4px !important;
+}
+
+#start.difficulty-ready .diff-icons img,
+#start.difficulty-ready .diff[data-diff="hard"] .diff-icons img {
+  width: clamp(52px, 6.4cqw, 72px) !important;
+}
+
+#start.difficulty-ready .diff-divider {
+  display: none !important;
+}
+
+#start.difficulty-ready .diff-meta {
+  align-self: center !important;
+  padding: 8px 12px 10px !important;
+  line-height: 1 !important;
+}
+
+.done-joy {
+  top: clamp(26px, 5cqh, 38px) !important;
+  min-height: clamp(46px, 6.8cqh, 58px) !important;
+  padding: 0 clamp(14px, 1.8cqw, 22px) 4px !important;
 }

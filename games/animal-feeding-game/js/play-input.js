@@ -8,6 +8,58 @@ const NO_TARGET_ID = "no_target";
 const NO_TARGET_LABEL = "아무에게도 주지 않음";
 const NO_TARGET_AUTO_CORRECT_MS = 2000;
 let noTargetAutoCorrectTimer = null;
+let noTargetWaitGaugeFrame = null;
+
+function appLinearTransform() {
+  const app = document.querySelector(".app");
+  const transform = app ? getComputedStyle(app).transform : "";
+  if (transform && transform !== "none" && typeof DOMMatrixReadOnly !== "undefined") {
+    try {
+      const matrix = new DOMMatrixReadOnly(transform);
+      return { a: matrix.a, b: matrix.b, c: matrix.c, d: matrix.d };
+    } catch (_) {}
+  }
+  const rootStyle = getComputedStyle(document.documentElement);
+  const sx = Number.parseFloat(rootStyle.getPropertyValue("--stage-scale-x")) || 1;
+  const sy = Number.parseFloat(rootStyle.getPropertyValue("--stage-scale-y")) || sx;
+  return { a: sx, b: 0, c: 0, d: sy };
+}
+
+function viewportDeltaToStageDelta(dx, dy) {
+  const { a, b, c, d } = appLinearTransform();
+  const det = a * d - b * c;
+  if (!Number.isFinite(det) || Math.abs(det) < 0.0001) return { x: dx, y: dy };
+  return {
+    x: (d * dx - c * dy) / det,
+    y: (-b * dx + a * dy) / det,
+  };
+}
+
+function boardPointFromViewportDelta(dx, dy) {
+  return viewportDeltaToStageDelta(dx, dy);
+}
+
+function restartCssAnimation(el, selector) {
+  const target = selector ? el?.querySelector(selector) : el;
+  if (!target) return;
+  target.style.animation = "none";
+  void target.offsetWidth;
+  target.style.animation = "";
+}
+
+function showHintOnTarget(el) {
+  if (!el) return;
+  el.classList.add("hint", "soft-guide");
+  restartCssAnimation(el, ".hint-arrow");
+  restartCssAnimation(el, ".pic");
+}
+
+function showGoodReaction(el, targetId) {
+  if (!el) return;
+  el.classList.remove("hint", "soft-guide");
+  el.classList.add("good", `react-${targetId}`);
+  restartCssAnimation(el, ".pic");
+}
 
 function isNoTargetQuestion() {
   return !!cur && cur.itemType === "trash" && cur.correctTargetId === NO_TARGET_ID;
@@ -31,12 +83,14 @@ function clearNoTargetWaitGauge() {
   const wrap = document.getElementById("itemWrap");
   const gauge = document.getElementById("itemWaitGauge");
   const fill = document.getElementById("itemWaitGaugeFill");
+  if (noTargetWaitGaugeFrame) {
+    cancelAnimationFrame(noTargetWaitGaugeFrame);
+    noTargetWaitGaugeFrame = null;
+  }
   wrap?.classList.remove("waiting-auto-correct");
   if (fill) {
     fill.style.animation = "none";
     fill.style.transform = "scaleX(0)";
-    void fill.offsetWidth;
-    fill.style.animation = "";
   }
   gauge?.setAttribute("aria-valuenow", "0");
 }
@@ -51,6 +105,20 @@ function startNoTargetWaitGauge() {
   gauge.setAttribute("aria-valuemax", String(Math.ceil(NO_TARGET_AUTO_CORRECT_MS / 1000)));
   gauge.setAttribute("aria-valuetext", "정답 처리 대기 중");
   wrap.classList.add("waiting-auto-correct");
+
+  const startedAt = performance.now();
+  const tick = now => {
+    const ratio = Math.min(1, Math.max(0, (now - startedAt) / NO_TARGET_AUTO_CORRECT_MS));
+    fill.style.transform = `scaleX(${ratio})`;
+    gauge.setAttribute("aria-valuenow", String(Math.ceil((ratio * NO_TARGET_AUTO_CORRECT_MS) / 1000)));
+    if (ratio < 1 && wrap.classList.contains("waiting-auto-correct")) {
+      noTargetWaitGaugeFrame = requestAnimationFrame(tick);
+    } else {
+      noTargetWaitGaugeFrame = null;
+    }
+  };
+  fill.style.transform = "scaleX(0)";
+  noTargetWaitGaugeFrame = requestAnimationFrame(tick);
 }
 
 function scheduleNoTargetAutoCorrect() {
@@ -160,8 +228,12 @@ function resetItemPos() {
 function burstHearts(spotEl) {
   const board = document.getElementById("board");
   const r = spotEl.getBoundingClientRect(), b = board.getBoundingClientRect();
-  const cx = r.left - b.left + r.width / 2;
-  const cy = r.top - b.top + r.height * 0.3;
+  const p = boardPointFromViewportDelta(
+    r.left + r.width / 2 - b.left,
+    r.top + r.height * 0.3 - b.top
+  );
+  const cx = p.x;
+  const cy = p.y;
   const emojis = ["💛","✨","💛","🌿","💛"];
   for (let i = 0; i < 5; i++) {
     const h = document.createElement("div");
@@ -229,6 +301,7 @@ let drag = null;
 item.addEventListener("pointerdown", e => {
   if (state?._paused) return;
   if (!runtime.useDrag) return;
+  e.preventDefault();
   if (isNoTargetQuestion()) clearNoTargetAutoCorrect();
   item.setPointerCapture(e.pointerId);
   const r = item.getBoundingClientRect();
@@ -239,21 +312,26 @@ item.addEventListener("pointerdown", e => {
 
 item.addEventListener("pointermove", e => {
   if (!drag) return;
+  e.preventDefault();
   const dx = e.clientX - drag.x;
   const dy = e.clientY - drag.y;
   if (Math.abs(dx) + Math.abs(dy) > 6) drag.moved = true;
-  item.style.transform = `translate(${dx}px, ${dy}px)`;
+  const localDelta = viewportDeltaToStageDelta(dx, dy);
+  item.style.transform = `translate3d(${localDelta.x}px, ${localDelta.y}px, 0)`;
   const target = spotAt(e.clientX, e.clientY);
   document.querySelectorAll(".spot, .bin").forEach(s => s.classList.toggle("target", s === target));
 });
 
 item.addEventListener("pointerup", e => {
   if (!drag) return;
+  e.preventDefault();
   const moved = drag.moved;
   item.classList.remove("dragging");
   const target = spotAt(e.clientX, e.clientY);
+  if (item.hasPointerCapture?.(e.pointerId)) item.releasePointerCapture(e.pointerId);
   drag = null;
   if (!moved) {
+    snapBack();
     if (isNoTargetQuestion()) scheduleNoTargetAutoCorrect();
     return;
   }
@@ -265,9 +343,10 @@ item.addEventListener("pointerup", e => {
   }
 });
 
-item.addEventListener("pointercancel", () => {
+item.addEventListener("pointercancel", e => {
   drag = null;
   item.classList.remove("dragging");
+  if (item.hasPointerCapture?.(e.pointerId)) item.releasePointerCapture(e.pointerId);
   snapBack();
   if (isNoTargetQuestion()) scheduleNoTargetAutoCorrect();
 });
@@ -369,7 +448,9 @@ function showCorrectAnswer() {
   const correctEl = document.querySelector(`.spot[data-target="${targetId}"], .bin[data-target="${targetId}"]`);
   if (!correctEl) return;
 
-  correctEl.classList.add("hint", "soft-guide", "good", `react-${targetId}`);
+  showHintOnTarget(correctEl);
+  correctEl.classList.add("good", `react-${targetId}`);
+  restartCssAnimation(correctEl, ".pic");
   const correctImg = ANIMALS[targetId]?.correctImg;
   const pic = correctEl.querySelector(".pic");
   if (pic && correctImg) pic.style.backgroundImage = `url('${assetUrl(correctImg)}')`;
@@ -398,7 +479,7 @@ function resolve(targetId, spotEl, inputType = "touch") {
     clearTargetHighlights();
     cur.selectedTargetId = targetId;
     cur.responseTimeMs = Math.round(performance.now() - cur._t0);
-    spotEl.classList.add("good", `react-${targetId}`);
+    showGoodReaction(spotEl, targetId);
     const correctImg = ANIMALS[targetId]?.correctImg;
     const pic = spotEl.querySelector(".pic");
     if (pic && correctImg) pic.style.backgroundImage = `url('${assetUrl(correctImg)}')`;
@@ -425,6 +506,7 @@ function resolve(targetId, spotEl, inputType = "touch") {
     cur.selectedTargetId = targetId;
     cur.wrongDropCount++;
     spotEl.classList.add("bad");
+    restartCssAnimation(spotEl, ".pic");
     dingSoft();
     setTimeout(() => spotEl.classList.remove("bad"), 600);
     snapBack();
@@ -460,7 +542,7 @@ function resolve(targetId, spotEl, inputType = "touch") {
     if (runtime.hintEnabled && runtime.autoHintEnabled && cur.attempts >= 2 && !cur.hintUsed) {
       cur.hintUsed = true;
       const h = document.querySelector(`.spot[data-target="${cur.correctTargetId}"], .bin[data-target="${cur.correctTargetId}"]`);
-      if (h) h.classList.add("hint", "soft-guide");
+      showHintOnTarget(h);
       const msg = runtime.softFeedback ? "조금 헷갈릴 수 있어요. 제가 힌트를 드릴게요." : "이 친구가 좋아할 것 같아요";
       setPrompt(msg, "warn");
       playVoiceGuide("hint", msg);
@@ -520,7 +602,7 @@ document.getElementById("helpBtn").addEventListener("click", () => {
   state._helpOpenCount++;
   cur.hintUsed = true;
   const h = document.querySelector(`.spot[data-target="${cur.correctTargetId}"], .bin[data-target="${cur.correctTargetId}"]`);
-  if (h) h.classList.add("hint");
+  showHintOnTarget(h);
   const targetLabel = correctTargetLabel();
   const msg = isNoTargetQuestion()
     ? "그대로 두세요."

@@ -181,7 +181,7 @@ function getBgmAudio() {
     bgmAudio.preload = "auto";
     bgmAudio.volume = 0.28;
     bgmAudio.addEventListener("ended", () => {
-      if (!bgmOn || !mediaUnlocked) return;
+      if (!bgmOn || !mediaUnlocked || document.hidden) return;
       seekBgmStart(bgmAudio);
       bgmAudio.play().catch(() => startSynthBackgroundMusic());
     });
@@ -195,6 +195,7 @@ function getBgmAudio() {
 }
 
 function startRecordedBackgroundMusic() {
+  if (document.hidden) return false;
   const audio = getBgmAudio();
   if (!audio) return false;
   try {
@@ -209,7 +210,7 @@ function startRecordedBackgroundMusic() {
 }
 
 function startSynthBackgroundMusic() {
-  if (!bgmOn || bgmTimer || !mediaUnlocked) return;
+  if (!bgmOn || bgmTimer || !mediaUnlocked || document.hidden) return;
   const notes = [392, 440, 523.25, 440, 349.23, 392, 493.88, 392];
   playBgmNote(notes[bgmStep % notes.length]);
   bgmTimer = setInterval(() => {
@@ -223,7 +224,7 @@ function startSynthBackgroundMusic() {
 }
 
 function startBackgroundMusic() {
-  if (!bgmOn || !mediaUnlocked) return;
+  if (!bgmOn || !mediaUnlocked || document.hidden) return;
   if (startRecordedBackgroundMusic()) return;
   startSynthBackgroundMusic();
 }
@@ -242,9 +243,15 @@ function stopBackgroundMusic() {
 }
 
 function syncBackgroundMusic() {
-  if (bgmOn) startBackgroundMusic();
+  if (bgmOn && !document.hidden) startBackgroundMusic();
   else stopBackgroundMusic();
 }
+
+document.addEventListener("visibilitychange", () => {
+  if (document.hidden) stopBackgroundMusic();
+});
+
+window.addEventListener("pagehide", stopBackgroundMusic);
 
 function updateAudioControls() {
   updateVoiceBtn();

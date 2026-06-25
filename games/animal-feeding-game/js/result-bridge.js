@@ -63,6 +63,8 @@ const DONE_REACTIONS = {
 };
 
 let autoReturnTimer = null;
+let finishCheckOpened = false;
+let finishCheckSubmitted = false;
 
 function getHubReturnUrl() {
   const configuredUrl = runtime.returnUrl;
@@ -109,6 +111,7 @@ function scheduleAutoReturn(delayOverrideMs = runtime.autoReturnMs) {
 
 function shouldShowFinishCheck(completed, reason) {
   if (!runtime.showFinishCheck) return false;
+  if (finishCheckSubmitted) return false;
   if (completed) return true;
   return runtime.mode === "standard" && reason === "user_quit";
 }
@@ -408,6 +411,8 @@ document.getElementById("doneBtn").addEventListener("click", () => {
     autoReturnTimer = null;
   }
   if (pendingCompletionMessage) {
+    if (finishCheckOpened) return;
+    finishCheckOpened = true;
     showFinishStep(1);
     show("finish");
     setTimeout(() => playVoiceGuide("finishCurrentState", "지금의 상태를 알려주세요."), 80);
@@ -448,6 +453,8 @@ function updateFinishActionState() {
 
 function resetFinishCheck() {
   finishCheck = { mood: null, fatigue: null, difficulty: null, help: null, replay: null };
+  finishCheckOpened = false;
+  finishCheckSubmitted = false;
   document.querySelectorAll("[data-finish]").forEach(x => x.classList.remove("selected"));
   showFinishStep(1);
   updateFinishActionState();
@@ -519,10 +526,12 @@ function finishCheckPayload(skipped = false) {
 }
 
 function submitFinishCheck(skipped = false) {
+  if (finishCheckSubmitted) return;
+  finishCheckSubmitted = true;
   const payload = finishCheckPayload(skipped);
   RN({ type:"CONDITION_CHECK", payload: payload.condition_check });
   RN({ type:"FINISH_CHECK", payload });
-  const shouldReturnAfterFinishCheck = pendingCompletionMessage?.type === "SESSION_ABORT";
+  const shouldReturnAfterFinishCheck = !!pendingCompletionMessage;
   if (pendingCompletionMessage) {
     pendingCompletionMessage.payload.condition_check = payload.condition_check;
     pendingCompletionMessage.payload.fatigue_check = payload.fatigue_check;
@@ -541,15 +550,13 @@ function submitFinishCheck(skipped = false) {
       pendingCompletionMessage.payload.result_detail_json.finish_check_payload = payload;
     }
     RN(pendingCompletionMessage);
-    if (shouldReturnAfterFinishCheck) {
-      returnToHost({}, { navigateToHub: true });
-    } else if (pendingAutoReturnMs > 0) {
-      scheduleAutoReturn(pendingAutoReturnMs);
-    }
     pendingCompletionMessage = null;
     pendingAutoReturnMs = 0;
   }
-  if (shouldReturnAfterFinishCheck) return;
+  if (shouldReturnAfterFinishCheck) {
+    returnToHost({}, { navigateToHub: true });
+    return;
+  }
   if (typeof showStartIntro === "function") showStartIntro(true);
   else show("start");
 }
@@ -603,6 +610,7 @@ function pauseSession(reason = "unknown") {
   document.body.classList.add("paused");
   state._pauseCount++;
   if (typeof pauseSessionTimer === "function") pauseSessionTimer();
+  if (reason === "app_background" && typeof stopBackgroundMusic === "function") stopBackgroundMusic();
   try { speechSynthesis.cancel(); } catch(_) {}
   if (typeof stopVoiceGuide === "function") stopVoiceGuide();
   RN({ type:"SESSION_PAUSE", payload:{ session_id: state.sessionId, reason } });
@@ -614,6 +622,7 @@ function resumeSession(reason = "unknown") {
   document.body.classList.remove("paused");
   if (typeof resumeSessionTimer === "function") resumeSessionTimer();
   if (typeof scheduleNoTargetAutoCorrect === "function") scheduleNoTargetAutoCorrect();
+  if (typeof syncBackgroundMusic === "function") syncBackgroundMusic();
   RN({ type:"SESSION_RESUME", payload:{ session_id: state.sessionId, reason } });
 }
 

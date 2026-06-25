@@ -88,16 +88,22 @@ function showDifficultySelection() {
 }
 
 function resetPreGameCheckState() {
+  if (preGameCheck?.completed) return;
   preGameCheck = { mood: "good", sleepHours: CONDITION_SLEEP_HOURS[precheckSleepIndex], skipped: false, completed: false };
   resetPrecheckUi();
 }
 
 function shouldStartWithPrecheck() {
   const standardStart = typeof shouldUseStandardStartScreen === "function" && shouldUseStandardStartScreen();
-  return standardStart && runtime.showDifficultySelect && !runtime.autoStart;
+  return standardStart && runtime.showDifficultySelect && !runtime.autoStart && !preGameCheck?.completed;
 }
 
 function showEntryPrecheck(resetCheck = false) {
+  if (preGameCheck?.completed) {
+    if (runtime.showDifficultySelect) showDifficultySelection();
+    else showStartIntro(false);
+    return;
+  }
   resetDifficultyStartState(true);
   if (resetCheck) {
     resetPreGameCheckState();
