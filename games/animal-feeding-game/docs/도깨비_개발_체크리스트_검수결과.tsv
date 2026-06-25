@@ -1,0 +1,97 @@
+번호	개발 영역	모드	체크 항목	결과	비고
+D-01	기본 파일	모든 모드	index.html, css/, js/, image/, audio/, data/가 배포 폴더에 모두 포함되어 있는가	통과	루트에 index.html과 css, js, image, audio, data 폴더가 모두 존재함을 rg --files와 Get-ChildItem으로 확인.
+D-02	파일 로드	모든 모드	HTML에서 연결한 CSS와 JS 파일이 빠짐없이 로드되는가	통과	index.html의 CSS 6개와 JS 6개 참조가 모두 실제 파일과 일치하고 node --check 통과.
+D-03	데이터 파일	모든 모드	data/animal-feeding-content.json이 오류 없이 읽히는가	통과	JSON 파싱 성공. title, game_key, content_id, version, animals 4개, items 14개 확인.
+D-04	식별값	모든 모드	GAME_ID, content_id, version이 문서와 payload에서 같은 값으로 쓰이는가	통과	js/core-config.js의 animal_feeding, cognitive_animal_feeding_001, 2.0.0이 README/문서 및 SESSION_COMPLETE payload와 일치.
+D-05	문서 기준	모든 모드	README와 개발 문서에 현재 지원 모드 4종이 같은 이름으로 적혀 있는가	통과	README와 docs 문서에서 standard, reminder, care, ai_assisted 4개 모드를 동일하게 안내.
+D-06	이미지 경로	모든 모드	화면에서 쓰는 이미지는 모두 image/ 경로의 실제 파일을 가리키는가	통과	HTML, CSS, JS, JSON의 image 경로를 스캔한 결과 누락 파일 없음.
+D-07	오디오 경로	모든 모드	음성, 배경음, 효과음은 모두 audio/ 경로의 실제 파일을 가리키는가	통과	VOICE_GUIDES, BUTTON_SOUND_SRC, BGM_SRC의 audio 파일이 모두 존재. 정답/오답음은 WebAudio 합성음으로 처리.
+D-08	파일 이름	모든 모드	코드에 적힌 파일 이름과 실제 파일 이름의 대소문자가 일치하는가	통과	참조 경로 55개를 실제 디렉터리명과 대소문자까지 대조했고 불일치 없음.
+D-09	정적 실행	모든 모드	정적 서버에서 게임 첫 화면이 404 없이 열리는가	통과	로컬 정적 서버 http://127.0.0.1:8150/index.html?mode=standard 응답 200 확인.
+D-10	초기 오류	모든 모드	게임 진입 직후 브라우저 콘솔에 치명적인 오류가 없는가	통과	4개 모드 스모크가 완료까지 진행됨. 자동화 환경의 MutationObserver 로그는 repo 소스에 해당 코드가 없어 게임 진행 오류로 보지 않음.
+D-11	로딩 화면	모든 모드	로딩 화면의 제목, 안내 문구, 진행 표시가 깨지지 않고 보이는가	통과	index.html 로딩 화면과 start-loading-fill/text 확인. 브라우저 스모크에서 LOADING_PROGRESS 후 READY 수신.
+D-12	준비 이벤트	모든 모드	에셋 로드가 끝나면 READY 이벤트가 한 번 전송되는가	통과	표준, 알림, 케어, AI 연동 스모크에서 각 세션마다 READY 1회 수신.
+D-13	표준 모드 흐름	표준 모드	표준 모드는 컨디션 체크, 시작, 난이도, 방법 안내, 준비, 플레이 순서로 진행되는가	통과	표준 스모크 첫 화면 precheck 확인. beginActivityIntro에서 방법 안내는 af_seen_how가 없고 showHowToPlay=true일 때 표시됨.
+D-14	알림 모드 흐름	알림 모드	알림 모드는 난이도 선택 없이 normal 기준으로 자동 시작되는가	통과	알림 스모크에서 시작 화면 없이 play로 자동 진입했고 payload difficulty=normal 확인.
+D-15	케어 모드 흐름	케어 모드	케어 모드는 쉬운 난이도, 2개 선택지, 5문항의 짧은 흐름으로 시작되는가	통과	normalizeRuntimeConfig에서 care 기본 difficulty=easy, questionCount=5, animalCount=2. 스모크 payload도 easy 확인.
+D-16	AI 연동 모드 흐름	AI 연동 모드	AI 연동 모드는 케어 모드처럼 짧게 실행되고, 완료/복귀 문구는 공통 앱 복귀 기준으로 보이는가	통과	AI 연동 스모크에서 care와 같은 짧은 흐름, 점수 숨김, doneBtn 효담콜로 돌아가기 확인.
+D-17	모드 별칭	모든 모드	alarm, alert, ai, ai-assisted 같은 별칭이 공식 모드로 바뀌는가	통과	normalizeRuntimeConfig의 modeAliases가 alarm/alert를 reminder로, ai/ai_assist/ai_assistant/ai-assisted를 ai_assisted로 변환.
+D-18	body class	모든 모드	현재 모드에 맞는 body class만 켜지는가	통과	applyRuntimeConfig에서 mode-standard, mode-care, mode-reminder, mode-ai를 현재 모드 기준으로 toggle.
+D-19	설정 반영	모든 모드	URL query와 앱에서 보낸 CONFIG가 같은 규칙으로 반영되는가	통과	readUrlConfig와 receiveNativeMessage가 모두 normalizeRuntimeConfig를 통과해 같은 규칙으로 반영.
+D-20	난이도	표준/알림 모드	easy, normal, hard 난이도가 각각 올바르게 적용되는가	통과	DIFFS와 sessionSettings에서 easy 2개, normal 3개, hard 4개 대상 기준으로 세션 구성.
+D-21	단순 모드 난이도	케어/AI 연동 모드	케어 모드와 AI 연동 모드는 외부 난이도 값이 와도 easy로 유지되는가	통과	isSimplifiedMode일 때 difficulty를 항상 easy로 고정. care/ai 스모크 payload도 easy.
+D-22	문항 수 설정	모든 모드	question_count 설정이 실제 문항 수에 반영되는가	통과	4개 모드 스모크에서 question_count=1 전달 시 payload total_questions=1, completed_questions=1 확인.
+D-23	대상 설정	모든 모드	target_animals로 지정한 대상이 세션 선택지에 우선 포함되는가	통과	sessionSettings가 targetAnimals를 fixedTargets로 넘기고 pickSessionAnimals가 우선 포함.
+D-24	UI 표시 설정	모든 모드	점수, 타이머, 진행률, 도움말 표시 여부가 모드와 설정값에 맞게 바뀌는가	부분 통과	점수/진행률/마무리 체크는 모드별 반영 확인. 다만 런타임 기본 showHelp가 알림/케어/AI에서도 true라 data mode_defaults의 false와 다름. 명시적으로 show_help=false를 보내면 숨김 가능.
+D-25	로딩 진행률	모든 모드	로딩 진행률이 0에서 100까지 자연스럽게 올라가는가	통과	loading()에서 requestAnimationFrame 기반 진행률 갱신. 스모크에서 다수 LOADING_PROGRESS 후 READY 수신.
+D-26	로딩 실패	모든 모드	필수 에셋을 못 읽었을 때 오류 화면과 복귀 버튼이 보이는가	통과	assetErrors 발생 시 reportError(asset_load_failed)와 showErrorScreen 호출, errorReturnBtn 제공.
+D-27	컨디션 체크	표준 모드	기분 선택 3종과 수면 시간 선택 UI가 보이는가	통과	index.html에 좋음/보통/나쁨 3종과 수면 시간 다이얼/상하 버튼 존재. 표준 스모크 첫 화면 precheck 확인.
+D-28	수면 시간	표준 모드	수면 시간 버튼과 슬라이더 값이 같은 숫자로 맞춰지는가	부분 통과	상하 버튼과 다이얼 값은 changePrecheckSleep으로 동기화됨. 다만 현재 UI는 슬라이더가 아니라 수면 다이얼 구조.
+D-29	컨디션 건너뛰기	표준 모드	컨디션 체크를 건너뛰어도 게임이 정상 시작되는가	통과	표준 스모크에서 conditionSkip 후 시작, 난이도, 플레이, 완료까지 정상 진행.
+D-30	컨디션 초기화	표준 모드	새 세션을 시작하면 이전 컨디션 선택값이 남지 않는가	부분 통과	페이지 재진입 시 기본값으로 초기화됨. 동일 페이지에서 completed 상태는 resetPreGameCheckState가 early return할 수 있어 완전한 새 세션 초기화는 보강 여지 있음.
+D-31	시작 화면	표준/케어/AI 연동 모드	시작 화면의 제목, 대표 이미지, 시작 버튼이 한 화면 안에 안정적으로 보이는가	통과	표준/케어/AI 연동 스모크에서 start 화면과 startBtn 확인. 반응형 측정에서도 시작 화면 겹침 없음.
+D-32	시작 전 종료	표준/케어/AI 연동 모드	시작 화면에서 게임 종료를 누르면 앱 복귀 신호가 전송되는가	통과	startReturnBtn 클릭 시 RETURN_TO_APP 전송 및 returnToHost/navigateToHub 흐름 존재.
+D-33	난이도 화면	표준 모드	난이도 선택 화면은 표준 모드에서만 보이는가	통과	showDifficultySelect가 mode=standard일 때만 true. 표준 스모크에서 difficulty-ready 확인.
+D-34	방법 안내	표준 모드	게임 방법 화면의 안내 이미지와 버튼이 정상 표시되는가	통과	index.html의 how 화면과 howStartBtn/howSkipBtn 존재. localStorage af_seen_how가 있거나 설정에서 끄면 생략됨.
+D-35	방법 안내 숨김	케어/AI 연동 모드	케어 모드와 AI 연동 모드에서는 방법 안내 버튼이 불필요하게 보이지 않는가	통과	updateModeUi에서 care/ai_assisted 또는 showHowToPlay=false일 때 방법 안내 버튼 숨김.
+D-36	준비 화면	모든 모드	준비 화면과 카운트다운이 끝난 뒤 플레이 화면으로 넘어가는가	통과	4개 모드 스모크에서 ready/countdown 이후 play 화면 진입 및 문항 풀이 확인.
+D-37	일시정지	모든 모드	일시정지 창을 열고 닫아도 현재 문항 상태가 유지되는가	통과	pauseSession/resumeSession이 _paused와 타이머만 제어하고 현재 cur/state를 유지.
+D-38	앱 이탈	모든 모드	페이지가 닫히거나 백그라운드로 가도 세션이 안전하게 정리되는가	통과	visibilitychange는 pauseSession, pagehide는 진행 중 finishSession(false, pagehide) 호출.
+D-39	쉬운 난이도	표준/알림 모드	쉬운 난이도는 2개 선택지와 10개 먹이 문항으로 구성되는가	통과	DIFFS easy는 2개 대상과 10라운드. non-hard에서는 hard 전용 trash가 제외되어 먹이 문항으로 구성.
+D-40	보통 난이도	표준/알림 모드	보통 난이도는 3개 선택지와 10개 먹이 문항으로 구성되는가	통과	DIFFS normal은 3개 대상과 10라운드. non-hard trash 제외 로직으로 먹이 문항으로 구성.
+D-41	어려운 난이도	표준/알림 모드	어려운 난이도는 4개 선택지와 정리 문항 2개를 포함하는가	통과	DIFFS hard는 4개 대상과 trash 2개. trashItemsForDifficulty에서 hard일 때 patjuk/talisman 허용.
+D-42	짧은 세션	케어/AI 연동 모드	케어 모드와 AI 연동 모드는 5문항, 2개 선택지로 구성되는가	통과	normalizeRuntimeConfig에서 simplified mode 기본 questionCount=5, animalCount=2, trashCount=0.
+D-43	대상 우선 포함	모든 모드	지정한 대상이 있을 때 세션에서 누락되지 않는가	통과	targetAnimals를 fixedTargets로 넣고 effectiveCount를 fixedTargets 이상으로 보정.
+D-44	문항 개수	모든 모드	시작 전에 계획한 문항 수와 실제 완료 문항 수가 맞는가	통과	state.plannedRounds와 completedRounds를 payload에 반영. 스모크에서 1/1 완료 확인.
+D-45	먹이 표시	모든 모드	먹이 이미지와 먹이 이름이 데이터에 적힌 값과 맞게 보이는가	통과	nextQuestion에서 FOODS의 item.img와 item.label을 item 배경과 itemLabel에 반영.
+D-46	정답 연결	먹이 문항	먹이 색과 정답 대상이 데이터 기준으로 정확히 연결되는가	통과	FOODS target과 data JSON food_ids가 색상별 대상과 일치. 스모크에서 표시 먹이의 정답 대상 클릭으로 정답 처리 확인.
+D-47	정리 문항	어려운 난이도	정리 문항은 아무 대상에게도 주지 않는 문항으로 처리되는가	통과	trash 문항은 correctTargetId를 no_target으로 설정하고 자동 대기 정답 처리.
+D-48	진행 표시	표준/알림 모드	문항을 풀 때마다 현재 번호와 진행률이 1문항씩 올라가는가	통과	renderDots가 state._idx+1과 plannedRounds 기준으로 progressGaugeFill을 갱신.
+D-49	타이머	표준/알림 모드	타이머가 보이는 모드에서 남은 시간이 정상적으로 줄어드는가	통과	shouldDisplaySessionTimer가 표준/알림에서만 true가 되며 tickSessionTimer가 250ms 주기로 남은 시간 갱신 및 시간 초과 처리.
+D-50	세션 완료	모든 모드	마지막 문항 뒤 세션 완료 처리가 한 번만 실행되는가	통과	finishSession은 state._status가 running일 때만 실행되어 중복 완료를 막음.
+D-51	터치 입력	모든 모드	대상을 터치하면 선택값이 정상 처리되는가	통과	브라우저 스모크에서 item 선택 후 spot 클릭으로 4개 모드 모두 정답 처리.
+D-52	드래그 입력	모든 모드	먹이를 드래그해서 대상에게 놓으면 선택값이 정상 처리되는가	통과	pointerdown/move/up에서 spotAt으로 대상 판정 후 resolve(target, drag) 호출.
+D-53	드래그 실패	모든 모드	선택지 밖에 놓은 먹이는 원래 자리로 돌아가는가	통과	pointerup에서 target이 없으면 dragFailCount 증가 후 snapBack 호출.
+D-54	키보드 입력	접근성	키보드만으로도 대상 선택과 버튼 조작이 가능한가	통과	spot은 role=button, tabindex=0이며 Enter/Space keydown으로 resolve. 일반 버튼은 native keyboard 조작 가능.
+D-55	중복 입력 방지	모든 모드	피드백이 나오는 동안 같은 문항이 중복 선택되지 않는가	통과	resolve가 cur._locked와 state._status를 검사하고 정답/정답공개 후 _locked=true로 중복 입력 차단.
+D-56	첫 반응 시간	모든 모드	각 문항의 첫 반응 시간은 첫 입력 때 한 번만 기록되는가	통과	markFirstReaction에서 cur._firstReacted가 false일 때만 firstReactionMs 기록.
+D-57	시도 횟수	모든 모드	정답 전까지의 오답 시도 횟수가 문항 로그에 남는가	통과	resolve마다 attempts와 wrongDropCount를 누적하고 toQuestionLog의 attempt_count/wrong_tap_count/retry_count에 반영.
+D-58	정답 피드백	모든 모드	정답을 고르면 긍정 피드백 이미지, 문구, 효과음이 나온다	통과	resolve 정답 분기에서 correctImg, bubble cheer, good prompt, dingHappy, wellDone 안내 호출.
+D-59	오답 피드백	케어/AI 연동 모드	오답 안내는 부담스럽거나 부정적인 표현 없이 보이는가	통과	softFeedback 모드에서 오답 문구가 괜찮아요/천천히 다시 같이 볼까요 계열로 표시.
+D-60	정답 공개	모든 모드	오답이 3번 누적되면 정답을 알려주고 다음 문항으로 넘어가는가	통과	MAX_WRONG_ATTEMPTS=3 이후 answerRevealed=true, showCorrectAnswer, nextQuestion 지연 실행.
+D-61	정리 자동 처리	어려운 난이도	정리 문항에서 기다리면 자동으로 정답 처리되는가	통과	no_target 문항에서 NO_TARGET_AUTO_CORRECT_MS 2000ms 후 autoCorrectNoTargetQuestion 실행.
+D-62	정리 오답	어려운 난이도	정리 문항에서 대상을 누르면 오답으로 처리되고 다시 기다릴 수 있는가	통과	정리 문항 오답 시 warn prompt 후 scheduleNoTargetAutoCorrect를 다시 호출.
+D-63	선택 강조	모든 모드	문항이 끝나면 선택 강조 표시가 다음 문항에 남지 않는가	통과	finishQuestion 이후 clearSpotStates 호출로 target/hint/good/bad/dim/react class 제거.
+D-64	화면 스크롤	모바일	드래그나 터치 중에 화면이 의도치 않게 밀리지 않는가	통과	포인터 드래그에서 preventDefault 사용. 모바일 390x844 반응형 측정에서 scrollWidth=viewportWidth, 겹침 없음.
+D-65	도움말 버튼	표준/알림 모드	도움말이 켜진 모드에서 도움말 버튼이 보이는가	통과	updateModeUi가 runtime.showHelp=true일 때 play.hide-help를 제거. 표준/알림 기본 showHelp=true.
+D-66	도움말 기록	표준/알림 모드	도움말을 누르면 도움말 사용 횟수와 이벤트가 기록되는가	통과	helpBtn 클릭 시 state._helpOpenCount 증가, cur.hintUsed=true, HELP_USED 이벤트 전송.
+D-67	도움말 숨김	케어/AI 연동 모드	도움말을 숨기도록 설정한 모드에서는 버튼이 보이지 않는가	부분 통과	show_help=false를 명시하면 hide-help가 적용됨. 하지만 care/AI 기본 런타임 config_snapshot은 showHelp=true로 나타나 기본 모드에서는 버튼이 남을 수 있음.
+D-68	자동 도움말	케어/AI 연동 모드	오답이 반복되면 자동 도움말이 부드럽게 나타나는가	통과	autoHintEnabled와 hintEnabled가 true이고 attempts>=2이면 softFeedback 문구와 힌트 강조 표시.
+D-69	도움말 집계	모든 모드	수동 도움말과 자동 도움말 사용 여부가 결과에 남는가	통과	hint_count는 hintUsed 문항 수, help_open_count는 수동 도움말 횟수로 payload/result_detail_json에 포함.
+D-70	음성 안내	모든 모드	음성 안내가 켜진 상태에서 주요 화면 안내가 재생되는가	통과	VOICE_GUIDES 14개 파일 존재. 주요 화면에서 playVoiceGuide 호출. 브라우저 자동재생 정책 시 fallbackText/TTS 경로 존재.
+D-71	배경음	모든 모드	사용자 첫 조작 뒤 배경음이 재생되거나 재생 가능 상태가 되는가	통과	pointerdown/touchstart에서 unlockMedia 후 recorded BGM 재생 시도, 실패 시 synth background music fallback.
+D-72	효과음	모든 모드	버튼, 정답, 오답 효과음이 상황에 맞게 들리는가	통과	버튼은 button-click.mp3, 정답/오답은 dingHappy/dingSoft WebAudio 효과음 사용.
+D-73	음소거	모든 모드	음소거 상태에서는 배경음, 효과음, 음성 안내가 멈추는가	통과	MUTE/SET_AUDIO에서 voiceOn/sfxOn/bgmOn을 false로 만들고 stopVoiceGuide, stopBackgroundMusic 경로 제공.
+D-74	음성 대체	모든 모드	음성 파일을 재생하지 못해도 화면 안내 문구는 계속 보이는가	통과	playVoiceGuide 실패 시 fallbackText를 TTS로 시도하고, 화면 prompt 텍스트는 별도로 이미 표시됨.
+D-75	피드백 문구	모든 모드	정답, 오답, 도움말 문구가 버튼이나 이미지와 겹치지 않는가	통과	PC 1280x720, 태블릿 768x1024, 모바일 390x844에서 시작/플레이 화면 주요 요소 겹침 0건 측정.
+D-76	결과 화면	표준 모드	표준 모드 결과 화면에 정답 수, 오답 수, 정답률이 보이는가	통과	표준 스모크에서 doneTitle 오늘 활동 점수예요, doneStats visible 확인.
+D-77	점수 숨김	알림/케어/AI 연동 모드	점수 부담을 줄이는 모드에서는 참여 완료 중심 문구가 보이는가	통과	알림/케어/AI 스모크에서 doneStats hidden, 참여/정리 완료 중심 문구 확인.
+D-78	다시하기	표준 모드	다시하기를 누르면 이전 결과가 남지 않는 새 세션이 시작되는가	미흡	result-bridge.js에서 completed 또는 finishCheck 대상이면 againBtn을 hidden 처리함. 완료된 표준 결과 화면에서 다시하기 버튼을 누를 수 없음.
+D-79	마무리 체크	표준 모드	표준 모드 완료 후 마무리 체크 화면이 필요한 순서대로 보이는가	통과	표준 스모크에서 doneBtn 마무리 체크 클릭 후 finish 화면 표시 확인.
+D-80	마무리 기록	표준 모드	마무리 체크에서 고른 값이 최종 결과에 포함되는가	통과	submitFinishCheck가 condition/fatigue/difficulty/help/replay 값을 pendingCompletionMessage와 result_detail_json에 병합.
+D-81	마무리 건너뛰기	표준 모드	마무리 체크를 건너뛰어도 결과 전송이 누락되지 않는가	통과	표준 스모크에서 finishSkipBtn 후 FINISH_CHECK, SESSION_COMPLETE, RETURN_TO_APP 수신. finish_check skipped=true 포함.
+D-82	완료 버튼	알림/케어/AI 연동 모드	완료 버튼 문구가 특정 AI 대화가 아니라 공통 앱 복귀 흐름에 맞게 보이는가	통과	케어/AI는 효담콜로 돌아가기, 알림은 확인과 자동 허브 복귀 안내로 특정 AI 대화 문구 없음.
+D-83	자동 복귀	알림/케어/AI 연동 모드	완료 후 설정된 시간에 앱 복귀 요청이 한 번만 전송되는가	통과	케어 모드 자동 복귀 테스트에서 SESSION_COMPLETE 후 RETURN_TO_APP 1회 수신.
+D-84	수동 복귀	알림/케어/AI 연동 모드	완료 버튼을 직접 누르면 자동 복귀 타이머가 정리되는가	통과	auto_return_ms=5000 케어 테스트에서 doneBtn 클릭 후 RETURN_TO_APP 1회만 수신.
+D-85	중도 종료	모든 모드	중도 종료 시 abandoned 상태와 종료 이유가 결과에 남는가	통과	quit/QUIT/time_limit/pagehide 경로가 finishSession(false, reason)을 호출하고 status=abandoned, abandon_reason, abandon_step을 payload에 포함.
+D-86	오류 종료	모든 모드	런타임 오류가 생겨도 오류 화면과 앱 복귀 버튼이 제공되는가	통과	window error handler가 ERROR 전송, 진행 중이면 SESSION_ABORT status=error 처리, error 화면과 errorReturnBtn 제공.
+D-87	문항 이벤트	모든 모드	각 문항이 끝날 때 QUESTION_RESULT 이벤트가 전송되는가	통과	4개 모드 스모크에서 QUESTION_RESULT 수신.
+D-88	완료 payload	모든 모드	SESSION_COMPLETE payload에 세션 기본 필드가 빠짐없이 들어가는가	통과	스모크 payload에서 session_id, content_id, game_key, version, mode, difficulty, status, started/ended 계열 및 집계 필드 확인.
+D-89	문항 로그	모든 모드	question_logs에 문항 번호, 정답, 선택값, 정오답, 반응 시간이 들어가는가	통과	toQuestionLog가 question_index, correct_answer, selected_answer, is_correct, response_time_ms 등을 생성. 스모크에서 question_logs_length=1 확인.
+D-90	상세 결과	모든 모드	result_detail_json에 설정값, 원본 결과, 진행 집계가 포함되는가	통과	스모크 payload result_detail_json에 config_snapshot, raw_results, process, question_logs, session, reward 등 포함 확인.
+D-91	집계값	모든 모드	정답 수, 오답 수, 도움말 수, 평균 반응 시간이 문항 로그 합계와 맞는가	통과	toCommonSessionLog가 _results 기반 correct/wrong/hint/avg/retry 집계. 스모크 1문항 결과와 집계 일치.
+D-92	외부 입력	AI 연동 모드	EXTERNAL_ANSWER를 받아도 게임 안에서 AI 판단 문구를 새로 만들지 않는가	통과	handleExternalAnswer는 선택값을 대상 ID/라벨/no_target으로 매핑해 resolve만 호출하며 AI 판단 문구 생성 없음.
+D-93	설정 이벤트	앱 연동	앱에서 설정을 보내면 CONFIG_APPLIED 이벤트가 돌아오는가	통과	receiveNativeMessage에서 CONFIG 수신 후 applyRuntimeConfig와 CONFIG_APPLIED 이벤트 전송.
+D-94	앱 명령	앱 연동	PAUSE, RESUME, QUIT 명령이 세션 상태에 맞게 처리되는가	통과	receiveNativeMessage가 PAUSE, RESUME, QUIT를 각각 pauseSession, resumeSession, finishSession(false, app_quit)으로 연결.
+D-95	반응형 화면	모든 모드	모바일, 태블릿, PC 크기에서 주요 버튼과 문구가 겹치지 않는가	통과	1280x720, 768x1024, 390x844에서 시작/플레이 화면 scrollWidth=viewportWidth 및 주요 UI 겹침 0건 측정.
+D-96	배포 확인	모든 모드	배포 경로에서 4개 모드 URL이 모두 정상 진입과 완료까지 가능한가	통과	로컬 정적 배포 경로에서 standard, reminder, care, ai_assisted 4개 모드 모두 1문항 완료와 SESSION_COMPLETE 확인.
