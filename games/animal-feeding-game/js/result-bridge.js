@@ -55,13 +55,6 @@ function doneStatsHtml() {
   `;
 }
 
-const DONE_REACTIONS = {
-  tiger: "든든해요",
-  monkey: "신나요",
-  squirrel: "좋아요",
-  panda: "고마워요",
-};
-
 let autoReturnTimer = null;
 let finishCheckOpened = false;
 let finishCheckSubmitted = false;
@@ -116,6 +109,16 @@ function shouldShowFinishCheck(completed, reason) {
   return runtime.mode === "standard" && reason === "user_quit";
 }
 
+function isCareOrAiMode() {
+  return runtime.mode === "care" || runtime.mode === "ai_assisted";
+}
+
+function doneButtonLabel(completed, shouldFinishCheck) {
+  if (shouldFinishCheck) return "마무리 체크";
+  if (isCareOrAiMode()) return "효담콜로 돌아가기";
+  return completed ? "확인" : "오늘은 여기까지";
+}
+
 function finishSession(completed, reason = "user_quit", error = null) {
   if (!state) return;
   if (state._status !== "running") return;
@@ -137,29 +140,11 @@ function finishSession(completed, reason = "user_quit", error = null) {
   try { speechSynthesis.cancel(); } catch(_) {}
   if (typeof stopVoiceGuide === "function") stopVoiceGuide();
 
-  // hero row of session animals
+  // The result screen uses a quiet summary layout without the character row.
   const row = document.getElementById("doneHero");
   document.getElementById("done")?.classList.toggle("session-complete", !!completed);
   document.getElementById("done")?.classList.toggle("session-rest", !completed);
-  row.innerHTML = "";
-  state._animals.forEach(a => {
-    const friend = document.createElement("div");
-    friend.className = `done-friend done-${a}`;
-    friend.dataset.target = a;
-    if (ANIMALS[a]?.baseImg) friend.style.setProperty("--done-base-image", `url("${new URL(assetUrl(ANIMALS[a].baseImg), window.location.href).href}")`);
-    friend.dataset.reaction = completed ? (DONE_REACTIONS[a] || "좋아요") : "쉬어가요";
-    const i = new Image();
-    i.src = assetUrl(ANIMALS[a].img); i.alt = ANIMALS[a].label;
-    i.className = "done-animal";
-    const joy = document.createElement("div");
-    joy.className = "done-joy";
-    joy.textContent = friend.dataset.reaction;
-    const name = document.createElement("div");
-    name.className = "done-friend-name";
-    name.textContent = ANIMALS[a].label;
-    friend.append(joy, i, name);
-    row.appendChild(friend);
-  });
+  if (row) row.innerHTML = "";
 
   const stats = doneStatsHtml();
   const doneStats = document.getElementById("doneStats");
@@ -183,8 +168,8 @@ function finishSession(completed, reason = "user_quit", error = null) {
   if (shouldFinishCheck) resetFinishCheck();
   const againBtn = document.getElementById("againBtn");
   const doneBtn = document.getElementById("doneBtn");
-  if (againBtn) againBtn.classList.toggle("hidden", !!completed || shouldFinishCheck);
-  if (doneBtn) doneBtn.textContent = shouldFinishCheck ? "마무리 체크" : (completed ? "확인" : "오늘은 여기까지");
+  if (againBtn) againBtn.classList.toggle("hidden", !!completed || shouldFinishCheck || isCareOrAiMode());
+  if (doneBtn) doneBtn.textContent = doneButtonLabel(completed, shouldFinishCheck);
   show("done");
   if (completed) {
     playVoiceGuide("sessionComplete", runtime.softFeedback ? "오늘은 여기까지 해도 충분해요. 잘 참여해주셨어요." : "오늘도 잘 해내셨어요");

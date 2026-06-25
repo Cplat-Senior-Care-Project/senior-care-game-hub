@@ -316,6 +316,7 @@ function applyRuntimeConfig(next) {
 function updateModeUi() {
   const start = document.getElementById("start");
   const hideHowToPlayButton = runtime.mode === "care" || runtime.mode === "ai_assisted" || !runtime.showHowToPlay;
+  const hideReplayButton = !runtime.allowReplay || runtime.mode === "care" || runtime.mode === "ai_assisted";
   start?.classList.toggle("hide-difficulty", !runtime.showDifficultySelect);
   start?.classList.toggle("hide-settings", !runtime.showSettings);
   start?.classList.toggle("hide-how", hideHowToPlayButton);
@@ -328,12 +329,10 @@ function updateModeUi() {
   document.getElementById("playSettingsWrap")?.classList.toggle("hidden", !runtime.showSettings);
   document.getElementById("playSettingsPanel")?.classList.remove("open");
   document.getElementById("playSettingsBtn")?.setAttribute("aria-expanded", "false");
-  document.getElementById("againBtn")?.classList.toggle("hidden", !runtime.allowReplay);
+  document.getElementById("againBtn")?.classList.toggle("hidden", hideReplayButton);
   const doneBtn = document.getElementById("doneBtn");
   if (doneBtn) {
-    doneBtn.textContent = runtime.mode === "ai_assisted"
-      ? "AI 대화로 돌아가기"
-      : "효담콜로 돌아가기";
+    doneBtn.textContent = "효담콜로 돌아가기";
   }
   const howAgainBtn = document.getElementById("howAgainBtn");
   if (howAgainBtn) howAgainBtn.classList.toggle("hidden", hideHowToPlayButton);

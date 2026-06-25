@@ -3491,6 +3491,10 @@ body.mode-ai #howAgainBtn {
   transition: transform 120ms ease, box-shadow 120ms ease, filter 120ms ease;
 }
 
+#done .done-actions #againBtn.hidden {
+  display: none !important;
+}
+
 #startBtn.start-button,
 #howStartBtn,
 #finishNextBtn,
@@ -3791,6 +3795,206 @@ body.mode-ai #howAgainBtn {
 #start.difficulty-ready .diff-s {
   margin-top: 6px !important;
   line-height: 1.08 !important;
+}
+
+/* Result and finish refinements requested for the compact mobile frame. */
+#finish > .activity-label {
+  display: none !important;
+}
+
+#done {
+  justify-content: flex-start !important;
+  gap: clamp(7px, 1.7vh, 14px) !important;
+  padding-block: calc(var(--safe-t) + clamp(76px, 12vh, 108px)) max(8px, var(--safe-b)) !important;
+}
+
+#done .done-hero {
+  display: none !important;
+}
+
+#done .done-title-area {
+  width: min(1120px, calc(100% - 96px)) !important;
+  min-height: clamp(260px, 42vh, 330px) !important;
+  display: flex !important;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(6px, 1.2vh, 10px);
+  padding: clamp(13px, 2.4vh, 24px) clamp(24px, 5vw, 54px) clamp(18px, 3vh, 28px) !important;
+  border-radius: 8px !important;
+  background:
+    linear-gradient(180deg, rgba(235, 244, 250, .88), rgba(227, 235, 237, .78)) !important;
+  border: 2px solid rgba(72, 96, 108, .26) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.75),
+    0 16px 34px rgba(22, 39, 54, .18) !important;
+}
+
+#done .done-eyebrow {
+  min-height: clamp(30px, 5.7vh, 48px) !important;
+  padding: 4px clamp(24px, 5vw, 48px) 8px !important;
+  margin-bottom: 0 !important;
+  border-radius: 999px !important;
+  font-size: clamp(20px, 3.2vw, 30px) !important;
+  line-height: 1 !important;
+  white-space: nowrap;
+}
+
+#done .done-title {
+  font-size: clamp(27px, 4.7vw, 44px) !important;
+  line-height: 1.1 !important;
+  font-weight: 950 !important;
+  letter-spacing: 0 !important;
+  white-space: nowrap;
+}
+
+#done .done-sub,
+#done .done-return-note {
+  font-size: clamp(19px, 3.55vw, 33px) !important;
+  line-height: 1.18 !important;
+  font-weight: 900 !important;
+  letter-spacing: 0 !important;
+}
+
+#done .stats {
+  width: min(1120px, calc(100% - 96px)) !important;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: clamp(6px, 1vw, 10px) !important;
+}
+
+#done .score-stat {
+  min-width: 0 !important;
+  width: 100%;
+  min-height: clamp(132px, 18vh, 152px);
+  display: grid;
+  place-items: center;
+  align-content: center;
+  padding: clamp(8px, 1.8vh, 14px) clamp(7px, 1.6vw, 16px) !important;
+  border-radius: 8px !important;
+}
+
+#done .score-stat b {
+  font-size: clamp(24px, 4.6vw, 42px) !important;
+  line-height: 1 !important;
+}
+
+#done .score-stat span {
+  margin-top: clamp(3px, .8vh, 7px) !important;
+  font-size: clamp(16px, 2.8vw, 25px) !important;
+  line-height: 1.08 !important;
+  word-break: keep-all;
+}
+
+#done .done-actions {
+  width: min(1120px, calc(100% - 96px));
+  gap: clamp(8px, 1.3vw, 12px) !important;
+  flex-wrap: nowrap;
+}
+
+#done .done-actions .btn {
+  height: clamp(62px, 8.5vh, 72px) !important;
+  min-height: clamp(62px, 8.5vh, 72px) !important;
+  white-space: nowrap !important;
+  word-break: keep-all !important;
+  overflow-wrap: normal !important;
+}
+
+#done .done-actions #againBtn {
+  width: clamp(242px, 30vw, 300px) !important;
+  min-width: clamp(242px, 30vw, 300px) !important;
+  max-width: clamp(242px, 30vw, 300px) !important;
+  font-size: clamp(17px, 2.7vw, 22px) !important;
+}
+
+#done .done-actions #doneBtn {
+  width: clamp(180px, 24vw, 240px) !important;
+  min-width: clamp(180px, 24vw, 240px) !important;
+  max-width: clamp(180px, 24vw, 240px) !important;
+  font-size: clamp(17px, 2.7vw, 22px) !important;
+}
+
+body.mode-care #done .done-actions #doneBtn,
+body.mode-ai #done .done-actions #doneBtn {
+  width: clamp(248px, 34vw, 340px) !important;
+  min-width: clamp(248px, 34vw, 340px) !important;
+  max-width: clamp(248px, 34vw, 340px) !important;
+}
+
+@container game-stage (max-height: 380px) {
+  #done {
+    gap: 5px !important;
+    padding-block: calc(var(--safe-t) + 84px) max(6px, var(--safe-b)) !important;
+  }
+
+  #done .done-title-area {
+    width: min(1120px, calc(100% - 96px)) !important;
+    min-height: 260px !important;
+    padding: 9px 28px 14px !important;
+  }
+
+  #done .done-eyebrow {
+    min-height: 34px !important;
+    font-size: clamp(18px, 3vw, 24px) !important;
+  }
+
+  #done .done-title {
+    font-size: clamp(25px, 4.2vw, 34px) !important;
+  }
+
+  #done .done-sub,
+  #done .done-return-note {
+    font-size: clamp(18px, 3.1vw, 26px) !important;
+  }
+
+  #done .stats {
+    width: min(1120px, calc(100% - 96px)) !important;
+    gap: 5px !important;
+  }
+
+  #done .score-stat {
+    min-height: 116px;
+    padding: 7px 6px !important;
+  }
+
+  #done .score-stat b {
+    font-size: clamp(23px, 4.2vw, 34px) !important;
+  }
+
+  #done .score-stat span {
+    font-size: clamp(15px, 2.5vw, 21px) !important;
+  }
+
+  #done .done-actions {
+    width: min(1120px, calc(100% - 96px));
+    gap: 7px !important;
+  }
+
+  #done .done-actions .btn {
+    height: 70px !important;
+    min-height: 70px !important;
+  }
+
+  #done .done-actions #againBtn {
+    width: clamp(234px, 32vw, 276px) !important;
+    min-width: clamp(234px, 32vw, 276px) !important;
+    max-width: clamp(234px, 32vw, 276px) !important;
+    font-size: clamp(16px, 2.4vw, 20px) !important;
+  }
+
+  #done .done-actions #doneBtn {
+    width: clamp(174px, 24vw, 220px) !important;
+    min-width: clamp(174px, 24vw, 220px) !important;
+    max-width: clamp(174px, 24vw, 220px) !important;
+    font-size: clamp(16px, 2.4vw, 20px) !important;
+  }
+
+  body.mode-care #done .done-actions #doneBtn,
+  body.mode-ai #done .done-actions #doneBtn {
+    width: clamp(238px, 34vw, 320px) !important;
+    min-width: clamp(238px, 34vw, 320px) !important;
+    max-width: clamp(238px, 34vw, 320px) !important;
+  }
 }
 
 #start.difficulty-ready .diff-desc {
