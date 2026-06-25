@@ -3900,6 +3900,15 @@ body.mode-ai #howAgainBtn {
   overflow-wrap: normal !important;
 }
 
+#quitModal .sheet-actions #stopBtn {
+  width: min(100%, clamp(280px, 31vw, 360px)) !important;
+  min-width: min(100%, 280px) !important;
+  max-width: 100% !important;
+  white-space: nowrap !important;
+  word-break: keep-all !important;
+  overflow-wrap: normal !important;
+}
+
 #done .done-actions #againBtn {
   width: clamp(242px, 30vw, 300px) !important;
   min-width: clamp(242px, 30vw, 300px) !important;
