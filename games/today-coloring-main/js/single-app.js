@@ -104,6 +104,58 @@
     return false;
   }
 
+  function isAlarmCareMode(modeConfig) {
+    return modeConfig && (modeConfig.id === "alarm" || modeConfig.id === "care");
+  }
+
+  function resolveUrl(value) {
+    if (!value) return "";
+    try {
+      return new URL(value, window.location.href).href;
+    } catch (_) {
+      return "";
+    }
+  }
+
+  function getHubReturnUrl() {
+    const params = getParams();
+    const explicitKeys = ["return_url", "returnUrl", "hub_url", "hubUrl", "redirect_url", "redirectUrl"];
+    for (let index = 0; index < explicitKeys.length; index += 1) {
+      const explicitUrl = resolveUrl(params.get(explicitKeys[index]));
+      if (explicitUrl) return explicitUrl;
+    }
+
+    const referrerUrl = resolveUrl(document.referrer);
+    if (referrerUrl && referrerUrl !== window.location.href) return referrerUrl;
+
+    const defaultPath = (window.location.pathname || "").indexOf("/games/") !== -1 ? "../../index.html" : "index.html";
+    return resolveUrl(defaultPath);
+  }
+
+  function navigateToHubPage() {
+    const targetUrl = getHubReturnUrl();
+    window.setTimeout(() => {
+      if (targetUrl) {
+        try {
+          if (window.parent && window.parent !== window) {
+            window.parent.location.href = targetUrl;
+            return;
+          }
+        } catch (_) {
+        }
+
+        try {
+          window.location.replace(targetUrl);
+        } catch (_) {
+          window.location.href = targetUrl;
+        }
+        return;
+      }
+
+      if (window.history.length > 1) window.history.back();
+    }, 120);
+  }
+
   function SingleIntro({ art, modeConfig, onStart }) {
     return e("main", { className: "single-intro" },
       e("section", { className: "single-intro__panel", "aria-label": "게임방법" },
@@ -226,7 +278,8 @@
       if (returning) return;
       setReturning(true);
       sendSessionEnd(reason, { completed: true, abandoned: false });
-    }, [returning, sendSessionEnd]);
+      if (isAlarmCareMode(modeConfig)) navigateToHubPage();
+    }, [modeConfig, returning, sendSessionEnd]);
 
     const resetAutoReturnTimer = React.useCallback(() => {
       if (screen !== "done" || returning) return;
