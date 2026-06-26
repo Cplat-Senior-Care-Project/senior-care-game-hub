@@ -96,6 +96,22 @@
       box-shadow: none;
     }
 
+    .game-thumbnail {
+      margin: 0;
+      overflow: hidden;
+      aspect-ratio: 4 / 3;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #10233f;
+    }
+
+    .game-thumbnail img {
+      display: block;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
     .card-head {
       display: grid;
       gap: 9px;
@@ -484,6 +500,9 @@
           <h2>오늘의 준비물</h2>
           <p class="card-copy">오늘 필요한 물건을 보고 기억한 뒤 준비물을 확인하는 기억 활동입니다.</p>
         </div>
+        <figure class="game-thumbnail">
+          <img src="games/what-fits-where/thumbnail-4x3.png" alt="오늘의 준비물 썸네일" loading="lazy" decoding="async">
+        </figure>
         <div class="mode-grid" aria-label="오늘의 준비물 모드">
           <a class="mode-link standard" href="games/what-fits-where/index.html?mode=standard" data-game-key="what_fits_where" data-mode="standard">표준 모드</a>
           <a class="mode-link reminder" href="games/what-fits-where/index.html?mode=reminder" data-game-key="what_fits_where" data-mode="reminder">알림 모드</a>
@@ -496,8 +515,11 @@
         <div class="card-head">
           <div class="card-kicker"><span class="status-dot" aria-hidden="true"></span>연결됨</div>
           <h2>도깨비야! 무슨 색을 먹니?</h2>
-          <p class="card-copy">동물에게 맞는 먹이를 고르고 순서대로 챙겨 주는 돌봄 기억 활동입니다.</p>
+          <p class="card-copy">도깨비에게 맞는 색 먹이를 고르고 순서대로 챙겨 주는 기억 활동입니다.</p>
         </div>
+        <figure class="game-thumbnail">
+          <img src="games/animal-feeding-game/game-thumbnail.png" alt="도깨비야! 무슨 색을 먹니? 썸네일" loading="lazy" decoding="async">
+        </figure>
         <div class="mode-grid" aria-label="도깨비야! 무슨 색을 먹니? 모드">
           <a class="mode-link standard" href="games/animal-feeding-game/index.html?mode=standard" data-game-key="animal_feeding" data-mode="standard">표준 모드</a>
           <a class="mode-link reminder" href="games/animal-feeding-game/index.html?mode=reminder" data-game-key="animal_feeding" data-mode="reminder">알림 모드</a>
