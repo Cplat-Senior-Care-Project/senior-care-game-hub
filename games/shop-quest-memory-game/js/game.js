@@ -1070,10 +1070,11 @@
     const base = DEFAULT_DIFFICULTIES[key] || DEFAULT_DIFFICULTIES.easy;
     const override = runtimeConfig && runtimeConfig.difficulties && runtimeConfig.difficulties[key] ? runtimeConfig.difficulties[key] : {};
     const merged = { ...base, ...override, key };
+    const usesStandardPlan = shouldUseStandardDifficultyPlan();
     if (runtimeConfig.memoryItemCount) merged.memoryItemCount = runtimeConfig.memoryItemCount;
     if (runtimeConfig.answerChoiceCount) merged.answerChoiceCount = runtimeConfig.answerChoiceCount;
     if (runtimeConfig.revealMs) merged.revealMs = runtimeConfig.revealMs;
-    if (shouldUseStandardDifficultyPlan()) {
+    if (usesStandardPlan) {
       const plan = getStandardDifficultyQuestionPlan(key, questionIndex);
       if (plan) {
         merged.memoryItemCount = plan.memoryItemCount;
@@ -1088,9 +1089,15 @@
       merged.revealMs = CARE_REVEAL_MS;
     }
     const configuredMaxMemoryItems = runtimeConfig.maxItemsToRemember || MAX_MEMORY_ITEMS;
-    const configuredMaxAnswerChoices = runtimeConfig.answerChoiceCount || (shouldUseStandardDifficultyPlan() ? STANDARD_MAX_ANSWER_CHOICES : SHOPPING_ITEMS.length);
-    const maxMemoryItems = Math.min(configuredMaxMemoryItems, MAX_MEMORY_ITEMS);
-    const maxAnswerChoices = Math.min(configuredMaxAnswerChoices, SHOPPING_ITEMS.length);
+    const configuredMaxAnswerChoices = runtimeConfig.answerChoiceCount || (usesStandardPlan ? STANDARD_MAX_ANSWER_CHOICES : SHOPPING_ITEMS.length);
+    const maxMemoryItems = Math.min(
+      usesStandardPlan ? Math.max(configuredMaxMemoryItems, merged.memoryItemCount) : configuredMaxMemoryItems,
+      MAX_MEMORY_ITEMS
+    );
+    const maxAnswerChoices = Math.min(
+      usesStandardPlan ? Math.max(configuredMaxAnswerChoices, merged.answerChoiceCount) : configuredMaxAnswerChoices,
+      SHOPPING_ITEMS.length
+    );
     merged.memoryItemCount = Math.max(1, Math.min(merged.memoryItemCount, maxMemoryItems));
     merged.answerChoiceCount = Math.max(merged.memoryItemCount + 1, Math.min(merged.answerChoiceCount, maxAnswerChoices));
     return merged;

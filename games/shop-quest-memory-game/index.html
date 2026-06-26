@@ -489,18 +489,36 @@
       var requestedConfigUrl = String(params.get("configUrl") || "").trim();
       var mode = Object.prototype.hasOwnProperty.call(modeMap, requestedMode) ? requestedMode : "standard";
       var difficultyMap = { easy: true, normal: true, hard: true };
+      var hasRequestedDifficulty = Object.prototype.hasOwnProperty.call(difficultyMap, requestedDifficulty);
       var configFile = modeMap[mode];
-      if (mode !== "standard" && Object.prototype.hasOwnProperty.call(difficultyMap, requestedDifficulty)) {
+      if (mode !== "standard" && hasRequestedDifficulty) {
         configFile = mode + "." + requestedDifficulty + ".config.json";
       }
-      var assetVersion = "20260619-care-ai-hide-tutorial";
+      function getDifficultyConfigUrl(configUrl) {
+        if (mode === "standard" || !hasRequestedDifficulty) return configUrl;
+        var hashIndex = configUrl.indexOf("#");
+        var hash = hashIndex >= 0 ? configUrl.slice(hashIndex) : "";
+        var urlWithoutHash = hashIndex >= 0 ? configUrl.slice(0, hashIndex) : configUrl;
+        var queryIndex = urlWithoutHash.indexOf("?");
+        var query = queryIndex >= 0 ? urlWithoutHash.slice(queryIndex) : "";
+        var path = queryIndex >= 0 ? urlWithoutHash.slice(0, queryIndex) : urlWithoutHash;
+        var hubSuffix = "." + mode + ".json";
+        var localSuffix = mode + ".config.json";
+        if (path.slice(-hubSuffix.length) === hubSuffix) {
+          path = path.slice(0, -hubSuffix.length) + "." + mode + "." + requestedDifficulty + ".json";
+        } else if (path.slice(-localSuffix.length) === localSuffix) {
+          path = path.slice(0, -localSuffix.length) + mode + "." + requestedDifficulty + ".config.json";
+        }
+        return path + query + hash;
+      }
+      var assetVersion = "20260626-hard-plan-v1";
       window.__SHOP_QUEST_GAME_MODE__ = mode;
       window.__SHOP_QUEST_MODE_ASSETS__ = {
         css: "css/modes/" + mode + ".css",
         js: "js/modes/" + mode + ".js"
       };
       if (requestedConfigUrl) {
-        window.__GAME_CONFIG_URL__ = requestedConfigUrl;
+        window.__GAME_CONFIG_URL__ = getDifficultyConfigUrl(requestedConfigUrl);
       } else if (!window.__GAME_CONFIG_URL__) {
         window.__GAME_CONFIG_URL__ = "config/" + configFile;
       }
@@ -513,6 +531,6 @@
   </script>
   <script src="js/config-normalizer.js?v=20260605"></script>
   <script src="js/app-bridge.js?v=20260611-config-priority"></script>
-  <script src="js/game.js?v=20260619-care-ai-hide-tutorial"></script>
+  <script src="js/game.js?v=20260626-hard-plan-v1"></script>
 </body>
 </html>
